@@ -4,10 +4,10 @@
 
 Scoop Wallet is a decentralised, open-source and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
 
-The architectural components of Scoop Wallet are (collectively, **"SPCX"**) as follows:
+The architectural components of Scoop Wallet are (collectively, **"SCPX"**) as follows:
 
-  * **SCPX-EOS** - [https://github.com/Scoop-Tech/scpx-eos](Data Storage Contract)
-  * **SCPX-SVR** - [https://github.com/Scoop-Tech/scpx-svr](Web Server) (encryption layer 2)
+  * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
+  * **SCPX-SVR** - [Web Server](https://github.com/Scoop-Tech/scpx-svr) (encryption layer 2)
   * **SCPX-APP** - Scoop Client (encryption layer 1)
  
 For maintenance of user accounts and settings, Scoop Client user accounts are persisted by the SCPX [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a private instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
@@ -32,7 +32,7 @@ See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) 
 
   * Decentralised: user data is held in an EOS data table running on a block producing public sidechain. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/1) for planned enhancement.
 
-  * Key Import: sub-asset private keys can be imported in bulk from native wallets (e.g. `[dumpprivkey]`(https://bitcoincore.org/en/doc/0.16.0/rpc/wallet/dumpprivkey/)) or other sources. Funds are not moved in the process and imported keys are subject to the same multi-layer encryption as native Scoop keys. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/6) for planned enhancement.
+  * Key Import: sub-asset private keys can be imported in bulk from native wallets (e.g. [`dumpprivkey`](https://bitcoincore.org/en/doc/0.16.0/rpc/wallet/dumpprivkey/)) or other sources. Funds are not moved in the process and imported keys are subject to the same multi-layer encryption as native Scoop keys. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/6) for planned enhancement.
 
   * Asset Conversion: currently implemented with Changelly. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/8) for planned enhancement.
 
