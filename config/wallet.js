@@ -1,11 +1,44 @@
-
 export const WALLET_VER = '0.1.0'
 
-// asset types
+// wallet config - core
+export const WALLET_INCLUDE_ETHTEST = false
+export const WALLET_INCLUDE_BTCTEST = false
+export const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000            // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+export const WALLET_REGEN_EVERYTIME = true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
+export const WALLET_DEFAULT_ADDRESSES = 1                           // no. of address slots to (re)gen by default
+export const WALLET_MAX_UNUSED_ADDRESSES = 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
+export const WALLET_MAX_ADDRESSES = 10                              // hard cap max. no. addresses per asset, used or otherwise
+export const WALLET_MAX_TX_HISTORY = 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+
+// wallet config - utxo
+export const UTXO_DUST_SAT = 1                                      // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
+
+// wallet config - eth
+export const ETH_SENDMAX_PADDING_WEI = 50                           // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
+export const ETH_COALESCE_DUST_TO_ZERO = true                       // hide dust values: modifies balances at API and at calculation layers
+export const ETH_DUST_WEI = 200                                     // if less than this, we coalesce the Wei balance to zero
+export const ETH_USEWEB3_ACCOUNT_BALANCES = true                    // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
+export const ETH_ERC20_USEWEB3_TOKEN_BALANCES = true                // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
+export const ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT = 120000            // static gasLimit for ERC20 token transfers, if not specified on the asset's config
+
+// wallet config - network
+export const AXIOS_RETRY_3PBP = {
+    retries: 8,
+    retryDelay: require('axios-retry').exponentialDelay,
+    retryCondition: (res) => { return true }
+}
+
+// wallet test params
+//export const TEST_PAD_TXS = 100                                   // pad TX list -- testing LS/SS limits
+//export const TEST_LARGE_BALANCE = 123.12345678                    // mock balances
+
+
+
+// static - asset types
 export const WALLET_TYPE_UTXO = 'WALLET_TYPE_UTXO'
 export const WALLET_TYPE_ACCOUNT = 'WALLET_TYPE_ACCOUNT'
 
-// address types
+// static - address types
 export const ADDRESS_TYPE_BTC = 'BTC'
 export const ADDRESS_TYPE_LTC = 'LTC'
 export const ADDRESS_TYPE_ETH = 'ETH'
@@ -17,22 +50,12 @@ export const ADDRESS_TYPE_QTUM = 'QTUM'
 export const ADDRESS_TYPE_DGB = 'DGB'
 export const ADDRESS_TYPE_BCHABC = 'BCH'
 
-// price sources
+// static - price sources
 export const PRICE_SOURCE_CRYPTOCOMPARE = 'CC'   // primary
 export const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - todo: move to WS (no CORS) interface, make bitfinex WS primary
 export const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
-// internal consts
-export const WALLET_INCLUDE_ETHTEST = false
-export const WALLET_INCLUDE_BTCTEST = false
-export const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000            // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
-export const WALLET_REGEN_EVERYTIME = true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
-export const WALLET_DEFAULT_ADDRESSES = 1                           // no. of address slots to (re)gen by default
-export const WALLET_MAX_UNUSED_ADDRESSES = 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
-export const WALLET_MAX_ADDRESSES = 10                              // hard cap max. no. addresses per asset, used or otherwise
-export const WALLET_MAX_TX_HISTORY = 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
-
-// main set - supported assets
+// static - supported assets
 export function getSupportedWalletTypes() { // use walletsMeta keys for this list
     var ret
     

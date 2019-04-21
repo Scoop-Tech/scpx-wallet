@@ -113,6 +113,7 @@ export const blockbook_ws_config = {
 //
 export const geth_ws_config = {
     'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',           subBlocks: true  },
+
     'ETH_TEST': { url: 'wss://ropsten.infura.io/ws/v3/93db2c7fd899496d8400e86100058297', subBlocks: true  },
 }
 
