@@ -23,9 +23,14 @@ export const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usab
 export const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // internal consts
-const WALLET_INCLUDE_ETHTEST = false
-const WALLET_INCLUDE_BTCTEST = false
-const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000
+export const WALLET_INCLUDE_ETHTEST = false
+export const WALLET_INCLUDE_BTCTEST = false
+export const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000            // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+export const WALLET_REGEN_EVERYTIME = true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
+export const WALLET_DEFAULT_ADDRESSES = 1                           // no. of address slots to (re)gen by default
+export const WALLET_MAX_UNUSED_ADDRESSES = 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
+export const WALLET_MAX_ADDRESSES = 10                              // hard cap max. no. addresses per asset, used or otherwise
+export const WALLET_MAX_TX_HISTORY = 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
 // main set - supported assets
 export function getSupportedWalletTypes() { // use walletsMeta keys for this list
