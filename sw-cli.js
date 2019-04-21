@@ -38,7 +38,7 @@ const wallet = {
 
 //
 // step 1 - wallet-gen fn's here (static - no 3pbp updates yet)
-//  todo: move wallet reducer and actions to server
+//  todo: move wallet reducer and actions to server - switch on store to use via param.
 //  todo: create new store object for server -- just has the wallet reducer under root --- no persistence needed at all (all in-mem)
 //  todo: generateWallets moves to here: store is passed in (either server store or client store), actions are the same
 //
