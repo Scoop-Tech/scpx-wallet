@@ -56,7 +56,7 @@ const w = {
 // step 2 - 3pbp updates on server wallet store ...
 //
 
-store.dispatch({ type: walletActions.WCORE_SET_ASSETS_RAW, payload: 'asd5____' })
+store.dispatch({ type: walletActions.WCORE_SET_ASSETS_RAW, payload: 'test1' })
 console.dir(w.store.getState())
 
 
