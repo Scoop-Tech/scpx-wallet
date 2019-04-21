@@ -122,5 +122,6 @@ export const geth_ws_config = {
 //
 export const parityPubSub_ws_config = {
     'ETH'     : { url: 'wss://scp-eth6.southeastasia.cloudapp.azure.com:9546', }
+
     //'ETH_TEST': 'wss://scp-eth7.southeastasia.cloudapp.azure.com:9546',
 }

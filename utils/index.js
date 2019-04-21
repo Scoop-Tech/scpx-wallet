@@ -1,6 +1,6 @@
 const BigDecimal = require('js-big-decimal')
 import BigNumber from 'bignumber.js'
-import { AES, PBKDF2, enc } from 'crypto-js'
+import { AES, PBKDF2, SHA256, enc } from 'crypto-js'
 
 import * as configWallet from '../config/wallet'
 
@@ -108,4 +108,20 @@ const getKeyAndIV = (saltStr, passphrase) => {
     const iv128Bits = PBKDF2(passphrase, salt, { keySize: 128 / 32, iterations: iterations })
     const key256Bits = PBKDF2(passphrase, salt, { keySize: 256 / 32, iterations: iterations })
     return { iv: iv128Bits, key: key256Bits }
+}
+export function sha256_shex(data) {
+    return SHA256(data).toString()
+}
+export function batohex(byteArray) {
+    return Array.prototype.map.call(byteArray, function (byte) {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2)
+    }).join('')
+}
+export function hextoba(hexString) {
+    var result = []
+    while (hexString.length >= 2) {
+        result.push(parseInt(hexString.substring(0, 2), 16))
+        hexString = hexString.substring(2, hexString.length)
+    }
+    return result
 }
