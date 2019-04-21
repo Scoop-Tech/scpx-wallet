@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
+import { store, persistor } from './store'
+
+import * as walletActions from './actions'
 import * as configWallet from './config/wallet'
 import * as configWalletExternal from './config/wallet-external'
 
@@ -28,8 +31,10 @@ if (!cli.mpk) {
 
 console.log(chalk.green('MPK: OK'))
 
-// top level wallet obj
-const wallet = { 
+// top level object - for inspection on console
+const w = { 
+    store, 
+    persistor,
     config: {
         wallet: configWallet,
         walletExternal: configWalletExternal,
@@ -37,9 +42,11 @@ const wallet = {
 }
 
 //
-// step 1 - wallet-gen fn's here (static - no 3pbp updates yet)
-//  todo: move wallet reducer and actions to server - switch on store to use via param.
-//  todo: create new store object for server -- just has the wallet reducer under root --- no persistence needed at all (all in-mem)
+// step 1 - wallet-gen fn's here (static only - no 3pbp updates yet)
+//
+//  DONE: create new store object for server -- just has the wallet reducer under root --- no persistence needed at all (all in-mem)
+//
+//  todo: move wallet **actions** to server - switch on store to use via param for dispatching ...
 //  todo: generateWallets moves to here: store is passed in (either server store or client store), actions are the same
 //
 // == in-memory wallet store (raw & displayable assets)
@@ -47,12 +54,16 @@ const wallet = {
 // step 2 - 3pbp updates on server wallet store ...
 //
 
+store.dispatch({ type: walletActions.WCORE_SET_ASSETS_RAW, payload: 'asd5____' })
+console.dir(w.store.getState())
+
+
 const r = repl.start({ 
     useGlobal: true,
     useColors: true,
     terminal: true,
     prompt: '> ',
-}).context.w = wallet 
+}).context.w = w
 
 
 

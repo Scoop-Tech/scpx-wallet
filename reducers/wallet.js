@@ -98,6 +98,7 @@ const handlers = {
         return { assets: action.payload.assets, owner: action.payload.owner }
     },
     [WCORE_SET_ASSETS_RAW]: (state, action) => {
+        console.log('WCORE_SET_ASSETS_RAW..', action.payload)
         return { assets_raw: action.payload }
     },
  
