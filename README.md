@@ -60,7 +60,9 @@ See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) 
   * Fiat Out - make fiat purchases backed by crypto assets, with a pre-paid card either physical or NFC-virtual.
   * Derivative Products - asset transfers for diversification or deriviate products backed by Scoop Contracts, e.g. crypto options, crypto CFDs, algo trading.
 
+## Issues
 
+The integrated GitHub [issue tracker](https://github.com/Scoop-Tech/scpx-wallet/issues) is used for this project. When reporting security issues, responsible disclosure is encouraged. Please contact us directly at security@scoop.tech.
 
 
 

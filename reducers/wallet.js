@@ -203,7 +203,6 @@ const handlers = {
         // can't figure out how to update *just* the local_txs[] 
         // this triggers full object change of selectedAsset; it works, but i don't like it. and i have been awake for 36 hours.
 
-        debugger
         console.log(`LOCAL_TX - PUSH - ${action.payload.symbol}, tx=`, action.payload.tx)
         var assets = _.cloneDeep(state.assets)
         var asset = assets.find(p => p.symbol === action.payload.symbol)
