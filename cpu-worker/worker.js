@@ -2,15 +2,14 @@ const BigNumber = require('bignumber.js')
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
-
-//const walletActions = require('../actions/wallet') // ******* TODO *******
+const walletActions = require('../actions/wallet')
 
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') // unresolved when running in browser context
     console.log('** resolved worker_threads - assuming server env')
 } catch(err) {
-    console.log('** failed to resolve worker_threads - assuming browser env, err=', err)
+    console.log('(failed to resolve worker_threads - assuming browser env)')
 }
 
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
@@ -24,11 +23,10 @@ if (workerThreads) { // server
 }
 else { // browser
     onmessage = handler
-    outbound = this
+    outbound = self
 }
 
 function handler(e) {
-    debugger
     //if (!e || !e.data || !e.data.msg) { console.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
 
     if (!e) { console.error(`cpuWorker >> ${workerId} no event data`); return }
@@ -58,7 +56,6 @@ function handler(e) {
                     ret.symbol = params.symbol
                 }
                 catch(err) {
-                    debugger
                     console.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY, e=`, err)
                 }
                 

@@ -4,10 +4,6 @@ import { AES, PBKDF2, SHA256, enc } from 'crypto-js'
 
 import * as configWallet from '../config/wallet'
 
-//import CpuWorker from '../cpu-worker/worker.js'
-//import CpuWorker from 'worker-loader!../cpu-worker/worker'
-
-
 //
 // not wildly useful, but potentially better than nothing for obfuscating/GC-fast sensisitve stuff
 //
@@ -128,6 +124,22 @@ export function hextoba(hexString) {
         hexString = hexString.substring(2, hexString.length)
     }
     return result
+}
+
+//
+// notifications & error logging
+//
+export function logErr(err, OPT_BETA_TESTER) {
+    if (configWallet.WALLET_ENV === "BROWSER") {
+        if (err) {
+            if (OPT_BETA_TESTER != 'false') {
+                Sentry.captureException(err)
+            }
+        }
+    }
+    else {
+        // todo
+    }
 }
 
 //

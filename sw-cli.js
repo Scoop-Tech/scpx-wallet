@@ -19,7 +19,9 @@ const clear = require('clear')
 const figlet = require('figlet')
 
 //clear()
-console.log(chalk.green(figlet.textSync('scpx-w 0.2', { horizontalLayout: 'full' })))
+console.log(chalk.green(figlet.textSync(`scpx-w`, { horizontalLayout: 'full' })))
+console.log(chalk.green(` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ...`))
+
 cli
 .version('0.1.0', '-v, -V, -ver, --version')
 .option('-m, --mpk <required>','the Master Private Key to initialize')
@@ -32,12 +34,10 @@ if (!cli.mpk) {
 console.log(chalk.green('MPK: OK'))
 
 // setup workers
-cliWorkers.workers_init() // todo - want pause/halt until all are setup ...
-
-//utilsWallet.cpuWorkers[0].postMessage({ msg: 'DIAG_PING', data: {} })
+cliWorkers.workers_init() // todo - want pause until all are setup ...
 
 // wallet context
-const walletContext = { 
+const walletContext = {
     cpuWorkers: utilsWallet.cpuWorkers,
          store: appStore.store, 
      persistor: appStore.persistor,
@@ -50,7 +50,9 @@ const walletContext = {
 // launch repl
 cliRepl.repl_init(walletContext)
 
+// todo -- reg test all browser, post wallet/actions move ...
 
+// todo -- create fn .wallet-load, taking in PT key, email, etc. 
 
 
 

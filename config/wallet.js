@@ -1,3 +1,5 @@
+var isNode = require('detect-node')
+
 // static - asset types
 const WALLET_TYPE_UTXO = 'WALLET_TYPE_UTXO'
 const WALLET_TYPE_ACCOUNT = 'WALLET_TYPE_ACCOUNT'
@@ -25,6 +27,10 @@ const WALLET_INCLUDE_BTCTEST = false
 
 // wallet config - internal
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+
+// wallet api
+const API_DOMAIN = `https://scpx-svr.scoop.tech/`
+const API_URL = `${API_DOMAIN}api/`
 
 //
 // RE. ADDING NEW TYPES -- add here, and:
@@ -593,7 +599,8 @@ const walletsMeta = {
 
 module.exports = {
 
-    WALLET_VER: '0.1.0'
+      WALLET_VER: '0.2.4'
+    , WALLET_ENV: isNode ? "SERVER" : "BROWSER"
 
     // wallet config - core
     , WALLET_INCLUDE_ETHTEST
@@ -688,4 +695,13 @@ module.exports = {
     }
 
     , walletsMeta
+
+    // network (API)
+    , API_DOMAIN
+    , API_URL
+    , AXIOS_RETRY_API: {
+        retries: 2,
+        retryDelay: () => { return 200 }, // ms
+        retryCondition: (res) => { return true }
+    }
 }
