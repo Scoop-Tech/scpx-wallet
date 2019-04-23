@@ -168,7 +168,7 @@ async function createETHTransactionHex(symbol, params, privateKey) {
         }
 
     } else {
-        throw 'gasLimit/Price should be passed down from selectedAsset properties!'
+        throw 'gasLimit/Price should be passed in'
     }
 }
 
@@ -219,7 +219,7 @@ function createERC20TransactionHex(symbol, params, privateKey) {
                     resolve({ txhex: '0x' + transaction.serialize().toString('hex'), cu_sendValue: cu_sendValue })
                 })
         } else {
-            reject('gasLimit/Price should be passed down from selectedAsset properties!')
+            reject('gasLimit/Price should be passed in')
         }
     })
 }

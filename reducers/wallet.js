@@ -3,7 +3,7 @@
 import { createReducer } from './utils'
 
 import {
-    WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, WCLIENT_SET_SELECTED_ASSET, WCLIENT_ZOOM_SELECTED_ASSET,
+    WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, WCLIENT_SET_SELECTED_ASSET, 
         WCORE_SET_ADDRESS_FULL, WCORE_SET_ADDRESSES_FULL_MULTI, 
         WCORE_SET_ENRICHED_TXS, WCORE_SET_ENRICHED_TXS_MULTI,
     WCORE_PUSH_LOCAL_TX,
@@ -30,7 +30,7 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
     }
 
     var assets = _.cloneDeep(state.assets)
-    const selectedAsset = _.cloneDeep(state.selectedAsset)
+    //const selectedAsset = _.cloneDeep(state.selectedAsset)
     for (var key in assets) {
         var asset = assets[key]
         if (asset.symbol === symbol) {
@@ -84,13 +84,13 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
             asset.lastAssetUpdateAt = updateAt
 
             // apply same to selectedAsset
-            if (state.selectedAsset && state.selectedAsset.symbol === symbol) {
-                Object.assign(selectedAsset, asset)
-            }
+            //if (state.selectedAsset && state.selectedAsset.symbol === symbol) {
+            //    Object.assign(selectedAsset, asset)
+            //}
 
         }
     }
-    return { ...state, assets, selectedAsset }
+    return { ...state, assets }//, selectedAsset }
 }
 
 const handlers = {
@@ -109,7 +109,7 @@ const handlers = {
         const assetNdx = state.assets.findIndex((p) => p.symbol == symbol)
 
         var assets = _.cloneDeep(state.assets)
-        const selectedAsset = _.cloneDeep(state.selectedAsset)
+        //const selectedAsset = _.cloneDeep(state.selectedAsset)
 
         console.log(`%cWCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;')
 
@@ -137,16 +137,16 @@ const handlers = {
                     assets[assetNdx].addresses[addrNdx].txs.push(tx)
                 }
 
-                if (selectedAsset !== undefined) {
-                    if (selectedAsset.symbol === assets[assetNdx].symbol) {
-                        if (txNdx !== -1) {
-                            selectedAsset.addresses[addrNdx].txs[txNdx] = tx
-                        }
-                        else {
-                            selectedAsset.addresses[addrNdx].txs.push(tx)
-                        }
-                    }
-                }
+                // if (selectedAsset !== undefined) {
+                //     if (selectedAsset.symbol === assets[assetNdx].symbol) {
+                //         if (txNdx !== -1) {
+                //             selectedAsset.addresses[addrNdx].txs[txNdx] = tx
+                //         }
+                //         else {
+                //             selectedAsset.addresses[addrNdx].txs.push(tx)
+                //         }
+                //     }
+                // }
             })
 
             // keep track of merge-updated addr for final update
@@ -155,7 +155,7 @@ const handlers = {
         })
 
         // run full asset update to reconcile local_txs (we may have added new external tx's above - we want the local_txs removed atomically)
-        const updatedState = { ...state, assets, selectedAsset }
+        const updatedState = { ...state, assets }//, selectedAsset }
 
         const ret = SetAddressFull_ReconcileLocalTxs(updatedState, { payload: {
             symbol: symbol,
@@ -183,20 +183,36 @@ const handlers = {
         // return SetAddressFull_ReconcileLocalTxs(state, action)
     },
 
+    // todo - perf - decouple from core wallet; move to ux reducer
+
     // fees - v2
     [WCORE_SET_UTXO_FEES]: (state, action) => {
-        if (state.selectedAsset !== undefined) {
-            const selectedAsset = state.selectedAsset
-            selectedAsset.utxoFees = action.payload
-            return { ...state, selectedAsset }
-        }
+        const utxoFees = action.payload.feeData
+        const symbol = action.payload.symbol
+        
+        const assets = _.cloneDeep(state.assets)
+        assets.find(p => p.symbol === symbol).utxoFees = utxoFees
+        return { ...state, assets }
+        
+        // if (state.selectedAsset !== undefined) {
+        //     const selectedAsset = state.selectedAsset
+        //     selectedAsset.utxoFees = action.payload
+        //     return { ...state, selectedAsset }
+        // }
     },
     [WCORE_SET_ETH_GAS_PRICES]: (state, action) => {
-        if (state.selectedAsset !== undefined) {
-            const selectedAsset = state.selectedAsset
-            selectedAsset.gasPrices = action.payload
-            return { ...state, selectedAsset }
-        }
+        const gasPrices = action.payload.feeData
+        const symbol = action.payload.symbol
+
+        const assets = _.cloneDeep(state.assets)
+        assets.find(p => p.symbol === symbol).gasPrices = gasPrices
+        return { ...state, assets }
+
+        // if (state.selectedAsset !== undefined) {
+        //     const selectedAsset = state.selectedAsset
+        //     selectedAsset.gasPrices = action.payload
+        //     return { ...state, selectedAsset }
+        // }
     },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {
@@ -217,19 +233,19 @@ const handlers = {
         if (asset.local_txs.some(p => { return p.txid === action.payload.tx.txid }) === false) {
             asset.local_txs.push(_.cloneDeep(action.payload.tx))
         } else console.log(`LOCAL_TX - PUSH - ${action.payload.symbol} (asset) ignoring; txid already present in local_tx! tx=`, action.payload.tx)
-        if (state.selectedAsset === undefined || state.selectedAsset.symbol !== action.payload.symbol) {
-            console.log(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} (just asset) asset.local_txs=`, asset.local_txs)
+        //if (state.selectedAsset === undefined || state.selectedAsset.symbol !== action.payload.symbol) {
+            console.log(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs)
             return { ...state, assets }
-        }
+        //}
 
         // update selectedAsset
-        var selectedAsset = _.cloneDeep(state.selectedAsset)
-        if (selectedAsset.local_txs.some(p => { return p.txid === action.payload.tx.txid }) === false) {
-            selectedAsset.local_txs.push(_.cloneDeep(action.payload.tx))
-        } else console.log(`LOCAL_TX - PUSH - ${action.payload.symbol} (selectedAsset) - ignoring; txid already present in local_tx! tx=`, action.payload.tx)
+        // var selectedAsset = _.cloneDeep(state.selectedAsset)
+        // if (selectedAsset.local_txs.some(p => { return p.txid === action.payload.tx.txid }) === false) {
+        //     selectedAsset.local_txs.push(_.cloneDeep(action.payload.tx))
+        // } else console.log(`LOCAL_TX - PUSH - ${action.payload.symbol} (selectedAsset) - ignoring; txid already present in local_tx! tx=`, action.payload.tx)
 
-        console.log(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} (asset & selectedAsset) asset+selectedAsset.local_txs=`, asset.local_txs, selectedAsset.local_txs)
-        return { ...state, assets, selectedAsset }
+        // console.log(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} (asset & selectedAsset) asset+selectedAsset.local_txs=`, asset.local_txs, selectedAsset.local_txs)
+        // return { ...state, assets, selectedAsset }
     },
 
     // client specific
@@ -237,11 +253,9 @@ const handlers = {
         console.log(action.payload)
         return { ...state, update_error: action.payload }
     },
+
     [WCLIENT_SET_SELECTED_ASSET]: (state, action) => {
         return { ...state, selectedAsset: action.payload }
-    },
-    [WCLIENT_ZOOM_SELECTED_ASSET]: (state, action) => {
-        return { selectedAsset_isZoomed: action.payload }
     },
 }
 

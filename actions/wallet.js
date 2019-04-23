@@ -25,8 +25,8 @@ import * as apiWallet from '../api/wallet'
 export async function importPrivKeys(p) { 
     const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
             activePubKey, e_email, h_mpk } = p
-    if (!store) { throw("generateWallets - invalid store") }
-    if (!h_mpk) { throw("generateWallets - invalid h_mpk") }
+    if (!store) { throw("importPrivKeys - invalid store") }
+    if (!h_mpk) { throw("importPrivKeys - invalid h_mpk") }
     if (!addrKeyPairs) { throw("importPrivKeys - no addr/key pairs supplied") }
     if (!userAccountName) { throw("importPrivKeys - not logged in") }
     if (!e_rawAssets || e_rawAssets == '') { throw("importPrivKeys - no wallet data") }
@@ -92,9 +92,9 @@ export async function importPrivKeys(p) {
     store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
 
     // update selected asset
-    if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
-        store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
-    }
+    // if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
+    //     store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
+    // }
 
     // raw assets: post encrypted
     return apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
@@ -125,9 +125,10 @@ export async function importPrivKeys(p) {
 //
 export async function removeImportedAccounts(p) {
     const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
-            activePubKey, e_email, h_mpk } = []
-    if (!store) { throw("generateWallets - invalid store") }
-    if (!h_mpk) { throw("generateWallets - invalid h_mpk") }
+            activePubKey, e_email, h_mpk } = p
+    debugger
+    if (!store) { throw("removeImportedAccounts - invalid store") }
+    if (!h_mpk) { throw("removeImportedAccounts - invalid h_mpk") }
     if (!removeAccounts) { throw("removeImportedAccounts - no remove accounts supplied") }
     if (!userAccountName) { throw("removeImportedAccounts - not logged in") }
     if (!e_rawAssets || e_rawAssets == '') { throw("removeImportedAccounts - no wallet data") }
@@ -160,9 +161,9 @@ export async function removeImportedAccounts(p) {
     store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
 
     // update selected asset
-    if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
-        store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
-    }
+    // if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
+    //     store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
+    // }
 
     // raw assets: post encrypted
     return apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
@@ -263,9 +264,9 @@ export async function generateNewAddress(p) {
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
 
             // update selected asset
-            if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
-                store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
-            }
+            // if (wallet.selectedAsset.symbol === displayableAsset.symbol) {
+            //     store.dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: displayableAsset })
+            // }
     
             // update addr monitors
             document.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
@@ -517,8 +518,9 @@ export function getEstimateFee(asset) {
                 .then(res => {
                     console.log(`fees - (UTXO) getEstimateFee - ${asset.symbol}, res=`, res)
 
-                    // v2 - variable satsPerByte -- selectedAsset.utxoFees
-                    dispatch({ type: actionsWallet.WCORE_SET_UTXO_FEES, payload: res }) // sat/byte -- total fee will depend on tx (v)size
+                    // v2 - variable satsPerByte 
+                     // sat/byte -- total fee will depend on tx (v)size
+                    dispatch({ type: actionsWallet.WCORE_SET_UTXO_FEES, payload: { feeData: res, symbol: asset.symbol } })
                 })
                 .catch(err => {
                     console.error(`### fees - getEstimateFee ${asset.symbol} FAIL - err=`, err)
@@ -536,8 +538,9 @@ export function getEstimateFee(asset) {
                 .then(res => {
                     console.log(`fees - (ACCOUNT) getEstimateFee - ${asset.symbol}, res=`, res)
 
-                    // v2 - variable gasPrices -- selectedAsset.gasPrices
-                    dispatch({ type: actionsWallet.WCORE_SET_ETH_GAS_PRICES, payload: res }) // full payload: user can select, and fee is calculated at send time
+                    // v2 - variable gasPrices
+                    // full payload: user can select, and fee is calculated at send time
+                    dispatch({ type: actionsWallet.WCORE_SET_ETH_GAS_PRICES, payload: { feeData: res, symbol: asset.symbol } }) 
                 })
                 .catch(err => {
                     console.error(`### fees - getEstimateFee ${asset.symbol} FAIL - err=`, err)

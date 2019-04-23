@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js'
 import { AES, PBKDF2, SHA256, enc } from 'crypto-js'
 
 import * as configWallet from '../config/wallet'
+import * as configExternal from '../config/wallet-external'
 
 //
 // not wildly useful, but potentially better than nothing for obfuscating/GC-fast sensisitve stuff
@@ -78,7 +79,7 @@ export function isERC20(assetOrSymbol) {
                assetOrSymbol.symbol !== 'ETH' && assetOrSymbol.symbol !== 'ETH_TEST'
     }
     else {
-        return Object.keys(erc20Contracts).some(p => p == assetOrSymbol)
+        return Object.keys(configExternal.erc20Contracts).some(p => p == assetOrSymbol)
     }
 }
 
@@ -213,7 +214,6 @@ export function op_getAddressFromPrivateKey(p, callbackProcessed) {
                 }
             }
             else { 
-                debugger
                 resolve(null)
             }
         }

@@ -437,22 +437,6 @@ export async function computeTxFee(p) {
 }
 
 //
-// Singleton currently selected asset
-//
-export function didSelectAsset(wallet, asset) {
-    return (dispatch) => {
-
-        dispatch({ type: actionsWallet.WCLIENT_SET_SELECTED_ASSET, payload: asset })
-
-        if (asset !== undefined && asset.symbol !== "EOS") {
-
-            // set asset fee estimate
-            dispatch(getEstimateFee(asset))
-        }
-    }
-}
-
-//
 // this is called at validation-time on send screen to determine the total vbytes needed for the TX, as well as at send-time;
 // UTXOs are cached in the asset object and form part of the asset's full fetch payload
 //
