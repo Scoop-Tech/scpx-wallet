@@ -3,7 +3,7 @@
 import { createReducer } from './utils'
 
 import {
-    WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, WCLIENT_SET_SELECTED_ASSET, 
+    WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, //WCLIENT_SET_SELECTED_ASSET, 
         WCORE_SET_ADDRESS_FULL, WCORE_SET_ADDRESSES_FULL_MULTI, 
         WCORE_SET_ENRICHED_TXS, WCORE_SET_ENRICHED_TXS_MULTI,
     WCORE_PUSH_LOCAL_TX,
@@ -183,37 +183,35 @@ const handlers = {
         // return SetAddressFull_ReconcileLocalTxs(state, action)
     },
 
-    // todo - perf - decouple from core wallet; move to ux reducer
-
-    // fees - v2
-    [WCORE_SET_UTXO_FEES]: (state, action) => {
-        const utxoFees = action.payload.feeData
-        const symbol = action.payload.symbol
+    // fees - v2 -- perf: moved to ux reducer, not core wallet
+    // [WCORE_SET_UTXO_FEES]: (state, action) => {
+    //     const utxoFees = action.payload.feeData
+    //     const symbol = action.payload.symbol
         
-        const assets = _.cloneDeep(state.assets)
-        assets.find(p => p.symbol === symbol).utxoFees = utxoFees
-        return { ...state, assets }
+    //     const assets = _.cloneDeep(state.assets)
+    //     assets.find(p => p.symbol === symbol).utxoFees = utxoFees
+    //     return { ...state, assets }
         
-        // if (state.selectedAsset !== undefined) {
-        //     const selectedAsset = state.selectedAsset
-        //     selectedAsset.utxoFees = action.payload
-        //     return { ...state, selectedAsset }
-        // }
-    },
-    [WCORE_SET_ETH_GAS_PRICES]: (state, action) => {
-        const gasPrices = action.payload.feeData
-        const symbol = action.payload.symbol
+    //     // if (state.selectedAsset !== undefined) {
+    //     //     const selectedAsset = state.selectedAsset
+    //     //     selectedAsset.utxoFees = action.payload
+    //     //     return { ...state, selectedAsset }
+    //     // }
+    // },
+    // [WCORE_SET_ETH_GAS_PRICES]: (state, action) => {
+    //     const gasPrices = action.payload.feeData
+    //     const symbol = action.payload.symbol
 
-        const assets = _.cloneDeep(state.assets)
-        assets.find(p => p.symbol === symbol).gasPrices = gasPrices
-        return { ...state, assets }
+    //     const assets = _.cloneDeep(state.assets)
+    //     assets.find(p => p.symbol === symbol).gasPrices = gasPrices
+    //     return { ...state, assets }
 
-        // if (state.selectedAsset !== undefined) {
-        //     const selectedAsset = state.selectedAsset
-        //     selectedAsset.gasPrices = action.payload
-        //     return { ...state, selectedAsset }
-        // }
-    },
+    //     // if (state.selectedAsset !== undefined) {
+    //     //     const selectedAsset = state.selectedAsset
+    //     //     selectedAsset.gasPrices = action.payload
+    //     //     return { ...state, selectedAsset }
+    //     // }
+    // },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {
         // can't figure out how to update *just* the local_txs[] 
@@ -254,9 +252,9 @@ const handlers = {
         return { ...state, update_error: action.payload }
     },
 
-    [WCLIENT_SET_SELECTED_ASSET]: (state, action) => {
-        return { ...state, selectedAsset: action.payload }
-    },
+    // [WCLIENT_SET_SELECTED_ASSET]: (state, action) => {
+    //     return { ...state, selectedAsset: action.payload }
+    // },
 }
 
 export default createReducer(initialState, handlers)

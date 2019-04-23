@@ -508,48 +508,38 @@ export function displayableWalletAssets(assets, owner) {
 //
 // get fees
 //
-export function getEstimateFee(asset) {
-    return (dispatch) => {
-        //console.log("fees - getEstimateFee")
-        switch (asset.type) {
+export function getAssetFeeData(asset) {
+    //console.log("fees - getAssetFeeData")
+    switch (asset.type) {
 
-            case configWallet.WALLET_TYPE_UTXO:
-                actionsWalletUtxo.estimateFees_Utxo(asset.symbol)
-                .then(res => {
-                    console.log(`fees - (UTXO) getEstimateFee - ${asset.symbol}, res=`, res)
+        case configWallet.WALLET_TYPE_UTXO:
+            return actionsWalletUtxo.estimateFees_Utxo(asset.symbol)
+            .then(res => {
+                console.log(`fees - (UTXO) getAssetFeeData - ${asset.symbol}, res=`, res)
+                return res
+            })
+            .catch(err => {
+                console.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+            })
+            break
 
-                    // v2 - variable satsPerByte 
-                     // sat/byte -- total fee will depend on tx (v)size
-                    dispatch({ type: actionsWallet.WCORE_SET_UTXO_FEES, payload: { feeData: res, symbol: asset.symbol } })
-                })
-                .catch(err => {
-                    console.error(`### fees - getEstimateFee ${asset.symbol} FAIL - err=`, err)
-                    //...
-                })
-                break
+        case configWallet.WALLET_TYPE_ACCOUNT:
+            const estiamteGasParams = {
+                from: asset.addresses[0].addr,
+                    to: configExternal.walletExternal_config[asset.symbol].donate,
+                value: 1.0
+            }
+            return actionsWalletAccount.estimateGasInEther(asset, estiamteGasParams)
+            .then(res => {
+                console.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
+                return res
+            })
+            .catch(err => {
+                console.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+            })
+            break
 
-            case configWallet.WALLET_TYPE_ACCOUNT:
-                const estiamteGasParams = {
-                    from: asset.addresses[0].addr,
-                      to: configExternal.walletExternal_config[asset.symbol].donate,
-                   value: 1.0
-                }
-                actionsWalletAccount.estimateGasInEther(asset, estiamteGasParams)
-                .then(res => {
-                    console.log(`fees - (ACCOUNT) getEstimateFee - ${asset.symbol}, res=`, res)
-
-                    // v2 - variable gasPrices
-                    // full payload: user can select, and fee is calculated at send time
-                    dispatch({ type: actionsWallet.WCORE_SET_ETH_GAS_PRICES, payload: { feeData: res, symbol: asset.symbol } }) 
-                })
-                .catch(err => {
-                    console.error(`### fees - getEstimateFee ${asset.symbol} FAIL - err=`, err)
-                    //...
-                })
-                break
-
-            default: console.error(`fees - unsupported asset type ${asset.type}`)
-        }
+        default: console.error(`fees - unsupported asset type ${asset.type}`)
     }
 }
 

@@ -11,7 +11,7 @@ import * as utilsWallet from '../utils'
 
 import { getUtxo_InputsOutputs, pushRawTransaction_Utxo } from './wallet-utxo'
 import { createTxHex_Account, pushRawTransaction_Account } from './wallet-account'
-import { getUtxoNetwork, getEstimateFee } from './wallet'
+import { getUtxoNetwork, getAssetFeeData } from './wallet'
 
 //
 // process asset full state updates
@@ -370,21 +370,20 @@ export function get_combinedBalance(asset, addrNdx = -1) {
 // Compute tx fee, for supplied tx details
 //
 export async function computeTxFee(p) { 
-    
-    var { asset, sendValue, encryptedAssetsRaw, useFastest, useSlowest, activePubKey, h_mpk } = p
+    var { asset, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, activePubKey, h_mpk } = p
+    if (!feeData) { throw 'bad fee data' }
 
-    console.time('getTxFee')
     var ret = {}
 
-    if (asset.type === configWallet.WALLET_TYPE_UTXO && asset.utxoFees) { 
+    if (asset.type === configWallet.WALLET_TYPE_UTXO) { 
 
-        console.log(`computeTxFee - UTXO -    slow_satPerKB: ${asset.utxoFees.slow_satPerKB}`)
-        console.log(`computeTxFee - UTXO -    fast_satPerKB: ${asset.utxoFees.fast_satPerKB}`)
-        console.log(`computeTxFee - UTXO - fastest_satPerKB: ${asset.utxoFees.fastest_satPerKB}`)
+        console.log(`computeTxFee - UTXO -    slow_satPerKB: ${feeData.slow_satPerKB}`)
+        console.log(`computeTxFee - UTXO -    fast_satPerKB: ${feeData.fast_satPerKB}`)
+        console.log(`computeTxFee - UTXO - fastest_satPerKB: ${feeData.fastest_satPerKB}`)
         
-        var cu_satPerKB = useFastest ? asset.utxoFees.fastest_satPerKB
-                        : useSlowest ? asset.utxoFees.slow_satPerKB
-                        :              asset.utxoFees.fast_satPerKB
+        var cu_satPerKB = useFastest ? feeData.fastest_satPerKB
+                        : useSlowest ? feeData.slow_satPerKB
+                        :              feeData.fast_satPerKB
 
         var du_satPerKB =  Number(utilsWallet.toDisplayUnit(new BigNumber(cu_satPerKB), asset))
         if (!sendValue) {
@@ -410,28 +409,27 @@ export async function computeTxFee(p) {
         }
     }
     else if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
-        if (asset.addressType === configWallet.ADDRESS_TYPE_ETH && asset.gasPrices) {
+        if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
 
-            console.log(`computeTxFee - ETH - gasprice_safeLow: ${asset.gasPrices.gasprice_safeLow}`)
-            console.log(`computeTxFee - ETH -    gasprice_fast: ${asset.gasPrices.gasprice_fast}`)
-            console.log(`computeTxFee - ETH - gasprice_fastest: ${asset.gasPrices.gasprice_fastest}`)
-            var gasPriceToUse = useFastest ? asset.gasPrices.gasprice_fastest 
-                              : useSlowest ? asset.gasPrices.gasprice_safeLow 
-                              :              asset.gasPrices.gasprice_fast 
+            console.log(`computeTxFee - ETH - gasprice_safeLow: ${feeData.gasprice_safeLow}`)
+            console.log(`computeTxFee - ETH -    gasprice_fast: ${feeData.gasprice_fast}`)
+            console.log(`computeTxFee - ETH - gasprice_fastest: ${feeData.gasprice_fastest}`)
+            var gasPriceToUse = useFastest ? feeData.gasprice_fastest 
+                              : useSlowest ? feeData.gasprice_safeLow 
+                              :              feeData.gasprice_fast 
 
             // gasPrice (our choice) * gasLimit (variable per tx)
-            var du_ethFee = new BigNumber(asset.gasPrices.gasLimit).dividedBy(1000000000).multipliedBy(new BigNumber(gasPriceToUse)).dividedBy(1000000000).toString()
+            var du_ethFee = new BigNumber(feeData.gasLimit).dividedBy(1000000000).multipliedBy(new BigNumber(gasPriceToUse)).dividedBy(1000000000).toString()
             ret = { fee: du_ethFee,
                     inputsCount: 1,
-                    eth_gasLimit: asset.gasPrices.gasLimit,
+                    eth_gasLimit: feeData.gasLimit,
                     eth_gasPrice: gasPriceToUse }
             
         }
-        else console.error(`## computeTxFee ${asset.symbol} ${sendValue} - unknown account address type`)
+        else throw(`unknown account address type`)
     }
-    else console.error(`## computeTxFee ${asset.symbol} ${sendValue} - unknown asset type`)
+    else throw(`unknown asset type`)
 
-    console.timeEnd('getTxFee')
     console.log(`computeTxFee ${asset.symbol} ${sendValue} - ret=`, ret)
     return ret
 }
