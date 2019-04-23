@@ -4,6 +4,10 @@ import { AES, PBKDF2, SHA256, enc } from 'crypto-js'
 
 import * as configWallet from '../config/wallet'
 
+//import CpuWorker from '../cpu-worker/worker.js'
+//import CpuWorker from 'worker-loader!../cpu-worker/worker'
+
+
 //
 // not wildly useful, but potentially better than nothing for obfuscating/GC-fast sensisitve stuff
 //
@@ -125,3 +129,83 @@ export function hextoba(hexString) {
     }
     return result
 }
+
+//
+// cpuWorkers
+//
+export var cpuWorkers = []
+export var nextCpuWorker = 0
+export var CPU_WORKERS = undefined
+
+export function getNextCpuWorker() {
+    const ret = this.cpuWorkers[this.nextCpuWorker]
+
+    if (++this.nextCpuWorker > this.cpuWorkers.length - 1) {
+        this.nextCpuWorker = 0
+    }
+    return ret
+}
+
+export function op_WalletAddrFromPrivKey(p, callbackProcessed) {
+    return new Promise(resolve => {
+        const cpuWorker = this.getNextCpuWorker()
+        cpuWorker.addEventListener('message', listener)
+        function listener(event) {
+            if (event && event.data && event.data.data) {
+                const msg = event.data.msg
+                const status = event.data.status
+                const ret = event.data.data.ret
+                const reqId = event.data.data.reqId
+                const totalReqCount = event.data.data.totalReqCount
+
+                if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                    resolve(ret)
+                    cpuWorker.removeEventListener('message', listener)
+
+                    if (callbackProcessed) {
+                        callbackProcessed(ret, totalReqCount)
+                    }
+                    return
+                }
+            }
+            else { 
+                debugger
+                resolve(null)
+            }
+        }
+        cpuWorker.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
+    })
+}
+
+export function op_getAddressFromPrivateKey(p, callbackProcessed) {
+    return new Promise(resolve => {
+        const cpuWorker = this.getNextCpuWorker()
+        cpuWorker.addEventListener('message', listener)
+        function listener(event) {
+            if (event && event.data && event.data.data) {
+                const msg = event.data.msg
+                const status = event.data.status
+                const ret = event.data.data.ret
+                const reqId = event.data.data.reqId
+                const totalReqCount = event.data.data.totalReqCount
+                const inputParams = event.data.data.inputParams
+
+                if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                    resolve(ret)
+                    cpuWorker.removeEventListener('message', listener)
+
+                    if (callbackProcessed) {
+                        callbackProcessed(ret, inputParams, totalReqCount)
+                    }
+                    return
+                }
+            }
+            else { 
+                debugger
+                resolve(null)
+            }
+        }
+        cpuWorker.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
+    })
+}
+

@@ -4,7 +4,7 @@
     "description": "Scoop Core Wallet",
     "main": "sw-cli.js",
     "scripts": {
-        "start": "nodemon --inspect=0.0.0.0:9229 --exec babel-node ./sw-cli.js -m 'abc'",
+        "start": "nodemon --inspect=0.0.0.0:9229 ",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "DM",

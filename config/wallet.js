@@ -1,91 +1,30 @@
-export const WALLET_VER = '0.1.0'
-
-// wallet config - core
-export const WALLET_INCLUDE_ETHTEST = false
-export const WALLET_INCLUDE_BTCTEST = false
-export const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000            // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
-export const WALLET_REGEN_EVERYTIME = true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
-export const WALLET_DEFAULT_ADDRESSES = 1                           // no. of address slots to (re)gen by default
-export const WALLET_MAX_UNUSED_ADDRESSES = 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
-export const WALLET_MAX_ADDRESSES = 10                              // hard cap max. no. addresses per asset, used or otherwise
-export const WALLET_MAX_TX_HISTORY = 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
-
-// wallet config - utxo
-export const UTXO_DUST_SAT = 1                                      // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
-
-// wallet config - eth
-export const ETH_SENDMAX_PADDING_WEI = 50                           // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
-export const ETH_COALESCE_DUST_TO_ZERO = true                       // hide dust values: modifies balances at API and at calculation layers
-export const ETH_DUST_WEI = 200                                     // if less than this, we coalesce the Wei balance to zero
-export const ETH_USEWEB3_ACCOUNT_BALANCES = true                    // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
-export const ETH_ERC20_USEWEB3_TOKEN_BALANCES = true                // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
-export const ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT = 120000            // static gasLimit for ERC20 token transfers, if not specified on the asset's config
-
-// wallet config - network
-export const AXIOS_RETRY_3PBP = {
-    retries: 8,
-    retryDelay: require('axios-retry').exponentialDelay,
-    retryCondition: (res) => { return true }
-}
-
-// wallet test params
-//export const TEST_PAD_TXS = 100                                   // pad TX list -- testing LS/SS limits
-//export const TEST_LARGE_BALANCE = 123.12345678                    // mock balances
-
-
-
 // static - asset types
-export const WALLET_TYPE_UTXO = 'WALLET_TYPE_UTXO'
-export const WALLET_TYPE_ACCOUNT = 'WALLET_TYPE_ACCOUNT'
+const WALLET_TYPE_UTXO = 'WALLET_TYPE_UTXO'
+const WALLET_TYPE_ACCOUNT = 'WALLET_TYPE_ACCOUNT'
 
 // static - address types
-export const ADDRESS_TYPE_BTC = 'BTC'
-export const ADDRESS_TYPE_LTC = 'LTC'
-export const ADDRESS_TYPE_ETH = 'ETH'
-export const ADDRESS_TYPE_EOS = 'EOS'
-export const ADDRESS_TYPE_ZEC_T = 'ZEC'
-export const ADDRESS_TYPE_DASH = 'DASH'
-export const ADDRESS_TYPE_VTC = 'VTC'
-export const ADDRESS_TYPE_QTUM = 'QTUM'
-export const ADDRESS_TYPE_DGB = 'DGB'
-export const ADDRESS_TYPE_BCHABC = 'BCH'
+const ADDRESS_TYPE_BTC = 'BTC'
+const ADDRESS_TYPE_LTC = 'LTC'
+const ADDRESS_TYPE_ETH = 'ETH'
+const ADDRESS_TYPE_EOS = 'EOS'
+const ADDRESS_TYPE_ZEC_T = 'ZEC'
+const ADDRESS_TYPE_DASH = 'DASH'
+const ADDRESS_TYPE_VTC = 'VTC'
+const ADDRESS_TYPE_QTUM = 'QTUM'
+const ADDRESS_TYPE_DGB = 'DGB'
+const ADDRESS_TYPE_BCHABC = 'BCH'
 
 // static - price sources
-export const PRICE_SOURCE_CRYPTOCOMPARE = 'CC'   // primary
-export const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - todo: move to WS (no CORS) interface, make bitfinex WS primary
-export const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
+const PRICE_SOURCE_CRYPTOCOMPARE = 'CC'   // primary
+const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - todo: move to WS (no CORS) interface, make bitfinex WS primary
+const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
-// static - supported assets
-export function getSupportedWalletTypes() { // use walletsMeta keys for this list
-    var ret
-    
-    ret = [
-        'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'zcash',
-        'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
+// config - dbg
+const WALLET_INCLUDE_ETHTEST = false
+const WALLET_INCLUDE_BTCTEST = false
 
-        'bnb', 'trueusd', 'bancor', '0x', 'bat', 
-        
-        'omg', 'snt', 'gto', 'ht',
-
-        //'btm', // on mainnet, erc20 deprecated
-        //'ven', // on mainnet, erc20 deprecated
-
-        'usdt', 'eurt',
-
-        'mkr', 'rep', 'hot', 'zil', 'link',
-
-        // todo 
-        //'tgbp' (new)
-    ]
-
-    if (WALLET_INCLUDE_ETHTEST) {
-        ret.push('eth(t)')
-    }
-    if (WALLET_INCLUDE_BTCTEST) {
-        ret.push('btc(t)')
-    }
-    return ret
-}
+// wallet config - internal
+const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
 
 //
 // RE. ADDING NEW TYPES -- add here, and:
@@ -112,20 +51,11 @@ export function getSupportedWalletTypes() { // use walletsMeta keys for this lis
 //   add to LIGHTS!
 //    ...
 // 
-
-export function getMetaBySymbol(symbol) {
-    var ret
-    Object.keys(walletsMeta).map(p => {  
-        if (walletsMeta[p].symbol === symbol) // *A*
-            ret = walletsMeta[p]
-    })
-    return ret
-}
 // ***** !! object keys and .name properties must match !! *****
 // ** use "(t)" for testnets **
 // ** use cryptocompare symbol in displaySymbol field, (or in priceSource_CC_symbol) **
-export const walletsMeta = { 
-   
+//
+const walletsMeta = {
     // utxo's
     'btc(s)': {
         name: 'btc(s)',
@@ -194,10 +124,10 @@ export const walletsMeta = {
         sortOrder: 10,
         bip44_index: 133,
         tx_perInput_vsize: 147,
-    },    
+    },
     'bchabc': {
         name: 'bchabc',
-        use_BBv3: true, 
+        use_BBv3: true,
         desc: undefined,
         web: 'https://www.bitcoinabc.org/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
@@ -212,7 +142,7 @@ export const walletsMeta = {
         primaryColor: '#380E09',
         sortOrder: 11,
         bip44_index: 145,
-        tx_perInput_vsize: 147, 
+        tx_perInput_vsize: 147,
     },
     'dash': {
         name: 'dash',
@@ -228,7 +158,7 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/dash.png',
         primaryColor: '#E38C00',
         sortOrder: 20,
-        bip44_index: 5, 
+        bip44_index: 5,
         tx_perInput_vsize: 147,
     },
     'vertcoin': {
@@ -245,8 +175,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/vtc.png',
         primaryColor: '#2C5C20',
         sortOrder: 21,
-        bip44_index: 28,  
-        tx_perInput_vsize: 147, 
+        bip44_index: 28,
+        tx_perInput_vsize: 147,
     },
     'qtum': {
         name: 'qtum',
@@ -279,8 +209,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/dgb.png',
         primaryColor: '#4F2109',
         sortOrder: 22,
-        bip44_index: 20, 
-        tx_perInput_vsize: 147, 
+        bip44_index: 20,
+        tx_perInput_vsize: 147,
     },
 
     // wip
@@ -298,7 +228,7 @@ export const walletsMeta = {
         primaryColor: '#030033',
         sortOrder: 25,
         bip44_index: 194,
-    },    
+    },
 
     'ethereum': {
         name: 'ethereum',
@@ -327,7 +257,7 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/tusd.png',
         primaryColor: '#6eaffa',
         sortOrder: 4,
-        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0, 
+        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 120000,
         decimals: 18,
     },
@@ -394,7 +324,7 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/bnb.png',
         primaryColor: '#eeba33',
         sortOrder: 35,
-        bip44_index: 714, 
+        bip44_index: 714,
         erc20_transferGasLimit: 120000,
         decimals: 18,
     },
@@ -416,7 +346,7 @@ export const walletsMeta = {
         erc20_transferGasLimit: 65000,
         decimals: 18,
     },
-    'gto': { 
+    'gto': {
         name: 'gto',
         desc: undefined,
         web: 'https://gifto.io/',
@@ -547,8 +477,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/link.png',
         primaryColor: '#D75739',
         sortOrder: 50,
-        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 10, 
-        erc20_transferGasLimit: 120000, 
+        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 10,
+        erc20_transferGasLimit: 120000,
         decimals: 18,
     },
     'zil': {
@@ -564,8 +494,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/zil.png',
         primaryColor: '#C0C15B',
         sortOrder: 51,
-        bip44_index: 313,  
-        erc20_transferGasLimit: 120000, 
+        bip44_index: 313,
+        erc20_transferGasLimit: 120000,
         decimals: 12,
     },
     'hot': {
@@ -581,8 +511,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/hot.png',
         primaryColor: '#8D8300',
         sortOrder: 52,
-        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 11, 
-        erc20_transferGasLimit: 120000, 
+        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 11,
+        erc20_transferGasLimit: 120000,
         decimals: 18,
     },
     'rep': {
@@ -598,8 +528,8 @@ export const walletsMeta = {
         imageUrl: 'img/asset-icon/rep.png',
         primaryColor: '#672241',
         sortOrder: 53,
-        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 12, 
-        erc20_transferGasLimit: 120000, 
+        bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 12,
+        erc20_transferGasLimit: 120000,
         decimals: 18,
     },
     'mkr': {
@@ -616,10 +546,10 @@ export const walletsMeta = {
         primaryColor: '#95B54D',
         sortOrder: 54,
         bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 13,  // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        erc20_transferGasLimit: 120000, 
+        erc20_transferGasLimit: 120000,
         decimals: 18,
     },
-    
+
     'btc(t)': {
         name: 'btc(t)',
         type: WALLET_TYPE_UTXO,
@@ -648,7 +578,7 @@ export const walletsMeta = {
         bip44_index: 1, // ##
         decimals: 18,
     },
-    
+
     // 'tron': {
     //     type: WALLET_TYPE_ACCOUNT,
     //     addressType: ADDRESS_TYPE_ETH,
@@ -659,6 +589,103 @@ export const walletsMeta = {
     //     sortOrder: 12,
     //     bip44_index: 195,
     // },
+}
+
+module.exports = {
+
+    WALLET_VER: '0.1.0'
+
+    // wallet config - core
+    , WALLET_INCLUDE_ETHTEST
+    , WALLET_INCLUDE_BTCTEST
+    , WALLET_REGEN_EVERYTIME: true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
+    , WALLET_DEFAULT_ADDRESSES: 1                           // no. of address slots to (re)gen by default
+    , WALLET_MAX_UNUSED_ADDRESSES: 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
+    , WALLET_MAX_ADDRESSES: 10                              // hard cap max. no. addresses per asset, used or otherwise
+    , WALLET_MAX_TX_HISTORY: 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+
+    // wallet config - utxo
+    , UTXO_DUST_SAT: 1                                      // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
+
+    // wallet config - eth
+    , ETH_SENDMAX_PADDING_WEI: 50                           // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
+    , ETH_COALESCE_DUST_TO_ZERO: true                       // hide dust values: modifies balances at API and at calculation layers
+    , ETH_DUST_WEI: 200                                     // if less than this, we coalesce the Wei balance to zero
+    , ETH_USEWEB3_ACCOUNT_BALANCES: true                    // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
+    , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
+    , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000            // static gasLimit for ERC20 token transfers, if not specified on the asset's config
+
+    // wallet config - network
+    , AXIOS_RETRY_3PBP: {
+        retries: 8,
+        retryDelay: require('axios-retry').exponentialDelay,
+        retryCondition: (res) => { return true }
+    }
+
+    // wallet test params
+    //,TEST_PAD_TXS:100                                   // pad TX list -- testing LS/SS limits
+    //,TEST_LARGE_BALANCE:123.12345678                    // mock balances
 
 
+    // static - asset types
+    , WALLET_TYPE_UTXO
+    , WALLET_TYPE_ACCOUNT
+
+    // static - address types
+    , ADDRESS_TYPE_BTC
+    , ADDRESS_TYPE_LTC
+    , ADDRESS_TYPE_ETH
+    , ADDRESS_TYPE_EOS
+    , ADDRESS_TYPE_ZEC_T
+    , ADDRESS_TYPE_DASH
+    , ADDRESS_TYPE_VTC
+    , ADDRESS_TYPE_QTUM
+    , ADDRESS_TYPE_DGB
+    , ADDRESS_TYPE_BCHABC
+
+    // static - price sources
+    , PRICE_SOURCE_CRYPTOCOMPARE
+    , PRICE_SOURCE_BITFINEX
+    , PRICE_SOURCE_SYNTHETIC_FIAT
+
+    // static - supported assets
+    , getSupportedWalletTypes: () => { // use walletsMeta keys for this list
+        var ret = [
+            'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'zcash',
+            'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
+
+            'bnb', 'trueusd', 'bancor', '0x', 'bat',
+
+            'omg', 'snt', 'gto', 'ht',
+
+            //'btm', // on mainnet, erc20 deprecated
+            //'ven', // on mainnet, erc20 deprecated
+
+            'usdt', 'eurt',
+
+            'mkr', 'rep', 'hot', 'zil', 'link',
+
+            // todo 
+            //'tgbp' (new)
+        ]
+
+        if (WALLET_INCLUDE_ETHTEST) {
+            ret.push('eth(t)')
+        }
+        if (WALLET_INCLUDE_BTCTEST) {
+            ret.push('btc(t)')
+        }
+        return ret
+    }
+
+    , getMetaBySymbol: (symbol) => {
+        var ret
+        Object.keys(walletsMeta).map(p => {
+            if (walletsMeta[p].symbol === symbol) // *A*
+                ret = walletsMeta[p]
+        })
+        return ret
+    }
+
+    , walletsMeta
 }
