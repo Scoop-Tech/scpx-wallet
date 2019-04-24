@@ -113,6 +113,12 @@ module.exports = {
         }
     },
 
+    // mpk hash
+    pbkdf2: (salt, data) => {
+        const iterations = 246
+        return CryptoJS.PBKDF2(data, salt, { keySize: 256 / 32, iterations: iterations }).toString()
+    },
+
     // sha256 hex str
     sha256_shex: (data) => {
         return CryptoJS.SHA256(data).toString()
@@ -167,7 +173,13 @@ module.exports = {
         const ret = new Promise(resolve => {
             const cpuWorker = getNextCpuWorker()
 
-            cpuWorker.addEventListener('message', listener)
+            if (configWallet.WALLET_ENV === "BROWSER") {
+                cpuWorker.addEventListener('message', listener)
+            }
+            else {
+                cpuWorker.once('message', listener) // .once - correct?
+            }
+
             function listener(event) {
                 if (event && event.data && event.data.data) {
                     const msg = event.data.msg
@@ -178,8 +190,9 @@ module.exports = {
 
                     if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
                         resolve(ret)
-                        cpuWorker.removeEventListener('message', listener)
-
+                        if (configWallet.WALLET_ENV === "BROWSER") {
+                            cpuWorker.removeEventListener('message', listener)
+                        }
                         if (callbackProcessed) {
                             callbackProcessed(ret, totalReqCount)
                         }
@@ -199,7 +212,14 @@ module.exports = {
     op_getAddressFromPrivateKey: (p, callbackProcessed) => {
         return new Promise(resolve => {
             const cpuWorker = getNextCpuWorker()
-            cpuWorker.addEventListener('message', listener)
+
+            if (configWallet.WALLET_ENV === "BROWSER") {
+                cpuWorker.addEventListener('message', listener)
+            }
+            else {
+                cpuWorker.once('message', listener) //  MaxListenersExceededWarning: ... .once -- correct?
+            }
+
             function listener(event) {
                 if (event && event.data && event.data.data) {
                     const msg = event.data.msg
@@ -211,8 +231,9 @@ module.exports = {
 
                     if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
                         resolve(ret)
-                        cpuWorker.removeEventListener('message', listener)
-
+                        if (configWallet.WALLET_ENV === "BROWSER") {
+                            cpuWorker.removeEventListener('message', listener)
+                        }
                         if (callbackProcessed) {
                             callbackProcessed(ret, inputParams, totalReqCount)
                         }

@@ -9,6 +9,7 @@ import * as utilsWallet from './utils'
 
 import * as cliRepl from './cli-repl'
 import * as cliWorkers from './cli-workers' 
+import * as log from './cli-log'
 
 //
 // scpx-wallet -- CLI entry point
@@ -20,7 +21,7 @@ const figlet = require('figlet')
 
 //clear()
 console.log(chalk.green(figlet.textSync(`scpx-w`, { horizontalLayout: 'full' })))
-console.log(chalk.green(` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ...`))
+log.info(chalk.white.bgGreen.bold(` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ...`))
 
 cli
 .version('0.1.0', '-v, -V, -ver, --version')
@@ -31,30 +32,35 @@ if (!cli.mpk) {
     cli.help()
     process.exit(1)
 }
-console.log(chalk.green('MPK: OK'))
+log.info('MPK: OK')
 
 // setup workers
-cliWorkers.workers_init() // todo - want pause until all are setup ...
+cliWorkers.workers_init().then(() => {
 
-// wallet context
-const walletContext = {
-    cpuWorkers: utilsWallet.cpuWorkers,
-         store: appStore.store, 
-     persistor: appStore.persistor,
-        config: {
-            wallet: configWallet,
-          external: configWalletExternal,
-    },
-}
+    //
+    // todo -- 1 -- fn .wallet-load: take in PT key, email > create in-memory ** no api/eos **
+    //         2 -- migrate workers to populate balances, utxos etc. -- needed for tx's
+    //         3 -- fn .wallet-tx:   construct/publish tx 
+    //
 
-console.log(chalk.blue('waiting'))
+    // wallet context
+    const walletContext = {
+       cpuWorkers: utilsWallet.cpuWorkers,
+            store: appStore.store, 
+        persistor: appStore.persistor,
+           config: {
+                wallet: configWallet,
+              external: configWalletExternal,
+        },
+    }
 
-// launch repl
-setTimeout(() => {
+    log.info('JS replServer: type .help for available commands\n')
+
+    // launch repl
     cliRepl.repl_init(walletContext)
-}, 2000)
 
-// todo -- create fn .wallet-load, taking in PT key, email, etc. 
+})
+
 
 
 

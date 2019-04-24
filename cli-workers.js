@@ -1,13 +1,15 @@
-const chalk = require('chalk')
+'use strict';
 
 const { Worker, isMainThread, parentPort } = require('worker_threads')
 
 import * as configWallet from './config/wallet'
 import * as utilsWallet from './utils'
 
+import * as log from './cli-log'
+
 // setup cpuWorkers
 export async function workers_init() {
-    console.log(chalk.green(`isMainThread=${isMainThread}`))
+    log.info(`isMainThread: ${isMainThread}`)
 
     // create workers
     const globalScope = utilsWallet.getGlobal()
@@ -23,12 +25,9 @@ export async function workers_init() {
     // ping workers
     const pongs = globalScope.cpuWorkers.map(worker => {
         return new Promise((resolve) => {
-            worker.on('message', (data) => {
-                console.log('PONG')
-                resolve()
-            })
+            worker.on('message', (data) => { resolve(true) })
             worker.postMessage({ msg: 'DIAG_PING', data: {} })
         })
     })
-    await Promise.all(pongs)
+    return Promise.all(pongs)
 }

@@ -288,15 +288,16 @@ module.exports = {
     },
 
     //
-    // generate scoop main wallet - called on signup and on login
-    // decrypts saved server data and merges any saved imported-accounts
+    // generate scoop main wallet 
+    // browser: decrypts saved eos server data and merges & saves back to eos any previosuly imported accounts
+    //  server: persists only to redux store
     //
     generateWallets: async (p) => {
         const { store, userAccountName, e_serverAssets, eosActiveWallet, callbackProcessed, 
                 activePubKey, e_email, h_mpk } = p
         if (!store) { throw("generateWallets - invalid store") }
         if (!h_mpk) { throw("generateWallets - invalid h_mpk") }
-        if (!userAccountName) { throw("generateWallets - not logged in") }
+        //if (!userAccountName) { throw("generateWallets - not logged in") }
 
         // decrypt server assets
         var pt_serverAssets
@@ -394,17 +395,19 @@ module.exports = {
             // encrypt & postback raw asset data to server - potentially with newly added assets
             // 
 
-            // persist raw encrypted server - pruned raw assets (without addresss data)
-            apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
-            .catch(error => {
-                console.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
-                let msg = "Unknown Error"
-                try {
-                    msg = error.response.data.msg || error.message || "Unknown Error"
-                } catch (_) {
-                    msg = error.message || "Unknown Error"
-                }
-            })
+            // persist raw encrypted to eos server - pruned raw assets (without addresss data)
+            if (userAccountName) {
+                apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
+                .catch(error => {
+                    console.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
+                    let msg = "Unknown Error"
+                    try {
+                        msg = error.response.data.msg || error.message || "Unknown Error"
+                    } catch (_) {
+                        msg = error.message || "Unknown Error"
+                    }
+                })
+            }
 
             // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)
             var rawAssetsJsonUpdated = JSON.stringify(currentAssets, null, 4) // full
@@ -511,8 +514,10 @@ function generateWalletAccount(p) {
 
         case 'eos':
             console.log(`eos=`, eosActiveWallet)
-            var meta = configWallet.getMetaBySymbol('EOS')
-            defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }]; break
+            if (eosActiveWallet) {
+                const meta = configWallet.getMetaBySymbol('EOS')
+                defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }]; break
+            }
 
         default:
             if (configWallet.walletsMeta[genType].addressType === configWallet.ADDRESS_TYPE_ETH) {
