@@ -404,7 +404,6 @@ module.exports = {
                 } catch (_) {
                     msg = error.message || "Unknown Error"
                 }
-                store.dispatch({ type: actionsWallet.WCLIENT_SET_ASSETS_ERROR, payload: { statusCode: error.response.status, message: msg } })
             })
 
             // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)

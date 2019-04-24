@@ -24,30 +24,25 @@ export function repl_init(walletContext) {
     delete prompt.commands.load
 
     // test store dispatch
-    prompt.defineCommand("test-dispatch", {
-        help: "dispatches WCORE_SET_ASSETS_RAW action",
+    prompt.defineCommand("ss", {
+        help: "dump redux store state",
         action: function(arg) {
             this.clearBufferedCommand()
-            say(`dispatching value ${arg}...`)
-
-            appStore.store.dispatch({ type: walletActions.WCORE_SET_ASSETS_RAW, payload: arg })
-            console.dir(w.store.getState())
+            console.dir(appStore.store.getState())
             this.displayPrompt()
         }
     })
 
     // test cpuworker ping
-    prompt.defineCommand("test-cpu-ping", {
-        help: "sends DIAG_PING to cpuWorker[0]",
+    prompt.defineCommand("tc1", {
+        help: "cpuWorker test1 - ping",
         action: function(arg) {
             this.clearBufferedCommand()
-            say(`dispatching value ${arg} to:`, utilsWallet.cpuWorkers[0])
-
-            utilsWallet.cpuWorkers[0].postMessage({ msg: 'DIAG_PING', data: {} })
-            utilsWallet.cpuWorkers[0].on('message', (data) => {
+            const globalScope = utilsWallet.getGlobal()
+            globalScope.cpuWorkers[0].postMessage({ msg: 'DIAG_PING', data: {} })
+            globalScope.cpuWorkers[0].on('message', (data) => {
                 console.log(data)
             })
-
             this.displayPrompt()
         }
     })

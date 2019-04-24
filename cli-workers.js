@@ -6,8 +6,10 @@ import * as configWallet from './config/wallet'
 import * as utilsWallet from './utils'
 
 // setup cpuWorkers
-export function workers_init() {
+export async function workers_init() {
     console.log(chalk.green(`isMainThread=${isMainThread}`))
+
+    // create workers
     const globalScope = utilsWallet.getGlobal()
     if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
         globalScope.cpuWorkers = []
@@ -17,4 +19,16 @@ export function workers_init() {
         }
         globalScope.nextCpuWorker = 0
     }
+
+    // ping workers
+    const pongs = globalScope.cpuWorkers.map(worker => {
+        return new Promise((resolve) => {
+            worker.on('message', (data) => {
+                console.log('PONG')
+                resolve()
+            })
+            worker.postMessage({ msg: 'DIAG_PING', data: {} })
+        })
+    })
+    await Promise.all(pongs)
 }

@@ -6,10 +6,8 @@ const walletActions = require('../actions/wallet')
 
 var workerThreads = undefined
 try {
-    workerThreads = require('worker_threads') // unresolved when running in browser context
-    console.log('** resolved worker_threads - assuming server env')
-} catch(err) {
-    console.log('(failed to resolve worker_threads - assuming browser env)')
+    workerThreads = require('worker_threads') 
+} catch(err) { // expected - when running in browser
 }
 
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId

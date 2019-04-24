@@ -47,10 +47,12 @@ const walletContext = {
     },
 }
 
-// launch repl
-cliRepl.repl_init(walletContext)
+console.log(chalk.blue('waiting'))
 
-// todo -- reg test all browser, post wallet/actions move ...
+// launch repl
+setTimeout(() => {
+    cliRepl.repl_init(walletContext)
+}, 2000)
 
 // todo -- create fn .wallet-load, taking in PT key, email, etc. 
 
