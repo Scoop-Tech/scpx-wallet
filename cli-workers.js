@@ -8,12 +8,13 @@ import * as utilsWallet from './utils'
 // setup cpuWorkers
 export function workers_init() {
     console.log(chalk.green(`isMainThread=${isMainThread}`))
-    if (utilsWallet.cpuWorkers === undefined || utilsWallet.cpuWorkers.length == 0) { 
-        utilsWallet.cpuWorkers = []
-        utilsWallet.CPU_WORKERS = 2
-        for (var i=0 ; i < utilsWallet.CPU_WORKERS ; i++) {
-            utilsWallet.cpuWorkers.push(new Worker('./cpu-worker/worker.js'))
+    const globalScope = utilsWallet.getGlobal()
+    if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
+        globalScope.cpuWorkers = []
+        globalScope.CPU_WORKERS = 2
+        for (var i=0 ; i < globalScope.CPU_WORKERS ; i++) {
+            globalScope.cpuWorkers.push(new Worker('./cpu-worker/worker.js'))
         }
-        utilsWallet.nextCpuWorker = 0
+        globalScope.nextCpuWorker = 0
     }
 }
