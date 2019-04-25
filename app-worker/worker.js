@@ -21,7 +21,6 @@ const walletExternalActions = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 
-
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') 
@@ -68,7 +67,6 @@ self.window = self  // hack fix - web3 beta41 websocketprovider still references
 
 self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
-//onmessage = function (e) {
 function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
 
