@@ -8,10 +8,50 @@ const chalk = require('chalk')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
+// setup storage -- localforage (indexeddb) or node-persist
+var txdb_localForage 
+if (configWallet.WALLET_ENV === "BROWSER") {
+        const localForage = require('localforage')
+        txdb_localForage = localForage.createInstance({
+        driver: localForage.INDEXEDDB,
+          name: "scp_tx_idb",
+    })
+}
+else {
+    if (!global.txdb_nodePersist) {
+        global.txdb_nodePersist = require('node-persist')
+        global.txdb_nodePersist.init({
+            dir: './scp_tx_np' // TODO: move txdb out of here; cpuWorker ref's and creats multiple nodePersist connections
+        }).then(() => {})
+    }
+}
+
+
 module.exports = {
+    
+    //
+    // tx db storage/caching
+    //
+    txdb_getItem: (key) => {
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            return txdb_localForage.getItem(key)
+        }
+        else {
+            return global.txdb_nodePersist.getItem(key)
+        }
+    },
+    txdb_setItem: (key, value) => {
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            return txdb_localForage.setItem(key, value)
+        }
+        else {
+            return global.txdb_nodePersist.setItem(key, value)
+        }
+    },
+    txdb_localForage: () => { return txdb_localForage },
 
     //
-    // not wildly useful, but potentially better than nothing for obfuscating/GC-fast sensisitve stuff
+    // better than nothing for obfuscating stuff
     //
     softNuke: (obj) => { 
         if (obj !== undefined && obj !== null) {
@@ -206,8 +246,8 @@ module.exports = {
     //
     // global object
     //
-    getGlobal: () => {
-        return getGlobal()
+    getMainThreadGlobalScope: () => {
+        return getMainThreadGlobalScope()
     },
 
     //
@@ -320,7 +360,7 @@ const getKeyAndIV = (saltStr, passphrase) => {
     return { iv: iv128Bits, key: key256Bits }
 }
 
-function getGlobal() {
+function getMainThreadGlobalScope() {
     if (configWallet.WALLET_ENV === "BROWSER") {
         return window
     }
@@ -330,7 +370,7 @@ function getGlobal() {
 }
 
 function getNextCpuWorker() {
-    const globalScope = getGlobal()
+    const globalScope = getMainThreadGlobalScope()
     const ret = globalScope.cpuWorkers[globalScope.nextCpuWorker]
 
     if (++globalScope.nextCpuWorker > globalScope.cpuWorkers.length - 1) {

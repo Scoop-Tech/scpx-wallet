@@ -17,12 +17,12 @@ const walletExternal = require('./wallet-external') // ### ugly, maybe better th
 
 module.exports = {
 
-    // test_web3: () => {
-    //     const Web3 = require('web3')
-    //     const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
-    //     console.log('Web3=', Web3)
-    //     console.log('web3=', web3)
-    // },
+    test_web3: async () => {
+        const Web3 = require('web3')
+        const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
+        const height = await web3.eth.getBlockNumber()
+        console.log('web3 >> height=', height)
+    },
 
     createTxHex_Account: async (symbol, params, privateKey) => {
         utilsWallet.log(`*** createTxHex_Account ${symbol} (${params})...`)

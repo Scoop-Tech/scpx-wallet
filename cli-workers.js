@@ -12,7 +12,7 @@ export async function workers_init() {
     log.info(`isMainThread: ${isMainThread}`)
 
     // create workers
-    const globalScope = utilsWallet.getGlobal()
+    const globalScope = utilsWallet.getMainThreadGlobalScope()
     if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
         globalScope.cpuWorkers = []
         globalScope.CPU_WORKERS = 8

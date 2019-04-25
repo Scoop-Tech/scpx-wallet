@@ -16,15 +16,13 @@ var outbound = undefined
 if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
     outbound = workerThreads.parentPort
-    self = global //... for app-worker
 }
 else { // browser
     onmessage = handler
     outbound = self
 }
 
-self.test = '42'
-utilsWallet.logWorker(` ... cpuWorker - ${self.test} ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ... `)
+utilsWallet.logWorker(` ... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ... `)
 
 function handler(e) {
     //if (!e || !e.data || !e.data.msg) { utilsWallet.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
@@ -37,10 +35,24 @@ function handler(e) {
     const msg = eventData.msg
     const data = eventData.data
     switch (msg) {
-        case 'TEST_WEB3': {
-            walletAccount.test_web3()
-            outbound.postMessage({ msg: 'DIAG_TEST_WEB3', status: 'RES', data: { ok: true } })
-        }
+        // case 'TEST_TXDB': {
+        //     utilsWallet.txdb_setItem('TEST_TXDB', { test: 42, test2: "42" })
+        //     .then(() => {
+        //         utilsWallet.log(`** TEST_TXDB - added to cache ok`)
+        //         outbound.postMessage({ msg: 'TEST_TXDB', status: 'RES', data: { ok: true } })
+        //     })
+        //     .catch((err) => {
+        //         utilsWallet.error(`## TEST_TXDB - error writing cache=`, err)
+        //         outbound.postMessage({ msg: 'TEST_TXDB', status: 'RES', data: { ok: false } })
+        //     })
+        //     break
+        // }
+
+        // case 'TEST_WEB3': {
+        //     walletAccount.test_web3()
+        //     outbound.postMessage({ msg: 'DIAG_TEST_WEB3', status: 'RES', data: { ok: true } })
+        //     break
+        // }
 
         case 'DIAG_PING': {
             const pongTime = new Date().getTime()
@@ -69,8 +81,8 @@ function handler(e) {
             else {
                 utilsWallet.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY - no data`)
             }
+            break
         }
-        break
 
         case 'ADDR_FROM_PRIVKEY': {
             if (data) {
@@ -90,8 +102,8 @@ function handler(e) {
                 //utilsWallet.log(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId,params,ret=`, reqId, params, ret)
                 outbound.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, inputParams: params, reqId, totalReqCount } })
             }
+            break
         }
-        break
     }
 }
 

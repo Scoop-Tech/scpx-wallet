@@ -1,8 +1,8 @@
 'use strict';
 
-import { createReducer } from './utils'
 const _ = require('lodash')
 
+import { createReducer } from './utils'
 import {
     WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, 
         WCORE_SET_ADDRESS_FULL, WCORE_SET_ADDRESSES_FULL_MULTI, 

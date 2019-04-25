@@ -11,12 +11,19 @@ const utilsWallet = require('../utils')
 
 const walletUtxo = require('./wallet-utxo')
 
+
+Array.prototype.extend = function (other_array) {
+    if (other_array) {
+        other_array.forEach(function (v) { this.push(v) }, this)
+    }
+}
+
 module.exports = {
 
     //
     // process asset full state updates
     //
-    getAddressFull_ProcessResult: (res, polling, asset, addrNdx) => {
+    getAddressFull_ProcessResult: (res, asset, addrNdx) => {
         if (!res || !res.txs) return null
         if (configWallet.TEST_PAD_TXS) testPadTxs(res)
         if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE 
@@ -210,7 +217,7 @@ module.exports = {
                 return ret
         }
 
-        //utilsWallet.time(`get_combinedBalance ${asset.symbol}`)
+        //console.time(`get_combinedBalance ${asset.symbol}`)
 
         // confirmed & unconfirmed balances, aggregated over all addresses
         const totalConfirmed = addresses.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
@@ -319,7 +326,7 @@ module.exports = {
         const unconfirmed_txs = getAll_unconfirmed_txs(asset)
         ret.unconfirmed_tx_count = asset.local_txs.length + unconfirmed_txs.length 
 
-        //utilsWallet.timeEnd(`get_combinedBalance ${asset.symbol}`)
+        //console.timeEnd(`get_combinedBalance ${asset.symbol}`)
 
         //utilsWallet.log(ret)
         return ret
@@ -468,7 +475,7 @@ async function createTxHex(params) {
                 })
             }
 
-            utilsWallet.time('ext-createTxHex-utxo-createSignTx')
+            console.time('ext-createTxHex-utxo-createSignTx')
                 const opsWallet = require('./wallet')
                 const network = opsWallet.getUtxoNetwork(asset.symbol)
                 var tx
@@ -629,7 +636,7 @@ async function createTxHex(params) {
                         utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
                     }
                 }
-            utilsWallet.timeEnd('ext-createTxHex-utxo-createSignTx')
+            console.timeEnd('ext-createTxHex-utxo-createSignTx')
             
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ hex, inputsCount: txSkeleton.inputs.length, vSize, cu_sendValue: cu_sendValue.toString() }) }) 

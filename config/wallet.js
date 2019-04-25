@@ -24,6 +24,8 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 // config - dbg
 const WALLET_INCLUDE_ETHTEST = false
 const WALLET_INCLUDE_BTCTEST = false
+const DISABLE_BLOCK_UPDATES = false
+const SOCKET_DISABLE_PRICES = false
 
 // wallet config - internal
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
@@ -607,6 +609,7 @@ module.exports = {
     // wallet config - core
     , WALLET_INCLUDE_ETHTEST
     , WALLET_INCLUDE_BTCTEST
+    , DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                           // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this

@@ -106,7 +106,7 @@ module.exports = {
                 document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
                 // refresh asset balance
-                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet, polling: false } })
+                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             }
             
             // ret ok
@@ -173,7 +173,7 @@ module.exports = {
                 document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
                 // refresh asset balance
-                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet, polling: false } })
+                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             }
 
             // ret ok
@@ -268,7 +268,7 @@ module.exports = {
                     document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
             
                     // refresh asset balance
-                    document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet, polling: false } })
+                    document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
                 }
                 
                 // ret ok
@@ -373,7 +373,7 @@ module.exports = {
                 }
             })
 
-            const globalScope = utilsWallet.getGlobal()
+            const globalScope = utilsWallet.getMainThreadGlobalScope()
             const limit = pLimit(globalScope.CPU_WORKERS)
             opParams.forEach(p => p.totalReqCount = opParams.length)
             const results = await Promise.all(opParams.map(p => limit(() => utilsWallet.op_WalletAddrFromPrivKey(p, callbackProcessed))))

@@ -130,12 +130,12 @@ module.exports = {
                 // fetch tx full
                 const txid = res.data.txid
                 axios.get(configExternal.walletExternal_config[asset.symbol].api.tx(txid))
-                    .then(txRes => {
-                        // map and return local tx
-                        const ownAddresses = asset.addresses.map(p => { return p.addr })
-                        const tx = map_insightTxs([txRes.data], ownAddresses)[0]
-                        callback({ tx })
-                    })
+                .then(txRes => {
+                    // map and return local tx
+                    const ownAddresses = asset.addresses.map(p => { return p.addr })
+                    const tx = map_insightTxs([txRes.data], ownAddresses)[0]
+                    callback({ tx })
+                })
             })
             .catch(err => {
                 utilsWallet.error(`### pushRawTransaction_Utxo ${asset.symbol} (${txhex}) err=`, err)

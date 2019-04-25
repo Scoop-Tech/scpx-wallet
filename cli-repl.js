@@ -122,8 +122,22 @@ export function repl_init(walletContext) {
     //     help: "dbg - test web3",
     //     action: function (args) {
     //         this.clearBufferedCommand()
-    //         const globalScope = utilsWallet.getGlobal()
+    //         const globalScope = utilsWallet.getMainThreadGlobalScope()
     //         globalScope.cpuWorkers[0].postMessage({ msg: 'TEST_WEB3', data: {} })
+    //         globalScope.cpuWorkers[0].once('message', (data) => {
+    //             log.info('ok', data)
+    //         })
+    //         this.displayPrompt()
+    //     }
+    // })
+
+    // // dbg: test tx db from worker
+    // prompt.defineCommand("dt2", {
+    //     help: "dbg - test tx db",
+    //     action: function (args) {
+    //         this.clearBufferedCommand()
+    //         const globalScope = utilsWallet.getMainThreadGlobalScope()
+    //         globalScope.cpuWorkers[0].postMessage({ msg: 'TEST_TXDB', data: {} })
     //         globalScope.cpuWorkers[0].once('message', (data) => {
     //             log.info('ok', data)
     //         })
