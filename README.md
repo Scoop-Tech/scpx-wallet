@@ -3,7 +3,7 @@ Release Candidate 2
 
 ## Building from Source
 
-  * ```https://github.com/Scoop-Tech/scpx-wallet.git```
+  * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
   * ```npm install```
   * ```npm start```
