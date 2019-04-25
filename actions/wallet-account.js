@@ -20,7 +20,7 @@ module.exports = {
 
     createTxHex_Account: async (symbol, params, privateKey) => {
         debugger
-        console.log(`*** createTxHex_Account ${symbol} (${params})...`)
+        utilsWallet.log(`*** createTxHex_Account ${symbol} (${params})...`)
 
         switch (symbol) {
             case 'ETH':
@@ -36,17 +36,17 @@ module.exports = {
         const symbol = asset.symbol
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
-        console.log(`*** pushRawTransaction_Account ${symbol} (${txHex})...`)
+        utilsWallet.log(`*** pushRawTransaction_Account ${symbol} (${txHex})...`)
         const Web3 = require('web3')
         const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
         web3.eth.sendSignedTransaction(txHex, (err, txHash) => {
             if (err) {
-                console.error(`*** pushRawTransaction_Account ${symbol} (callback), err=`, err)
+                utilsWallet.error(`*** pushRawTransaction_Account ${symbol} (callback), err=`, err)
                 callback(null, err)
             } else {
                 web3.eth.getTransaction(txHash)
                 .then((txData) => {
-                    console.log(`push local_tx ${symbol}`, txData)
+                    utilsWallet.log(`push local_tx ${symbol}`, txData)
 
                     if (symbol === 'ETH' || symbol === 'ETH_TEST') {
                         const sendToSelf = ownAddresses.some(p => p === txData.to.toLowerCase())
@@ -83,8 +83,8 @@ module.exports = {
                             block_no: -1,
                             fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
                         }
-                        console.log('DBG1 - payTo[0].value=', payTo[0].value)
-                        console.log('DBG1 - erc20 local_tx=', local_tx)
+                        utilsWallet.log('DBG1 - payTo[0].value=', payTo[0].value)
+                        utilsWallet.log('DBG1 - erc20 local_tx=', local_tx)
                         callback({
                             tx: local_tx
                         }, null)
@@ -113,7 +113,7 @@ module.exports = {
         })
         .then((receipt) => {
             // web3 beta41 -- after getting receipt, an (internal?) getTransaction calls fails, but doesn't seem to affect anything
-            console.log(`*** pushRawTransaction_Account ${symbol} receipt= ${JSON.stringify(receipt)}`)
+            utilsWallet.log(`*** pushRawTransaction_Account ${symbol} receipt= ${JSON.stringify(receipt)}`)
         })
         .catch((err) => {
             var errMsg = err.message || "Unknown error"
@@ -121,14 +121,14 @@ module.exports = {
             if (jsonNdxStart != -1) {
                 errMsg = errMsg.substring(0, jsonNdxStart)
             }
-            console.error(`## pushRawTransaction_Account ${symbol} (catch) err=`, err)
+            utilsWallet.error(`## pushRawTransaction_Account ${symbol} (catch) err=`, err)
             callback(null, err)
         })
     },
 
     // params: // { from, to, value } 
     estimateGasInEther: (asset, params) => {
-        console.log(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
+        utilsWallet.log(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
         const Web3 = require('web3')
         const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[asset.symbol].httpProvider))
 
@@ -150,7 +150,7 @@ module.exports = {
             }
             else {
                 if (!asset.erc20_transferGasLimit)
-                    console.warn(`no erc20_transferGasLimit set for ${asset.symbol}; using fallback`)
+                    utilsWallet.warn(`no erc20_transferGasLimit set for ${asset.symbol}; using fallback`)
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
 
@@ -168,7 +168,7 @@ module.exports = {
                 ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000)))
 
             } else { // fallback to web3
-                console.warn(`### fees - estimateGasInEther ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
+                utilsWallet.warn(`### fees - estimateGasInEther ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
                 ret.gasprice_fast = ret.gasprice_Web3
                 ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
                 ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
@@ -176,13 +176,13 @@ module.exports = {
             return ret
         })
         // .catch((err) => {
-        //     console.error(`### fees - estimateGasInEther ${asset.symbol} FAIL - err=`, err)
+        //     utilsWallet.error(`### fees - estimateGasInEther ${asset.symbol} FAIL - err=`, err)
         // })
     },
 }
 
 async function createETHTransactionHex(symbol, params, privateKey) {
-    console.log(`*** createETHTransactionHex ${symbol}, params=`, params)
+    utilsWallet.log(`*** createETHTransactionHex ${symbol}, params=`, params)
 
     const Web3 = require('web3')
     const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
@@ -194,10 +194,10 @@ async function createETHTransactionHex(symbol, params, privateKey) {
         var bal = walletExternal.get_combinedBalance(params.asset)
         var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
 
-        console.log('eth txhex - params.value=', params.value.toString())
+        utilsWallet.log('eth txhex - params.value=', params.value.toString())
 
         if (delta_avail == 0) {
-            console.log('eth thxhex - appying send-max wei padding...')
+            utilsWallet.log('eth thxhex - appying send-max wei padding...')
             // hack: geth is (sometimes) not accepting transactions that send the full account balance
             // (tested very carefully -- values are exactly correct, minus fees:, all the way up to the hex conversions below)
             wei_sendValue = wei_sendValue.minus(configWallet.ETH_SENDMAX_PADDING_WEI)
@@ -205,8 +205,8 @@ async function createETHTransactionHex(symbol, params, privateKey) {
 
         wei_sendValue = wei_sendValue.toString()
 
-        console.log('eth txhex - params.gasLimit=', params.gasLimit)
-        console.log('eth txhex - params.gasPrice=', params.gasPrice)
+        utilsWallet.log('eth txhex - params.gasLimit=', params.gasLimit)
+        utilsWallet.log('eth txhex - params.gasPrice=', params.gasPrice)
 
         // repackage params for web3
         params.value = web3.utils.toHex(wei_sendValue)
@@ -221,13 +221,13 @@ async function createETHTransactionHex(symbol, params, privateKey) {
             params.nonce = nextNonce
             const tx = new EthTx(params)
 
-            console.log(`*** createETHTransactionHex ${symbol}, nextNonce=${nextNonce}, tx=`, tx)
+            utilsWallet.log(`*** createETHTransactionHex ${symbol}, nextNonce=${nextNonce}, tx=`, tx)
 
             tx.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
             return { txhex: '0x' + tx.serialize().toString('hex'), cu_sendValue: wei_sendValue }
         }
         catch (err) {
-            console.warn(`### createETHTransactionHex ${symbol} TX sign FAIL, error=`, err)
+            utilsWallet.warn(`### createETHTransactionHex ${symbol} TX sign FAIL, error=`, err)
             throw 'TX sign failed'
         }
 
@@ -237,7 +237,7 @@ async function createETHTransactionHex(symbol, params, privateKey) {
 }
 
 function createERC20TransactionHex(symbol, params, privateKey) {
-    console.log(`*** createERC20TransactionHex ${symbol}, params=`, params)
+    utilsWallet.log(`*** createERC20TransactionHex ${symbol}, params=`, params)
 
     return new Promise((resolve, reject) => {
         if (params.gasLimit !== undefined) {
@@ -245,7 +245,7 @@ function createERC20TransactionHex(symbol, params, privateKey) {
             const Web3 = require('web3')
             const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
-            console.log('erc20 - params.value=', params.value.toString())
+            utilsWallet.log('erc20 - params.value=', params.value.toString())
 
             const assetMeta = configWallet.getMetaBySymbol(symbol)
             params.value = utilsWallet.toCalculationUnit(params.value.toString(), {
@@ -256,12 +256,12 @@ function createERC20TransactionHex(symbol, params, privateKey) {
 
             debugger
             const cu_sendValue = params.value
-            console.log('erc20 - wei=', params.value)
+            utilsWallet.log('erc20 - wei=', params.value)
 
             params.value = web3.utils.toHex(params.value)
 
-            console.log('erc20 - params.gasLimit=', params.gasLimit)
-            console.log('erc20 - params.gasPrice=', params.gasPrice)
+            utilsWallet.log('erc20 - params.gasLimit=', params.gasLimit)
+            utilsWallet.log('erc20 - params.gasPrice=', params.gasPrice)
 
             const minContractABI = erc20ABI.abi
             const contractAddress = configExternal.walletExternal_config[symbol].contractAddress

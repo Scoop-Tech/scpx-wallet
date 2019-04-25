@@ -14,55 +14,99 @@ import { generateWallets } from './actions/wallet'
 import * as log from './cli-log'
 
 export function newWallet(store) {
-    const emailEntropyBase36 = new BigNumber(BigNumber.random(80).times(1e80).toFixed()).toString(36)
+    //const emailEntropyBase36 = new BigNumber(BigNumber.random(80).times(1e80).toFixed()).toString(36)
 
     return Keygen.generateMasterKeys()
     .then(keys => {
         const res = loadWallet(store, { 
             mpk: keys.masterPrivateKey,
             apk: keys.publicKeys.active,
-          email: `s+${emailEntropyBase36}@scoop.tech`
+          //email: `s+${emailEntropyBase36}@scoop.tech`
         })
         return res
     })
 }
 
 export function loadWallet(store, p) {
-    const { mpk, apk, email } = p
-    if (!mpk)   return { err: 'invalid MPK' }
-    if (!apk)   return { err: 'invalid APK' }
-    if (!email) return { err: 'invalid email' }
+    const { mpk, apk } = p
+    if (!mpk) return { err: 'invalid MPK' }
+    if (!apk) return { err: 'invalid APK' }
     
-    log.info(`** INPUTS **`)
-    log.info(`      mpk: ${mpk}`)
-    log.info(`      apk: ${apk}`)
-    log.info(`    email: ${email}`)
-
     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-    const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
-    const md5_email = MD5(email).toString()
+    //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
+    //const md5_email = MD5(email).toString()
 
-    log.info(`** DERIVED **`)
-    log.info(`    h_mpk: ${h_mpk}`)
-    log.info(`  e_email: ${e_email}`)
-    log.info(`md5_email: ${md5_email}`)
-
-    // TODO -- want equivalent to create-account, **just no save on generateWallets**
+    log.info(`h_mpk: ${h_mpk} (hased MPK)`)
+    log.info(`  apk: ${apk} (active public key)`)
 
     return generateWallets({
                 store: store,
-      userAccountName: undefined, // no EOS persistence for server wallets
          activePubKey: apk,
-              e_email: e_email,
                 h_mpk: h_mpk,
+      userAccountName: undefined, // no EOS persistence for server wallets - not required
+              e_email: undefined, // no EOS persistence for server wallets - not required
        e_serverAssets: undefined, // new account
-      eosActiveWallet: undefined, // TODO -- NUKE THIS ! or include it properly ...
+      eosActiveWallet: undefined, // TODO -- REMOVE THIS (or handle it properly -- maybe by key import only to start with?)
+    callbackProcessed: (ret, totalReqCount) => {}
     })
     .then(res => {
-        return { ok: mpk }
+        return { ok: p }
     })
     .catch(err => {
         return { err: err.message || err.toString() }
     })
+}
 
+export async function dumpWallet(store, p) {
+    const { mpk, apk } = p
+    if (!mpk) return { err: 'invalid MPK' }
+    if (!apk) return { err: 'invalid APK' }
+
+    const storeState = store.getState()
+    if (!storeState) return { err: 'invalid store state' }
+    const wallet = storeState.wallet
+    if (!wallet || !wallet.assets_raw || !wallet.assets) return { err: 'no loaded wallet' }
+
+    const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+
+    // decrypt raw assets (private keys) from the store
+    var pt_assetsJson
+    try {
+        pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assets_raw)
+    }
+    catch(err) {
+        return { err: `decrypt failed (${err.message} - MPK and APK are probably incorrect` }
+    }
+    var pt_assetsObj = JSON.parse(pt_assetsJson)
+
+    // match privkeys to addresses by HD path in the displayable assets (unencrypted) store 
+    var allPathKeyAddrs = []
+    Object.keys(pt_assetsObj).forEach(assetName => {
+        pt_assetsObj[assetName].accounts.forEach(account => {
+            account.privKeys.forEach(privKey => {
+                var pathKeyAddr = {
+                    assetName,
+                    path: privKey.path,
+                    privKey: privKey.privKey,
+                }
+                const meta = configWallet.walletsMeta[assetName] 
+
+                // get corresponding addr, lookup by HD path
+                const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
+                const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
+
+                pathKeyAddr.addr = walletAddr.addr
+                pathKeyAddr.accountName = walletAddr.accountName
+                pathKeyAddr.symbol = meta.symbol
+                allPathKeyAddrs.push(pathKeyAddr)
+            })
+        })
+    })
+
+    utilsWallet.softNuke(pt_assetsJson)
+    utilsWallet.softNuke(pt_assetsObj)
+
+    return new Promise((resolve) => {
+        resolve({ ok: allPathKeyAddrs })
+    })
 }

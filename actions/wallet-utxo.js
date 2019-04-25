@@ -4,6 +4,7 @@ const axiosRetry = require('axios-retry')
 
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
+
 const utilsWallet = require('../utils')
 
 module.exports = {
@@ -14,16 +15,16 @@ module.exports = {
     //   in execute mode we have the final vbyte size, so we are passed in the exact fee
     //
     getUtxo_InputsOutputs: (symbol, params, throwOnInsufficient = true) => {
-        console.log(`*** getUtxo_InputsOutputs ${symbol}, params=`, params)
+        utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, params=`, params)
 
         // validation
         if (!params || !params.feeSatoshis || !params.utxos) {
-            console.error(`## getUtxo_InputsOutputs - invalid params`)
+            utilsWallet.error(`## getUtxo_InputsOutputs - invalid params`)
             if (throwOnInsufficient) return Promise.reject("Invalid parameters")
             else return
         }
         if (params.utxos.length === 0) {
-            console.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance?`)
+            utilsWallet.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance?`)
             if (throwOnInsufficient) return Promise.reject("Insufficient funds")
             else return
         }
@@ -48,9 +49,9 @@ module.exports = {
             inputsTotalValue = inputsTotalValue.plus(new BigNumber(utxos[i].satoshis))
             inputsNeeded.push({ utxo: utxos[i], ndx: inputNdx })
             inputNdx++
-            //console.log(`utxo ndx ${i} (utxos[i].satoshis=${utxos[i].satoshis}), inputsTotalValue=${inputsTotalValue.toString()} of ${valueNeeded.toString()} (value) + ${feeSatoshisAssumed.toString()} (fee)...`)
+            //utilsWallet.log(`utxo ndx ${i} (utxos[i].satoshis=${utxos[i].satoshis}), inputsTotalValue=${inputsTotalValue.toString()} of ${valueNeeded.toString()} (value) + ${feeSatoshisAssumed.toString()} (fee)...`)
             if (inputsTotalValue.gt(valueNeeded.plus(feeSatoshisAssumed))) {
-                //console.log(`** sufficient utxo's **`)
+                //utilsWallet.log(`** sufficient utxo's **`)
                 break
             }
         }
@@ -61,7 +62,7 @@ module.exports = {
                 return Promise.reject("Insufficient funds")
             }
             else {
-                console.log(`getUtxo_InputsOutputs - insufficient UTXOs to construct TX: ignoring on estimate path.`)
+                utilsWallet.log(`getUtxo_InputsOutputs - insufficient UTXOs to construct TX: ignoring on estimate path.`)
             }
         }
 
@@ -71,7 +72,7 @@ module.exports = {
 
         // unspent output - to self, if it's not dust 
         var unspentValue = inputsTotalValue.minus(valueNeeded).minus(feeSatoshisAssumed)
-        console.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue, unspentValue, feeSatoshisAssumed=`, inputsTotalValue.toString(), unspentValue.toString(), feeSatoshisAssumed.toString())
+        utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue, unspentValue, feeSatoshisAssumed=`, inputsTotalValue.toString(), unspentValue.toString(), feeSatoshisAssumed.toString())
         if (unspentValue.gt(feeSatoshisAssumed)) { // the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust
             outputs.push({
                 address: params.changeAddress, // multi-addr: fixing change to addr0 for now
@@ -80,13 +81,13 @@ module.exports = {
         }
 
         const txSkeleton = { inputs, outputs }
-        console.log(`*** getUtxo_InputsOutputs ${symbol}, txSkeleton=`, txSkeleton)
+        utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, txSkeleton=`, txSkeleton)
 
         return txSkeleton
     },
 
     pushRawTransaction_Utxo: (wallet, asset, txhex, callback) => {
-        console.log(`*** pushRawTransaction_Utxo ${asset.logsymbol} (${txhex})...`)
+        utilsWallet.log(`*** pushRawTransaction_Utxo ${asset.logsymbol} (${txhex})...`)
 
         if (asset.use_BBv3) {
 
@@ -137,14 +138,14 @@ module.exports = {
                     })
             })
             .catch(err => {
-                console.error(`### pushRawTransaction_Utxo ${asset.symbol} (${txhex}) err=`, err)
+                utilsWallet.error(`### pushRawTransaction_Utxo ${asset.symbol} (${txhex}) err=`, err)
                 callback(null, err)
             })
         }
     },
 
     estimateFees_Utxo: (symbol) => {
-        console.log(`fees - estimateFees_Utxo ${symbol}...`)
+        utilsWallet.log(`fees - estimateFees_Utxo ${symbol}...`)
         axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
 
         var ret = {} // { fastest_satPerKB, fast_satPerKB, slow_satPerKB } // from oracle(s)
@@ -252,7 +253,7 @@ module.exports = {
             })
         }
         else {
-            console.error(`## estimateFees_Utxo -- unsupported ${symbol}`)
+            utilsWallet.error(`## estimateFees_Utxo -- unsupported ${symbol}`)
         }
     },
 

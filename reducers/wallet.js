@@ -1,6 +1,7 @@
 'use strict';
 
 import { createReducer } from './utils'
+const _ = require('lodash')
 
 import {
     WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, 
@@ -9,7 +10,7 @@ import {
     WCORE_PUSH_LOCAL_TX,
 } from '../actions'
 
-const _ = require('lodash')
+import * as utilsWallet from '../utils'
 
 const initialState = {}
 
@@ -59,11 +60,11 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
                                 .map(p => p.txid)
 
                             if (remove_local_txIds.length > 0) {
-                                console.log(`LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds)
+                                utilsWallet.log(`LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds)
                                 asset.local_txs =
                                     local_txs
                                     .filter(p => !remove_local_txIds.some(p2 => p2 === p.txid))
-                                console.log(`LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs)
+                                utilsWallet.log(`LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs)
                             }
                         }
                         break
@@ -80,10 +81,12 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
 
 const handlers = {
     [WCORE_SET_ASSETS]: (state, action) => {
+        utilsWallet.logReducer(` WCORE_SET_ASSETS, len= `, action.payload.assets.length)
         return { assets: action.payload.assets, owner: action.payload.owner }
     },
+
     [WCORE_SET_ASSETS_RAW]: (state, action) => {
-        console.log('WCORE_SET_ASSETS_RAW..', action.payload)
+        utilsWallet.logReducer(` WCORE_SET_ASSETS_RAW, len= `, action.payload.length)
         return { assets_raw: action.payload }
     },
  
@@ -91,7 +94,7 @@ const handlers = {
         const { symbol,  updateAt, addrTxs } = action.payload
         if (!addrTxs || !state.assets) { return {...state} }
 
-        console.log(`%cWCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;')
+        utilsWallet.logReducer(` WCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length} `)
 
         const assetNdx = state.assets.findIndex((p) => p.symbol == symbol)
         var assets = _.cloneDeep(state.assets)
@@ -143,7 +146,7 @@ const handlers = {
 
     [WCORE_SET_ADDRESSES_FULL_MULTI]: (state, action) => {
         if (!state.assets) { return {...state} }
-        console.log(`%cWCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} x${action.payload.newAddresses.length}`, 'background: DarkSalmon; color: white; font-weight: 600; font-size: 14px;')
+        utilsWallet.logReducer(` WCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} x${action.payload.newAddresses.length} `)
         return SetAddressFull_ReconcileLocalTxs(state, action)
     },
     [WCORE_SET_ADDRESS_FULL]: (state, action) => {
@@ -156,13 +159,12 @@ const handlers = {
     },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {
-        console.log(`LOCAL_TX - PUSH - ${action.payload.symbol}, tx=`, action.payload.tx)
+        utilsWallet.logReducer(` LOCAL_TX - PUSH - ${action.payload.symbol}, txid=${action.payload.tx.txid} `)
         var assets = _.cloneDeep(state.assets)
         var asset = assets.find(p => p.symbol === action.payload.symbol)
 
         // don't push the local tx if it's already in the the external tx list (race conditions)
         if (asset.addresses.some(p => p.txs.some(p2 => p2.txid === action.payload.tx.txid))) {
-            console.log(`LOCAL_TX - PUSH  - ${action.payload.symbol} - DROPPED: txid ${action.payload.tx.txid} is already fetched in addresses' external tx list(s)`)
             return { ...state } 
         }
 
@@ -170,9 +172,11 @@ const handlers = {
         if (asset.local_txs.some(p => { return p.txid === action.payload.tx.txid }) === false) {
             asset.local_txs.push(_.cloneDeep(action.payload.tx))
         }
-        else console.log(`LOCAL_TX - PUSH - ${action.payload.symbol} (asset) ignoring; txid already present in local_tx! tx=`, action.payload.tx)
+        else { 
+            utilsWallet.warn(` LOCAL_TX - PUSH - ${action.payload.symbol} ignoring; txid already present in local_tx - tx= `, action.payload.tx)
+        }
 
-        console.log(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs)
+        utilsWallet.logReducer(`LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs)
         return { ...state, assets }
     },
 }

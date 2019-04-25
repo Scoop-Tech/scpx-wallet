@@ -91,17 +91,17 @@ module.exports = {
             var newAddr = Object.assign({}, asset.addresses[addrNdx], res)
             newAddr.lastAddrFetchAt = new Date()
             if (!balanceChanged && !newTx) {
-                //console.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no bal/tx change)...`)
+                //utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no bal/tx change)...`)
             }
             else {
                 if (newTx && !balanceChanged) {
-                    console.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (tx change, no bal change)...`)
+                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (tx change, no bal change)...`)
                 }
                 else if (!newTx && balanceChanged) {
-                    console.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no tx change, bal change)...`)
+                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no tx change, bal change)...`)
                 }
                 else if (newTx && balanceChanged) {
-                    console.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update BOTH CHANGED...`)
+                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update BOTH CHANGED...`)
                 }
             }
 
@@ -110,7 +110,7 @@ module.exports = {
             return dispatchAction
         }
         else {
-            console.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx, balanceChanged,new_txs_value,delta_bal_conf=`, newTx, balanceChanged, new_txs_value.toString(), delta_bal_conf.toString())
+            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx, balanceChanged,new_txs_value,delta_bal_conf=`, newTx, balanceChanged, new_txs_value.toString(), delta_bal_conf.toString())
             return null
         }
     },
@@ -119,7 +119,7 @@ module.exports = {
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, activePubKey, h_mpk } = p
 
-        console.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... asset,payTo=`, asset, payTo)
+        utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... asset,payTo=`, asset, payTo)
 
         createTxHex({ 
             payTo, asset, encryptedAssetsRaw: wallet.assets_raw, feeParams, sendMode: true, sendFromAddrNdx,
@@ -130,7 +130,7 @@ module.exports = {
             const txHex = res.hex
             pushTransactionHex(store, payTo, wallet, asset, txHex, (res, err) => {
                 if (err) {
-                    console.error(`## createAndPushTx (wallet-external) ${asset.symbol}, err=`, err)
+                    utilsWallet.error(`## createAndPushTx (wallet-external) ${asset.symbol}, err=`, err)
                     callback(null, err)
                 }
                 else {
@@ -140,7 +140,7 @@ module.exports = {
             })
         })
         .catch(err => {
-            console.error(`### createAndPushTx (wallet-external) createTxHex FAILED - ${asset.symbol} payTo,err=`, payTo, err)
+            utilsWallet.error(`### createAndPushTx (wallet-external) createTxHex FAILED - ${asset.symbol} payTo,err=`, payTo, err)
             try {
                 let message = err.response.data.errors[0].error
                 callback(null, message)
@@ -185,16 +185,16 @@ module.exports = {
         const meta = configWallet.walletsMeta[asset.name.toLowerCase()] 
         var ret = {
                         conf: new BigNumber(0),
-                        unconf: new BigNumber(0),
-                pending_out: new BigNumber(0),
-                    pending_in: new BigNumber(0),
-                has_pending: false,
-                        avail: new BigNumber(0),
-                        total: new BigNumber(0),
-                    //utxo_avail: new BigNumber(0),
-            //utxo_changePending: new BigNumber(0),
+                      unconf: new BigNumber(0),
+                 pending_out: new BigNumber(0),
+                  pending_in: new BigNumber(0),
+                 has_pending: false,
+                       avail: new BigNumber(0),
+                       total: new BigNumber(0),
+                //utxo_avail: new BigNumber(0),
+        //utxo_changePending: new BigNumber(0),
         unconfirmed_tx_count: 0,
-        allAddressesFetched: false,
+         allAddressesFetched: false,
         }
 
         // filter all or single address
@@ -210,7 +210,7 @@ module.exports = {
                 return ret
         }
 
-        //console.time(`get_combinedBalance ${asset.symbol}`)
+        //utilsWallet.time(`get_combinedBalance ${asset.symbol}`)
 
         // confirmed & unconfirmed balances, aggregated over all addresses
         const totalConfirmed = addresses.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
@@ -278,11 +278,11 @@ module.exports = {
         // eth - round dust values to zero (all because can't get Geth to accept precise full-send amounts)
         if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
             if (configWallet.ETH_COALESCE_DUST_TO_ZERO && ret.avail.isGreaterThan(0) && ret.avail.isLessThanOrEqualTo(configWallet.ETH_DUST_WEI)) { 
-                //console.log(`get_combinedBalance - rounding dust (avail) wei for ${asset.symbol} (${ret.avail})`)
+                //utilsWallet.log(`get_combinedBalance - rounding dust (avail) wei for ${asset.symbol} (${ret.avail})`)
                 ret.avail = new BigNumber(0)
             }
             if (configWallet.ETH_COALESCE_DUST_TO_ZERO && ret.total.isGreaterThan(0) && ret.total.isLessThanOrEqualTo(configWallet.ETH_DUST_WEI)) { 
-                //console.log(`get_combinedBalance - rounding dust (total) wei for ${asset.symbol} (${ret.total})`)
+                //utilsWallet.log(`get_combinedBalance - rounding dust (total) wei for ${asset.symbol} (${ret.total})`)
                 ret.total = new BigNumber(0)
             }
         }
@@ -319,9 +319,9 @@ module.exports = {
         const unconfirmed_txs = getAll_unconfirmed_txs(asset)
         ret.unconfirmed_tx_count = asset.local_txs.length + unconfirmed_txs.length 
 
-        //console.timeEnd(`get_combinedBalance ${asset.symbol}`)
+        //utilsWallet.timeEnd(`get_combinedBalance ${asset.symbol}`)
 
-        //console.log(ret)
+        //utilsWallet.log(ret)
         return ret
     },
 
@@ -382,7 +382,7 @@ module.exports = {
         }
         else throw(`unknown asset type`)
 
-        console.log(`computeTxFee ${asset.symbol} ${sendValue} - ret=`, ret)
+        utilsWallet.log(`computeTxFee ${asset.symbol} ${sendValue} - ret=`, ret)
         return ret
     },
 
@@ -402,7 +402,7 @@ async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
         activePubKey, h_mpk } = params
 
-    console.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
+    utilsWallet.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
     const validationMode = !sendMode
     const skipSigningOnValidation = true
 
@@ -434,7 +434,7 @@ async function createTxHex(params) {
             // perf - much faster to lookup the addr rather than recompute it
             const addrInfo = asset.addresses.find(p => p.path === privKey.path)
             if (!addrInfo) {
-                console.error(`failed to lookup addr for path ${privKey.path}`)
+                utilsWallet.error(`failed to lookup addr for path ${privKey.path}`)
             }
 
             addrPrivKeys.push( { addr: addrInfo.addr, privKey: privKey.privKey } )  
@@ -468,7 +468,7 @@ async function createTxHex(params) {
                 })
             }
 
-            console.time('ext-createTxHex-utxo-createSignTx')
+            utilsWallet.time('ext-createTxHex-utxo-createSignTx')
                 const opsWallet = require('./wallet')
                 const network = opsWallet.getUtxoNetwork(asset.symbol)
                 var tx
@@ -489,7 +489,7 @@ async function createTxHex(params) {
                     
                     // add the outputs
                     txSkeleton.outputs.forEach(output => {
-                        //console.log(output)
+                        //utilsWallet.log(output)
 
                         var outputAddress = output.address
 
@@ -509,7 +509,7 @@ async function createTxHex(params) {
                     // run faster when in validation mode (not sending for real) - skip signing, return incomplete tx and estimate final vsize
                     const inc_tx = txb.buildIncomplete()
                     const inc_vs = inc_tx.virtualSize()
-                    console.log('inc_tx.virtualSize=', inc_vs)
+                    utilsWallet.log('inc_tx.virtualSize=', inc_vs)
                     if (validationMode && skipSigningOnValidation) { // validation mode
                         vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
                         tx = inc_tx
@@ -518,7 +518,7 @@ async function createTxHex(params) {
 
                         // add the inputs
                         for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                            console.log(`${asset.symbol} TX input #${i} UTXO txid ${txSkeleton.inputs[i].utxo.txid} - input=`, txSkeleton.inputs[i])
+                            utilsWallet.log(`${asset.symbol} TX input #${i} UTXO txid ${txSkeleton.inputs[i].utxo.txid} - input=`, txSkeleton.inputs[i])
                             txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
                         }
 
@@ -547,16 +547,16 @@ async function createTxHex(params) {
                         tx = txb.build()
                         const tx_vs = tx.virtualSize()
                         vSize = tx_vs
-                        console.log('tx.virtualSize=', tx_vs)
+                        utilsWallet.log('tx.virtualSize=', tx_vs)
 
                         // dbg
                         const delta_vs = tx_vs - inc_vs
                         const delta_perInput = delta_vs / txSkeleton.inputs.length
-                        console.log('dbg: delta_vs=', delta_vs)
-                        console.log('dbg: delta_perInput=', delta_perInput)
+                        utilsWallet.log('dbg: delta_vs=', delta_vs)
+                        utilsWallet.log('dbg: delta_perInput=', delta_perInput)
 
                         hex = tx.toHex()
-                        console.log(`*** createTxHex (wallet-external UTXO bitgo-utxo) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+                        utilsWallet.log(`*** createTxHex (wallet-external UTXO bitgo-utxo) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
                     }
                 }
                 else {
@@ -568,7 +568,7 @@ async function createTxHex(params) {
                     // add the outputs
                     txb.setVersion(1)
                     txSkeleton.outputs.forEach(output => {
-                        console.log(output)
+                        utilsWallet.log(output)
                         txb.addOutput(output.address, Number(output.value))
                     })
 
@@ -576,7 +576,7 @@ async function createTxHex(params) {
                     const inc_tx = txb.buildIncomplete()
                     const inc_vs = inc_tx.virtualSize()
 
-                    console.log('inc_tx.virtualSize=', inc_vs)
+                    utilsWallet.log('inc_tx.virtualSize=', inc_vs)
                     if (validationMode && skipSigningOnValidation) { // validation mode
                         vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
                         tx = inc_tx
@@ -585,7 +585,7 @@ async function createTxHex(params) {
 
                         // add the inputs
                         for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                            console.log(`${asset.symbol} UTXO TX - input=`, txSkeleton.inputs[i])
+                            utilsWallet.log(`${asset.symbol} UTXO TX - input=`, txSkeleton.inputs[i])
                             txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
                         }
 
@@ -617,19 +617,19 @@ async function createTxHex(params) {
                         tx = txb.build()
                         const tx_vs = tx.virtualSize()
                         vSize = tx_vs
-                        console.log('tx.virtualSize=', tx_vs) //* for fee calc - weighted on segwit (minus witness data length) and = byteLength for legacy
+                        utilsWallet.log('tx.virtualSize=', tx_vs) //* for fee calc - weighted on segwit (minus witness data length) and = byteLength for legacy
 
                         // dbg
                         const delta_vs = tx_vs - inc_vs
                         const delta_perInput = delta_vs / txSkeleton.inputs.length
-                        console.log('dbg: delta_vs=', delta_vs)
-                        console.log('dbg: delta_perInput=', delta_perInput) // for tx_perInput_vsize
+                        utilsWallet.log('dbg: delta_vs=', delta_vs)
+                        utilsWallet.log('dbg: delta_perInput=', delta_perInput) // for tx_perInput_vsize
                         
                         hex = tx.toHex()
-                        console.log(`*** createTxHex (wallet-external UTXO bitcoin-js) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+                        utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
                     }
                 }
-            console.timeEnd('ext-createTxHex-utxo-createSignTx')
+            utilsWallet.timeEnd('ext-createTxHex-utxo-createSignTx')
             
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ hex, inputsCount: txSkeleton.inputs.length, vSize, cu_sendValue: cu_sendValue.toString() }) }) 
@@ -643,7 +643,7 @@ async function createTxHex(params) {
             const value = payTo[0].value
 
             if (sendFromAddrNdx < 0 || sendFromAddrNdx > asset.addresses.length - 1) {
-                console.error(`### createTxHex (wallet-external ACCOUNT) ${asset.symbol} - bad addrNdx supplied`)
+                utilsWallet.error(`### createTxHex (wallet-external ACCOUNT) ${asset.symbol} - bad addrNdx supplied`)
                 return new Promise((resolve, reject) => { reject('Bad addrNdx') })
             }
 
@@ -664,14 +664,14 @@ async function createTxHex(params) {
             debugger
             const walletAccount = require('./wallet-account')
             const txHexAndValue = await walletAccount.createTxHex_Account(asset.symbol, txParams, wif)
-            console.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex.length, hex=`, txHexAndValue.txhex.length, txHexAndValue.hex)
+            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex.length, hex=`, txHexAndValue.txhex.length, txHexAndValue.hex)
             
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve( { hex: txHexAndValue.txhex, cu_sendValue: txHexAndValue.cu_sendValue.toString() } ) })
         }
 
         default:
-            console.error('Wallet type ' + asset.type + ' not supported!')
+            utilsWallet.error('Wallet type ' + asset.type + ' not supported!')
             break
     }    
 }
@@ -680,7 +680,7 @@ async function createTxHex(params) {
 // push tx
 // 
 function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
-    console.log(`*** pushTransactionHex (wallet-external), asset=`, asset)
+    utilsWallet.log(`*** pushTransactionHex (wallet-external), asset=`, asset)
 
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
@@ -697,7 +697,7 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
             break
                 
         default:
-            console.error(`unsupported type ${asset.type}`)
+            utilsWallet.error(`unsupported type ${asset.type}`)
     }
 }
 

@@ -13,11 +13,12 @@ const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
 const actionsWallet = require('../actions')
-const utilsWallet = require('../utils')
 const actionsWalletUtxo = require('./wallet-utxo')
-
 const actionsWalletAccount = require('./wallet-account')
+
 const apiWallet = require('../api/wallet')
+
+const utilsWallet = require('../utils')
 
 module.exports = { 
     //
@@ -113,7 +114,7 @@ module.exports = {
             return { importedAddrCount: privKeys.length, accountName: importAccount.name }
         })
         .catch(err => {
-            console.error(`## Wallet - importPrivKeys -- FAIL posting, err=`, err)
+            utilsWallet.error(`## Wallet - importPrivKeys -- FAIL posting, err=`, err)
             utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
             return { err: err.toString() }
         })
@@ -180,7 +181,7 @@ module.exports = {
             return { removedAddrCount, removedAccountCount }
         })
         .catch(err => {
-            console.error(`## Wallet - removeImportedAccounts -- FAIL posting, err=`, err)
+            utilsWallet.error(`## Wallet - removeImportedAccounts -- FAIL posting, err=`, err)
             utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
             return { err: err.toString() }
         })
@@ -275,7 +276,7 @@ module.exports = {
                 return { newAddr: newDisplayableAddr, newCount: genAccount.privKeys.length }
             })
             .catch(err => {
-                console.error(`## Wallet - generateNewAddress -- FAIL posting, err=`, err)
+                utilsWallet.error(`## Wallet - generateNewAddress -- FAIL posting, err=`, err)
                 utilsWallet.softNuke(rawAssets); pt_rawAssets = null
                 return { err: err.toString(), newAddr: undefined }
             })
@@ -304,7 +305,7 @@ module.exports = {
         var currentAssets
         if (e_serverAssets !== undefined && e_serverAssets !== null && e_serverAssets !== '') {
             pt_serverAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_serverAssets)
-            console.log('generateWallets - pt_serverAssets=', pt_serverAssets)
+            //utilsWallet.log('generateWallets - pt_serverAssets=', pt_serverAssets)
             currentAssets = JSON.parse(pt_serverAssets) // take from server
         } else {
             currentAssets = {} // generate new
@@ -316,19 +317,19 @@ module.exports = {
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
-        console.log(`generateWallets - currentAssets,currentTypes,needToGenerate,supportWalletTypes=`, currentAssets, currentTypes, needToGenerate, supportWalletTypes)
+        //utilsWallet.log(`generateWallets - currentAssets,currentTypes,needToGenerate,supportWalletTypes=`, currentAssets, currentTypes, needToGenerate, supportWalletTypes)
 
         // (re)generate wallets
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            console.log(`%c *** GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... ***`, 'background: purple; color: white; font-weight: 600; font-size: large;')
+            utilsWallet.logWallet(` GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... `)
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
             const currentAssetsToRemove = currentAssetNames.filter(p => needToGenerate.some(p2 => p === p2) === false)
             if (currentAssetsToRemove.length > 0) {
-                console.log(`%c *** REMOVING ${currentAssetsToRemove.length} ASSETS TYPE(s) (NOT PRESENT IN CLIENT LIST)... ***`, 'background: red; color: white; font-weight: 600; font-size: large;', currentAssetsToRemove)
+                utilsWallet.warn(`REMOVING ${currentAssetsToRemove.length} ASSETS TYPE(s) (NOT PRESENT IN CLIENT LIST)... ***`, currentAssetsToRemove)
                 currentAssetsToRemove.forEach(removeAssetName => {
                     delete currentAssets[removeAssetName]
                 })
@@ -338,7 +339,7 @@ module.exports = {
             if (needToGenerate.includes('ethereum')) {
                 var ret = generateWalletAccount({ assets: currentAssets, genType: 'ethereum', h_mpk })
                 needToGenerate = needToGenerate.filter(p => p !== 'ethereum')
-                console.log(`generateWallets - did ETH ret=${ret}, new needToGenerate=${JSON.stringify(needToGenerate)}`)
+                //utilsWallet.log(`generateWallets - did ETH ret=${ret}, new needToGenerate=${JSON.stringify(needToGenerate)}`)
             }
 
             // generate the rest
@@ -389,7 +390,7 @@ module.exports = {
             })
 
             // log, all done 
-            console.log(`%c *** FINISHED GENERATING NEW ASSET TYPE(s)... ***`, 'background: green; color: white; font-weight: 600; font-size: large;', currentAssets)  // ###########
+            utilsWallet.logWallet(` FINISHED GENERATING NEW ASSET TYPE(s)... `)
 
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets
@@ -399,7 +400,7 @@ module.exports = {
             if (userAccountName) {
                 apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
-                    console.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
+                    utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
                     try {
                         msg = error.response.data.msg || error.message || "Unknown Error"
@@ -412,13 +413,13 @@ module.exports = {
             // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)
             var rawAssetsJsonUpdated = JSON.stringify(currentAssets, null, 4) // full
             const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
-            console.log("wallets - generateWallets - rawAssetsJsonUpdated=" + rawAssetsJsonUpdated) // ###########
+            //utilsWallet.log("wallets - generateWallets - rawAssetsJsonUpdated=" + rawAssetsJsonUpdated) 
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
             rawAssetsJsonUpdated = null
 
         } else {
 
-            console.log(`%c *** FINISHED LOAD & X-REF CHECK FOR ASSET TYPES... ***`, 'background: orange; color: white; font-weight: 600; font-size: large;', currentAssets)
+            utilsWallet.logWallet(` FINISHED LOAD & X-REF CHECK FOR ASSET TYPES... `)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_serverAssets }) // persist encrypted local - no changes
         }
 
@@ -433,17 +434,17 @@ module.exports = {
     // get fees
     //
     getAssetFeeData: (asset) => {
-        //console.log("fees - getAssetFeeData")
+        //utilsWallet.log("fees - getAssetFeeData")
         switch (asset.type) {
 
             case configWallet.WALLET_TYPE_UTXO:
                 return actionsWalletUtxo.estimateFees_Utxo(asset.symbol)
                 .then(res => {
-                    console.log(`fees - (UTXO) getAssetFeeData - ${asset.symbol}, res=`, res)
+                    utilsWallet.log(`fees - (UTXO) getAssetFeeData - ${asset.symbol}, res=`, res)
                     return res
                 })
                 .catch(err => {
-                    console.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+                    utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
                 })
                 break
 
@@ -455,15 +456,15 @@ module.exports = {
                 }
                 return actionsWalletAccount.estimateGasInEther(asset, estimateGasParams)
                 .then(res => {
-                    console.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
+                    utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
                     return res
                 })
                 .catch(err => {
-                    console.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+                    utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
                 })
                 break
 
-            default: console.error(`fees - unsupported asset type ${asset.type}`)
+            default: utilsWallet.error(`fees - unsupported asset type ${asset.type}`)
         }
     },
 
@@ -495,7 +496,7 @@ module.exports = {
 //
 function generateWalletAccount(p) {
     const { assets, genType, h_mpk, eosActiveWallet } = p
-    console.log(`wallets - generateWallets - generateWalletAccount - genType=${genType}, h_mpk=`, h_mpk)
+    utilsWallet.log(`wallets - generateWallets - generateWalletAccount - genType=${genType}`)
     var defaultPrivKeys
     switch (genType) {
         case 'btc(t)': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed, symbol: 'BTC_TEST' }); break; 
@@ -513,7 +514,7 @@ function generateWalletAccount(p) {
         case 'ethereum': defaultPrivKeys = generateEthereumWallet({ entropySeed: h_mpk, addrNdx: 0, genCount: configWallet.WALLET_DEFAULT_ADDRESSES }); break
 
         case 'eos':
-            console.log(`eos=`, eosActiveWallet)
+            //utilsWallet.log(`eos=`, eosActiveWallet)
             if (eosActiveWallet) {
                 const meta = configWallet.getMetaBySymbol('EOS')
                 defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }]; break
@@ -550,7 +551,7 @@ function generateWalletAccount(p) {
             // note: we leave any other server-populated address indexes alone, so any user-activated (non-default) addresses persist across logins
         }
 
-        console.log(`wallets - generateWallets - genType=${genType} pushed defaultPrivKeys=`, defaultPrivKeys)
+        //utilsWallet.log(`wallets - generateWallets - genType=${genType} pushed defaultPrivKeys=`, defaultPrivKeys)
         return true
     }
     return false
@@ -617,7 +618,7 @@ function getAddressFromPrivateKey(p) {
         return getAccountTypeAddress(privKey, assetMeta.symbol, eosActiveWallet)
     }
 
-    else console.warn('### Wallet type ' + assetMeta.type + ' not supported!')
+    else utilsWallet.warn('### Wallet type ' + assetMeta.type + ' not supported!')
 }
 
 function getUtxoNetwork(symbol) {
@@ -689,20 +690,20 @@ function generateEthereumWallet(p) {
     }
     catch (err) { 
         debugger
-        console.log(`generateEthereumWallet - FAIL: ${err.message}`, err)
+        utilsWallet.error(`generateEthereumWallet - FAIL: ${err.message}`, err)
         return null
     }
 }
 
 function getAccountTypeAddress(privKey, symbol, eosActiveWallet) {
-    //console.log(`getAccountTypeAddress privKey=${privKey} symbol=${symbol}...`)
+    //utilsWallet.log(`getAccountTypeAddress privKey=${privKey} symbol=${symbol}...`)
     try {
         if (symbol === "EOS") {
             if (eosActiveWallet !== undefined && eosActiveWallet !== null) {
                 return eosActiveWallet.address
             }
             else {
-                console.warn(`## getAccountTypeAddress - eosActiveWallet undefined!`)
+                utilsWallet.warn(`## getAccountTypeAddress - eosActiveWallet undefined!`)
                 return undefined
             }
         }
@@ -712,7 +713,7 @@ function getAccountTypeAddress(privKey, symbol, eosActiveWallet) {
     }
     catch (err) {
         debugger
-        console.log(`getAccountTypeAddress - FAIL: ${err.message}`, err)
+        utilsWallet.error(`getAccountTypeAddress - FAIL: ${err.message}`, err)
         return null
     }
 }
@@ -742,7 +743,7 @@ function generateUtxoBip44Wifs(p) {
         var keyPair = child.keyPair // bitgo
 
         var wif = keyPair.toWIF()
-        console.log(`generateUtxoBip44Wifs - ${symbol} BIP44 - child,keyPair,network=`, child, keyPair, network)
+        //utilsWallet.log(`generateUtxoBip44Wifs - ${symbol} @ BIP44 ndx ${i} - child,keyPair,network=`, child, keyPair, network)
         keyPairs.push({ privKey: wif, path })
     }
     return keyPairs
@@ -790,7 +791,7 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
         }
     }
     catch (err) { 
-        console.error(`getUtxoTypeAddressFromWif (${wif}) - FAIL: ${err.message}`, err)
+        utilsWallet.error(`getUtxoTypeAddressFromWif (${wif}) - FAIL: ${err.message}`, err)
         return null
     }
 }

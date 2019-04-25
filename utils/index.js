@@ -1,15 +1,11 @@
 const BigDecimal = require('js-big-decimal')
-
 const BigNumber = require('bignumber.js')
-//import BigNumber from 'bignumber.js'
-
 const CryptoJS = require('crypto-js')
-//import { AES, PBKDF2, SHA256, enc } from 'crypto-js'
 
-//import * as configWallet from '../config/wallet'
+const colors = require('colors')
+const chalk = require('chalk')
+
 const configWallet = require('../config/wallet')
-
-//import * as configExternal from '../config/wallet-external'
 const configExternal = require('../config/wallet-external')
 
 module.exports = {
@@ -140,6 +136,50 @@ module.exports = {
     },
 
     //
+    // logging - chalk/color for server terminal, html for browser console
+    //
+    logReducer: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.white.bold.bgKeyword('orange').black(s), p)
+            else   console.log(chalk.white.bold.bgKeyword('orange').black(s))
+        else
+            if (p) console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;', p)
+            else   console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;')
+    },
+    logWallet: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.white.bold.bgKeyword('purple')(s), p)
+            else   console.log(chalk.white.bold.bgKeyword('purple')(s))
+        else
+            if (p) console.log(`%c${s}`, 'background: purple; color: white; font-weight: 600; font-size: large;', p)
+            else   console.log(`%c${s}`, 'background: purple; color: white; font-weight: 600; font-size: large;')
+    },
+    log: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.gray.bold(s), p)
+            else   console.log(chalk.gray.bold(s))
+        else
+            if (p) console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
+            else   console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
+    },
+    error: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.red.bold(s), p)
+            else   console.log(chalk.red.bold(s))
+        else
+            if (p) console.error(s, p)
+            else   console.error(s)
+    },
+    warn: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.yellow.bold(s), p)
+            else   console.log(chalk.yellow.bold(s))
+        else
+            if (p) console.warn(s, p)
+            else   console.warn(s)
+    },
+
+    //
     // notifications & error logging
     //
     logErr: (err, OPT_BETA_TESTER) => {
@@ -177,31 +217,38 @@ module.exports = {
                 cpuWorker.addEventListener('message', listener)
             }
             else {
-                cpuWorker.once('message', listener) // .once - correct?
+                cpuWorker.on('message', listener) // .once - correct? ##### NO -- getting and discarding another's callback
             }
 
             function listener(event) {
-                if (event && event.data && event.data.data) {
-                    const msg = event.data.msg
-                    const status = event.data.status
-                    const ret = event.data.data.ret
-                    const reqId = event.data.data.reqId
-                    const totalReqCount = event.data.data.totalReqCount
-
-                    if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
-                        resolve(ret)
-                        if (configWallet.WALLET_ENV === "BROWSER") {
-                            cpuWorker.removeEventListener('message', listener)
-                        }
-                        if (callbackProcessed) {
-                            callbackProcessed(ret, totalReqCount)
-                        }
-                        return
-                    }
+                var input
+                if (configWallet.WALLET_ENV === "BROWSER") {
+                    if (!event || !event.data) { resolve(null); return }
+                    input = event.data
                 }
-                else { 
-                    debugger
-                    resolve(null)
+                else {
+                    if (!event) { resolve(null); return }
+                    input = event
+                }
+
+                const msg = input.msg
+                const status = input.status
+                const ret = input.data.ret
+                const reqId = input.data.reqId
+                const totalReqCount = input.data.totalReqCount
+
+                if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                    resolve(ret)
+                    if (configWallet.WALLET_ENV === "BROWSER") {
+                        cpuWorker.removeEventListener('message', listener)
+                    }
+                    else {
+                        cpuWorker.removeListener('message', listener)
+                    }
+                    if (callbackProcessed) {
+                        callbackProcessed(ret, totalReqCount)
+                    }
+                    return
                 }
             }
             cpuWorker.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
@@ -217,31 +264,39 @@ module.exports = {
                 cpuWorker.addEventListener('message', listener)
             }
             else {
-                cpuWorker.once('message', listener) //  MaxListenersExceededWarning: ... .once -- correct?
+                cpuWorker.on('message', listener)
             }
 
             function listener(event) {
-                if (event && event.data && event.data.data) {
-                    const msg = event.data.msg
-                    const status = event.data.status
-                    const ret = event.data.data.ret
-                    const reqId = event.data.data.reqId
-                    const totalReqCount = event.data.data.totalReqCount
-                    const inputParams = event.data.data.inputParams
-
-                    if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
-                        resolve(ret)
-                        if (configWallet.WALLET_ENV === "BROWSER") {
-                            cpuWorker.removeEventListener('message', listener)
-                        }
-                        if (callbackProcessed) {
-                            callbackProcessed(ret, inputParams, totalReqCount)
-                        }
-                        return
-                    }
+                var input
+                if (configWallet.WALLET_ENV === "BROWSER") {
+                    if (!event || !event.data) { resolve(null); return }
+                    input = event.data
                 }
-                else { 
-                    resolve(null)
+                else {
+                    if (!event) { resolve(null); return }
+                    input = event
+                }
+
+                const msg = input.msg
+                const status = input.status
+                const ret = input.data.ret
+                const reqId = input.data.reqId
+                const totalReqCount = input.data.totalReqCount
+                const inputParams = input.data.inputParams
+
+                if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                    resolve(ret)
+                    if (configWallet.WALLET_ENV === "BROWSER") {
+                        cpuWorker.removeEventListener('message', listener)
+                    }
+                    else {
+                        cpuWorker.removeListener('message', listener)
+                    }
+                    if (callbackProcessed) {
+                        callbackProcessed(ret, inputParams, totalReqCount)
+                    }
+                    return
                 }
             }
             cpuWorker.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })

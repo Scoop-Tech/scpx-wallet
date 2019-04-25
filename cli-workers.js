@@ -15,7 +15,7 @@ export async function workers_init() {
     const globalScope = utilsWallet.getGlobal()
     if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
         globalScope.cpuWorkers = []
-        globalScope.CPU_WORKERS = 2
+        globalScope.CPU_WORKERS = 8
         for (var i=0 ; i < globalScope.CPU_WORKERS ; i++) {
             globalScope.cpuWorkers.push(new Worker('./cpu-worker/worker.js'))
         }

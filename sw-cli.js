@@ -19,29 +19,29 @@ const chalk = require('chalk')
 const clear = require('clear')
 const figlet = require('figlet')
 
+// if (process.stdout._handle) { 
+//     process.stdout._handle.setBlocking(true)
+//     log.info('set stdout sync')
+// }
+//require("console-sync") // patch console for sync
+
 //clear()
-console.log(chalk.green(figlet.textSync(`scpx-w`, { horizontalLayout: 'full' })))
-log.info(chalk.white.bgGreen.bold(` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ...`))
+console.log(chalk.green.bold(figlet.textSync(`scpx-w`, { horizontalLayout: 'full' })))
+log.info(chalk.white.bgGreen.bold(` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ... `))
 
 cli
 .version('0.1.0', '-v, -V, -ver, --version')
-.option('-m, --mpk <required>','the Master Private Key to initialize')
+.option('-m, --mpk <required>','the Master Private Key to initialize') // TODO -- add APK to cmdline, optional to auto-load
 .parse(process.argv)
-if (!cli.mpk) {
-    console.error(chalk.red('MPK is mandatory'))
-    cli.help()
-    process.exit(1)
-}
-log.info('MPK: OK')
+// if (!cli.mpk) {
+//     console.error(chalk.red('MPK is mandatory'))
+//     cli.help()
+//     process.exit(1)
+// }
+// log.info('MPK: OK')
 
 // setup workers
 cliWorkers.workers_init().then(() => {
-
-    //
-    // todo -- 1 -- fn .wallet-load: take in PT key, email > create in-memory ** no api/eos **
-    //         2 -- migrate workers to populate balances, utxos etc. -- needed for tx's
-    //         3 -- fn .wallet-tx:   construct/publish tx 
-    //
 
     // wallet context
     const walletContext = {

@@ -4,6 +4,8 @@ const _ = require('lodash')
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
 
+const utilsWallet = require('../utils')
+
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') 
@@ -12,7 +14,7 @@ try {
 
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
-console.log(` ... cpuWorker - (WALLET) v-${configWallet.WALLET_VER} >> ${workerId} - init ... `)
+utilsWallet.log(` ... cpuWorker - (${configWallet.WALLET_ENV}) >> ${workerId} - init ... `)
 
 var outbound = undefined
 if (workerThreads) { // server
@@ -25,18 +27,17 @@ else { // browser
 }
 
 function handler(e) {
-    //if (!e || !e.data || !e.data.msg) { console.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
+    //if (!e || !e.data || !e.data.msg) { utilsWallet.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
 
-    if (!e) { console.error(`cpuWorker >> ${workerId} no event data`); return }
+    if (!e) { utilsWallet.error(`cpuWorker >> ${workerId} no event data`); return }
 
     const eventData = !workerThreads ? e.data : e
-    if (!eventData.msg || !eventData.data) { console.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
+    if (!eventData.msg || !eventData.data) { utilsWallet.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
 
     const msg = eventData.msg
     const data = eventData.data
     switch (msg) {
         case 'DIAG_PING': {
-            console.log(`cpuWorker >> ${workerId} DIAG_PING`)
             const pongTime = new Date().getTime()
             outbound.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
             break
@@ -54,11 +55,14 @@ function handler(e) {
                     ret.symbol = params.symbol
                 }
                 catch(err) {
-                    console.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY, e=`, err)
+                    utilsWallet.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY, e=`, err)
                 }
                 
-                //console.log(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId,params,ret=`, reqId, params, ret)
+                //utilsWallet.log(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
                 outbound.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, reqId, totalReqCount } })
+            }
+            else {
+                utilsWallet.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY - no data`)
             }
         }
         break
@@ -75,10 +79,10 @@ function handler(e) {
                     //ret.symbol = params.symbol
                 }
                 catch(err) {
-                    console.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)
+                    utilsWallet.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)
                 }
                 
-                //console.log(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId,params,ret=`, reqId, params, ret)
+                //utilsWallet.log(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId,params,ret=`, reqId, params, ret)
                 outbound.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, inputParams: params, reqId, totalReqCount } })
             }
         }
