@@ -3,7 +3,7 @@ const axiosRetry = require('axios-retry')
 
 // ### might be that server will need to do all web3 accesses on the main thread ###
 // https://github.com/ethereum/web3.js/issues/2723
-//const Web3 = require('web3') 
+const Web3 = require('web3') 
 
 const EthTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
@@ -19,7 +19,6 @@ const walletExternal = require('./wallet-external') // ### ugly, maybe better th
 module.exports = {
 
     createTxHex_Account: async (symbol, params, privateKey) => {
-        debugger
         utilsWallet.log(`*** createTxHex_Account ${symbol} (${params})...`)
 
         switch (symbol) {

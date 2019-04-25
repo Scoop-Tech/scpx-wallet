@@ -43,6 +43,15 @@ See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) 
   * https://github.com/trezor/blockbook
   * https://github.com/bitpay/insight-api
 
+## Building from Source
+
+  * ```https://github.com/Scoop-Tech/scpx-wallet.git```
+  * ```cd scpx-wallet```
+  * ```npm install```
+  * ```npm start```
+
+NOTE: ```nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
+
 ## Roadmap: Short-term
 
   * [Fiat In](https://github.com/Scoop-Tech/scpx-wallet/issues/15)
