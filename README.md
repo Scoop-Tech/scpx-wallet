@@ -7,10 +7,10 @@ Release Candidate 2
   * ```cd scpx-wallet```
   * ```npm install```
   * ```npm start```
+  
+Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
 
 NOTE: ```./nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
-
-NOTE: remove ```"restartable": false``` from  ```./nodemon.json``` to enable breaking out of npm (it's required for REPL command history)
 
 ## SCPX Scoop Wallet
 
