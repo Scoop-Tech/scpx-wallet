@@ -8,7 +8,7 @@ Release Candidate 2
   * ```npm install```
   * ```npm start```
 
-NOTE: ```nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
+NOTE: ```./nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
 
 ## SCPX Scoop Wallet
 
