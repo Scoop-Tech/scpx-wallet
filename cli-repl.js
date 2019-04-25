@@ -34,16 +34,6 @@ export function repl_init(walletContext) {
 
     const helpBanner = ''//NOTE: scpx-w commands and arguments are case-sensitive'
 
-    // dbg: dump store state
-    prompt.defineCommand("dss", {
-        help: "dbg - dump redux store state",
-        action: function (args) {
-            this.clearBufferedCommand()
-            console.dir(appStore.store.getState())
-            this.displayPrompt()
-        }
-    })
-
     // wallet-new, new random MPK
     const walletNewHelp = `${helpBanner}\n` +
         `\tcmd: .wn (wallet-new) - creates and persists in-memory a new scoop wallet, from new random seed values\n`
@@ -117,15 +107,25 @@ export function repl_init(walletContext) {
         }
     })
 
-    // // test cpuworker ping
-    // prompt.defineCommand("tc1", {
-    //     help: "cpuWorker test1 - ping",
+    // dbg: dump store state
+    prompt.defineCommand("dss", {
+        help: "dbg - dump redux store state",
+        action: function (args) {
+            this.clearBufferedCommand()
+            console.dir(appStore.store.getState())
+            this.displayPrompt()
+        }
+    })
+
+    // dbg: test web3
+    // prompt.defineCommand("dt1", {
+    //     help: "dbg - test web3",
     //     action: function (args) {
     //         this.clearBufferedCommand()
     //         const globalScope = utilsWallet.getGlobal()
-    //         globalScope.cpuWorkers[0].postMessage({ msg: 'DIAG_PING', data: {} })
-    //         globalScope.cpuWorkers[0].on('message', (data) => {
-    //             log.info(data)
+    //         globalScope.cpuWorkers[0].postMessage({ msg: 'TEST_WEB3', data: {} })
+    //         globalScope.cpuWorkers[0].once('message', (data) => {
+    //             log.info('ok', data)
     //         })
     //         this.displayPrompt()
     //     }

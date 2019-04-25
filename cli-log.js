@@ -5,9 +5,9 @@ var colors = require('colors')
 
 export function info(s, p) {
     if (p)
-        console.log(`<< ${s.cyan.bold}`, p)
+        console.log(`<< ${s.toString().cyan.bold}`, p)
     else
-        console.log(`<< ${s.cyan.bold}`)
+        console.log(`<< ${s.toString().cyan.bold}`)
 }
 export function dir(o) {
     console.dir(o)

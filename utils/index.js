@@ -146,6 +146,14 @@ module.exports = {
             if (p) console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;', p)
             else   console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;')
     },
+    logWorker: (s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER")
+            if (p) console.log(chalk.white.bold.bgKeyword('gray').black(s), p)
+            else   console.log(chalk.white.bold.bgKeyword('gray').black(s))
+        else
+            if (p) console.log(`%c${s}`, 'background: gray; color: white; font-weight: 600; font-size: 14px;', p)
+            else   console.log(`%c${s}`, 'background: gray; color: white; font-weight: 600; font-size: 14px;')
+    },
     logWallet: (s, p) => {
         if (configWallet.WALLET_ENV === "SERVER")
             if (p) console.log(chalk.white.bold.bgKeyword('purple')(s), p)

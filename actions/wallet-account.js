@@ -1,9 +1,8 @@
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
 
-// ### might be that server will need to do all web3 accesses on the main thread ###
 // https://github.com/ethereum/web3.js/issues/2723
-const Web3 = require('web3') 
+//const Web3 = require('web3')
 
 const EthTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
@@ -17,6 +16,13 @@ const utilsWallet = require('../utils')
 const walletExternal = require('./wallet-external') // ### ugly, maybe better these fn's in opsWallet
 
 module.exports = {
+
+    // test_web3: () => {
+    //     const Web3 = require('web3')
+    //     const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
+    //     console.log('Web3=', Web3)
+    //     console.log('web3=', web3)
+    // },
 
     createTxHex_Account: async (symbol, params, privateKey) => {
         utilsWallet.log(`*** createTxHex_Account ${symbol} (${params})...`)
