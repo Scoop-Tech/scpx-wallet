@@ -8,7 +8,7 @@ Release Candidate 2
   * ```npm install```
   * ```npm start```
   
-Primary/recommended build environment is ```node``` 10.14.1 and ```npm``` 6.4.1.
+Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
 
 NOTE: ```./nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
 
