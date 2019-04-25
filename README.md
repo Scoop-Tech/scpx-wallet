@@ -10,6 +10,8 @@ Release Candidate 2
 
 NOTE: ```./nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
 
+NOTE: remove ```"restartable": false``` from  ```./nodemon.json``` to enable breaking out of npm (it's required for REPL command history)
+
 ## SCPX Scoop Wallet
 
 Scoop Wallet is a decentralised, open-source and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
