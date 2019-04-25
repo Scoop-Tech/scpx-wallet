@@ -178,50 +178,40 @@ module.exports = {
     //
     // logging - chalk/color for server terminal, html for browser console
     //
-    logReducer: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.white.bold.bgKeyword('orange').black(s), p)
-            else   console.log(chalk.white.bold.bgKeyword('orange').black(s))
-        else
-            if (p) console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;', p)
-            else   console.log(`%c${s}`, 'background: orange; color: white; font-weight: 600; font-size: 14px;')
-    },
-    logWorker: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.white.bold.bgKeyword('gray').black(s), p)
-            else   console.log(chalk.white.bold.bgKeyword('gray').black(s))
-        else
-            if (p) console.log(`%c${s}`, 'background: gray; color: white; font-weight: 600; font-size: 14px;', p)
-            else   console.log(`%c${s}`, 'background: gray; color: white; font-weight: 600; font-size: 14px;')
-    },
-    logWallet: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.white.bold.bgKeyword('purple')(s), p)
-            else   console.log(chalk.white.bold.bgKeyword('purple')(s))
-        else
-            if (p) console.log(`%c${s}`, 'background: purple; color: white; font-weight: 600; font-size: large;', p)
-            else   console.log(`%c${s}`, 'background: purple; color: white; font-weight: 600; font-size: large;')
+    logMajor: (bg, fg, s, p) => {
+        if (configWallet.WALLET_ENV === "SERVER") {
+            if (!p) // chalk doesn't work in worker threads, colors does
+                console.log(s.bgCyan.white.bold)
+            else
+                console.log(s.bgCyan.white.bold, p)
+            // if (p) console.log(chalk.bgKeyword(bg).keyword(fg)(s), p)
+            // else   console.log(chalk.bgKeyword(bg).keyword(fg)(s))
+        }
+        else {
+            if (p) console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`, p)
+            else   console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`)
+        }
     },
     log: (s, p) => {
         if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.gray.bold(s), p)
-            else   console.log(chalk.gray.bold(s))
+            if (p) console.log(s.gray.bold, p)// chalk.gray.bold(s), p)
+            else   console.log(s.gray.bold) //chalk.gray.bold(s))
         else
             if (p) console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
             else   console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
     },
     error: (s, p) => {
         if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.red.bold(s), p)
-            else   console.log(chalk.red.bold(s))
+            if (p) console.log(s.red.bold, p) //chalk.red.bold(s), p)
+            else   console.log(s.red.bold) //chalk.red.bold(s))
         else
             if (p) console.error(s, p)
             else   console.error(s)
     },
     warn: (s, p) => {
         if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(chalk.yellow.bold(s), p)
-            else   console.log(chalk.yellow.bold(s))
+            if (p) console.log(s.yellow.bold, p) //chalk.yellow.bold(s), p)
+            else   console.log(s.yellow.bold) //chalk.yellow.bold(s))
         else
             if (p) console.warn(s, p)
             else   console.warn(s)

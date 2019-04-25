@@ -10,9 +10,9 @@ import * as log from './cli-log'
 // setup cpuWorkers
 export async function workers_init() {
     log.info(`isMainThread: ${isMainThread}`)
-
-    // create workers
     const globalScope = utilsWallet.getMainThreadGlobalScope()
+
+    // create cpu workers
     if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
         globalScope.cpuWorkers = []
         globalScope.CPU_WORKERS = 8
@@ -22,10 +22,15 @@ export async function workers_init() {
         globalScope.nextCpuWorker = 0
     }
 
+    // create app worker
+    if (globalScope.appWorker === undefined) {
+        globalScope.appWorker = new Worker('./app-worker/worker.js')
+    }
+
     // ping workers
-    const pongs = globalScope.cpuWorkers.map(worker => {
+    const pongs = globalScope.cpuWorkers.concat([globalScope.appWorker]).map(worker => {
         return new Promise((resolve) => {
-            worker.on('message', (data) => { resolve(true) })
+            worker.once('message', (data) => { resolve(true) })
             worker.postMessage({ msg: 'DIAG_PING', data: {} })
         })
     })

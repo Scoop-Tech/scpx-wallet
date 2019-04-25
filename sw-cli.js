@@ -45,7 +45,6 @@ cliWorkers.workers_init().then(() => {
 
     // wallet context
     const walletContext = {
-       cpuWorkers: utilsWallet.cpuWorkers,
             store: appStore.store, 
         persistor: appStore.persistor,
            config: {

@@ -323,7 +323,7 @@ module.exports = {
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            utilsWallet.logWallet(` GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... `)
+            utilsWallet.logMajor('purple','white', ` GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... `)
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
@@ -390,7 +390,7 @@ module.exports = {
             })
 
             // log, all done 
-            utilsWallet.logWallet(` FINISHED GENERATING NEW ASSET TYPE(s)... `)
+            utilsWallet.logMajor('purple', 'white', ` FINISHED GENERATING NEW ASSET TYPE(s)... `)
 
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets
@@ -419,7 +419,7 @@ module.exports = {
 
         } else {
 
-            utilsWallet.logWallet(` FINISHED LOAD & X-REF CHECK FOR ASSET TYPES... `)
+            utilsWallet.logMajor('purple', 'white', ` FINISHED LOAD & X-REF CHECK FOR ASSET TYPES... `)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_serverAssets }) // persist encrypted local - no changes
         }
 

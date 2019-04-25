@@ -15,9 +15,9 @@ export function dir(o) {
 
 export function error(s, p) {
     if (p)
-        console.log(`<< ## ${s} ## `.bgRed.white, p)
+        console.log(`<< ## ${s} ## `.bgRed.white.bold, p)
     else
-        console.log(`<< ## ${s} ## `.bgRed.white)
+        console.log(`<< ## ${s} ## `.bgRed.white.bold)
 }
 export function success(s, p) {
     console.log(`---`)

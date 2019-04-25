@@ -74,7 +74,7 @@ export function repl_init(walletContext) {
                         log.info(walletLoadHelp)
                     }
                     else {
-                        log.success(`(wallet-load OK) - you can reload this wallet (.wl) at any time with:\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-load OK) - you can reload this wallet (.wl) with:\n${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100)

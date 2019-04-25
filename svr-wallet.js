@@ -29,8 +29,8 @@ export function newWallet(store) {
 
 export function loadWallet(store, p) {
     const { mpk, apk } = p
-    if (!mpk) return { err: 'invalid MPK' }
-    if (!apk) return { err: 'invalid APK' }
+    const invalidMpkApk = validateMpkApk(mpk, apk)
+    if (invalidMpkApk) return invalidMpkApk
     
     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
     //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
@@ -59,8 +59,8 @@ export function loadWallet(store, p) {
 
 export async function dumpWallet(store, p) {
     const { mpk, apk } = p
-    if (!mpk) return { err: 'invalid MPK' }
-    if (!apk) return { err: 'invalid APK' }
+    const invalidMpkApk = validateMpkApk(mpk, apk)
+    if (invalidMpkApk) return invalidMpkApk
 
     const storeState = store.getState()
     if (!storeState) return { err: 'invalid store state' }
@@ -109,4 +109,12 @@ export async function dumpWallet(store, p) {
     return new Promise((resolve) => {
         resolve({ ok: allPathKeyAddrs })
     })
+}
+
+function validateMpkApk(mpk, apk) {
+    if (!mpk) return new Promise((resolve) => resolve({ err: 'invalid MPK' }))
+    if (!apk) return new Promise((resolve) => resolve({ err: 'invalid APK' }))
+    if (mpk.length < 53) return new Promise((resolve) => resolve({ err: 'MPK too short (53 chars min)' }))
+    if (apk.length < 53) return new Promise((resolve) => resolve({ err: 'APK too short (53 chars min)' }))
+    return undefined
 }
