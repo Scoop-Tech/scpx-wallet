@@ -102,13 +102,13 @@ module.exports = {
             }
             else {
                 if (newTx && !balanceChanged) {
-                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (tx change, no bal change)...`)
+                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (tx change, no bal change)...`)
                 }
                 else if (!newTx && balanceChanged) {
-                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no tx change, bal change)...`)
+                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no tx change, bal change)...`)
                 }
                 else if (newTx && balanceChanged) {
-                    utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update BOTH CHANGED...`)
+                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update BOTH CHANGED...`)
                 }
             }
 
@@ -117,7 +117,7 @@ module.exports = {
             return dispatchAction
         }
         else {
-            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx, balanceChanged,new_txs_value,delta_bal_conf=`, newTx, balanceChanged, new_txs_value.toString(), delta_bal_conf.toString())
+            utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx, balanceChanged,new_txs_value,delta_bal_conf=`, newTx, balanceChanged, new_txs_value.toString(), delta_bal_conf.toString())
             return null
         }
     },

@@ -27,7 +27,7 @@ module.exports = {
 
         try {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
-            //utilsWallet.log(`appWorker >> ${self.workerId} mempool_GetTx - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
+            utilsWallet.debug(`appWorker >> ${self.workerId} mempool_GetTx - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
 
             const mempool_spent_txids = []
             socket.send({ method: 'getAddressTxids', params: [ownAddresses, { start: 20000000, end: 0, queryMempoolOnly: true }] }, (data) => {
@@ -88,6 +88,7 @@ module.exports = {
                                     callback([])
                                 })
                         }
+                        // not needed, now btc_seg is using BB with proper segwit support
                         /*else if (asset.symbol === 'BTC_SEG') {
                             //debugger
                             const allTxFetches = mempool_txids.map(txid => {
@@ -196,6 +197,9 @@ module.exports = {
                             block_no: -1,
                             fees: Number(new BigNumber(tx.feeSatoshis).div(100000000))
                         }
+
+                        utilsWallet.log(`mempool_process_Btc_SW - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
+
                         postMessage({
                             msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
                             data: {
@@ -217,7 +221,7 @@ module.exports = {
         //         hard requirement: this is the only way receiver will get notified, ahead of a new block with the confirmed tx
         //
         // ** ETH: if we are sender... **
-        //         BB (own node and public nodes) is *not* giving us our own tx's in mempool -- this is not possible
+        //         BB (own node and public nodes) is *not* giving us our own tx's in mempool (?!)
         //
         if (weAreSender) { 
             return 

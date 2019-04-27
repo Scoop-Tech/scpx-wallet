@@ -17,7 +17,7 @@ module.exports = {
 
     // insight tx and block subscriptions (diagnostics and balance polling, respectively)
     socketio_Setup_Insight: (networkConnected, networkStatusChanged) => {
-        //utilsWallet.log('appWorker >> ${self.workerId} insight_Setup...')
+        utilsWallet.debug('appWorker >> ${self.workerId} insight_Setup...')
 
         for (var assetSymbol in configWS.insightApi_ws_config) {
             if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTCTEST) continue
@@ -46,7 +46,7 @@ module.exports = {
                     // initial / main path
                     if (self.insightSocketIos[x] === undefined) { // connect & init
 
-                        utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`)
+                        utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`, null, { logServerConsole: true })
 
                         self.insightSocketIos[x] = io(configWS.insightApi_ws_config[x].url, { transports: ['websocket'] })
                         var socket = self.insightSocketIos[x]
@@ -55,7 +55,7 @@ module.exports = {
                         // socket lifecycle
                         //
                         socket.on('connect', () => {
-                            utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect...`)
+                            utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect...`)
                             try {
                                 networkConnected(x, true)
                                 networkStatusChanged(x)
@@ -139,14 +139,15 @@ module.exports = {
                             if (configWallet.DISABLE_BLOCK_UPDATES) return
                             
                             if (configWS.insightApi_ws_config[x].subBlocks === false) {
-                                utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
+                                utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
                             }
                             else {
                                 try {
 
                                     // requery balance check for asset on new block
-                                    postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
+                                    self.postMessage({ 
+                                         msg: 'REQUEST_STATE', status: 'REQ',
+                                        data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
 
                                     // get reeived block height & time
                                     axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
@@ -156,7 +157,7 @@ module.exports = {
                                             const receivedBlockNo = resBlockData.data.height
                                             const receivedBlockTime = new Date(resBlockData.data.time * 1000)
                                 
-                                            utilsWallet.logMajor('yellow','white', ` appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime} `)
+                                            utilsWallet.logMajor('green','black', `appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime}`)
                                 
                                             // get node sync status
                                             getSyncInfo_Insight(x, receivedBlockNo, receivedBlockTime)
@@ -180,7 +181,7 @@ module.exports = {
 
     getAddressBalance_Insight: (asset, address) => {
         const symbol = asset.symbol
-        utilsWallet.log(`getAddressBalance_Insight v2_addrBal ${symbol}...`)
+        utilsWallet.debug(`getAddressBalance_Insight v2_addrBal ${symbol}...`)
 
         return new Promise((resolve, reject) => {
             
@@ -210,29 +211,12 @@ module.exports = {
                 resolve(null) 
             })
         })
-
-        // return Promise.all( [
-        //     axios.get(configExternal.walletExternal_config[symbol].api.balance(address)),
-        //     axios.get(configExternal.walletExternal_config[symbol].api.unconfirmedBalance(address))
-        // ]
-        // )
-        // .then(([balanceRes, unconfirmedBalanceRes]) => {
-        //     return {
-        //         symbol,
-        //         balance: new BigNumber(balanceRes.data),
-        //         unconfirmedBalance: new BigNumber(unconfirmedBalanceRes.data),
-        //         address
-        //     }
-        // })
-        // .catch((err) => {
-        //     utilsWallet.error(`### getAddressBalance_Insight ${symbol}, err=`, err)
-        // })
     },
 
     // UTXO v2 -- gets balance and last n raw tx id's - one op.
     getAddressFull_Insight_v2: (wallet, asset, pollAddress, utxo_mempool_spentTxIds, allDispatchActions) => {
         const symbol = asset.symbol
-        utilsWallet.log(`getAddressFull_Insight_v2 ${symbol}...`)
+        utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol}...`)
 
         axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
         const from = 0
@@ -245,15 +229,6 @@ module.exports = {
             if (addrInfo && utxoInfo && addrInfo.data && utxoInfo.data) {
                 var utxos = utxoInfo.data
                 var addrData = addrInfo.data
-
-                // BB v3 -- todo: remove this...
-                // utxos - remove utxos that are in the mempool inputs (needed for segwit: insight-api utxo list doesn't reflect the mempool for segwit)
-                // if (symbol === 'BTC_SEG' && utxo_mempool_spentTxIds.length > 0) {
-                //     var before = utxos.length
-                //     utxos = utxos.filter(utxo => { return !utxo_mempool_spentTxIds.some(mempool_txid => mempool_txid === utxo.txid) })
-                //     var after = utxos.length
-                //     utilsWallet.warn(`*** ${symbol} (${pollAddress}) removed ${utxo_mempool_spentTxIds.length} mempool UTXOs (from ${before} to ${after})`)
-                // }
 
                 // prune unused utxo data
                 utxos = utxos.map(p => {
@@ -300,7 +275,7 @@ module.exports = {
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.log(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
+                            utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
 
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,
@@ -328,7 +303,7 @@ module.exports = {
         if (configExternal.walletExternal_config[symbol] === undefined ||
             configExternal.walletExternal_config[symbol].api == undefined ||
             configExternal.walletExternal_config[symbol].api.sync === undefined) {
-            utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
             return
         }
         axios.get(configExternal.walletExternal_config[symbol].api.sync())
@@ -339,16 +314,10 @@ module.exports = {
                     const insightSyncHeight = syncData.data.height
                     const insightSyncError = syncData.data.error
 
-                    // update blockheight, time and sync status on asset
-                    // postMessage({
-                    //     msg: 'ASSET_UPDATE_BLOCK_INFO', status: 'UPDATE',
-                    //     data: { symbol,
-                    //             receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
-                    //             receivedBlockTime: receivedBlockTime || new Date().getTime(),
-                    //             insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError }
-                    // })
-                    postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
-                        type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                    utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - request dispatch SET_ASSET_BLOCK_INFO...`)
+
+                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
+                       type: actionsWallet.SET_ASSET_BLOCK_INFO,
                     payload: { symbol,
                                 receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
                                 receivedBlockTime: receivedBlockTime || new Date().getTime(),
@@ -358,7 +327,7 @@ module.exports = {
                 }
             })
     },
-    
+
 }
 
 function enrichTx(wallet, asset, tx, pollAddress) {

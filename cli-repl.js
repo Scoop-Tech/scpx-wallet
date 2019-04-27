@@ -7,8 +7,25 @@ import * as utilsWallet from './utils'
 
 import * as log from './cli-log'
 import * as svrWallet from './svr-wallet'
+import * as svrWorkers from './svr-workers'
 
 export function repl_init(walletContext) {
+
+    const readline = require('readline');
+    readline.emitKeypressEvents(process.stdin);
+    //process.stdin.setRawMode(true);
+    process.stdin.on('keypress', (str, key) => {
+        // ... scan for some magic keypress -- to TOGGLE overlay/ontop blessed, which has logging piped to it ...
+        
+        // if (key.ctrl && key.name === 'c') {
+        //     process.exit();
+        // } else {
+        //     console.log(`You pressed the "${str}" key`);
+        //     console.log();
+        //     console.log(key);
+        //     console.log();
+        // }
+    });
 
     // init repl
     const colors = { RED: "31", GREEN: "32", YELLOW: "33", BLUE: "34", MAGENTA: "35" }
@@ -49,7 +66,7 @@ export function repl_init(walletContext) {
                         //log.info(walletNewHelp)
                     }
                     else {
-                        log.success(`(wallet-new OK) - you can load this wallet (.wl) at any time with:\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-new OK) - you can load this wallet (.wl) with:\n${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100) // https://github.com/nodejs/node/issues/11568
@@ -99,10 +116,56 @@ export function repl_init(walletContext) {
                         log.info(walletLoadHelp)
                     }
                     else {
-                        log.success(`(wallet-dump OK) - values:\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-dump OK)\n${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100)
+            })
+        }
+    })
+
+    // todo - tail no follow + tail debug or info logs
+
+    // tail-log, show last n lines of verbose (debug) log
+    const tailLogHelp = `${helpBanner}\n` +
+    `\tcmd: .tl (tail-log) - tails (but doesn't follow) the last n lines of the debug log \n` +
+    `\targ: --n=<num_lines>\t\t[optional - default 100]\tnumber of lines to tail\n` +
+    prompt.defineCommand("tl", {
+        help: tailLogHelp,
+        action: function (args) {
+            this.clearBufferedCommand()
+            var argv = require('minimist')(args.split(' '))
+            log.tailDebugLog(argv).then(res => {
+                setTimeout(() => {
+                    if (res.err) {
+                        log.error(res.err)
+                        log.info(walletLoadHelp)
+                    }
+                    else {
+                        log.success(`(tail-log OK)\n${JSON.stringify(res.ok, null, 2)}`)
+                    }
+                    this.displayPrompt()
+                }, 100)
+            })
+        }
+    })
+
+    // dbg: test tx db from worker
+    prompt.defineCommand("dt3", {
+        help: "dbg - initSockets_LoadAssets",
+        action: function (args) {
+            this.clearBufferedCommand()
+            svrWorkers.initSockets_LoadAssets().then(res => {
+                setTimeout(() => {
+                    if (res.err) {
+                        log.error(res.err)
+                        log.info(walletLoadHelp)
+                    }
+                    else {
+                        log.success(`(initSockets_LoadAssets OK)\n${JSON.stringify(res.ok, null, 2)}`)
+                    }
+                    this.displayPrompt()
+                }, 100)                
             })
         }
     })
@@ -116,6 +179,7 @@ export function repl_init(walletContext) {
             this.displayPrompt()
         }
     })
+
 
     // dbg: test web3
     // prompt.defineCommand("dt1", {

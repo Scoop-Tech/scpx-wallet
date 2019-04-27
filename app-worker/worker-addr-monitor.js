@@ -50,8 +50,8 @@ module.exports = {
     },
 }
 
-function subAddr_Blockbook(wallet, asset) {
-    utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}...`)
+function 
+subAddr_Blockbook(wallet, asset) {
     const ownAddresses = asset.addresses.map(p => { return p.addr })
     
     //var socket = worker.get_BlockbookSocketIo(asset)
@@ -62,7 +62,7 @@ function subAddr_Blockbook(wallet, asset) {
         
         // subscribe addr monitor
         socket.emit('subscribe', "bitcoind/addresstxid", ownAddresses, (result) => {})
-        utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Blockbook: ${ownAddresses.join(',')}`)
+        utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on("bitcoind/addresstxid", function (data) {
@@ -88,12 +88,13 @@ function subAddr_Blockbook(wallet, asset) {
                         // but BB *doesn't* report the tx in its mempool (sometimes it does, sometimes it doesn't until the next block) -- this lines up
                         // with its status page intermitently reporting mempool is not in sync for ETH
 
-                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid ETH data - ${asset.symbol} - web3 getTx, txid=`, txid)
+                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - web3 getTx... txid=`, txid)
                         const web3 = self.ws_web3 // singleton socket instance
                         if (!web3) {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} mempool_GetTx - ${asset.symbol} - singleton web3 socket provider is not available!`); return
+                            utilsWallet.error(`appWorker >> ${self.workerId} mempool_GetTx - ${asset.symbol} - singleton web3 socket provider is not available!`); return
                         }
-                        web3.eth.getTransaction(txid)
+                        else {
+                            web3.eth.getTransaction(txid)
                             .then((tx) => {
                                 const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
                                 const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === tx.to.toLowerCase() })
@@ -102,13 +103,15 @@ function subAddr_Blockbook(wallet, asset) {
                                     workerAddrMemPool.mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
                                 }
                             })
+                        }
 
-                        //...
                         utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid ETH data - requesting ASSET_REFRESH_ADDR_MONITOR`)
                         postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
                     }
                     else {
-                        // query full tx details (see https://btc1.trezor.io/static/test.html for full blockbook socket interface)
+                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - BB getDetailedTransaction... txid=`, txid)
+
+                        // query blockbook for full tx details (see https://btc1.trezor.io/static/test.html for full blockbook socket interface)
                         socket.send({ method: 'getDetailedTransaction', params: [txid] }, (bb_txData) => {
                             if (bb_txData && bb_txData.result) {
                                 // trigger refresh: we will walk the mempool utxo list and record the mempool tx in local_txs[]
@@ -136,14 +139,14 @@ function subAddr_Blockbook(wallet, asset) {
 
 // insight addr sub's -- we are sharing the insight sockets used for block and pending tx polling
 function subAddr_Insight(asset) {
-    utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}...`)
+    utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}...`)
     const ownAddresses = asset.addresses.map(p => { return p.addr })
     var socket = self.insightSocketIos[asset.symbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}: no socket setup!`); return }
     try {
         // subscribe address mintor
         socket.emit('subscribe', 'bitcoind/addresstxid', ownAddresses)
-        utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Insight: ${ownAddresses.join(',')}`)
+        utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Insight, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on('bitcoind/addresstxid', function (data) {
@@ -152,7 +155,7 @@ function subAddr_Insight(asset) {
                 //const addr = data.address
 
                 if (self.insightAddrTxs.some(p => { return p === txid })) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring server dupe send: already processed this txid! data=`, data)
+                    utilsWallet.warn(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring server dupe send: already processed this txid! data=`, data)
                 }
                 else {
                     self.insightAddrTxs.push(txid)
@@ -170,7 +173,7 @@ function subAddr_Insight(asset) {
 }
 
 function unsubAddr_Blockbook(assetSymbol) {
-    utilsWallet.log(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
+    utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
     var socket = self.blockbookSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}: no socket setup!`); return }
     try {
@@ -180,7 +183,7 @@ function unsubAddr_Blockbook(assetSymbol) {
 }
 
 function unsubAddr_Insight(assetSymbol) {
-    utilsWallet.log(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}...`)
+    utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}...`)
     var socket = self.insightSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}: no socket setup!`); return }
     try {

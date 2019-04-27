@@ -323,7 +323,7 @@ module.exports = {
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            utilsWallet.logMajor('purple','white', ` GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... `)
+            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
@@ -390,7 +390,7 @@ module.exports = {
             })
 
             // log, all done 
-            utilsWallet.logMajor('purple', 'white', ` FINISHED GENERATING NEW ASSET TYPE(s)... `)
+            utilsWallet.logMajor('green', 'white', `FINISHED GENERATING NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
 
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets
@@ -411,15 +411,14 @@ module.exports = {
             }
 
             // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)
-            var rawAssetsJsonUpdated = JSON.stringify(currentAssets, null, 4) // full
+            var rawAssetsJsonUpdated = JSON.stringify(currentAssets, null, 4) 
             const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
-            //utilsWallet.log("wallets - generateWallets - rawAssetsJsonUpdated=" + rawAssetsJsonUpdated) 
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
             rawAssetsJsonUpdated = null
 
         } else {
 
-            utilsWallet.logMajor('purple', 'white', ` FINISHED LOAD & X-REF CHECK FOR ASSET TYPES... `)
+            utilsWallet.logMajor('green', 'white', `FINISHED LOAD & X-REF CHECK FOR ASSET TYPES...`)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_serverAssets }) // persist encrypted local - no changes
         }
 
@@ -496,7 +495,7 @@ module.exports = {
 //
 function generateWalletAccount(p) {
     const { assets, genType, h_mpk, eosActiveWallet } = p
-    utilsWallet.log(`wallets - generateWallets - generateWalletAccount - genType=${genType}`)
+    utilsWallet.log(`wallets - generateWallets - generateWalletAccount - genType=`, genType, { logServerConsole: true })
     var defaultPrivKeys
     switch (genType) {
         case 'btc(t)': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed, symbol: 'BTC_TEST' }); break; 

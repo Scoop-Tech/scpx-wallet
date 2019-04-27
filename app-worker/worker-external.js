@@ -23,7 +23,7 @@ module.exports = {
 // todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice...
 function getAddressFull_External(p, callback) {
     const { wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket } = p
-    utilsWallet.log(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
+    utilsWallet.debug(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
 
     var allDispatchActions = []
     switch (asset.type) {
@@ -69,7 +69,7 @@ function getAddressFull_External(p, callback) {
 
 function getAddressBalance_External(p, callback) {
     const { wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket } = p
-    utilsWallet.log(`getAddressBalance - EXTERNAL - ${asset.symbol} addrNdx=${addrNdx}...`)
+    utilsWallet.debug(`getAddressBalance - EXTERNAL - ${asset.symbol} addrNdx=${addrNdx}...`)
 
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
@@ -87,7 +87,7 @@ function getAddressBalance_External(p, callback) {
 
                     if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE
 
-                    utilsWallet.log(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
+                    utilsWallet.debug(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
 
                     // refresh tx history for address, if balance changed
                     if (asset.addresses[addrNdx].balance !== res.balance
@@ -123,7 +123,7 @@ function getAddressBalance_External(p, callback) {
                 }
 
                 if (configWallet.TEST_LARGE_BALANCE > 0) res = configWallet.TEST_LARGE_BALANCE
-                utilsWallet.log(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
+                utilsWallet.debug(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
 
                 // refresh tx history for address, if balance changed 
                 if (asset.addresses[addrNdx].balance !== balanceData.balance || 
@@ -172,8 +172,7 @@ function getAddressBalance_External(p, callback) {
             break
             
         default:
-            debugger
-            utilsWallet.log('Wallet type ' + asset.type + ' not supported!')
+            utilsWallet.error('Wallet type ' + asset.type + ' not supported!')
             callback([])
             break
     }

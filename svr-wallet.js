@@ -63,9 +63,9 @@ export async function dumpWallet(store, p) {
     if (invalidMpkApk) return invalidMpkApk
 
     const storeState = store.getState()
-    if (!storeState) return { err: 'invalid store state' }
+    if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
     const wallet = storeState.wallet
-    if (!wallet || !wallet.assets_raw || !wallet.assets) return { err: 'no loaded wallet' }
+    if (!wallet || !wallet.assets_raw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
 
     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
@@ -75,7 +75,7 @@ export async function dumpWallet(store, p) {
         pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assets_raw)
     }
     catch(err) {
-        return { err: `decrypt failed (${err.message} - MPK and APK are probably incorrect` }
+        return new Promise((resolve) => resolve({ err: `decrypt failed (${err.message} - MPK and APK are probably incorrect` }))
     }
     var pt_assetsObj = JSON.parse(pt_assetsJson)
 

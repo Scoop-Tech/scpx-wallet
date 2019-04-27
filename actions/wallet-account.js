@@ -17,15 +17,15 @@ const walletExternal = require('./wallet-external') // ### ugly, maybe better th
 
 module.exports = {
 
-    test_web3: async () => {
-        const Web3 = require('web3')
-        const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
-        const height = await web3.eth.getBlockNumber()
-        console.log('web3 >> height=', height)
-    },
+    // test_web3: async () => {
+    //     const Web3 = require('web3')
+    //     const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
+    //     const height = await web3.eth.getBlockNumber()
+    //     console.log('web3 >> height=', height)
+    // },
 
     createTxHex_Account: async (symbol, params, privateKey) => {
-        utilsWallet.log(`*** createTxHex_Account ${symbol} (${params})...`)
+        utilsWallet.debug(`*** createTxHex_Account ${symbol} (${params})...`)
 
         switch (symbol) {
             case 'ETH':
@@ -133,7 +133,7 @@ module.exports = {
 
     // params: // { from, to, value } 
     estimateGasInEther: (asset, params) => {
-        utilsWallet.log(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
+        utilsWallet.debug(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
         const Web3 = require('web3')
         const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[asset.symbol].httpProvider))
 

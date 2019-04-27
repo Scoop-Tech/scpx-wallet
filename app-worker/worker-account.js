@@ -29,7 +29,7 @@ module.exports = {
 //  (b) if we use blockbook, we have exactly the same model as utxo's -- i.e. cached IndexedDB and keyed on txid: faster, more reliable and less bandwidth
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
-    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
+    utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], capped_txs: false } ); return } // todo
 
     // ETH v2
@@ -99,7 +99,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
 
                             if (dispatchTxs.length > 0) {
-                                utilsWallet.log(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`, dispatchTxs)
+                                utilsWallet.debug(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`, dispatchTxs)
 
                                 // to properly support erc20's, we need to slice top *after* filtering out eth tx's (different to utxo/BBv3 implementation)
                                 const dispatchTxs_Top = dispatchTxs.slice(0, configWallet.WALLET_MAX_TX_HISTORY)  // already sorted desc
@@ -143,7 +143,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
 // get balance
 //
 async function getAddressBalance_Account(symbol, address) {
-    utilsWallet.log(`getAddressBalance (ACCOUNT) (${address})...`)
+    utilsWallet.debug(`getAddressBalance (ACCOUNT) (${address})...`)
 
     switch (symbol) {
         case 'EOS': // todo
@@ -166,7 +166,7 @@ async function getAddressBalance_Account(symbol, address) {
 
 function getETHAddressBalance_api(symbol, address) {
     if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
-        //utilsWallet.log(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
+        utilsWallet.debug(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
@@ -182,7 +182,7 @@ function getETHAddressBalance_api(symbol, address) {
         })
     }
     else {
-        utilsWallet.log(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+        utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
             axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
@@ -210,7 +210,7 @@ function getETHAddressBalance_api(symbol, address) {
 
 function getERC20AddressBalance_api(symbol, address) {
     if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
-        //utilsWallet.log(`*** getERC20AddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
+        utilsWallet.debug(`*** getERC20AddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
@@ -237,7 +237,7 @@ function getERC20AddressBalance_api(symbol, address) {
         })
     }
     else {
-        utilsWallet.log(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+        utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
             axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
@@ -245,8 +245,6 @@ function getERC20AddressBalance_api(symbol, address) {
                 .then(res => {
                     if (res && res.status === 200 && res.data && res.data.message === "OK") {
                         var balWei = res.data.result
-
-                        utilsWallet.log(`*** getERC20AddressBalance_api ${symbol} (${address}), balWei=`, balWei)
 
                         resolve(balWei.toString())
                     } else {
@@ -273,7 +271,7 @@ function closeDedicatedWeb3Socket(asset, pollAddress) {
         if (dedicatedWeb3[pollAddress]) {
             dedicatedWeb3[pollAddress].currentProvider.connection.close()
             dedicatedWeb3[pollAddress] = undefined
-            utilsWallet.log(`closeDedicatedWeb3Socket ${asset.symbol} ${pollAddress} - closed dedicated socket OK`)
+            utilsWallet.debug(`closeDedicatedWeb3Socket ${asset.symbol} ${pollAddress} - closed dedicated socket OK`)
         }
     }
     catch(err) {
@@ -290,7 +288,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         const cacheKey = `${asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
-        //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
+        //utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
 
         // try cache first
         //utilsWallet.idb_tx.getItem(cacheKey)
@@ -306,7 +304,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 else {
                     // we are updating for eth asset, or for erc20 and this is indeed an erc20 tx for that erc20 asset
                     cachedTx.fromCache = true
-                    utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} RET-CACHE`)
+                    utilsWallet.debug(`** enrichTx - ${symbol} ${tx.txid} RET-CACHE`)
                     resolve(cachedTx) 
                 }
             }
@@ -351,7 +349,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     const symbol = asset.symbol
                     
     // get tx
-    utilsWallet.log(`enrichTx - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
+    utilsWallet.debug(`enrichTx - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
 
     //self.gethSockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
 
@@ -446,7 +444,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         //utilsWallet.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.debug(`** enrichTx - ${symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
 
                             if (utilsWallet.isERC20(asset) && mappedTx.erc20 !== asset.symbol) {

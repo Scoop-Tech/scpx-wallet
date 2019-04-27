@@ -16,6 +16,8 @@ module.exports = {
     fetch: () => {
         const fxApi = 'https://api.exchangeratesapi.io/latest?base=USD'
 
+        utilsWallet.debug('appWorker >> prices fetch...')
+
         // get cryptocompare prices
         var symbols_cc = Object
         .keys(configWallet.walletsMeta)
@@ -44,7 +46,7 @@ module.exports = {
                             }
                             actions.push(action)
 
-                        } else utilsWallet.warn('appWorker >> fetch - bad price data from cryptocompare')
+                        } else utilsWallet.warn('appWorker >> prices fetch - bad price data from cryptocompare')
                     })
 
                     // get fiat fx to usd
@@ -142,7 +144,7 @@ module.exports = {
     // not used -- no HT prices on cryptocompare socket (others missing too)
     priceSocket_Disconnect: () => {
         if (self.priceSocket) {
-            utilsWallet.log('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)
+            utilsWallet.debug('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)
             try {
                 self.priceSocket.disconnect()
                 postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: { dispatchType: actionsWallet.PRICE_SOCKET_DISCONNECTED } })
@@ -178,7 +180,7 @@ module.exports = {
                     })
                     
                     self.priceSocket.on('disconnect', function() {
-                        utilsWallet.log(`appWorker >> ${self.workerId} PRICES - disconnect...`)
+                        utilsWallet.warn(`appWorker >> ${self.workerId} PRICES - disconnect...`)
                         self.priceSocket = undefined
                         try {
                             postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: { dispatchType: actionsWallet.PRICE_SOCKET_DISCONNECTED } })

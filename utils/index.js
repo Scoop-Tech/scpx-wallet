@@ -8,7 +8,7 @@ const chalk = require('chalk')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
-// setup storage -- localforage (indexeddb) or node-persist
+// setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {
         const localForage = require('localforage')
@@ -26,6 +26,44 @@ else {
     }
 }
 
+// file logging (server)
+var fileLogger = undefined
+if (configWallet.WALLET_ENV === "SERVER") {
+    const { createLogger, format, transports } = require('winston')
+    const { combine, timestamp, align, label, prettyPrint, printf  } = format
+    const { SPLAT } = require('triple-beam')
+    const { isObject } = require('lodash')
+    function formatObject(param) {
+        if (isObject(param)) {
+          return JSON.stringify(param)
+        }
+        return param;
+      }
+    const all = format((info) => {
+        const splat = info[SPLAT] || []
+        const message = formatObject(info.message)
+        const rest = splat.map(formatObject).join(' ')
+        info.message = `${message} ${rest}`
+        return info
+      });
+    fileLogger = createLogger({
+        level: 'info',
+        format: combine(
+            all(),
+            label({ label: configWallet.WALLET_VER }),
+            timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            align(),
+            printf(info => `${info.timestamp} [${info.label}] ${info.level}:${formatObject(info.message)}`)
+        ),
+        defaultMeta: { service: 'scpx-w' },
+        transports: [
+            new transports.File({ filename: './error.log',  level: 'error' }),   // error only
+            new transports.File({ filename: './warn.log' ,  level: 'warn' }),    // warn & error
+            new transports.File({ filename: './info.log' ,  level: 'info' }),    // info, warn & error
+            new transports.File({ filename: './debug.log' , level: 'verbose' }), // all
+        ]
+    })
+}
 
 module.exports = {
     
@@ -176,45 +214,111 @@ module.exports = {
     },
 
     //
-    // logging - chalk/color for server terminal, html for browser console
+    // logging for core wallet functions
+    // server always logs to file, but by default does not log to the console (it interferes with the REPL)
+    // browser logs to console
     //
-    logMajor: (bg, fg, s, p) => {
+    // (re. colors - chalk doesn't work in worker threads, colors does)
+    // (also, re. powershell: https://github.com/nodejs/node/issues/14243)
+    //
+    logMajor: (bg, fg, s, p, opts) => { // level: info
         if (configWallet.WALLET_ENV === "SERVER") {
-            if (!p) // chalk doesn't work in worker threads, colors does
-                console.log(s.bgCyan.white.bold)
-            else
-                console.log(s.bgCyan.white.bold, p)
-            // if (p) console.log(chalk.bgKeyword(bg).keyword(fg)(s), p)
-            // else   console.log(chalk.bgKeyword(bg).keyword(fg)(s))
+            fileLogger.log('info', s, p)
+            if (opts && opts.logServerConsole) {
+                if (bg === 'red') {
+                    if (!p)  console.log('' + s.bgRed.white.bold)
+                    else     console.log('' + s.bgRed.white.bold, p)
+                }
+                else if (bg === 'green') {
+                    if (!p)  console.log('' + s.bgGreen.white.bold)
+                    else     console.log('' + s.bgGreen.white.bold, p)
+                }
+                else if (bg === 'blue') {
+                    if (!p)  console.log('' + s.bgBlue.white.bold)
+                    else     console.log('' + s.bgBlue.white.bold, p)
+                }            
+                else if (bg === 'cyan') {
+                    if (!p)  console.log('' + s.bgCyan.white.bold)
+                    else     console.log('' + s.bgCyan.white.bold, p)
+                }
+                else if (bg === 'yellow') { // # powershell colorblind
+                    if (!p)  console.log('' + s.bgYellow.black.bold)
+                    else     console.log('' + s.bgYellow.black.bold, p)
+                }
+                else if (bg === 'magenta') { // # powershell colorblind
+                    if (!p)  console.log('' + s.bgMagenta.white.bold)
+                    else     console.log('' + s.bgMagenta.white.bold, p)
+                }
+                else if (bg === 'white') { 
+                    if (!p)  console.log('' + s.bgWhite.black.bold)
+                    else     console.log('' + s.bgWhite.black.bold, p)
+                }
+                else if (bg === 'gray') { 
+                    if (!p)  console.log('' + s.bgWhite.gray.bold)
+                    else     console.log('' + s.bgWhite.gray.bold, p)
+                }
+                else {
+                    if (!p)  console.log('' + s.bgWhite.black.bold)
+                    else     console.log('' + s.bgWhite.black.bold, p)
+                }
+            }
         }
         else {
             if (p) console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`, p)
             else   console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`)
         }
     },
-    log: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(s.gray.bold, p)// chalk.gray.bold(s), p)
-            else   console.log(s.gray.bold) //chalk.gray.bold(s))
-        else
-            if (p) console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
-            else   console.log(`%c${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
+    log: (s, p, opts) => { // level: info
+        if (configWallet.WALLET_ENV === "SERVER") {
+            fileLogger.log('info', s, p)
+            if (opts && opts.logServerConsole) {
+                if (p) console.log('[SW-LOG] ' + s.white.bold, p)
+                else   console.log('[SW-LOG] ' + s.white.bold) 
+            }
+        }
+        else {
+            if (p) console.log(`[SW-LOG] ${s}`, p)
+            else   console.log(`[SW-LOG] ${s}`)
+        }
     },
-    error: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(s.red.bold, p) //chalk.red.bold(s), p)
-            else   console.log(s.red.bold) //chalk.red.bold(s))
-        else
-            if (p) console.error(s, p)
-            else   console.error(s)
+    error: (s, p, opts) => { // level: error
+        if (configWallet.WALLET_ENV === "SERVER") {
+            fileLogger.log('error', s, p)
+            if (opts && opts.logServerConsole) {
+                if (p) console.log('[SW-ERR] ' + s.red.bold, p)
+                else   console.log('[SW-ERR] ' + s.red.bold)
+            }
+        }
+        else {
+            if (p) console.error('[SW-ERR]' + s, p)
+            else   console.error('[SW-ERR]' + s)
+        }
     },
-    warn: (s, p) => {
-        if (configWallet.WALLET_ENV === "SERVER")
-            if (p) console.log(s.yellow.bold, p) //chalk.yellow.bold(s), p)
-            else   console.log(s.yellow.bold) //chalk.yellow.bold(s))
-        else
-            if (p) console.warn(s, p)
-            else   console.warn(s)
+    warn: (s, p, opts) => { // level: warn 
+        if (configWallet.WALLET_ENV === "SERVER") {
+            fileLogger.log('warn', s, p)
+            if (opts && opts.logServerConsole) {
+                if (p) console.log('[SW-WRN] ' + s.yellow.bold, p)
+                else   console.log('[SW-WRN] ' + s.yellow.bold)  
+            }
+        }
+        else {
+            if (p) console.warn('[SW-WRN]' + s, p)
+            else   console.warn('[SW-WRN]' + s)
+        }
+    },
+    debug: (s, p, opts) => { // level: debug -- TODO: change all chatty logging to debug level
+        if (configWallet.WALLET_ENV === "SERVER") {
+            fileLogger.log('verbose', s, p)
+            if (opts && opts.logServerConsole) {
+                if (p) console.log('[sw-dbg] ' + s.gray, p)
+                else   console.log('[sw-dbg] ' + s.gray)
+            }
+        }
+        else {
+            if (p) console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
+            else   console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
+        }
     },
 
     //

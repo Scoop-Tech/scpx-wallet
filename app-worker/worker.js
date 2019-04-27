@@ -27,17 +27,15 @@ try {
 } catch(err) {} // expected - when running in browser
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
-utilsWallet.logMajor('black','white', ` ... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ... `)
+utilsWallet.logMajor('magenta','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
 
-var outbound = undefined
 if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
-    outbound = workerThreads.parentPort
-    self = global 
+    self = global
+    self.postMessage = (msg) => { return workerThreads.parentPort.postMessage(msg) }
 }
 else { // browser
     onmessage = handler
-    outbound = self
 }
 
 // sockets & webs3s
@@ -76,13 +74,13 @@ function handler(e) {
     const data = eventData.data
     switch (msg) {
         case 'DIAG_PING':
-            utilsWallet.log(`appWorker >> ${self.workerId} DIAG_PING`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
             const pongTime = new Date().getTime()
-            outbound.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
+            self.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
             break
 
         case 'CONNECT_PRICE_SOCKET':
-            //utilsWallet.log(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Connect()
             break
         case 'FETCH_PRICES': 
@@ -90,21 +88,23 @@ function handler(e) {
             break
 
         case 'DISCONNECT_PRICE_SOCKET':
-            //utilsWallet.log('appWorker >> ${self.workerId} DISCONNECT_PRICE_SOCKET...')
+            utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Disconnect()
             break            
 
         case 'INIT_INSIGHT_SOCKETIO':
-            utilsWallet.log(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged)
             break
 
         case 'INIT_GETH_ISOSOCKETS':
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
             var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged)
             if (setupCount > 0)
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE (#${setupCount})`)
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS...`)
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
@@ -131,17 +131,17 @@ function handler(e) {
                     const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt
-                    utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, bbSocketValues)
+                    utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
                     if (allReady) { // all requested connections setup
                         self.clearInterval(wait_intId)
-                        utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - con,notCon=`, symbolsConnected, symbolsNotConnected)
-                        outbound.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
+                        utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - connected=`, symbolsConnected, { logServerConsole: true })
+                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                     }
                     else { // some failed
                         if (elapsedMs > timeoutMs) {
                             self.clearInterval(wait_intId)
-                            utilsWallet.error(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ## timeout elapsed: sockets still not all readyState=1 ##`)
-                            outbound.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
+                            utilsWallet.error(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ## timeout elapsed: sockets still not all readyState=1 ##`, null, { logServerConsole: true })
+                            self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                         }
                     }
                 }, 888)
@@ -149,26 +149,26 @@ function handler(e) {
             break
         
         case 'INIT_WEB3_SOCKET':
-            utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             workerWeb3.web3_Setup_SingletonSocketProvider()
             break
 
         case 'CONNECT_ADDRESS_MONITORS':
-            utilsWallet.log(`appWorker >> ${self.workerId} CONNECT_ADDRESS_MONITORS...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, true)
             }
             break
 
         case 'DISCONNECT_ADDRESS_MONITORS': 
-            utilsWallet.log(`appWorker >> ${self.workerId} DISCONNECT_ADDRESS_MONITORS...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, false)
             }
         break
 
         case 'STATE_RESPONSE':
-            //utilsWallet.log(`appWorker >> ${self.workerId} STATE_RESPONSE`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} STATE_RESPONSE`)
             const stateItem = data.stateItem
             const stateKey = data.stateKey
             const value = data.value
@@ -212,7 +212,7 @@ function handler(e) {
         // asset refresh requests - note: request to refresh an erc20 asset are actually requests to update eth
         //
         case 'REFRESH_ASSET_BALANCE': {
-            utilsWallet.log(`appWorker >> ${self.workerId} REFRESH_ASSET_BALANCE ${data.asset.symbol}...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_BALANCE ${data.asset.symbol}...`)
             // var updateAsset = data.asset
             // if (utils.isERC20(data.asset)) { 
             //     updateAsset = data.wallet.assets.find(p => p.symbol === 'ETH')
@@ -221,7 +221,7 @@ function handler(e) {
             break
         }
         case 'REFRESH_ASSET_FULL': {
-            utilsWallet.log(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL...`)
             // var updateAsset = data.asset
             // if (utils.isERC20(data.asset)) { 
             //     updateAsset = data.wallet.assets.find(p => p.symbol === 'ETH')
@@ -231,19 +231,19 @@ function handler(e) {
         }
 
         case 'PUSH_TX_BLOCKBOOK':
-            utilsWallet.log(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
             workerPushTx.blockbook_pushTx(data.asset, data.txhex, data.wallet)
             break
 
         case 'POST_OFFLINE_CHECK': 
+            utilsWallet.debug(`appWorker >> ${self.workerId} POST_OFFLINE_CHECK...`)
             postOfflineCheck()
             break
 
         // arbitrary address balances -- used by privkey import; consolidated return format, unlike wallet-external
         case 'GET_ANY_ADDRESS_BALANCE': {
-            
             const addrs = data.addrs
-            utilsWallet.log(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
             //debugger
             if (data.asset.symbol === 'ETH' || utilsWallet.isERC20(data.asset.symbol)) {
                 
@@ -260,7 +260,7 @@ function handler(e) {
                                 unconfirmedBalance: new BigNumber(0).toString(),
                             }
                         }})
-                    outbound.postMessage({ msg: 'ADDRESS_BALANCE_RESULT', status: 'RES', data: balanceData })
+                    self.postMessage({ msg: 'ADDRESS_BALANCE_RESULT', status: 'RES', data: balanceData })
                 })
             }
             else {
@@ -281,7 +281,7 @@ function handler(e) {
                                 unconfirmedBalance: p.unconfirmedBalance.toString(),
                             }
                         }})
-                    outbound.postMessage({ msg: 'ADDRESS_BALANCE_RESULT', status: 'RES', data: balanceData })
+                    self.postMessage({ msg: 'ADDRESS_BALANCE_RESULT', status: 'RES', data: balanceData })
                 })
             }
             break
@@ -289,6 +289,7 @@ function handler(e) {
 
         // get initial block/sync info 
         case 'GET_SYNC_INFO':
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_SYNC_INFO...`)
             const meta = configWallet.getMetaBySymbol(data.symbol)
             if (meta.type === configWallet.WALLET_TYPE_UTXO) {
                 if (meta.use_BBv3) {
@@ -310,7 +311,7 @@ function handler(e) {
     //
     function refreshAssetBalance(asset, wallet) {
         workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
-            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket
@@ -338,7 +339,7 @@ function handler(e) {
 
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
 
-                    outbound.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
+                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
                 }
             })
         })
@@ -346,7 +347,7 @@ function handler(e) {
 
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
         workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
-            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket
@@ -376,7 +377,7 @@ function handler(e) {
 
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
 
-                    outbound.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
+                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
                 }
             })
         })
@@ -427,7 +428,7 @@ function handler(e) {
     //
     function postOfflineCheck() {
         httpGetAsyncNoCache(configWallet.API_URL + 'ol', (xmlHttp) => {
-            outbound.postMessage({ msg: 'OFFLINE_CHECK_RESPONSE', status: 'RES', data: {
+            self.postMessage({ msg: 'OFFLINE_CHECK_RESPONSE', status: 'RES', data: {
                 xmlHttpStatus: !xmlHttp ? undefined : xmlHttp.status,
                  responseText: !xmlHttp ? undefined : xmlHttp.responseText
             } })
@@ -446,12 +447,12 @@ function handler(e) {
     }
 
     function networkStatusChanged(symbol, txid) {
-        //utilsWallet.log(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
-        outbound.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, txid } })
+        utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
+        self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, txid } })
     }
     function networkConnected(symbol, connected) {
         utilsWallet.log(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)
-        outbound.postMessage({ msg: 'NETWORK_CONNECTED_CHANGE', status: 'ok', data: { symbol, connected } }) 
+        self.postMessage({ msg: 'NETWORK_CONNECTED_CHANGE', status: 'ok', data: { symbol, connected } }) 
     }
 }
 

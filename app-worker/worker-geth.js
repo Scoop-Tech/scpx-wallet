@@ -41,7 +41,7 @@ module.exports = {
                     // initial / main path
                     if (self.gethSockets[x] === undefined) { // connect & init
 
-                        utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - ${configWS.geth_ws_config[x].url}...`)
+                        utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x}, wsUrl=`, configWS.geth_ws_config[x].url, { logServerConsole: true })
 
                         //debugger
                         self.gethSockets[x] = new isoWs(configWS.geth_ws_config[x].url) //, { origin: 'https://x.scoop.tech' } 
@@ -51,7 +51,7 @@ module.exports = {
                         // socket lifecycle
                         //
                         socket.onopen = () => {
-                            utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
+                            utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
                             try {
                                 networkConnected(x, true)
                                 networkStatusChanged(x)
@@ -92,11 +92,11 @@ module.exports = {
                                 if (o_data.id) {
                                     if (o_data.id == 1) { // tx sub ID
                                         tx_subId = o_data.result
-                                        utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - tx sub setup, id=`, tx_subId)
+                                        utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - tx sub setup, id=`, tx_subId)
                                     }
                                     else if (o_data.id == 2) { // block sub ID
                                         block_subId = o_data.result
-                                        utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - block sub setup, id=`, block_subId)
+                                        utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - block sub setup, id=`, block_subId)
                                     }
                                     // else if (o_data.id == 3) { // test sub TUSD
                                     //     tusd_subId = o_data.result
@@ -122,7 +122,7 @@ module.exports = {
                                         if (!configWallet.DISABLE_BLOCK_UPDATES)  {
 
                                             if (configWS.geth_ws_config[x].subBlocks === false) {
-                                                utilsWallet.log(`appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ignoring block: subBlocks=false`)
+                                                utilsWallet.debug(`appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ignoring block: subBlocks=false`)
                                             }
                                             else {
                                                 const blockData = o_data.params.result
@@ -135,19 +135,21 @@ module.exports = {
                                                 else {
                                                     self.gethBlockNos.push(receivedBlockNo)
                                                     
-                                                    utilsWallet.logMajor('blue','white', ` appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ${receivedBlockNo} ${receivedBlockTime} `) //, blockData)
+                                                    utilsWallet.logMajor('blue','white', `appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ${receivedBlockNo} ${receivedBlockTime}`) //, blockData)
                                                     try {
                                                         const dispatchActions = []
 
                                                         // save blockheight & time on asset
                                                         dispatchActions.push({
-                                                                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                payload: { symbol: x, receivedBlockNo, receivedBlockTime }
+                                                            type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                         payload: { symbol: x, receivedBlockNo, receivedBlockTime }
                                                         })
 
                                                         // requery balance check for asset on new block - updates confirmed counts (this will trigger erc20 refresh from 3PBP as necessary)
-                                                        postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                                    data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
+                                                        self.postMessage({ 
+                                                             msg: 'REQUEST_STATE', status: 'REQ',
+                                                            data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' }
+                                                        })
                                                         
                                                         // eth mainnet - same for all erc20s
                                                         if (x === 'ETH') {
@@ -155,9 +157,9 @@ module.exports = {
                                                             erc20_symbols.forEach(erc20_symbol => {
 
                                                                 dispatchActions.push({
-                                                                        type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                        payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime }
-                                                                })                                                        
+                                                                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                 payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime }
+                                                                })
 
                                                                 //
                                                                 // todo? (perf - but probably rapidly diminishing returns here)
@@ -166,13 +168,15 @@ module.exports = {
                                                                 //   (the latter two fn's would return [] of dispatchActions and caller (worker.js) would 
                                                                 //    send one batch of actions to update eth+[erc20's] in one hit)
                                                                 //
-                                                                postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                                            data: { stateItem: 'ASSET', stateKey: erc20_symbol, context: 'ASSET_REFRESH_NEW_BLOCK' } })
+                                                                self.postMessage({ 
+                                                                    msg: 'REQUEST_STATE', status: 'REQ',
+                                                                   data: { stateItem: 'ASSET', stateKey: erc20_symbol, context: 'ASSET_REFRESH_NEW_BLOCK' } 
+                                                                })
                                                             })
                                                         }
 
                                                         // update batch
-                                                        postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
+                                                        self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
                                                     }
                                                     catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} GETH BLOCK ${x}, err=`, err) }
                                                 }

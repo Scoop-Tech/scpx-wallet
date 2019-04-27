@@ -627,6 +627,10 @@ module.exports = {
     , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
     , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000            // static gasLimit for ERC20 token transfers, if not specified on the asset's config
 
+    // functional sockets - geth & blockbook
+    , VOLATILE_SOCKETS_REINIT_SECS: 10                      // volatile sockets - reinit timer (seconds)
+
+
     // wallet config - network
     , AXIOS_RETRY_3PBP: {
         retries: 8,

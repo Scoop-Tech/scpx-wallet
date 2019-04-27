@@ -7,7 +7,7 @@ module.exports = {
     // maintains a single websocket web3 provider for lighter/faster eth & erc20 balance updates
     web3_Setup_SingletonSocketProvider: () => {
         if (self.ws_web3 === undefined) {
-            utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - SocketProvider SETUP...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3(WS) - SocketProvider SETUP...`, null, { logServerConsole: true })
             
             try {
 

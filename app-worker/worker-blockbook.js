@@ -44,17 +44,17 @@ module.exports = {
 // BB v3
 function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentTxIds, allDispatchActions) {
     const symbol = asset.symbol
-    utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol}...`)
+    utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol}...`)
 
     return new Promise((resolve, reject) => {
         isosocket_send_Blockbook(symbol, 'getAccountInfo',  {
-            descriptor: address,
-                details: 'txids', // { basic | balance | txids | txs }
+              descriptor: address,
+                 details: 'txids', // { basic | balance | txids | txs }
                     page: undefined, 
                 pageSize: configWallet.WALLET_MAX_TX_HISTORY || 888, 
                     from: undefined, 
-                    to: undefined, 
-        contractFilter: undefined
+                      to: undefined, 
+          contractFilter: undefined
         }, (txData) => {
 
             if (!txData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no txData!`); reject(); return }
@@ -68,7 +68,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
 
                 if (!utxoData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
 
-                utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData,utxoData=`, txData, utxoData)
+                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData,utxoData=`, txData, utxoData)
 
                 // utxo's
                 const utxos = utxoData.map(p => { return { satoshis: Number(p.value), txid: p.txid, vout: p.vout, } })                
@@ -103,7 +103,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
+                            utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
     
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,
@@ -125,27 +125,27 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
 // converts blockbook tx format to insight-api format
 function mapTx_BlockbookToInsight(asset, bbTx) {
     const insightTx = {
-        txid: bbTx.txid,
+           txid: bbTx.txid,
         version: bbTx.version,
-        blockhash: bbTx.blockhash,
-        blockheight: bbTx.blockheight == 0 ? -1 : bbTx.blockheight,
-        confirmations: bbTx.confirmations,
-        time: bbTx.blocktime,
-        blocktime: bbTx.blocktime,
-        valueOut: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.value), asset)),
+      blockhash: bbTx.blockhash,
+    blockheight: bbTx.blockheight == 0 ? -1 : bbTx.blockheight,
+  confirmations: bbTx.confirmations,
+           time: bbTx.blocktime,
+      blocktime: bbTx.blocktime,
+       valueOut: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.value), asset)),
         valueIn: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.valueIn), asset)),
-        fees: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.fees), asset)),
-        //size: bbTx.hex.length,
+           fees: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.fees), asset)),
+         //size: bbTx.hex.length,
     }
     insightTx.vin = bbTx.vin.map(p => {
         return {
             txid: p.txid, 
             vout: p.vout,
-            sequence: p.sequence,
-            n: p.n,
+        sequence: p.sequence,
+               n: p.n,
             addr: p.addresses[0],
-            valueSat: Number(p.value),
-            value: Number(utilsWallet.toDisplayUnit(new BigNumber(p.value), asset)),
+        valueSat: Number(p.value),
+           value: Number(utilsWallet.toDisplayUnit(new BigNumber(p.value), asset)),
             //doubleSpentTxID: null,
             //scriptSig: ...
         }
@@ -153,16 +153,14 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
     insightTx.vout = bbTx.vout.map(p => {
         return {
             value: utilsWallet.toDisplayUnit(new BigNumber(p.value), asset),
-            n: p.n,
-            scriptPubKey: {
-                hex: p.hex,
-                addresses: p.addresses,
+                n: p.n,
+     scriptPubKey: { hex: p.hex, addresses: p.addresses,
                 //asm: null,
                 //type: null,
-            },
-            //spentTxId: null, 
-            //spentIndex: null, 
-            //spentHeight: null,
+                   },
+      //spentTxId: null, 
+     //spentIndex: null, 
+    //spentHeight: null,
         }
     })
     return insightTx
@@ -171,7 +169,7 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
 function getAddressBalance_Blockbook_v3(asset, address) {
     const symbol = asset.symbol
 
-    utilsWallet.log(`getAddressBalance_Blockbook_v3 ${symbol} ${address}...`)
+    utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address}...`)
     
     return new Promise((resolve, reject) => {
         const params = {
@@ -180,7 +178,7 @@ function getAddressBalance_Blockbook_v3(asset, address) {
         }
 
         isosocket_send_Blockbook(symbol, 'getAccountInfo', params, (data) => {
-            utilsWallet.log(`getAddressBalance_Blockbook_v3 ${symbol} ${address} - data=`, data)
+            utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address} - data=`, data)
             if (data) {
                 resolve({
                     symbol,
@@ -208,9 +206,9 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
         //                      receivedBlockTime: receivedBlockTime || new Date().getTime() } })
         dispatchActions.push({
             type: actionsWallet.SET_ASSET_BLOCK_INFO,
-        payload: {  symbol,
+         payload: {  symbol,
             receivedBlockNo: receivedBlockNo || data.bestheight,
-        receivedBlockTime: receivedBlockTime || new Date().getTime() }
+          receivedBlockTime: receivedBlockTime || new Date().getTime() }
         })
 
         if (symbol === 'ETH') { // erc20s
@@ -222,15 +220,15 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
                 //                       receivedBlockTime: receivedBlockTime || new Date().getTime() } })
                 dispatchActions.push({
                     type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                payload: {  symbol: erc20_symbol,
+                 payload: {  symbol: erc20_symbol,
                     receivedBlockNo: receivedBlockNo || data.bestheight,
-                receivedBlockTime: receivedBlockTime || new Date().getTime() }
+                  receivedBlockTime: receivedBlockTime || new Date().getTime() }
                 })
             })
         }
 
         // update batch
-        postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
+        self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
     })
 }
 
@@ -239,7 +237,7 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
 function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
     //var setupCount = 0
     const setupSymbols = []
-    //utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
+    utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
         if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
@@ -259,7 +257,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
                 // initial / main path
                 if (self.blockbookIsoSockets[x] === undefined) { // connect & init
 
-                    utilsWallet.log(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - ${configWS.blockbook_ws_config[x].url}...`)
+                    utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
 
                     self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket") 
                     var socket = self.blockbookIsoSockets[x]
@@ -270,7 +268,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
 
                     // socket lifecycle
                     socket.onopen = () => {
-                        utilsWallet.log(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
+                        utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
                         try {
                             //self.blockbookIsoSockets_messageID[x] = 0
                             //self.blockbookIsoSockets_pendingMessages[x] = {}
@@ -289,24 +287,25 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
 
                                         if (result) {
                                             if (result.subscribed === true) {
-                                                utilsWallet.log(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
+                                                utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
                                             }
                                             else {
                                                 const receivedBlockNo = result.height
-                                                utilsWallet.log(`%cappWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`, 'background: yellow; color: black; font-weight: 600; font-size: larger;')
+                                                utilsWallet.logMajor('cyan','black', `appWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`)
 
                                                 // save blockheight & time on asset
 
                                                 // postMessage({ msg: 'ASSET_UPDATE_BLOCK_INFO', status: 'UPDATE',
                                                 //               data: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() } }) 
-                                                postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
-                                                                type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                            payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
+                                                                  data: { dispatchActions: [{ 
+                                                                        type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                     payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
                                                 })
 
                                                 // requery balance check for asset on new block - updates confirmed counts
-                                                postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                            data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
+                                                self.postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
+                                                                  data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
                                             }
                                         }
                                     }
@@ -387,7 +386,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         .then((cachedTx) => {
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
                 cachedTx.fromCache = true
-                utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
+                utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
                 resolve(cachedTx) // return from cache
             }
             else {
@@ -406,7 +405,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                         //utils.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
                             resolve(mappedTx)
                         })
