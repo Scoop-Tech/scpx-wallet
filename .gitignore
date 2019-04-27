@@ -1,5 +1,6 @@
 node_modules
 /scp_tx_np
 *.log
-launch.json
+.vscode/
+
 
