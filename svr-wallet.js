@@ -27,19 +27,26 @@ export function walletNew(store) {
     })
 }
 
-export function walletLoad(store, p) {
-    const { mpk, apk } = p
+export async function walletLoad(store, p) {
+    var { mpk, apk } = p
+    
+    // if (!apk || apk.length < 53) {
+    //     const newKeys = await Keygen.generateMasterKeys()
+    //     apk = newKeys.publicKeys.active
+    //     log.info(`No APK or invalid APK supplied - new random from eosjs-keygen: ${apk}`)
+    // }
+
     const invalidMpkApk = validateMpkApk(mpk, apk)
     if (invalidMpkApk) return invalidMpkApk
-    log.info(`  mpk: ${mpk} (param)`)
-    log.info(`  apk: ${apk} (param)`)
+    log.info(`  mpk: ${mpk}\t\t\t(param)`)
+    log.info(`  apk: ${apk}\t\t\t(param)`)
 
     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
     //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
     //const md5_email = MD5(email).toString()
 
-    log.info(`h_mpk: ${h_mpk} (hased MPK)`)
-    log.info(`  apk: ${apk} (active public key)`)
+    log.info(`h_mpk: ${h_mpk}\t(hased MPK)`)
+    log.info(`  apk: ${apk}\t\t\t(active public key)`)
 
     return generateWallets({
                 store: store,
@@ -52,7 +59,8 @@ export function walletLoad(store, p) {
     callbackProcessed: (ret, totalReqCount) => {}
     })
     .then(res => {
-        return { ok: p }
+        return { ok: { "wallet-load": `.wl --mpk ${mpk} --apk ${apk}`,
+                       "wallet-dump": `.wd --mpk ${mpk} --apk ${apk}` } }
     })
     .catch(err => {
         return { err: err.message || err.toString() }
@@ -140,10 +148,10 @@ export function walletConnect(store) {
                     if (storeState.wallet && storeState.wallet.assets) {
                         appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
 
-                        resolve({ ok: true })
-
                         //...
-                        //loadAllAssets() 
+                        //this.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
+
+                        resolve({ ok: true })
                     }
                     else {
                         resolve({ ok: true })

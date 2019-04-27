@@ -376,7 +376,7 @@ module.exports = {
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... h_mpk=`, h_mpk, { logServerConsole: true })
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
@@ -548,10 +548,10 @@ module.exports = {
 //
 function generateWalletAccount(p) {
     const { assets, genType, h_mpk, eosActiveWallet } = p
-    utilsWallet.log(`wallets - generateWallets - generateWalletAccount - genType=`, genType, { logServerConsole: true })
+    utilsWallet.log(`generateWalletAccount - genType=`, genType, { logServerConsole: true })
     var defaultPrivKeys
     switch (genType) {
-        case 'btc(t)': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed, symbol: 'BTC_TEST' }); break; 
+        case 'btc(t)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_TEST' }); break; 
 
         case 'bitcoin':  defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC' }); break; 
         case 'btc(s)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_SEG' }); break; 
@@ -589,7 +589,7 @@ function generateWalletAccount(p) {
             asset = { accounts: [] }    
             asset.accounts.push({ // new default asset account
                 name: `Scoop ${configWallet.walletsMeta[genType].displayName}`,
-                privKeys: []
+            privKeys: []
             })
             asset.accounts[0].privKeys = defaultPrivKeys.slice() // new asset default address indexes
             assets[genType] = asset

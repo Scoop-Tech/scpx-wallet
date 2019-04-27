@@ -28,7 +28,8 @@ console.log()
 // TODO -- add APK to cmdline, optional to auto-load
 cli
     .version('0.1.0', '-v, -V, -ver, --version')
-    .option('-m, --mpk <required>', 'the Master Private Key to initialize') 
+    .option('-m, --mpk <optional>', 'the Master Private Key to pass to wallet-load') 
+    .option('-a, --apk <optional>', 'the Active Public Key to pass to wallet-load') 
     .parse(process.argv)
 // if (!cli.mpk) {
 //     console.error(chalk.red('MPK is mandatory'))
@@ -36,6 +37,8 @@ cli
 //     process.exit(1)
 // }
 // log.info('MPK: OK')
+
+debugger
 
 // setup workers
 cliWorkers.workers_init().then(() => {
@@ -51,7 +54,7 @@ cliWorkers.workers_init().then(() => {
     }
 
     console.log()
-    log.info('JS replServer: type ".help" for available commands, type "w" for wallet dbg context object\n')
+    log.info('JS replServer: type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj\n')
 
     // launch repl
     cliRepl.repl_init(walletContext)

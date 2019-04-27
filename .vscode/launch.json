@@ -12,7 +12,7 @@
             },
             "name": "wallet-dev",
             "program": "${workspaceFolder}/sw-cli.js",
-            "args": ["--mpk=abc"],
+            "args": ["--mpk=abc", "--apk=def"],
             "runtimeExecutable": "babel-node",
             "runtimeArgs": ["--nolazy"],
             "autoAttachChildProcesses": true,

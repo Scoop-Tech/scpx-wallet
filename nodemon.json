@@ -3,6 +3,6 @@
     "env": {
       "NODE_OPTIONS": "--experimental-worker "
     },
-    "exec": "babel-node ./sw-cli.js --mpk='abc'",
+    "exec": "babel-node ./sw-cli.js",
     "restartable": false
 }
