@@ -11,7 +11,7 @@ export function info(s, p) {
     else
         console.log(`<< ${s.toString().cyan.bold}`)
 
-    utilsWallet.log(s.toString(), p)
+    utilsWallet.log('(cli-log) << ' + s.toString(), p)
 }
 
 export function error(s, p) {
@@ -20,7 +20,7 @@ export function error(s, p) {
     else
         console.log(`<< ## ${s} ## `.bgRed.white.bold)
 
-    utilsWallet.error(s.toString(), p)
+    utilsWallet.error('(cli-log) << ' + s.toString(), p)
 }
 
 export function success(s, p) {
@@ -28,9 +28,10 @@ export function success(s, p) {
     info(s, p)
 }
 
-export function tailDebugLog(p) {
+export function debugLogTail(p) {
     var { n } = p
-    if (!n) n = 100
+    if (!n || !Number.isInteger(Number(n))) n = 100
+    info(`n: ${n} (param)`)
 
     const readLastLines = require('read-last-lines')
     return readLastLines.read('./debug.log', n)

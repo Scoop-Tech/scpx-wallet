@@ -4,7 +4,7 @@
     "description": "Scoop Core Wallet",
     "main": "sw-cli.js",
     "scripts": {
-        "start": "nodemon --inspect=0.0.0.0:9229 ",
+        "start": "title scpx-w && nodemon --inspect=0.0.0.0:9229 ",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Dominic Morris",

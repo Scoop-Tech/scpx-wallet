@@ -359,7 +359,7 @@ module.exports = {
                 cpuWorker.addEventListener('message', listener)
             }
             else {
-                cpuWorker.on('message', listener) // .once - correct? ##### NO -- getting and discarding another's callback
+                cpuWorker.on('message', listener)
             }
 
             function listener(event) {

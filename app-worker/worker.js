@@ -112,15 +112,15 @@ function handler(e) {
             if (setupSymbols.length > 0 || walletFirstPoll) {
                 
                 const startWaitAt = new Date().getTime()
-                const wait_intId = self.setInterval(() => { // wait/poll for all sockets to be ready, then postback either success all or some failed
+                const wait_intId = setInterval(() => { // wait/poll for all sockets to be ready, then postback either success all or some failed
 
                     // if first wallet login, report on all asset sockets, otherwise just on those that were connected 
-                    const bbSocketValues = 
+                    const bbSocketValues = //Object.values(self.blockbookIsoSockets)
                         walletFirstPoll
                         ? Object.values(self.blockbookIsoSockets)
                         : Object.values(self.blockbookIsoSockets).filter(p => p === undefined || setupSymbols.some(p2 => p2 === p.symbol))
 
-                    const bbSocketKeys = 
+                    const bbSocketKeys = //Object.keys(self.blockbookIsoSockets)
                         walletFirstPoll
                         ? Object.keys(self.blockbookIsoSockets)
                         : setupSymbols
@@ -131,15 +131,17 @@ function handler(e) {
                     const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt
-                    utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
+                    utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
                     if (allReady) { // all requested connections setup
-                        self.clearInterval(wait_intId)
-                        utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - connected=`, symbolsConnected, { logServerConsole: true })
+                        clearInterval(wait_intId)
+                        if (symbolsConnected.length > 0) {
+                            utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - (re)connected=`, symbolsConnected.join(','), { logServerConsole: true })
+                        }
                         self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                     }
                     else { // some failed
                         if (elapsedMs > timeoutMs) {
-                            self.clearInterval(wait_intId)
+                            clearInterval(wait_intId)
                             utilsWallet.error(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ## timeout elapsed: sockets still not all readyState=1 ##`, null, { logServerConsole: true })
                             self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                         }
@@ -447,7 +449,7 @@ function handler(e) {
     }
 
     function networkStatusChanged(symbol, txid) {
-        utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
         self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, txid } })
     }
     function networkConnected(symbol, connected) {

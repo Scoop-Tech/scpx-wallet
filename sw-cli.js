@@ -20,8 +20,10 @@ const clear = require('clear')
 const figlet = require('figlet')
 
 clear()
-console.log(chalk.green.bold(figlet.textSync(`scpx-w`, { horizontalLayout: 'full' })))
-utilsWallet.logMajor('green','white', (` ... ScoopWallet v-${configWallet.WALLET_VER} [${configWallet.WALLET_ENV}] ... `))
+console.log(chalk.green.bold(figlet.textSync(`scpx-w`, { horizontalLayout: 'fitted', kerning: 'default' })) + "v" + configWallet.WALLET_VER)
+console.log()
+utilsWallet.logMajor('green','white', `... scpx-w - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV})  - init ...`, null, { logServerConsole: true })
+console.log()
 
 // TODO -- add APK to cmdline, optional to auto-load
 cli
@@ -48,7 +50,8 @@ cliWorkers.workers_init().then(() => {
         },
     }
 
-    log.info('JS replServer: type .help for available commands\n')
+    console.log()
+    log.info('JS replServer: type ".help" for available commands, type "w" for wallet dbg context object\n')
 
     // launch repl
     cliRepl.repl_init(walletContext)

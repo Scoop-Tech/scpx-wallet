@@ -59,14 +59,14 @@ export function repl_init(walletContext) {
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.newWallet(walletContext.store, argv).then(res => {
+            svrWallet.walletNew(walletContext.store, argv).then(res => {
                 setTimeout(() => {
                     if (res.err) {
                         log.error(res.err)
                         //log.info(walletNewHelp)
                     }
                     else {
-                        log.success(`(wallet-new OK) - you can load this wallet (.wl) with:\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-new OK) - you can load this wallet (".wl") with these params: ${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100) // https://github.com/nodejs/node/issues/11568
@@ -77,21 +77,21 @@ export function repl_init(walletContext) {
     // wallet-load, by supplied MPK
     const walletLoadHelp = `${helpBanner}\n` +
         `\tcmd: .wl (wallet-load) - recreates and persists in-memory a scoop wallet, from supplied seed values\n` +
-        `\targ: --mpk=<master private key>\t\t[required]\tentropy for sub-asset keys generation, and redux store (L1) encryption\n` +
-        `\targ: --apk=<active public key>\t\t[required]\tsalt value for redux store (L1) encryption\n`
+        `\targ: --mpk <master private key>\t\t[required]\t\tentropy for sub-asset keys generation, and redux store (L1) encryption\n` +
+        `\targ: --apk <active public key>\t\t[required]\t\tsalt value for redux store (L1) encryption\n`
     prompt.defineCommand("wl", {
         help: walletLoadHelp,
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.loadWallet(walletContext.store, argv).then(res => {
+            svrWallet.walletLoad(walletContext.store, argv).then(res => {
                 setTimeout(() => {
                     if (res.err) {
                         log.error(res.err)
                         log.info(walletLoadHelp)
                     }
                     else {
-                        log.success(`(wallet-load OK) - you can reload this wallet (.wl) with:\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-load OK) - you can reload this wallet (".wl") with these params: ${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100)
@@ -102,21 +102,21 @@ export function repl_init(walletContext) {
     // wallet-dump, decrypt & dump values from redux store
     const walletDumpHelp = `${helpBanner}\n` +
         `\tcmd: .wd (wallet-dump) - decrypts and dumps sub-asset key and addresses values from the loaded scoop wallet\n` +
-        `\targ: --mpk=<master private key>\t\t[required]\tentropy for redux store (L1) decryption\n` +
-        `\targ: --apk=<active public key>\t\t[required]\tsalt value for redux store (L1) decryption\n`
+        `\targ: --mpk <master private key>\t\t[required]\t\tentropy for redux store (L1) decryption\n` +
+        `\targ: --apk <active public key>\t\t[required]\t\tsalt value for redux store (L1) decryption\n`
     prompt.defineCommand("wd", {
         help: walletDumpHelp,
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.dumpWallet(walletContext.store, argv).then(res => {
+            svrWallet.walletDump(walletContext.store, argv).then(res => {
                 setTimeout(() => {
                     if (res.err) {
                         log.error(res.err)
-                        log.info(walletLoadHelp)
+                        log.info(walletDumpHelp)
                     }
                     else {
-                        log.success(`(wallet-dump OK)\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-dump OK) ${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100)
@@ -124,45 +124,21 @@ export function repl_init(walletContext) {
         }
     })
 
-    // todo - tail no follow + tail debug or info logs
-
-    // tail-log, show last n lines of verbose (debug) log
-    const tailLogHelp = `${helpBanner}\n` +
-    `\tcmd: .tl (tail-log) - tails (but doesn't follow) the last n lines of the debug log \n` +
-    `\targ: --n=<num_lines>\t\t[optional - default 100]\tnumber of lines to tail\n` +
-    prompt.defineCommand("tl", {
-        help: tailLogHelp,
+    // wallet-connect, block/tx updates for all asset-types & addr-monitors
+    const walletConnectHelp = `${helpBanner}\n` +
+    `\tcmd: .wc (wallet-connect) - connects to 3rd party block providers (3PBPs) to sync new blocks and get data for any loaded wallet\n`
+    prompt.defineCommand("wc", {
+        help: walletConnectHelp,
         action: function (args) {
             this.clearBufferedCommand()
-            var argv = require('minimist')(args.split(' '))
-            log.tailDebugLog(argv).then(res => {
+            svrWallet.walletConnect(walletContext.store).then(res => {
                 setTimeout(() => {
                     if (res.err) {
                         log.error(res.err)
-                        log.info(walletLoadHelp)
+                        log.info(walletConnectHelp)
                     }
                     else {
-                        log.success(`(tail-log OK)\n${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100)
-            })
-        }
-    })
-
-    // dbg: test tx db from worker
-    prompt.defineCommand("dt3", {
-        help: "dbg - initSockets_LoadAssets",
-        action: function (args) {
-            this.clearBufferedCommand()
-            svrWorkers.initSockets_LoadAssets().then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        log.info(walletLoadHelp)
-                    }
-                    else {
-                        log.success(`(initSockets_LoadAssets OK)\n${JSON.stringify(res.ok, null, 2)}`)
+                        log.success(`(wallet-connect OK) ${JSON.stringify(res.ok, null, 2)}`)
                     }
                     this.displayPrompt()
                 }, 100)                
@@ -170,13 +146,39 @@ export function repl_init(walletContext) {
         }
     })
 
+    // log-tail, show last n lines of verbose (debug) log
+    const tailLogHelp = `${helpBanner}\n` +
+    `\tcmd: .lt (log-tail) - tails (doesn't follow) the last n lines of the debug log \n` +
+    `\targ: --n [num_lines]\t\t\t[optional: def. 100]\tnumber of lines to tail\n`
+    prompt.defineCommand("lt", {
+        help: tailLogHelp,
+        action: function (args) {
+            this.clearBufferedCommand()
+            var argv = require('minimist')(args.split(' '))
+            log.debugLogTail(argv).then(res => {
+                setTimeout(() => {
+                    if (res.err) {
+                        log.error(res.err)
+                        log.info(tailLogHelp)
+                    }
+                    else {
+                        log.success(`(log-tail OK)\n${JSON.stringify(res.ok, null, 2)}`)
+                    }
+                    this.displayPrompt()
+                }, 100)
+            })
+        }
+    })
+
     // dbg: dump store state
-    prompt.defineCommand("dss", {
-        help: "dbg - dump redux store state",
+    prompt.defineCommand("drs", {
+        help: "dbg - dump redux store",
         action: function (args) {
             this.clearBufferedCommand()
             console.dir(appStore.store.getState())
-            this.displayPrompt()
+            setTimeout(() => {
+                this.displayPrompt()
+            }, 100)
         }
     })
 

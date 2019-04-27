@@ -13,12 +13,12 @@ import { generateWallets } from './actions/wallet'
 
 import * as log from './cli-log'
 
-export function newWallet(store) {
+export function walletNew(store) {
     //const emailEntropyBase36 = new BigNumber(BigNumber.random(80).times(1e80).toFixed()).toString(36)
 
     return Keygen.generateMasterKeys()
     .then(keys => {
-        const res = loadWallet(store, { 
+        const res = walletLoad(store, { 
             mpk: keys.masterPrivateKey,
             apk: keys.publicKeys.active,
           //email: `s+${emailEntropyBase36}@scoop.tech`
@@ -27,11 +27,13 @@ export function newWallet(store) {
     })
 }
 
-export function loadWallet(store, p) {
+export function walletLoad(store, p) {
     const { mpk, apk } = p
     const invalidMpkApk = validateMpkApk(mpk, apk)
     if (invalidMpkApk) return invalidMpkApk
-    
+    log.info(`  mpk: ${mpk} (param)`)
+    log.info(`  apk: ${apk} (param)`)
+
     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
     //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
     //const md5_email = MD5(email).toString()
@@ -57,10 +59,12 @@ export function loadWallet(store, p) {
     })
 }
 
-export async function dumpWallet(store, p) {
+export async function walletDump(store, p) {
     const { mpk, apk } = p
     const invalidMpkApk = validateMpkApk(mpk, apk)
     if (invalidMpkApk) return invalidMpkApk
+    log.info(`mpk: ${mpk} (param)`)
+    log.info(`apk: ${apk} (param)`)
 
     const storeState = store.getState()
     if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
@@ -108,6 +112,56 @@ export async function dumpWallet(store, p) {
 
     return new Promise((resolve) => {
         resolve({ ok: allPathKeyAddrs })
+    })
+}
+
+export function walletConnect(store) {
+    const globalScope = utilsWallet.getMainThreadGlobalScope()
+    const appWorker = globalScope.appWorker
+    if (!appWorker) throw 'No app worker'
+
+    const storeState = store.getState()
+    if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
+    const wallet = storeState.wallet
+    //if (!wallet || !wallet.assets_raw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
+
+    return new Promise((resolve) => {
+
+        appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
+        appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
+        
+        function blockbookListener(event) {
+            if (event && event.data && event.msg) {
+                const data = event.data
+                const msg = event.msg
+
+                if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
+
+                    if (storeState.wallet && storeState.wallet.assets) {
+                        appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
+
+                        resolve({ ok: true })
+
+                        //...
+                        //loadAllAssets() 
+                    }
+                    else {
+                        resolve({ ok: true })
+                    }
+
+                    appWorker.removeListener('message', blockbookListener)
+                }
+            }
+        }
+        appWorker.on('message', blockbookListener)
+
+        appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
+        appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
+        var volatileReInit_intId = setInterval(() => {
+            appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+        }, configWallet.VOLATILE_SOCKETS_REINIT_SECS * 1000)
+
     })
 }
 

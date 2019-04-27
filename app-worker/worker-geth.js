@@ -115,7 +115,7 @@ module.exports = {
                                         const sinceLastTx = new Date().getTime() - self.lastTx[x]
                                         if (isNaN(sinceLastTx) || sinceLastTx > 200) {
                                             self.lastTx[x] = new Date().getTime()
-                                            networkStatusChanged(x)//, o_data.params.result)
+                                            networkStatusChanged(x, o_data.params.result)
                                         }
                                     }
                                     else if (o_data.params.subscription === block_subId) {

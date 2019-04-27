@@ -132,7 +132,7 @@ module.exports = {
                             const sinceLastTx = new Date().getTime() - self.lastTx[x]
                             if (isNaN(sinceLastTx) || sinceLastTx > 500) {
                                 self.lastTx[x] = new Date().getTime()
-                                networkStatusChanged(x) 
+                                networkStatusChanged(x, tx.txid)
                             }
                         })
                         socket.on('block', (blockHash) => {

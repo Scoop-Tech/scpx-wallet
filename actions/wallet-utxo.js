@@ -91,6 +91,10 @@ module.exports = {
 
         if (asset.use_BBv3) {
 
+            const globalScope = utilsWallet.getMainThreadGlobalScope()
+            const appWorker = globalScope.appWorker
+
+
             // push with blockbook
             // register message handler for web worker's BB push
             const listener = function(event) {
@@ -99,7 +103,13 @@ module.exports = {
                     const msg = event.data.msg
                     if (postback && msg === 'PUSH_TX_BLOCKBOOK_DONE') {
                         if (postback.txhex === txhex) {
-                            document.appWorker.removeEventListener('message', listener)
+                            
+                            if (configWallet.WALLET_ENV === "BROWSER") {
+                                appWorker.removeEventListener('message', listener)
+                            }
+                            else {
+                                appWorker.removeListener('message', listener)
+                            }
                             
                             const mappedTx = postback.mappedTx
                             const err = postback.error
@@ -118,10 +128,16 @@ module.exports = {
                     }
                 }
             }
-            document.appWorker.addEventListener('message', listener)
+
+            if (configWallet.WALLET_ENV === "BROWSER") {
+                appWorker.addEventListener('message', listener)
+            }
+            else {
+                cpuWorker.on('message', listener)
+            }
 
             // request worker BB push
-            document.appWorker.postMessage({ msg: 'PUSH_TX_BLOCKBOOK', data: { asset, txhex, wallet } }) 
+            appWorker.postMessage({ msg: 'PUSH_TX_BLOCKBOOK', data: { asset, txhex, wallet } }) 
         }
         else { // push tx with insight-api
             axios

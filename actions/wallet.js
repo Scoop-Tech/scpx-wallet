@@ -21,8 +21,61 @@ const apiWallet = require('../api/wallet')
 const utilsWallet = require('../utils')
 
 module.exports = { 
+
     //
-    // import external privkeys into a new import account
+    // issues appWorker requests to populate asset data (balances & tx's) for the loaded wallet
+    //
+    loadAllAssets: (p) => {
+        const { bbSymbols_SocketReady, store } = p // todo - could make use of BB field to exclude BBv3 assets with known sockets down 
+        if (!store) throw 'No store supplied'
+        var storeState = store.getState()
+        if (!storeState) throw 'Invalid store state'
+        const wallet = storeState.wallet
+        if (!wallet || !wallet.assets) throw 'No wallet supplied'
+        
+        utilsWallet.logMajor('green','white', `loadAllAssets...`)
+
+        const globalScope = utilsWallet.getMainThreadGlobalScope()
+        const appWorker = globalScope.appWorker
+
+        // fetch eth first -- all erc20 fetches will then use eth's cached tx data in the indexeddb
+        const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
+        ethAssets.forEach(ethAsset => {
+            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
+        })
+
+        // then fetch all others, except erc20s
+        const otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
+        otherAssets.forEach(otherAsset => {
+            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
+        })
+
+        // get initial sync (block) info, all assets
+        wallet.assets.forEach(asset => {
+            appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+        })
+
+        // wait for eth fetch to finish, then fetch erc20's
+        const erc20_intId = setInterval(() => {
+            storeState = store.getState()
+            if (storeState && storeState.wallet && storeState.wallet.assets) {
+                const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
+                if (ethAsset.lastAssetUpdateAt === undefined) {
+                    utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+                }
+                else {
+                    const erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
+                    erc20Assets.forEach(erc20Asset => {
+                        appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
+                    })
+                    clearInterval(erc20_intId)
+                }
+            }
+        }, 1000)
+    },
+
+    //
+    // imports external privkeys into a new import account
     //
     importPrivKeys: async (p) => { 
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
@@ -102,11 +155,11 @@ module.exports = {
             if (configWallet.WALLET_ENV === "BROWSER") {
 
                 // update addr monitors
-                document.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
                 // refresh asset balance
-                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             }
             
             // ret ok
@@ -121,7 +174,7 @@ module.exports = {
     },
 
     //
-    // remove imported account(s)
+    // removes imported account(s)
     //
     removeImportedAccounts: async (p) => {
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
@@ -169,11 +222,11 @@ module.exports = {
             if (configWallet.WALLET_ENV === "BROWSER") {
 
                 // update addr monitors
-                document.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
                 // refresh asset balance
-                document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             }
 
             // ret ok
@@ -188,7 +241,7 @@ module.exports = {
     },
 
     //
-    // generate new scoop main account address
+    // generates new scoop (main//primary account) address
     //
     generateNewAddress: async (p) => {
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, 
@@ -264,11 +317,11 @@ module.exports = {
 
                 if (configWallet.WALLET_ENV === "BROWSER") {
                     // update addr monitors
-                    document.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                    document.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                    window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                    window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
             
                     // refresh asset balance
-                    document.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                    window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
                 }
                 
                 // ret ok
@@ -289,15 +342,15 @@ module.exports = {
     },
 
     //
-    // generate scoop main wallet 
+    // generates a new scoop wallet, for all supported assets
     // browser: decrypts saved eos server data and merges & saves back to eos any previosuly imported accounts
     //  server: persists only to redux store
     //
     generateWallets: async (p) => {
         const { store, userAccountName, e_serverAssets, eosActiveWallet, callbackProcessed, 
                 activePubKey, e_email, h_mpk } = p
-        if (!store) { throw("generateWallets - invalid store") }
-        if (!h_mpk) { throw("generateWallets - invalid h_mpk") }
+        if (!store) { throw("Invalid store") }
+        if (!h_mpk) { throw("Invalid h_mpk") }
         //if (!userAccountName) { throw("generateWallets - not logged in") }
 
         // decrypt server assets
