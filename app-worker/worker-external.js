@@ -87,12 +87,12 @@ function getAddressBalance_External(p, callback) {
 
                     if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE
 
-                    utilsWallet.debug(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
+                    utilsWallet.debug(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx}`)
 
                     // refresh tx history for address, if balance changed
                     if (asset.addresses[addrNdx].balance !== res.balance
                     || asset.addresses[addrNdx].unconfirmedBalance !== res.unconfirmedBalance) {
-                        //utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - UTXO BALANCE UPDATE: refreshing TX HIST - asset, balanceData=`, asset, balanceData)
+                        //utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - UTXO BALANCE UPDATE: refreshing TX HIST`)
                         
                         // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
                         getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket }, (dispatchActions) => {
@@ -123,12 +123,12 @@ function getAddressBalance_External(p, callback) {
                 }
 
                 if (configWallet.TEST_LARGE_BALANCE > 0) res = configWallet.TEST_LARGE_BALANCE
-                utilsWallet.debug(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx} - asset, balanceData=`, asset, balanceData)
+                utilsWallet.debug(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx}`)
 
                 // refresh tx history for address, if balance changed 
                 if (asset.addresses[addrNdx].balance !== balanceData.balance || 
                     asset.addresses[addrNdx].unconfirmedBalance !== balanceData.unconfirmedBalance) {
-                    //utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - ACCOUNT BALANCE UPDATE: refreshing TX HIST - asset, balanceData=`, asset, balanceData)
+                    //utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - ACCOUNT BALANCE UPDATE: refreshing TX HIST`)
 
                     // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
                     return getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds: undefined, bbSocket }, (dispatchActions) => {

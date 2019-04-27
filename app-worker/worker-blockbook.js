@@ -103,7 +103,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
+                            utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
     
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,

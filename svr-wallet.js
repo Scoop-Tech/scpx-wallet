@@ -7,6 +7,7 @@ import { MD5 } from 'crypto-js'
 const { Worker, isMainThread, parentPort } = require('worker_threads')
 
 import * as configWallet from './config/wallet'
+import * as walletActions from './actions/wallet'
 import * as utilsWallet from './utils'
 
 import { generateWallets } from './actions/wallet'
@@ -148,12 +149,13 @@ export function walletConnect(store) {
                     if (storeState.wallet && storeState.wallet.assets) {
                         appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
 
-                        this.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
-
-                        resolve({ ok: true })
+                        walletActions.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
+                        .then(p => {
+                            resolve({ ok: true })
+                        })
                     }
                     else {
-                        resolve({ ok: true })
+                        resolve({ ok: false })
                     }
 
                     appWorker.removeListener('message', blockbookListener)

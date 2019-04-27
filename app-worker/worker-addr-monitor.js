@@ -62,7 +62,7 @@ subAddr_Blockbook(wallet, asset) {
         
         // subscribe addr monitor
         socket.emit('subscribe', "bitcoind/addresstxid", ownAddresses, (result) => {})
-        utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
+        utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on("bitcoind/addresstxid", function (data) {
@@ -146,7 +146,7 @@ function subAddr_Insight(asset) {
     try {
         // subscribe address mintor
         socket.emit('subscribe', 'bitcoind/addresstxid', ownAddresses)
-        utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Insight, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
+        utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on('bitcoind/addresstxid', function (data) {

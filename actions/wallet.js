@@ -26,6 +26,7 @@ module.exports = {
     // issues appWorker requests to populate asset data (balances & tx's) for the loaded wallet
     //
     loadAllAssets: (p) => {
+
         const { bbSymbols_SocketReady, store } = p // todo - could make use of BB field to exclude BBv3 assets with known sockets down 
         if (!store) throw 'No store supplied'
         var storeState = store.getState()
@@ -33,45 +34,65 @@ module.exports = {
         const wallet = storeState.wallet
         if (!wallet || !wallet.assets) throw 'No wallet supplied'
         
-        utilsWallet.logMajor('green','white', `loadAllAssets...`)
+        utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
         const globalScope = utilsWallet.getMainThreadGlobalScope()
         const appWorker = globalScope.appWorker
 
-        // fetch eth first -- all erc20 fetches will then use eth's cached tx data in the indexeddb
-        const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
-        ethAssets.forEach(ethAsset => {
-            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
-        })
+        return new Promise((resolve) => {
 
-        // then fetch all others, except erc20s
-        const otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
-        otherAssets.forEach(otherAsset => {
-            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
-        })
+            // fetch eth first -- all erc20 fetches will then use eth's cached tx data in the indexeddb
+            const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
+            ethAssets.forEach(ethAsset => {
+                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
+            })
 
-        // get initial sync (block) info, all assets
-        wallet.assets.forEach(asset => {
-            appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
-        })
+            // then fetch all others, except erc20s
+            const otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
+            otherAssets.forEach(otherAsset => {
+                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
+            })
 
-        // wait for eth fetch to finish, then fetch erc20's
-        const erc20_intId = setInterval(() => {
-            storeState = store.getState()
-            if (storeState && storeState.wallet && storeState.wallet.assets) {
-                const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
-                if (ethAsset.lastAssetUpdateAt === undefined) {
-                    utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+            // get initial sync (block) info, all assets
+            wallet.assets.forEach(asset => {
+                appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+            })
+
+            // wait for eth fetch to finish, then fetch erc20's
+            const eth_intId = setInterval(() => {
+                storeState = store.getState()
+                if (storeState && storeState.wallet && storeState.wallet.assets) {
+                    const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
+                    if (ethAsset.lastAssetUpdateAt === undefined) {
+                        utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+                    }
+                    else {
+                        const erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
+                        erc20Assets.forEach(erc20Asset => {
+                            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
+                        })
+                        clearInterval(eth_intId)
+
+                        // now wait for all erc20 fetches to finish, then resolve for caller
+                        const erc20s_intId = setInterval(() => {
+                            storeState = store.getState()
+                            if (storeState && storeState.wallet && storeState.wallet.assets) {
+                                const erc20Assets = storeState.wallet.assets.filter(p => utilsWallet.isERC20(p))
+                                if (!erc20Assets.some(p => p.lastAssetUpdateAt === undefined)) {
+                                    // done
+                                    clearInterval(erc20s_intId)
+                                    resolve()
+                                    utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
+                                }
+                                else {
+                                    utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ERC20s to finish...`)
+                                }
+                            }
+                        }, 1000)
+                    }
                 }
-                else {
-                    const erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
-                    erc20Assets.forEach(erc20Asset => {
-                        appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
-                    })
-                    clearInterval(erc20_intId)
-                }
-            }
-        }, 1000)
+            }, 1000)
+        })
     },
 
     //

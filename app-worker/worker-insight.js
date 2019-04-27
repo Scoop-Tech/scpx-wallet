@@ -275,7 +275,7 @@ module.exports = {
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`, dispatchTxs)
+                            utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
 
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,

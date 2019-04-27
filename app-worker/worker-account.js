@@ -99,7 +99,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
 
                             if (dispatchTxs.length > 0) {
-                                utilsWallet.debug(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`, dispatchTxs)
+                                utilsWallet.debug(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`)
 
                                 // to properly support erc20's, we need to slice top *after* filtering out eth tx's (different to utxo/BBv3 implementation)
                                 const dispatchTxs_Top = dispatchTxs.slice(0, configWallet.WALLET_MAX_TX_HISTORY)  // already sorted desc

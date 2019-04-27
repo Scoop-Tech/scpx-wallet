@@ -34,7 +34,7 @@ cli
 .parse(process.argv)
 
 // setup workers
-cliWorkers.workers_init().then(() => {
+cliWorkers.workers_init(appStore.store).then(() => {
 
     // wallet context
     const walletContext = {

@@ -8,6 +8,9 @@ const chalk = require('chalk')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
+// dbg - log core wallet to console (interferes with repl prompt)
+const LOG_CORE_TO_CONSOLE = false
+
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {
@@ -224,7 +227,7 @@ module.exports = {
     logMajor: (bg, fg, s, p, opts) => { // level: info
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
-            if (opts && opts.logServerConsole) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
                     if (!p)  console.log('' + s.bgRed.white.bold)
                     else     console.log('' + s.bgRed.white.bold, p)
@@ -271,7 +274,7 @@ module.exports = {
     log: (s, p, opts) => { // level: info
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
-            if (opts && opts.logServerConsole) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log('[SW-LOG] ' + s.white.bold, p)
                 else   console.log('[SW-LOG] ' + s.white.bold) 
             }
@@ -284,7 +287,7 @@ module.exports = {
     error: (s, p, opts) => { // level: error
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
-            if (opts && opts.logServerConsole) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log('[SW-ERR] ' + s.red.bold, p)
                 else   console.log('[SW-ERR] ' + s.red.bold)
             }
@@ -297,7 +300,7 @@ module.exports = {
     warn: (s, p, opts) => { // level: warn 
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
-            if (opts && opts.logServerConsole) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log('[SW-WRN] ' + s.yellow.bold, p)
                 else   console.log('[SW-WRN] ' + s.yellow.bold)  
             }
@@ -310,7 +313,7 @@ module.exports = {
     debug: (s, p, opts) => { // level: debug -- TODO: change all chatty logging to debug level
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
-            if (opts && opts.logServerConsole) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log('[sw-dbg] ' + s.gray, p)
                 else   console.log('[sw-dbg] ' + s.gray)
             }

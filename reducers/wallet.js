@@ -60,11 +60,11 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
                                 .map(p => p.txid)
 
                             if (remove_local_txIds.length > 0) {
-                                utilsWallet.log(`LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds)
+                                utilsWallet.log(`LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds, { logServerConsole: true })
                                 asset.local_txs =
                                     local_txs
                                     .filter(p => !remove_local_txIds.some(p2 => p2 === p.txid))
-                                utilsWallet.log(`LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs)
+                                utilsWallet.log(`LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs, { logServerConsole: true })
                             }
                         }
                         break
@@ -81,12 +81,12 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
 
 const handlers = {
     [WCORE_SET_ASSETS]: (state, action) => {
-        utilsWallet.logMajor('red','white', `WCORE_SET_ASSETS, len=`, action.payload.assets.length)
+        utilsWallet.logMajor('red','white', `WCORE_SET_ASSETS, len=`, action.payload.assets.length, { logServerConsole: true })
         return { assets: action.payload.assets, owner: action.payload.owner }
     },
 
     [WCORE_SET_ASSETS_RAW]: (state, action) => {
-        utilsWallet.logMajor('red','white', `WCORE_SET_ASSETS_RAW, len=`, action.payload.length)
+        utilsWallet.logMajor('red','white', `WCORE_SET_ASSETS_RAW, len=`, action.payload.length, { logServerConsole: true })
         return { assets_raw: action.payload }
     },
  
@@ -94,7 +94,7 @@ const handlers = {
         const { symbol,  updateAt, addrTxs } = action.payload
         if (!addrTxs || !state.assets) { return {...state} }
 
-        utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length}`)
+        utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length}`, { logServerConsole: true })
 
         const assetNdx = state.assets.findIndex((p) => p.symbol == symbol)
         var assets = _.cloneDeep(state.assets)
@@ -146,7 +146,7 @@ const handlers = {
 
     [WCORE_SET_ADDRESSES_FULL_MULTI]: (state, action) => {
         if (!state.assets) { return {...state} }
-        utilsWallet.logMajor('red','white', `WCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} x${action.payload.newAddresses.length}`)
+        utilsWallet.logMajor('red','white', `WCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} x${action.payload.newAddresses.length}`, null, { logServerConsole: true })
         return SetAddressFull_ReconcileLocalTxs(state, action)
     },
     [WCORE_SET_ADDRESS_FULL]: (state, action) => {
@@ -159,7 +159,7 @@ const handlers = {
     },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {
-        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH - ${action.payload.symbol}, txid=${action.payload.tx.txid}`)
+        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH - ${action.payload.symbol}, txid=${action.payload.tx.txid}`, null, { logServerConsole: true })
         var assets = _.cloneDeep(state.assets)
         var asset = assets.find(p => p.symbol === action.payload.symbol)
 
@@ -173,10 +173,10 @@ const handlers = {
             asset.local_txs.push(_.cloneDeep(action.payload.tx))
         }
         else { 
-            utilsWallet.warn(`LOCAL_TX - PUSH - ${action.payload.symbol} ignoring; txid already present in local_tx - tx=`, action.payload.tx)
+            utilsWallet.warn(`LOCAL_TX - PUSH - ${action.payload.symbol} ignoring; txid already present in local_tx - tx=`, action.payload.tx, { logServerConsole: true })
         }
 
-        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs)
+        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs, { logServerConsole: true })
         return { ...state, assets }
     },
 }

@@ -7,10 +7,10 @@ const _ = require('lodash')
 const actionsWallet = require('.')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
-const utilsWallet = require('../utils')
 
 const walletUtxo = require('./wallet-utxo')
 
+const utilsWallet = require('../utils')
 
 Array.prototype.extend = function (other_array) {
     if (other_array) {

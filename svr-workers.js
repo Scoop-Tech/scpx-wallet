@@ -5,10 +5,10 @@ const { Worker, isMainThread, parentPort } = require('worker_threads')
 import * as configWallet from './config/wallet'
 import * as utilsWallet from './utils'
 
-import * as log from './cli-log'
+import * as appWorkerCallbacks from './actions/appWorkerCallbacks'
 
 // setup cpuWorkers and singleton appWorker
-export async function workers_init() {
+export async function workers_init(store) {
     const globalScope = utilsWallet.getMainThreadGlobalScope()
 
     // create cpu workers
@@ -24,6 +24,9 @@ export async function workers_init() {
     // create app worker
     if (globalScope.appWorker === undefined) {
         globalScope.appWorker = new Worker('./app-worker/worker.js')
+        globalScope.appWorker.on('message', event => {
+            appWorkerCallbacks.appWorkerHandler(store, event)
+        })
     }
 
     // ping workers

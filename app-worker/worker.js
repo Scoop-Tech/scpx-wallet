@@ -100,8 +100,9 @@ function handler(e) {
         case 'INIT_GETH_ISOSOCKETS':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
             var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged)
-            if (setupCount > 0)
-                utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE (#${setupCount})`)
+            if (setupCount > 0) {
+                utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE - (re)connected=`, setupCount, { logServerConsole: true })
+            }
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS...`)
@@ -337,7 +338,7 @@ function handler(e) {
             Promise.all(refreshOps)
             .then((res) => {
                 if (allDispatchActions.length > 0) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions=`, allDispatchActions)
+                    utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
 
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
 
@@ -375,7 +376,7 @@ function handler(e) {
             Promise.all(refreshOps)
             .then((res) => {
                 if (allDispatchActions.length > 0) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - allDispatchActions=`, allDispatchActions)
+                    utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - ${asset.symbol} - allDispatchActions.length=${allDispatchActions.length}`)
 
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
 
