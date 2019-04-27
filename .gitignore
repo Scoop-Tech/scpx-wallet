@@ -2,5 +2,6 @@ node_modules
 /scp_tx_np
 *.log
 .vscode/
+.node_history
 
 

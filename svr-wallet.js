@@ -148,8 +148,7 @@ export function walletConnect(store) {
                     if (storeState.wallet && storeState.wallet.assets) {
                         appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
 
-                        //...
-                        //this.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
+                        this.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
 
                         resolve({ ok: true })
                     }

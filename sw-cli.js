@@ -9,6 +9,7 @@ import * as utilsWallet from './utils'
 
 import * as cliRepl from './cli-repl'
 import * as cliWorkers from './svr-workers'
+import * as svrWallet from './svr-wallet'
 import * as log from './cli-log'
 
 //
@@ -27,18 +28,10 @@ console.log()
 
 // TODO -- add APK to cmdline, optional to auto-load
 cli
-    .version('0.1.0', '-v, -V, -ver, --version')
-    .option('-m, --mpk <optional>', 'the Master Private Key to pass to wallet-load') 
-    .option('-a, --apk <optional>', 'the Active Public Key to pass to wallet-load') 
-    .parse(process.argv)
-// if (!cli.mpk) {
-//     console.error(chalk.red('MPK is mandatory'))
-//     cli.help()
-//     process.exit(1)
-// }
-// log.info('MPK: OK')
-
-debugger
+.version('0.1.0', '-v, -V, -ver, --version')
+.option('-m, --mpk <optional>', 'the Master Private Key to pass to wallet-load') 
+.option('-a, --apk <optional>', 'the Active Public Key to pass to wallet-load') 
+.parse(process.argv)
 
 // setup workers
 cliWorkers.workers_init().then(() => {
@@ -54,17 +47,16 @@ cliWorkers.workers_init().then(() => {
     }
 
     console.log()
-    log.info('JS replServer: type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj\n')
+    log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
 
     // launch repl
-    cliRepl.repl_init(walletContext)
+    const prompt = cliRepl.repl_init(walletContext)
 
-    //
-    // TODO -- separate chatty logs from one-time logs
-    //         if server, chatty logs pipe to file (else console, as now)
-    //         then new svr cmd to tail or cat the entire log file
-    //
-    // maybe a dbg cmd to turn this off (and log to screen; repl still works just about)
-    //
+    // load from cmdline, if specified
+    if (cli.mpk && cli.apk) {
+        if (cli.mpk.length >= 53 && cli.apk.length >= 53) {
+            svrWallet.walletLoad(walletContext.store, { apk: cli.apk, mpk: cli.mpk }).then(res => cliRepl.postCmd(prompt, res))
+        }
+    }
 })
 

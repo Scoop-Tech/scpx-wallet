@@ -7,27 +7,10 @@ import * as utilsWallet from './utils'
 
 import * as log from './cli-log'
 import * as svrWallet from './svr-wallet'
-import * as svrWorkers from './svr-workers'
 
 var colors = require('colors')
 
 export function repl_init(walletContext) {
-
-    const readline = require('readline');
-    readline.emitKeypressEvents(process.stdin);
-    //process.stdin.setRawMode(true);
-    process.stdin.on('keypress', (str, key) => {
-        // ... scan for some magic keypress -- to TOGGLE overlay/ontop blessed, which has logging piped to it ...
-        
-        // if (key.ctrl && key.name === 'c') {
-        //     process.exit();
-        // } else {
-        //     console.log(`You pressed the "${str}" key`);
-        //     console.log();
-        //     console.log(key);
-        //     console.log();
-        // }
-    });
 
     // init repl
     const colors = { RED: "31", GREEN: "32", YELLOW: "33", BLUE: "34", MAGENTA: "35", CYAN: "36" }
@@ -42,6 +25,7 @@ export function repl_init(walletContext) {
         useColors: true,
         prompt: `${nodeVersion} SW-CLI > `,
     })
+    require('repl.history')(prompt, './.node_history')
     prompt.context.w = walletContext
 
     // custom commands
@@ -50,6 +34,7 @@ export function repl_init(walletContext) {
     delete prompt.commands.clear
     delete prompt.commands.load
     delete prompt.commands.editor
+    delete prompt.commands.exit
 
     const helpBanner = ''//NOTE: scpx-w commands and arguments are case-sensitive'
 
@@ -61,18 +46,7 @@ export function repl_init(walletContext) {
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.walletNew(walletContext.store, argv).then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        //log.info(walletNewHelp)
-                    }
-                    else {
-                        log.success(`(wallet-new OK) ${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100) // https://github.com/nodejs/node/issues/11568
-            })
+            svrWallet.walletNew(walletContext.store, argv).then(res => postCmd(this, res, walletNewHelp))
         }
     })
 
@@ -86,18 +60,7 @@ export function repl_init(walletContext) {
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.walletLoad(walletContext.store, argv).then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        log.info(walletLoadHelp)
-                    }
-                    else {
-                        log.success(`(wallet-load OK) ${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100)
-            })
+            svrWallet.walletLoad(walletContext.store, argv).then(res => postCmd(this, res, walletLoadHelp))
         }
     })
 
@@ -111,18 +74,7 @@ export function repl_init(walletContext) {
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            svrWallet.walletDump(walletContext.store, argv).then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        log.info(walletDumpHelp)
-                    }
-                    else {
-                        log.success(`(wallet-dump OK) ${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100)
-            })
+            svrWallet.walletDump(walletContext.store, argv).then(res => postCmd(this, res, walletDumpHelp))
         }
     })
 
@@ -133,18 +85,7 @@ export function repl_init(walletContext) {
         help: walletConnectHelp,
         action: function (args) {
             this.clearBufferedCommand()
-            svrWallet.walletConnect(walletContext.store).then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        log.info(walletConnectHelp)
-                    }
-                    else {
-                        log.success(`(wallet-connect OK) ${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100)                
-            })
+            svrWallet.walletConnect(walletContext.store).then(res => postCmd(this, res, walletConnectHelp))
         }
     })
 
@@ -157,18 +98,7 @@ export function repl_init(walletContext) {
         action: function (args) {
             this.clearBufferedCommand()
             var argv = require('minimist')(args.split(' '))
-            log.debugLogTail(argv).then(res => {
-                setTimeout(() => {
-                    if (res.err) {
-                        log.error(res.err)
-                        log.info(tailLogHelp)
-                    }
-                    else {
-                        log.success(`(log-tail OK)\n${JSON.stringify(res.ok, null, 2)}`)
-                    }
-                    this.displayPrompt()
-                }, 100)
-            })
+            log.debugLogTail(argv).then(res => postCmd(this, res, tailLogHelp))
         }
     })
 
@@ -213,6 +143,20 @@ export function repl_init(walletContext) {
     //     }
     // })
 
-    const sayBye = say(`Goodbye!`)
-    prompt.on("exit", sayBye)
+    return prompt
+}
+
+export function postCmd(prompt, res, help) {
+    setTimeout(() => {
+        if (res.err) {
+            log.error(res.err)
+            if (help) {
+                log.info(help)
+            }
+        }
+        else {
+            log.success(`OK: ${JSON.stringify(res.ok, null, 2)}`)
+        }
+        prompt.displayPrompt()
+    }, 100) // https://github.com/nodejs/node/issues/11568
 }

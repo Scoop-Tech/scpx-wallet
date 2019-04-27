@@ -1,17 +1,6 @@
 # SCPX-APP (rc2)
 Release Candidate 2
 
-## Building from Source
-
-  * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
-  * ```cd scpx-wallet```
-  * ```npm install```
-  * ```npm start```
-  
-Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
-
-NOTE: ```./nodemon.json``` and ```./vscode/launch.json``` configuration: ```--experimental-worker``` is required at runtime.
-
 ## SCPX Scoop Wallet
 
 Scoop Wallet is a decentralised, open-source and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
@@ -54,16 +43,45 @@ See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) 
   * https://github.com/trezor/blockbook
   * https://github.com/bitpay/insight-api
 
-## Roadmap: Short-term
+ ## Building from Source
+
+  * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
+  * ```cd scpx-wallet```
+  * ```npm install```
+  * ```npm start```
+  
+Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
+
+NOTE: ```./nodemon.json``` configuration: ```--experimental-worker``` is required at runtime.
+
+Example ./vscode/launch.json for Visual Studio Code debugging: 
+```{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "env": {
+                "NODE_OPTIONS": "--experimental-worker"
+            },
+            "name": "wallet-dev",
+            "program": "${workspaceFolder}/sw-cli.js",
+            "args": ["--mpk=PW5J3tux27JbqxhamhxJbhPe9VnpTFyoXYmGrKVswWjyZtzAfHdPC", "--apk=EOS8m1uUReqLiP1GEkeJWQHd2HKoCPAzCMgrjLp1aWwYem7sTF4ft"],
+            "runtimeExecutable": "babel-node",
+            "runtimeArgs": ["--nolazy"],
+            "autoAttachChildProcesses": true,
+            "cwd": "${workspaceFolder}"
+        },
+    ]
+}
+```
+
+## Roadmap
 
   * [Fiat In](https://github.com/Scoop-Tech/scpx-wallet/issues/15)
   
-## Roadmap: Mid-term
-
   * [Multi-Sig](https://github.com/Scoop-Tech/scpx-wallet/issues/12)
   * [Scoop Contracts](https://github.com/Scoop-Tech/scpx-wallet/issues/14)
-
-## Roadmap: Long-term
 
   * Crypto Insurance - private key transfer/custody to cold-storage, release to Scoop Contracts-governed beneficiaries, third party contact adjudication.
   * Masternode Shares - two-way market for asset transfer to fund masternode shares, secured agasinst an operating entity's assets by Scoop Contracts, payouts governed by EOS CPP contracts.
