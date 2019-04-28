@@ -1,10 +1,12 @@
 {
     "name": "scpx-wallet",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Scoop Core Wallet",
     "main": "sw-cli.js",
     "scripts": {
-        "start": "title scpx-w && nodemon --inspect=0.0.0.0:9229 ",
+        "help": "title scpx-w[HELP] && node --experimental-worker ./sw-cli.js --help ",
+        "dev": "title scpx-w[DEV] && node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --fileHistory=true ",
+        "start": "title scpx-wp[PROD] && node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --fileHistory=false ",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Dominic Morris",
@@ -52,7 +54,6 @@
         "repl.history": "^0.1.4",
         "socket.io-client": "2.2.0",
         "tail": "^2.0.2",
-        "triple-beam": "^1.3.0",
         "web3": "1.0.0-beta.52",
         "winston": "^3.2.1"
     },
@@ -60,9 +61,6 @@
         "sw-cli": "./sw-cli.js"
     },
     "devDependencies": {
-        "babel-core": "^6.26.3",
-        "babel-preset-es2015": "^6.18.0",
-        "babel-plugin-transform-object-rest-spread": "^6.19.0",
         "nodemon": "^1.18.11"
     }
 }

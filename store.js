@@ -1,38 +1,27 @@
 'use strict';
 
-import { createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk' 
+const { createStore, applyMiddleware } = require('redux')
+const { thunk } = require('redux-thunk')
+const reduxPersist = require('redux-persist')
 
-import { persistStore, persistReducer, autoRehydrate } from 'redux-persist'
-import { enableBatching } from 'redux-batched-actions'
+const reduxBatchedActions = require('redux-batched-actions')
 
-import { AsyncNodeStorage } from 'redux-persist-node-storage'
-import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2'
-import hardSet from 'redux-persist/lib/stateReconciler/hardSet'
-
-import root from './reducers/root'
+const root = require('./reducers/root')
 
 const rootReducer = (state, action) => {
     return root(state, action)
 }
 
-export const store = createStore(
-
-    enableBatching(
+const store = createStore(
+    reduxBatchedActions.enableBatching(
         rootReducer // no persistence
-
-        // ## persisted values are overriding/overwriting update in-memory state - reason unknown ##
-        // persistReducer({ 
-        //     key: 'root', 
-        //     stateReconciler: autoMergeLevel2, 
-        //     storage: new AsyncNodeStorage('/scpx-w-store'),
-        //     blacklist: [],
-        //     transforms: [],
-
-        // }, rootReducer)
-    ),
-
-    applyMiddleware(thunk), 
+    )
+    //applyMiddleware(thunk), 
 )
 
-export const persistor = persistStore(store)
+const persistor = reduxPersist.persistStore(store)
+
+module.exports = {
+    store,
+    persistor
+}

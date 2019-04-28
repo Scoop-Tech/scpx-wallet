@@ -2,10 +2,11 @@
 
 const _ = require('lodash')
 
-import { createReducer } from './utils'
-import { SET_ASSET_BLOCK_INFO } from '../actions'
+const { createReducer } = require('./utils')
+const { SET_ASSET_BLOCK_INFO } = require('../actions')
 
-export const initialState = {}
+//export
+const initialState = {}
 
 const handlers = {
 
@@ -21,5 +22,7 @@ const handlers = {
 
 }
 
-export default createReducer(initialState, handlers)
+//export default
+module.exports = 
+createReducer(initialState, handlers)
 

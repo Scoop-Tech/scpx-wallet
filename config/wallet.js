@@ -630,6 +630,9 @@ module.exports = {
     // functional sockets - geth & blockbook
     , VOLATILE_SOCKETS_REINIT_SECS: 10                      // volatile sockets - reinit timer (seconds)
 
+    // cli 
+    , CLI_SAVE_LOADED_WALLET_KEYS: true                     // if false, you will need to pass APK/MPK via CLI cmd params to wallet-dump
+
 
     // wallet config - network
     , AXIOS_RETRY_3PBP: {

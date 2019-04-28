@@ -176,18 +176,22 @@ function unsubAddr_Blockbook(assetSymbol) {
     utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
     var socket = self.blockbookSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}: no socket setup!`); return }
-    try {
-        socket.removeAllListeners("bitcoind/addresstxid")
+    else {
+        try {
+            socket.removeAllListeners("bitcoind/addresstxid")
+        }
+        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}, err=`, err) }
     }
-    catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}, err=`, err) }
 }
 
 function unsubAddr_Insight(assetSymbol) {
     utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}...`)
     var socket = self.insightSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}: no socket setup!`); return }
-    try {
-        socket.emit('unsubscribe', 'bitcoind/addresstxid')
+    else {
+        try {
+            socket.emit('unsubscribe', 'bitcoind/addresstxid')
+        }
+        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}, err=`, err) }
     }
-    catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}, err=`, err) }
 }

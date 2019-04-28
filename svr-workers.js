@@ -2,40 +2,42 @@
 
 const { Worker, isMainThread, parentPort } = require('worker_threads')
 
-import * as configWallet from './config/wallet'
-import * as utilsWallet from './utils'
+const configWallet = require('./config/wallet')
+const utilsWallet = require('./utils')
 
-import * as appWorkerCallbacks from './actions/appWorkerCallbacks'
+const appWorkerCallbacks = require('./actions/appWorkerCallbacks')
 
-// setup cpuWorkers and singleton appWorker
-export async function workers_init(store) {
-    const globalScope = utilsWallet.getMainThreadGlobalScope()
+module.exports = {
 
-    // create cpu workers
-    if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
-        globalScope.cpuWorkers = []
-        globalScope.CPU_WORKERS = 8
-        for (var i=0 ; i < globalScope.CPU_WORKERS ; i++) {
-            globalScope.cpuWorkers.push(new Worker('./cpu-worker/worker.js'))
+    // setup cpuWorkers and singleton appWorker
+    workers_init: async (store) => {
+        const globalScope = utilsWallet.getMainThreadGlobalScope()
+
+        // create cpu workers
+        if (globalScope.cpuWorkers === undefined || globalScope.cpuWorkers.length == 0) { 
+            globalScope.cpuWorkers = []
+            globalScope.CPU_WORKERS = 8
+            for (var i=0 ; i < globalScope.CPU_WORKERS ; i++) {
+                globalScope.cpuWorkers.push(new Worker(`${__dirname}/cpu-worker/worker.js`))
+            }
+            globalScope.nextCpuWorker = 0
         }
-        globalScope.nextCpuWorker = 0
-    }
 
-    // create app worker
-    if (globalScope.appWorker === undefined) {
-        globalScope.appWorker = new Worker('./app-worker/worker.js')
-        globalScope.appWorker.on('message', event => {
-            appWorkerCallbacks.appWorkerHandler(store, event)
-        })
-    }
+        // create app worker
+        if (globalScope.appWorker === undefined) {
+            globalScope.appWorker = new Worker(`${__dirname}/app-worker/worker.js`)
+            globalScope.appWorker.on('message', event => {
+                appWorkerCallbacks.appWorkerHandler(store, event)
+            })
+        }
 
-    // ping workers
-    const pongs = globalScope.cpuWorkers.concat([globalScope.appWorker]).map(worker => {
-        return new Promise((resolve) => {
-            worker.once('message', (data) => { resolve(true) })
-            worker.postMessage({ msg: 'DIAG_PING', data: {} })
+        // ping workers
+        const pongs = globalScope.cpuWorkers.concat([globalScope.appWorker]).map(worker => {
+            return new Promise((resolve) => {
+                worker.once('message', (data) => { resolve(true) })
+                worker.postMessage({ msg: 'DIAG_PING', data: {} })
+            })
         })
-    })
-    return Promise.all(pongs)
+        return Promise.all(pongs)
+    }
 }
-

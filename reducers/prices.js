@@ -1,4 +1,4 @@
-import { 
+const { 
     PRICE_SOCKET_CONNECTED, PRICE_SOCKET_DISCONNECTED,
     
     BTC_PRICE_UPDATE, 
@@ -19,9 +19,9 @@ import {
     EOS_PRICE_UPDATE, 
 
     FIAT_RATES_UPDATE,
-}  from '../actions'
+} = require('../actions')
 
-import { createReducer } from './utils'
+const { createReducer } = require('./utils')
 
 const initialState = {
     price : {
@@ -145,4 +145,6 @@ const handlers = {
     },
 }
 
-export default createReducer(initialState, handlers)
+//export default 
+module.exports = 
+createReducer(initialState, handlers)

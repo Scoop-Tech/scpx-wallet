@@ -2,15 +2,15 @@
 
 const _ = require('lodash')
 
-import { createReducer } from './utils'
-import {
+const { createReducer } = require('./utils')
+const {
     WCORE_SET_ASSETS, WCORE_SET_ASSETS_RAW, 
         WCORE_SET_ADDRESS_FULL, WCORE_SET_ADDRESSES_FULL_MULTI, 
         WCORE_SET_ENRICHED_TXS, WCORE_SET_ENRICHED_TXS_MULTI,
     WCORE_PUSH_LOCAL_TX,
-} from '../actions'
+} = require('../actions')
 
-import * as utilsWallet from '../utils'
+const utilsWallet = require('../utils')
 
 const initialState = {}
 
@@ -165,7 +165,7 @@ const handlers = {
 
         // don't push the local tx if it's already in the the external tx list (race conditions)
         if (asset.addresses.some(p => p.txs.some(p2 => p2.txid === action.payload.tx.txid))) {
-            return { ...state } 
+            return { ...state }
         }
 
         // update asset
@@ -181,4 +181,6 @@ const handlers = {
     },
 }
 
-export default createReducer(initialState, handlers)
+//export default 
+module.exports = 
+createReducer(initialState, handlers)

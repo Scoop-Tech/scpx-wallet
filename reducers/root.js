@@ -1,18 +1,16 @@
-import { combineReducers } from 'redux'
+const redux = require('redux')
 
-import wallet from './wallet'
-import syncInfo from './sync-info'
-import prices from './prices'
+const wallet = require('./wallet')
+const syncInfo = require('./sync-info')
+const prices = require('./prices')
 
-const appReducers = combineReducers({
+const appReducers = redux.combineReducers({
     wallet,
     syncInfo,
     prices
 })
 
-export default (state, action) => {
-    // if (action.type === ...) {
-    //     state = undefined
-    // }
+//export default 
+module.exports = (state, action) => {
     return appReducers(state, action)
 }
