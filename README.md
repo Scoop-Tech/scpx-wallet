@@ -2,18 +2,18 @@
 
 Release Candidate 3
 
-Scoop Wallet is a decentralised, open-source and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
+Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
 
-The architectural components of Scoop Wallet are (collectively, **"SCPX"**) as follows:
+The architectural components of Scoop are (collectively, **"SCPX"**) as follows:
 
   * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
   * **SCPX-SVR** - [Web Server](https://github.com/Scoop-Tech/scpx-svr) (encryption layer 2)
-  * **SCPX-WALLET** - Core Wallet - node.js / browser-compatible core wallet (encryption layer 1)
+  * **SCPX-WALLET** - Core Wallet (this repo) - node.js / browser-compatible core wallet (encryption layer 1)
   * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (encryption layer 0)
  
-For maintenance of user accounts and settings, Scoop Wallet user accounts are persisted by the SCPX [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a private instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
+For maintenance of user accounts and settings, Scoop user accounts are persisted by the SCPX [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a private instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
 
-This repo contains the Core Wallet 
+This repo contains the open-source Core Wallet with integrated JS REPL command line interface.
 
 See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for details on SCPX's security and encryption model.
 
