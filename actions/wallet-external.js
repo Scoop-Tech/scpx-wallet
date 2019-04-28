@@ -129,7 +129,7 @@ module.exports = {
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... asset,payTo=`, asset, payTo)
 
         createTxHex({ 
-            payTo, asset, encryptedAssetsRaw: wallet.assets_raw, feeParams, sendMode: true, sendFromAddrNdx,
+            payTo, asset, encryptedAssetsRaw: wallet.assetsRaw, feeParams, sendMode: true, sendFromAddrNdx,
             activePubKey: activePubKey,
                 h_mpk: h_mpk,
         })

@@ -87,7 +87,7 @@ const handlers = {
 
     [WCORE_SET_ASSETS_RAW]: (state, action) => {
         utilsWallet.logMajor('red','white', `WCORE_SET_ASSETS_RAW, len=`, action.payload.length, { logServerConsole: true })
-        return { assets_raw: action.payload }
+        return { assetsRaw: action.payload }
     },
  
     [WCORE_SET_ENRICHED_TXS_MULTI]: (state, action) => {

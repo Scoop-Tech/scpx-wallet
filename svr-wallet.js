@@ -111,14 +111,14 @@ module.exports = {
         const storeState = store.getState()
         if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
         const wallet = storeState.wallet
-        if (!wallet || !wallet.assets_raw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
+        if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
     
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
     
         // decrypt raw assets (private keys) from the store
         var pt_assetsJson
         try {
-            pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assets_raw)
+            pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
         }
         catch(err) {
             return new Promise((resolve) => resolve({ err: `decrypt failed (${err.message} - MPK and APK are probably incorrect` }))
@@ -168,7 +168,7 @@ module.exports = {
         const storeState = store.getState()
         if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
         const wallet = storeState.wallet
-        //if (!wallet || !wallet.assets_raw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
+        //if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
     
         return new Promise((resolve) => {
     
