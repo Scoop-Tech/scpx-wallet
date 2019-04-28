@@ -7,7 +7,7 @@ Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44]
 The architectural components of Scoop are (collectively, **"SCPX"**) as follows:
 
   * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
-  * **SCPX-SVR** - [Web Server](https://github.com/Scoop-Tech/scpx-svr) (encryption layer 2)
+  * **SCPX-SVR** - API [Web Server](https://github.com/Scoop-Tech/scpx-svr) (encryption layer 2)
   * **SCPX-WALLET** - Core Wallet (this repo) - node.js / browser-compatible core wallet (encryption layer 1)
   * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (encryption layer 0)
  
@@ -15,11 +15,11 @@ For maintenance of user accounts and settings, Scoop user accounts are persisted
 
 This repo contains the open-source Core Wallet with integrated JS REPL command line interface.
 
-See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for details on SCPX's security and encryption model.
+Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet layer, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for full details on SCPX's security and encryption model.
 
 ## Features
 
-  * **Multi-Platform**: all external blockchain operations are 100% client-side JS, and are accessible on both phones and desktops. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/3) for planned enhancement.
+  * **Multi-Platform**: all external blockchain operations are 100% client-side JS, and are accessible on phones, desktops and servers. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/3) for planned enhancement.
 
   * **Multi-Asset**: UTXO and account-type (including ERC20) assets are supported - currently: BTC legacy, BTC Segwit, Litecoin, Ethereum, ZCash, Dash, Vertcoin, Qtum, DigiByte, BTC and ETH testnets, and ERC20s: Binance Token, TrueUSD, Bancor, 0x, BAT, OmiseGo, Status Network Token, Gifto, Huobi Token, USD Tether and EUR Tether. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/10) for planned enhancement.
 
