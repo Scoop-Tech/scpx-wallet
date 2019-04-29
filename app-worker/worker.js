@@ -292,7 +292,7 @@ function handler(e) {
 
         // get initial block/sync info 
         case 'GET_SYNC_INFO':
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_SYNC_INFO...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} ${data.symbol} GET_SYNC_INFO...`)
             const meta = configWallet.getMetaBySymbol(data.symbol)
             if (meta.type === configWallet.WALLET_TYPE_UTXO) {
                 if (meta.use_BBv3) {
@@ -312,42 +312,6 @@ function handler(e) {
     // main actions for asset address balance & tx updates
     // these fn's populate the store data after retrieving data from 3PBPs (blockbook, insight, web3)
     //
-    function refreshAssetBalance(asset, wallet) {
-        workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
-            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
-
-            // get BB scoket, for account types (needed for ETH v2)
-            var bbSocket
-            if (asset.type === configWallet.WALLET_TYPE_ACCOUNT && asset.symbol !== 'EOS') {
-                bbSocket = get_BlockbookSocketIo(asset)
-            }
-
-            var allDispatchActions = []
-            const refreshOps = asset.addresses.map(a => {
-                return new Promise((resolve, reject) => {
-                    const addrNdx = asset.addresses.findIndex(p => p.addr === a.addr)
-                    workerExternal.getAddressBalance_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket },
-                        (dispatchActions) => {
-                            if (dispatchActions.length > 0) {
-                                allDispatchActions = [...allDispatchActions, ...dispatchActions]
-                            }
-                            resolve()
-                        })
-            })})
-
-            Promise.all(refreshOps)
-            .then((res) => {
-                if (allDispatchActions.length > 0) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
-
-                    allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
-
-                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
-                }
-            })
-        })
-    }
-
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
         workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
             utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
@@ -377,9 +341,42 @@ function handler(e) {
             .then((res) => {
                 if (allDispatchActions.length > 0) {
                     utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - ${asset.symbol} - allDispatchActions.length=${allDispatchActions.length}`)
-
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
+                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
+                }
+            })
+        })
+    }
 
+    function refreshAssetBalance(asset, wallet) {
+
+        workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
+            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+
+            // get BB scoket, for account types (needed for ETH v2)
+            var bbSocket
+            if (asset.type === configWallet.WALLET_TYPE_ACCOUNT && asset.symbol !== 'EOS') {
+                bbSocket = get_BlockbookSocketIo(asset)
+            }
+
+            var allDispatchActions = []
+            const refreshOps = asset.addresses.map(a => {
+                return new Promise((resolve, reject) => {
+                    const addrNdx = asset.addresses.findIndex(p => p.addr === a.addr)
+                    workerExternal.getAddressBalance_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket },
+                        (dispatchActions) => {
+                            if (dispatchActions.length > 0) {
+                                allDispatchActions = [...allDispatchActions, ...dispatchActions]
+                            }
+                            resolve()
+                        })
+            })})
+
+            Promise.all(refreshOps)
+            .then((res) => {
+                if (allDispatchActions.length > 0) {
+                    utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
+                    allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
                 }
             })
@@ -389,7 +386,7 @@ function handler(e) {
     // perf - transmogrify multiple WCORE_SET_ADDRESS_FULL actions into a single WCORE_SET_ADDRESSES_FULL_MULTI
     //        (results in one store update instead of thousands)
     function mergeDispatchActions(asset, allDispatchActions) {
-        
+       
         // n WCORE_SET_ADDRESS_FULL ==> 1 WCORE_SET_ADDRESSES_FULL_MULTI
         const setAddressFullActions = allDispatchActions.filter(p => p.type === 'WCORE_SET_ADDRESS_FULL')
         if (setAddressFullActions.length > 0) {

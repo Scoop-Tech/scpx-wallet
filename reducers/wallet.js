@@ -60,11 +60,11 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
                                 .map(p => p.txid)
 
                             if (remove_local_txIds.length > 0) {
-                                utilsWallet.log(`LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds, { logServerConsole: true })
+                                utilsWallet.logMajor('red','white', `LOCAL_TX - POPPING ${symbol} - removeTxs=`, remove_local_txIds, { logServerConsole: true })
                                 asset.local_txs =
                                     local_txs
                                     .filter(p => !remove_local_txIds.some(p2 => p2 === p.txid))
-                                utilsWallet.log(`LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs, { logServerConsole: true })
+                                    utilsWallet.logMajor('red','white', `LOCAL_TX - POP DONE ${symbol} - local_txs=`, asset.local_txs, { logServerConsole: true })
                             }
                         }
                         break
@@ -91,10 +91,8 @@ const handlers = {
     },
  
     [WCORE_SET_ENRICHED_TXS_MULTI]: (state, action) => {
-        const { symbol,  updateAt, addrTxs } = action.payload
+        const { symbol, updateAt, addrTxs } = action.payload
         if (!addrTxs || !state.assets) { return {...state} }
-
-        utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} x${addrTxs.length}`, { logServerConsole: true })
 
         const assetNdx = state.assets.findIndex((p) => p.symbol == symbol)
         var assets = _.cloneDeep(state.assets)
@@ -104,6 +102,8 @@ const handlers = {
             const addr = addrTx.addr
             const txs = addrTx.txs
             const res = addrTx.res
+
+            utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} ${addr}, txs.len=`, txs.length, { logServerConsole: true })
 
             const addrNdx = state.assets[assetNdx].addresses.findIndex(p => p.addr == addr)
             if (addrNdx == -1) { return {...state} }
@@ -115,6 +115,7 @@ const handlers = {
                     return {...state}
                 }
                 
+                // txs - insert or update 
                 const txNdx = assets[assetNdx].addresses[addrNdx].txs.findIndex(p => p.txid == tx.txid)
                 if (txNdx !== -1) {
                     assets[assetNdx].addresses[addrNdx].txs[txNdx] = tx

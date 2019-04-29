@@ -87,13 +87,12 @@ module.exports = {
     },
 
     pushRawTransaction_Utxo: (wallet, asset, txhex, callback) => {
-        utilsWallet.log(`*** pushRawTransaction_Utxo ${asset.logsymbol} (${txhex})...`)
+        utilsWallet.log(`*** pushRawTransaction_Utxo ${asset.symbol}, txhex=`, txhex)
 
         if (asset.use_BBv3) {
 
             const globalScope = utilsWallet.getMainThreadGlobalScope()
             const appWorker = globalScope.appWorker
-
 
             // push with blockbook
             // register message handler for web worker's BB push

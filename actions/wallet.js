@@ -397,7 +397,7 @@ module.exports = {
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)... h_mpk=`, h_mpk, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)

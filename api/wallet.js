@@ -6,7 +6,7 @@ module.exports = {
     updateAssetsJsonApi: (accountName, encryptedAssetsJSONRaw, encryptedEmail) => { //}, hideToast = false) {
         const req = { accountName, assetsJSONRaw: encryptedAssetsJSONRaw, email: encryptedEmail }
 
-        console.log(`updateAssetsJsonApi - accountName=${accountName} encryptedEmail=${encryptedEmail}`)
+        console.log(`POST updateAssetsJsonApi`)
 
         return API.post(`assets`, req)
         .then(res => {

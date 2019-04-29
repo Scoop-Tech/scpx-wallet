@@ -310,7 +310,7 @@ module.exports = {
             else   console.warn('[SW-WRN]' + s)
         }
     },
-    debug: (s, p, opts) => { // level: debug -- TODO: change all chatty logging to debug level
+    debug: (s, p, opts) => { 
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
@@ -319,8 +319,10 @@ module.exports = {
             }
         }
         else {
-            if (p) console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
-            else   console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
+            if (p) console.debug(`[sw-dbg] ${s}`, p)
+            else   console.debug(`[sw-dbg] ${s}`)
+            // if (p) console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
+            // else   console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
         }
     },
 

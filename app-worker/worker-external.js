@@ -20,8 +20,7 @@ module.exports = {
     },
 }
 
-// todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice...
-function getAddressFull_External(p, callback) {
+function getAddressFull_External(p, callback) { // todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice
     const { wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket } = p
     utilsWallet.debug(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
 
@@ -132,6 +131,7 @@ function getAddressBalance_External(p, callback) {
 
                     // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
                     return getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds: undefined, bbSocket }, (dispatchActions) => {
+                        debugger
                         callback(dispatchActions)
                     })
                 }

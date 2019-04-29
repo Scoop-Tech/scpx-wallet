@@ -58,7 +58,7 @@ module.exports = {
                 .filter(p => { return p.value !== undefined }) // ETH v2 - skip minimal tx's
                 .reduce((sum,p) => { 
                     return sum.plus(new BigNumber(utilsWallet.toCalculationUnit(p.value, asset).times(p.isIncoming ? +1 : -1)))
-                            .plus(new BigNumber(utilsWallet.toCalculationUnit(p.isIncoming || utilsWallet.isERC20(asset) ? 0 : (new BigNumber(p.fees).times(-1)), asset))) }, new BigNumber(0))
+                              .plus(new BigNumber(utilsWallet.toCalculationUnit(p.isIncoming || utilsWallet.isERC20(asset) ? 0 : (new BigNumber(p.fees).times(-1)), asset))) }, new BigNumber(0))
         }
         
         const delta_bal_conf   = new BigNumber(res.balance).minus(new BigNumber(asset.addresses[addrNdx].balance))
@@ -71,7 +71,7 @@ module.exports = {
             firstLoad || testingPaddedTxs                                  
         
             // utxo & account - MAIN ATOMIC UPDATE FILTER -- delta on tx's value and the balance are in sync
-            || (balanceChanged && newTx && new_txs_value.minus(delta_bal_conf).abs() <= min_accept_delta) 
+            || (balanceChanged && newTx && new_txs_value.minus(delta_bal_conf).abs() <= min_accept_delta)
 
             // account - new tx but no balance change -- accept (note we don't accept the inverse)
             // this is to work around blockbook not giving us atomic tx/balance updates;
@@ -80,7 +80,7 @@ module.exports = {
             //   and are waiting for a lagging BB tx, and firstLoad has already accepted the BB balance
             //|| (asset.type === configWallet.WALLET_TYPE_ACCOUNT && newTx && !balanceChanged)
 
-            //|| (asset.type === configWallet.WALLET_TYPE_ACCOUNT && balanceChanged && !newTx)
+            //|| (asset.type === configWallet.WALLET_TYPE_ACCOUNT && balanceChanged && newTx)
 
             //|| (asset.type === configWallet.WALLET_TYPE_ACCOUNT && !delta_bal_conf.eq(0))
 
@@ -97,27 +97,14 @@ module.exports = {
         { 
             var newAddr = Object.assign({}, asset.addresses[addrNdx], res)
             newAddr.lastAddrFetchAt = new Date()
-            if (!balanceChanged && !newTx) {
-                //utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no bal/tx change)...`)
-            }
-            else {
-                if (newTx && !balanceChanged) {
-                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (tx change, no bal change)...`)
-                }
-                else if (!newTx && balanceChanged) {
-                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update (no tx change, bal change)...`)
-                }
-                else if (newTx && balanceChanged) {
-                    utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - accepting state update BOTH CHANGED...`)
-                }
-            }
+
+            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - ACCEPTING STATE UPDATE: newTx=${newTx} balanceChanged=${balanceChanged}`) 
 
             const dispatchAction = { type: actionsWallet.WCORE_SET_ADDRESS_FULL, payload: { updateAt: new Date(), symbol: asset.symbol, newAddr} }
-            //store.dispatch(dispatchAction)
             return dispatchAction
         }
         else {
-            utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx, balanceChanged,new_txs_value,delta_bal_conf=`, newTx, balanceChanged, new_txs_value.toString(), delta_bal_conf.toString())
+            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx=${newTx}, balanceChanged=${balanceChanged}, new_txs_value=${new_txs_value.toString()}, delta_bal_conf=${delta_bal_conf.toString()}`)
             return null
         }
     },
@@ -126,7 +113,7 @@ module.exports = {
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, activePubKey, h_mpk } = p
 
-        utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... asset,payTo=`, asset, payTo)
+        utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
         createTxHex({ 
             payTo, asset, encryptedAssetsRaw: wallet.assetsRaw, feeParams, sendMode: true, sendFromAddrNdx,
@@ -668,7 +655,6 @@ async function createTxHex(params) {
                 asset,
             }
         
-            debugger
             const walletAccount = require('./wallet-account')
             const txHexAndValue = await walletAccount.createTxHex_Account(asset.symbol, txParams, wif)
             utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex.length, hex=`, txHexAndValue.txhex.length, txHexAndValue.hex)

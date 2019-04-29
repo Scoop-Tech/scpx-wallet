@@ -59,7 +59,6 @@ function handler(e) {
                 const params = data.params
                 const reqId = data.reqId
                 const totalReqCount = data.totalReqCount
-                utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY... reqId=`, reqId)
 
                 var ret = null
                 try {
@@ -83,7 +82,6 @@ function handler(e) {
                 const params = data.params
                 const reqId = data.reqId
                 const totalReqCount = data.totalReqCount
-                utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY... reqId=`, reqId)
 
                 var ret = null
                 try {

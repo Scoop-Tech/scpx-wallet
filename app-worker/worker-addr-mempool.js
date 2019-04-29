@@ -13,8 +13,9 @@ module.exports = {
     //
     // ** get mempool tx's - using blockbook **
     //
-    // BB v3 -- now all utxo types can get mempool tx's directly from their primary sources (insight API or Blockbook); so no longer required for BTC_SEG
-    //  only needed for eth to get pending inbound -- (but note (BB limitation?) we're not getting eth outbound mempool tx's)
+    // BB v3 -- now all utxo types can get mempool tx's directly from their primary sources (insight API or Blockbook);
+    // so no longer required for BTC_SEG
+    // only now needed for eth to get pending inbound -- (but note (BB limitation?) we're not getting eth outbound mempool tx's)
     //
     mempool_GetTx: (asset, wallet, callback) => {
         if (asset.symbol !== 'ETH') { 
@@ -201,10 +202,10 @@ module.exports = {
                         utilsWallet.log(`mempool_process_Btc_SW - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
 
                         postMessage({
-                            msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
+                             msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
                             data: {
                                 dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                            dispatchPayload: { symbol: asset.symbol, tx: inbound_tx }
+                             dispatchPayload: { symbol: asset.symbol, tx: inbound_tx }
                             }
                         })
                     }
@@ -214,120 +215,119 @@ module.exports = {
     },
 
     mempool_process_EthTx: (web3, wallet, asset, txid, tx, weAreSender, erc20) => {
-        var new_local_tx
+        return mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
+    }
+}
 
-        //
-        // ** ETH: if we are receiver... **
-        //         hard requirement: this is the only way receiver will get notified, ahead of a new block with the confirmed tx
-        //
-        // ** ETH: if we are sender... **
-        //         BB (own node and public nodes) is *not* giving us our own tx's in mempool (?!)
-        //
-        if (weAreSender) { 
-            return 
+function mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20) {
+    var new_local_tx
+
+    //
+    // ** ETH: if we are receiver... **
+    //         hard requirement: this is the only way receiver will get notified, ahead of a new block with the confirmed tx
+    //
+    // ** ETH: if we are sender... **
+    //         BB (own node and public nodes) is *not* giving us our own tx's in mempool (?!)
+    //
+    if (weAreSender) { 
+        return 
+    }
+
+    var inboundSymbol
+    if (erc20 !== undefined) { // ERC20
+        inboundSymbol = erc20.symbol
+
+        //utilsWallet.log(configErc20.abi)
+        abiDecoder.addABI(configErc20.abi)
+        const decodedData = abiDecoder.decodeMethod(tx.input)
+        const erc20Asset = wallet.assets.find(p => { return p.symbol === inboundSymbol })
+
+        const txAlready_in_local_txs = erc20Asset.local_txs.some(p => p.txid === txid)
+        const txAlready_in_external_txs = asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))
+        if (txAlready_in_external_txs) { 
+            utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - mempool_process_EthTx - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
         }
+        if (txAlready_in_local_txs) { 
+            utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
+        }
+        utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
 
-        var inboundSymbol
-        if (erc20 !== undefined) { // ERC20
-            inboundSymbol = erc20.symbol
+        if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
+            if (decodedData) {
+                if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
 
-            //utilsWallet.log(configErc20.abi)
-            abiDecoder.addABI(configErc20.abi)
-            const decodedData = abiDecoder.decodeMethod(tx.input)
-            const erc20Asset = wallet.assets.find(p => { return p.symbol === inboundSymbol })
-
-            const txAlready_in_local_txs = erc20Asset.local_txs.some(p => p.txid === txid)
-            const txAlready_in_external_txs = asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))
-            if (txAlready_in_external_txs) { 
-                utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - mempool_process_EthTx - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
-            }
-            if (txAlready_in_local_txs) { 
-                utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
-            }
-            utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
-
-            if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
-                if (decodedData) {
-                    if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
-
-                        const param_to = decodedData.params[0]
-                        const param_value = decodedData.params[1]
-                        const tokenValue = param_value.value
-                        const du_value = utilsWallet.toDisplayUnit(new BigNumber(tokenValue), erc20Asset)
-                        
-                        if (erc20Asset && tokenValue) {
-                            new_local_tx = { // LOCAL_TX (ERC20) IN or OUT
-                                erc20: erc20Asset.symbol,
-                                erc20_contract: tx.to,
-                                txid,
-                                isIncoming: !weAreSender, // see above: BB not giving us mempool for our own tx's -- weAreSender is never true!
-                                date: new Date(),
-
-                                value: Number(du_value),
-
-                                toOrFrom: tx.from,
-                                account_to: param_to.value.toLowerCase(),
-                                account_from: tx.from.toLowerCase(),
-                                block_no: -1,
-                                //confirmations: 0,
-                                fees: weAreSender
-                                    ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
-                                    : 0
-                            }
+                    const param_to = decodedData.params[0]
+                    const param_value = decodedData.params[1]
+                    const tokenValue = param_value.value
+                    const du_value = utilsWallet.toDisplayUnit(new BigNumber(tokenValue), erc20Asset)
+                    
+                    if (erc20Asset && tokenValue) {
+                        new_local_tx = { // LOCAL_TX (ERC20) IN or OUT
+                            erc20: erc20Asset.symbol,
+                            erc20_contract: tx.to,
+                            txid,
+                            isIncoming: !weAreSender, // see above: BB not giving us mempool for our own tx's -- weAreSender is never true!
+                            date: new Date(),
+                            value: Number(du_value),
+                            toOrFrom: tx.from,
+                            account_to: param_to.value.toLowerCase(),
+                            account_from: tx.from.toLowerCase(),
+                            block_no: -1,
+                            fees: weAreSender
+                                ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
+                                : 0
                         }
                     }
                 }
             }
         }
-        else { // ETH
-            inboundSymbol = asset.symbol
+    }
+    else { // ETH
+        inboundSymbol = asset.symbol
 
-            const txAlready_in_local_txs = asset.local_txs.some(p => p.txid === txid)
-            const txAlready_in_external_txs = asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))
-            if (txAlready_in_external_txs) { 
-                utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
-            }
-            if (txAlready_in_local_txs) { 
-                utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
-            }
-            utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
+        const txAlready_in_local_txs = asset.local_txs.some(p => p.txid === txid)
+        const txAlready_in_external_txs = asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))
+        if (txAlready_in_external_txs) { 
+            utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
+        }
+        if (txAlready_in_local_txs) { 
+            utilsWallet.warn(`mempool_process_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
+        }
+        utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
 
-            if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
+        if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
 
-                new_local_tx = { // LOCAL_TX (ETH) IN or OUT
-                    txid,
-                    isIncoming: !weAreSender, // see above: BB not giving us mempool for our own tx's -- weAreSender is never true!
-                    date: new Date(),
-                    value: Number(web3.utils.fromWei(tx.value, 'ether')),
-                    toOrFrom: tx.from,
-                    account_to: tx.to.toLowerCase(), 
-                    account_from: tx.from.toLowerCase(),
-                    block_no: -1, 
-                    //confirmations: 0,
-                    fees: weAreSender
-                        ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
-                        : 0
-                }
-            }
-            else {
-                //utilsWallet.log(asset.symbol + ' - already got txid ', txid)
+            new_local_tx = { // LOCAL_TX (ETH) IN or OUT
+                txid,
+                isIncoming: !weAreSender, // see above: BB not giving us mempool for our own tx's -- weAreSender is never true!
+                date: new Date(),
+                value: Number(web3.utils.fromWei(tx.value, 'ether')),
+                toOrFrom: tx.from,
+                account_to: tx.to.toLowerCase(), 
+                account_from: tx.from.toLowerCase(),
+                block_no: -1, 
+                fees: weAreSender
+                    ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
+                    : 0
             }
         }
-
-        // write new local_tx, if any
-        if (new_local_tx !== undefined) {
-            utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
-
-            //utilsWallet.log('DBG1 - REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX')
-
-            postMessage({
-                msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
-                data: {
-                    dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                dispatchPayload: { symbol: inboundSymbol, tx: new_local_tx }
-                }
-            })
+        else {
+            //utilsWallet.log(asset.symbol + ' - already got txid ', txid)
         }
     }
 
+    // write new local_tx, if any
+    if (new_local_tx !== undefined) {
+        utilsWallet.log(`mempool_process_EthTx ${inboundSymbol} - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
+
+        //utilsWallet.log('DBG1 - REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX')
+
+        postMessage({
+            msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
+            data: {
+                dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
+             dispatchPayload: { symbol: inboundSymbol, tx: new_local_tx }
+            }
+        })
+    }
 }

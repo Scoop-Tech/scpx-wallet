@@ -48,19 +48,24 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
         (data) => {
             if (data && data.result) {
 
-                // get tx's, cap at defined number -- update: to support erc20's we cap *after* filtering out eth tx's
+                //
+                // to support erc20's we habe to cap *after* filtering out eth tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
+                // i.e. here we must get everything
+                //
                 const totalTxCount = data.result.length // overridden below, when all dispatchTxs are fetched
-                var txids = data.result//.slice(0, configWallet.WALLET_MAX_TX_HISTORY)
+                var txids = data.result
 
-                // filter: new tx's, or known tx's that aren't yet enriched, or unconfirmed tx's
+                // ## this does not work at all, now that we aren't capping the initial fetch
+                // instead, we do the filtering of disatpchTxs after the enriching
                 const assetAddress = asset.addresses.find(p => p.addr == pollAddress)
-                const new_txs = txids.filter(p => // only new tx that have
-                    // NO existing asset tx that is...
-                    !assetAddress.txs.some(p2 => p2.txid == p // matching
-                        && p2.isMinimal == false // and enriched
-                        && p2.block_no != -1) // and confirmed
-                )
+                // filter: new tx's, or known tx's that aren't yet enriched, or unconfirmed tx's
+                // const new_txs = txids.filter(p => // only new tx that have
+                //     // NO existing asset tx that is...
+                //     !assetAddress.txs.some(p2 => p2.txid == p // matching
+                //         && p2.isMinimal == false // and enriched
+                //         && p2.block_no != -1) // and confirmed
+                // )
 
                 //
                 // queue enrich tx actions (will either take from the cache, or fetch, prune & populate the cache)
@@ -72,10 +77,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 //const dedicatedWeb3 = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config['ETH'].url)) 
                 //dedicatedWeb3.currentProvider.on("connect", data => { 
                     
-                    const enrichOps = new_txs.map((tx) => { 
+                    // enrich *all* the tx's (we will get from IDB cache if already enriched, so could be worse)
+                    const enrichOps = txids.map((tx) => { 
                         return enrichTx(
                             //dedicatedWeb3,
-                            //self.ws_web3, 
                             wallet, asset, { txid: tx }, pollAddress
                         )
                     })
@@ -93,26 +98,46 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         Promise.all(enrichOps)
                         .then((enrichedTxs) => {
 
-                            //debugger
                             closeDedicatedWeb3Socket(asset, pollAddress)
 
+                            // remove any pure eth tx's that were filtered out for an erc20 asset
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
 
                             if (dispatchTxs.length > 0) {
                                 utilsWallet.debug(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`)
 
-                                // to properly support erc20's, we need to slice top *after* filtering out eth tx's (different to utxo/BBv3 implementation)
+                                // to properly support erc20's, we need to slice top *after* filtering out eth tx's
+                                // (quite different to utxo/BBv3 implementation)
                                 const dispatchTxs_Top = dispatchTxs.slice(0, configWallet.WALLET_MAX_TX_HISTORY)  // already sorted desc
+
                                 res.totalTxCount = dispatchTxs.length
-                                res.capped_txs = dispatchTxs_Top < res.totalTxCount
-                            
-                                var res_no_txs = _.cloneDeep(res)
-                                delete res_no_txs.txs
-                                const dispatchAction = {
-                                    type: actionsWallet.WCORE_SET_ENRICHED_TXS,
-                                    payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top, res: res_no_txs } 
+                                res.capped_txs = dispatchTxs_Top.length < dispatchTxs.length
+
+                                //
+                                // filter
+                                // only update state for new tx's, known tx's that aren't yet enriched, or unconfirmed tx's
+                                // ** this is v. important, to get consistent balance values while tx's are pending **
+                                //
+                                const dispatchTxs_Top_toUpdate = dispatchTxs_Top.filter(p => // only tx that have
+                                    // NO existing asset tx that is...
+                                    !assetAddress.txs.some(p2 => p2.txid == p.txid // matching
+                                        && p2.isMinimal == false                   // and enriched
+                                        && p2.block_no != -1)                      // and confirmed
+                                )
+
+                                res.txs = dispatchTxs_Top_toUpdate
+
+                                if (dispatchTxs_Top_toUpdate.length > 0) {
+                                    // if (asset.symbol === 'ETH') {
+                                    //     debugger
+                                    // }
+
+                                    const dispatchAction = {
+                                        type: actionsWallet.WCORE_SET_ENRICHED_TXS,
+                                        payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res } 
+                                    }
+                                    allDispatchActions.push(dispatchAction)
                                 }
-                                allDispatchActions.push(dispatchAction)
                             }
                             callback(res)
                         })
@@ -126,7 +151,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         callback(res)
                     }
 
-                //}) // dedicatedWeb3.currentProvider.on("connect" ...
+                //}) // dedicatedWeb3.currentProvider.on("connect" 
             }
             else {
                 callback(null)
@@ -283,7 +308,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
     return new Promise((resolve, reject) => {
         const symbol = asset.symbol
 
-        // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's (which they are!)
+        // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's
         // wallet owner is part of cache key because of relative fields: tx.sendToSelf and tx.isIncoming 
         const cacheKey = `${asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
         const ownAddresses = asset.addresses.map(p => { return p.addr })

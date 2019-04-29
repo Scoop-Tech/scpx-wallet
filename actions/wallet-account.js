@@ -41,7 +41,7 @@ module.exports = {
         const symbol = asset.symbol
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
-        utilsWallet.log(`*** pushRawTransaction_Account ${symbol} (${txHex})...`)
+        utilsWallet.log(`*** pushRawTransaction_Account ${symbol}, txhex=`, txHex)
         const Web3 = require('web3')
         const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
         web3.eth.sendSignedTransaction(txHex, (err, txHash) => {
@@ -51,7 +51,7 @@ module.exports = {
             } else {
                 web3.eth.getTransaction(txHash)
                 .then((txData) => {
-                    utilsWallet.log(`push local_tx ${symbol}`, txData)
+                    utilsWallet.debug(`push local_tx ${symbol}`, txData)
 
                     if (symbol === 'ETH' || symbol === 'ETH_TEST') {
                         const sendToSelf = ownAddresses.some(p => p === txData.to.toLowerCase())
@@ -199,7 +199,7 @@ async function createETHTransactionHex(symbol, params, privateKey) {
         var bal = walletExternal.get_combinedBalance(params.asset)
         var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
 
-        utilsWallet.log('eth txhex - params.value=', params.value.toString())
+        utilsWallet.log('*** eth txhex - params.value=', params.value.toString())
 
         if (delta_avail == 0) {
             utilsWallet.log('eth thxhex - appying send-max wei padding...')
@@ -210,8 +210,8 @@ async function createETHTransactionHex(symbol, params, privateKey) {
 
         wei_sendValue = wei_sendValue.toString()
 
-        utilsWallet.log('eth txhex - params.gasLimit=', params.gasLimit)
-        utilsWallet.log('eth txhex - params.gasPrice=', params.gasPrice)
+        utilsWallet.log('*** eth txhex - params.gasLimit=', params.gasLimit)
+        utilsWallet.log('*** eth txhex - params.gasPrice=', params.gasPrice)
 
         // repackage params for web3
         params.value = web3.utils.toHex(wei_sendValue)
@@ -259,7 +259,6 @@ function createERC20TransactionHex(symbol, params, privateKey) {
                 decimals: assetMeta.decimals
             }).toString() 
 
-            debugger
             const cu_sendValue = params.value
             utilsWallet.log('erc20 - wei=', params.value)
 
