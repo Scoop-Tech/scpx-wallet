@@ -1,4 +1,7 @@
-# Scoop Core Wallet [![npm version](https://img.shields.io/npm/v/axios.svg?style=flat-square)](https://www.npmjs.org/package/scpx-wallet)
+# Scoop Core Wallet 
+
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Scoop-Tech/scpx-wallet.svg)
+[![npm version](https://img.shields.io/npm/v/axios.svg?style=flat-square)](https://www.npmjs.org/package/scpx-wallet)
 
 Release Candidate 3
 
@@ -7,15 +10,15 @@ Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44]
 The architectural components of Scoop are (collectively, **"SCPX"**) as follows:
 
   * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
-  * **SCPX-SVR** - API [Web Server](https://github.com/Scoop-Tech/scpx-svr) (encryption layer 2)
-  * **SCPX-WALLET** - Core Wallet (this repo) - node.js / browser-compatible core wallet (encryption layer 1)
-  * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (encryption layer 0)
+  * **SCPX-SVR** - API [Web Server](https://github.com/Scoop-Tech/scpx-svr) (layer 2 encryption)
+  * **SCPX-WALLET** - Core Wallet (this repo) - node.js and browser-compatible core wallet functions (layer 1 encryption)
+  * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (layer 0 encryption)
  
 For maintenance of user accounts and settings, Scoop user accounts are persisted by the SCPX [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a private instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
 
-This repo contains the open-source Core Wallet with integrated JS REPL command line interface.
-
 Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet layer, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for full details on SCPX's security and encryption model.
+
+This repo contains the open-source Core Wallet with integrated JS REPL command line interface. The CLI is decoupled from the Data Storage Contract and does not read from or write to it.
 
 ## Features
 
@@ -50,11 +53,11 @@ Scoop uses three levels of data encryption: one round of encryption in browser s
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
   * ```npm install```
-  * ```npm start```
+  * ```npm start``` or ```nodemon```
   
 Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
 
-NOTE: ```./nodemon.json``` configuration: ```--experimental-worker``` is required at runtime.
+NOTE: ```./nodemon.json``` configuration - ```--experimental-worker``` is required at runtime.
 
 Example ./vscode/launch.json for Visual Studio Code debugging: 
 ```{
