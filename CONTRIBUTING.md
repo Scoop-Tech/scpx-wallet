@@ -16,4 +16,4 @@ Do your best to have well-formed commit messages for each change. This provides 
 Finally, push the commits to your fork and submit a pull request.
 
 ## Copyright 
-Please do not contribute unless you are willing to assign or waive the copyright of your contribution: copyright needs to reside with a single person or entity in order to enforce the terms of the AGPL license. See [here](https://www.gnu.org/licenses/why-assign.en.html) and [here](https://producingoss.com/en/copyright-assignment.html) for more information.
+Please do not contribute unless you are willing to assign, waive or irrevocably grant to us the copyright of your contribution. To be able to realistically enforce the terms of the AGPL license, copyright needs to reside with a single person or entity. See [here](https://www.gnu.org/licenses/why-assign.en.html) and [here](https://producingoss.com/en/copyright-assignment.html) for more information.
