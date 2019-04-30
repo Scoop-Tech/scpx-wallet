@@ -99,6 +99,8 @@ module.exports = {
     // imports external privkeys into a new import account
     //
     importPrivKeys: async (p) => { 
+        if (configWallet.WALLET_ENV === "SERVER") throw("Not yet supported on server")
+
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
                 activePubKey, e_email, h_mpk } = p
         if (!store) { throw("importPrivKeys - invalid store") }
@@ -198,6 +200,8 @@ module.exports = {
     // removes imported account(s)
     //
     removeImportedAccounts: async (p) => {
+        if (configWallet.WALLET_ENV === "SERVER") throw("Not yet supported on server")
+
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
                 activePubKey, e_email, h_mpk } = p
         if (!store) { throw("removeImportedAccounts - invalid store") }
@@ -262,16 +266,28 @@ module.exports = {
     },
 
     //
-    // generates new scoop (main//primary account) address
+    // generates new address (in the primary scoop account)
     //
     generateNewAddress: async (p) => {
-        const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, 
-                activePubKey, e_email, h_mpk } = p
-        if (!store) { throw("generateWallets - invalid store") }
-        if (!h_mpk) { throw("generateWallets - invalid h_mpk") }
-        if (!userAccountName) { throw("generateNewAddress - not logged in") }
-        if (!e_rawAssets === undefined || e_rawAssets == '') { throw("generateNewAddress - no wallet data") }
+        const { store, activePubKey, h_mpk, assetName, // required - browser & server
+                userAccountName, e_email,              // required - browser 
+                eosActiveWallet } = p
+
+        // validation
+        if (!store) throw("store is required")
+        if (!activePubKey) throw("activePubKey is required")
+        if (!store) throw("store is required")
+        if (!h_mpk) throw("h_mpk is required")
+
+        const storeState = store.getState()
+        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw("Invalid store state")
+        const wallet = storeState.wallet
+        const e_rawAssets = storeState.wallet.assetsRaw
+        
+        //if (!userAccountName) { throw("generateNewAddress - not logged in") }
         const displayableAssets = wallet.assets
+
+        utilsWallet.logMajor('green','white', `generateNewAddress...`, null, { logServerConsole: true })
 
         // decrypt raw assets
         var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
@@ -279,7 +295,7 @@ module.exports = {
 
         // get asset and account to generate into
         const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw("generateNewAddress - no asset") }
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw("Invalid assetName")
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol
         const genAccount = genAsset.accounts[0] // default (Scoop) account
@@ -315,8 +331,10 @@ module.exports = {
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
 
             // post to server
-            return apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
-            .then(() => {
+            if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
+                await apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+            }
+            //.then(() => {
         
                 rawAssetsJsonUpdated = null
 
@@ -337,23 +355,32 @@ module.exports = {
                 store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
                 if (configWallet.WALLET_ENV === "BROWSER") {
+                    const globalScope = utilsWallet.getMainThreadGlobalScope()
+                    const appWorker = globalScope.appWorker    
+
                     // update addr monitors
-                    window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                    window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                    appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                    appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
             
                     // refresh asset balance
-                    window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                    appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                }
+                else {
+                    ; // nop
+                    // server is better placed to than here handle addr-monitor connection better 
                 }
                 
                 // ret ok
                 utilsWallet.softNuke(rawAssets); pt_rawAssets = null
+                utilsWallet.logMajor('green','white', `generateNewAddress - complete`, null, { logServerConsole: true })
                 return { newAddr: newDisplayableAddr, newCount: genAccount.privKeys.length }
-            })
-            .catch(err => {
-                utilsWallet.error(`## Wallet - generateNewAddress -- FAIL posting, err=`, err)
-                utilsWallet.softNuke(rawAssets); pt_rawAssets = null
-                return { err: err.toString(), newAddr: undefined }
-            })
+
+            //})
+            // .catch(err => {
+            //     utilsWallet.error(`## Wallet - generateNewAddress -- FAIL posting, err=`, err)
+            //     utilsWallet.softNuke(rawAssets); pt_rawAssets = null
+            //     return { err: err.toString(), newAddr: undefined }
+            // })
         
         } else {
             // ret fail
@@ -471,7 +498,7 @@ module.exports = {
             // 
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
-            if (userAccountName) {
+            if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
                 apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")

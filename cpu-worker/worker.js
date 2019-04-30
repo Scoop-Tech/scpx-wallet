@@ -6,12 +6,12 @@ const walletAccount = require('../actions/wallet-account')
 
 const utilsWallet = require('../utils')
 
+// setup
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') 
 } catch(err) {} // expected - when running in browser
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
-
 if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
     self = global
@@ -19,6 +19,16 @@ if (workerThreads) { // server
 }
 else { // browser
     onmessage = handler
+}
+
+// error handlers
+if (configWallet.WALLET_ENV === "SERVER") {
+    process.on('unhandledRejection', (reason, promise) => {
+        utilsWallet.error(`## unhandledRejection (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
+    })
+    process.on('uncaughtException', (err, origin) => {
+        utilsWallet.error(`## uncaughtException (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
+    })
 }
 
 utilsWallet.logMajor('magenta','white', `... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })

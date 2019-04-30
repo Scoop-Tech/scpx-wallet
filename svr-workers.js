@@ -29,6 +29,17 @@ module.exports = {
             globalScope.appWorker.on('message', event => {
                 appWorkerCallbacks.appWorkerHandler(store, event)
             })
+
+            // request and wait for dirty DB setup
+            const txDbSetup = new Promise((resolve) => {
+                globalScope.appWorker.on('message', (event) => { 
+                    if (event.msg === 'INIT_SERVER_TX_DB_DONE') {
+                        resolve()
+                    }
+                })
+            })
+            globalScope.appWorker.postMessage({ msg: 'INIT_SERVER_TX_DB', data: {} })
+            await txDbSetup
         }
 
         // ping workers

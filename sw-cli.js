@@ -1,16 +1,13 @@
 #!/usr/bin/env node --experimental-worker
 'use strict';
 
-// todo -- #### "too many files open" in scp-tx-np ...
-
-// todo -- log tail v. slow
-//         cli option to LOG_CORE_TO_CONSOLE ...
-
 // todo -- minimum viable set for launch ...
 //         .waa (wallet add addr) -- server, no limits
 //         .ws  (wallet save) -- to file, binary enc'd dump (instead of api/eos)
-//         .wl  (wallet load) 
+//         .wl  (wallet load) -- from file (==> curent .wl becomes wallet-init)
 //         .wtx (wallet tx)
+
+// then -- optional, .wl from eos (w/ imported & added addr's)
 
 
 const walletActions = require('./actions')
@@ -21,7 +18,7 @@ const utilsWallet = require('./utils')
 
 const cliRepl = require('./cli-repl')
 const cliWorkers = require('./svr-workers')
-const svrWallet = require('./svr-wallet')
+const swCreate = require('./svr-wallet/sw-create')
 const log = require('./cli-log')
 
 //
@@ -50,34 +47,29 @@ if (cli.apk)         log.info(`cli.apk: ${cli.apk}`)
 if (cli.fileHistory) log.info(`cli.fileHistory: ${cli.fileHistory}`)
 console.log()
 
-// tst
-// var dirty = require('dirty');
-// var db = dirty('user.db');
-// db.on('load', function() {
-//     db.set('john', {eyes: 'blue'});
-//     console.log('Added john, he has %s eyes.', db.get('john').eyes);
-//     db.set('bob', {eyes: 'brown'}, function() {
-//       console.log('User bob is now saved on disk.')
-//     });
-//     db.forEach(function(key, val) {
-//       console.log('Found key: %s, val: %j', key, val);
-//     });
-//   });
-// db.on('drain', function() {
-// console.log('All records are saved on disk now.');
-// });
-// debugger
+// error handlers
+process.on('unhandledRejection', (reason, promise) => {
+    debugger
+    utilsWallet.error(`## unhandledRejection ${reason}`, promise, { logServerConsole: true})
+})
+process.on('uncaughtException', (err, origin) => {
+    debugger
+    utilsWallet.error(`## uncaughtException ${reason}`, promise, { logServerConsole: true})
+})
+
 
 // setup workers
 cliWorkers.workers_init(appStore.store).then(() => {
 
+    // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEYS)
+    global.loadedWalletKeys = {} 
+
     // wallet context
     const walletContext = {
-        store: appStore.store,
+            store: appStore.store,
         persistor: appStore.persistor,
-        config: {
-            wallet: configWallet,
-          external: configWalletExternal,
+           config: { wallet: configWallet,
+                   external: configWalletExternal,
         },
     }
 
@@ -91,7 +83,7 @@ cliWorkers.workers_init(appStore.store).then(() => {
     if (cli.mpk && cli.apk) {
         if (cli.mpk.length >= 53 && cli.apk.length >= 53) {
             log.info('Loading supplied wallet...')
-            svrWallet.walletLoad(walletContext.store, { apk: cli.apk, mpk: cli.mpk }).then(res => cliRepl.postCmd(prompt, res))
+            swCreate.walletInit(walletContext.store, { apk: cli.apk, mpk: cli.mpk }).then(res => cliRepl.postCmd(prompt, res))
         }
     }
 })

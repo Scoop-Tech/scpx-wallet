@@ -20,33 +20,16 @@ const configWallet = require('../config/wallet')
 const walletExternalActions = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
-
+// setup
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') 
 } catch(err) {} // expected - when running in browser
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
-
-utilsWallet.logMajor('magenta','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
-
 if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
     self = global
     self.postMessage = (msg) => { return workerThreads.parentPort.postMessage(msg) }
-
-    // setup tx db cache (node-persist)
-    utilsWallet.logMajor('magenta','white', `... SETTING UP DIRTY TX DB ...`, null, { logServerConsole: true })
-    const dirty = require('dirty')
-    global.txdb_dirty = dirty('scp_tx.db')
-    // global.txdb_dirty.on('load', function() { ...
-
-    // utilsWallet.logMajor('magenta','white', `... SETTING UP NODE-PERSIST ...`, null, { logServerConsole: true })
-    // if (!global.txdb_nodePersist) {
-    //     global.txdb_nodePersist = require('node-persist')
-    //     global.txdb_nodePersist.init({
-    //         dir: './scp_tx_np' 
-    //     }).then(() => {})
-    // }
 }
 else { // browser
     onmessage = handler
@@ -79,6 +62,18 @@ self.window = self  // hack fix - web3 beta41 websocketprovider still references
 
 self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
+// error handlers
+if (configWallet.WALLET_ENV === "SERVER") {
+    process.on('unhandledRejection', (reason, promise) => {
+    utilsWallet.error(`## unhandledRejection (appWorker) - ${reason}`, promise, { logServerConsole: true })
+    })
+    process.on('uncaughtException', (err, origin) => {
+        utilsWallet.error(`## uncaughtException (appWorker) - ${reason}`, promise, { logServerConsole: true })
+    })
+}
+
+utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
+
 function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
 
@@ -87,6 +82,20 @@ function handler(e) {
     const msg = eventData.msg
     const data = eventData.data
     switch (msg) {
+
+        case 'INIT_SERVER_TX_DB': 
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`)
+            
+            // setup tx db cache (dirty - replaces node-persist)
+            utilsWallet.log(`global.txdb_dirty: init...`, null, { logServerConsole: true })
+            const dirty = require('dirty')
+            global.txdb_dirty = dirty('scp_tx.db')
+            global.txdb_dirty.on('load', function() {
+                utilsWallet.log(`global.txdb_dirty: init OK.`, null, { logServerConsole: true })
+                self.postMessage({ msg: 'INIT_SERVER_TX_DB_DONE', status: 'RES', data: { } })
+            })
+            break
+
         case 'DIAG_PING':
             utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
             const pongTime = new Date().getTime()

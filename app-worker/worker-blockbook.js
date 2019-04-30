@@ -200,10 +200,6 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
 
         const dispatchActions = []
 
-        // postMessage({ msg: 'ASSET_UPDATE_BLOCK_INFO', status: 'UPDATE',
-        //              data: { symbol,
-        //                      receivedBlockNo: receivedBlockNo || data.bestheight,
-        //                      receivedBlockTime: receivedBlockTime || new Date().getTime() } })
         dispatchActions.push({
             type: actionsWallet.SET_ASSET_BLOCK_INFO,
          payload: {  symbol,
@@ -214,10 +210,6 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
         if (symbol === 'ETH') { // erc20s
             const erc20_symbols = Object.keys(configExternal.erc20Contracts)
             erc20_symbols.forEach(erc20_symbol => {
-                // postMessage({ msg: 'ASSET_UPDATE_BLOCK_INFO', status: 'UPDATE',
-                //               data: { symbol: erc20_symbol,
-                //                       receivedBlockNo: receivedBlockNo || data.bestheight,
-                //                       receivedBlockTime: receivedBlockTime || new Date().getTime() } })
                 dispatchActions.push({
                     type: actionsWallet.SET_ASSET_BLOCK_INFO,
                  payload: {  symbol: erc20_symbol,
@@ -295,8 +287,6 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
 
                                                 // save blockheight & time on asset
 
-                                                // postMessage({ msg: 'ASSET_UPDATE_BLOCK_INFO', status: 'UPDATE',
-                                                //               data: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() } }) 
                                                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
                                                                   data: { dispatchActions: [{ 
                                                                         type: actionsWallet.SET_ASSET_BLOCK_INFO,
@@ -381,7 +371,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
 
         // try cache first
-        //utils.idb_tx.getItem(cacheKey)
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
@@ -402,7 +391,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
                         // add to cache
                         mappedTx.addedToCacheAt = new Date()
-                        //utils.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
                             utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
@@ -412,8 +400,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                         .catch((err) => {
                             utilsWallet.logErr(err)
                             utilsWallet.error(`## enrichTx - ${asset.symbol} ${tx.txid} - error writing cache=`, err)
-
-                            //reject(err)
                             resolve(null) // allow all enrich ops to run
                         })
                     }

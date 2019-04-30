@@ -50,8 +50,7 @@ module.exports = {
     },
 }
 
-function 
-subAddr_Blockbook(wallet, asset) {
+function subAddr_Blockbook(wallet, asset) {
     const ownAddresses = asset.addresses.map(p => { return p.addr })
     
     //var socket = worker.get_BlockbookSocketIo(asset)
