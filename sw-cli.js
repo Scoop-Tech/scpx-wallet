@@ -2,7 +2,6 @@
 'use strict';
 
 // todo -- minimum viable set for launch ...
-//         .waa (wallet add addr) -- server, no limits
 //         .ws  (wallet save) -- to file, binary enc'd dump (instead of api/eos)
 //         .wl  (wallet load) -- from file (==> curent .wl becomes wallet-init)
 //         .wtx (wallet tx)
@@ -19,6 +18,8 @@ const utilsWallet = require('./utils')
 const cliRepl = require('./cli-repl')
 const cliWorkers = require('./svr-workers')
 const swCreate = require('./svr-wallet/sw-create')
+const swWallet = require('./svr-wallet/sw-wallet')
+const swPersist = require('./svr-wallet/sw-persist')
 const log = require('./cli-log')
 
 //
@@ -37,29 +38,28 @@ console.log()
 
 cli
 .version('0.3.0', '-v, -V, -ver, --version')
-.option('-m, --mpk <optional: string>', 'the Master Private Key to pass to wallet-load') 
-.option('-a, --apk <optional: string>', 'the Active Public Key to pass to wallet-load') 
-.option('-h, --fileHistory <optional: bool, default "false">', 'persist CLI history to file (includes sensitive data)') 
+.option('-m, --mpk <string>', 'Master Private Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
+.option('-a, --apk <string>', 'Active Public Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
+.option('-f, --loadFile <string>', 'wallet filename: passed to wallet.load (.wl)') 
+.option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)') 
 .parse(process.argv)
 
 if (cli.mpk)         log.info(`cli.mpk: ${cli.mpk}`)
 if (cli.apk)         log.info(`cli.apk: ${cli.apk}`)
-if (cli.fileHistory) log.info(`cli.fileHistory: ${cli.fileHistory}`)
+if (cli.loadFile)    log.info(`cli.loadFile: ${cli.loadFile}`)
+if (cli.saveHistory) log.info(`cli.saveHistory: ${cli.saveHistory}`)
 console.log()
 
 // error handlers
 process.on('unhandledRejection', (reason, promise) => {
-    debugger
     utilsWallet.error(`## unhandledRejection ${reason}`, promise, { logServerConsole: true})
 })
 process.on('uncaughtException', (err, origin) => {
-    debugger
-    utilsWallet.error(`## uncaughtException ${reason}`, promise, { logServerConsole: true})
+    utilsWallet.error(`## uncaughtException ${err.toString()}`, origin, { logServerConsole: true})
 })
 
-
 // setup workers
-cliWorkers.workers_init(appStore.store).then(() => {
+cliWorkers.workers_init(appStore.store).then(async () => {
 
     // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEYS)
     global.loadedWalletKeys = {} 
@@ -77,13 +77,28 @@ cliWorkers.workers_init(appStore.store).then(() => {
     log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
 
     // launch repl
-    const prompt = cliRepl.repl_init(walletContext, cli.fileHistory)
+    const prompt = cliRepl.repl_init(walletContext, cli.saveHistory)
 
-    // load from cmdline, if specified
+    // init or load from cmdline, if specified
     if (cli.mpk && cli.apk) {
-        if (cli.mpk.length >= 53 && cli.apk.length >= 53) {
-            log.info('Loading supplied wallet...')
-            swCreate.walletInit(walletContext.store, { apk: cli.apk, mpk: cli.mpk }).then(res => cliRepl.postCmd(prompt, res))
+        const validationErrors = await swWallet.validateMpkApk(cli.mpk, cli.apk)
+        if (validationErrors && validationErrors.err) {
+            cliRepl.postCmd(prompt, { err: `Validation failed: ${validationErrors.err}` })
+        }
+        else {
+            if (cli.loadFile) {
+                log.info(`Loading supplied ${cli.loadFile}...`)
+                const globalScope = utilsWallet.getMainThreadGlobalScope()
+                swPersist.walletLoad(globalScope.appWorker, walletContext.store,
+                    { apk: cli.apk, mpk: cli.mpk, n: cli.loadFile })
+                .then(res => cliRepl.postCmd(prompt, res))
+            }
+            else {
+                log.info('Initializing supplied wallet...')
+                swCreate.walletInit(walletContext.store,
+                    { apk: cli.apk, mpk: cli.mpk })
+                .then(res => cliRepl.postCmd(prompt, res))
+            }
         }
     }
 })

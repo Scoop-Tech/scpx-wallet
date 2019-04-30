@@ -171,7 +171,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then((res) => {
             rawAssetsJsonUpdated = null
 
@@ -239,7 +239,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then(() => {
 
             rawAssetsJsonUpdated = null
@@ -332,56 +332,48 @@ module.exports = {
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+                await apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
             }
-            //.then(() => {
         
-                rawAssetsJsonUpdated = null
+            rawAssetsJsonUpdated = null
 
-                // add new displayable asset address object
-                const newDisplayableAssets = _.cloneDeep(displayableAssets)
-                const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
+            // add new displayable asset address object
+            const newDisplayableAssets = _.cloneDeep(displayableAssets)
+            const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
 
-                const newDisplayableAddr = newWalletAddressFromPrivKey( {
-                        assetName: assetName.toLowerCase(),
-                      accountName: genAccount.name,
-                              key: newPrivKey,
-                  eosActiveWallet: eosActiveWallet,
-                        knownAddr: undefined,
-                           symbol: newDisplayableAsset.symbol
-                })
+            const newDisplayableAddr = newWalletAddressFromPrivKey( {
+                      assetName: assetName.toLowerCase(),
+                    accountName: genAccount.name,
+                            key: newPrivKey,
+                eosActiveWallet: eosActiveWallet,
+                      knownAddr: undefined,
+                         symbol: newDisplayableAsset.symbol
+            })
 
-                newDisplayableAsset.addresses.push(newDisplayableAddr)
-                store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
+            newDisplayableAsset.addresses.push(newDisplayableAddr)
+            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
-                if (configWallet.WALLET_ENV === "BROWSER") {
-                    const globalScope = utilsWallet.getMainThreadGlobalScope()
-                    const appWorker = globalScope.appWorker    
+            if (configWallet.WALLET_ENV === "BROWSER") {
+                const globalScope = utilsWallet.getMainThreadGlobalScope()
+                const appWorker = globalScope.appWorker    
 
-                    // update addr monitors
-                    appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                    appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                // update addr monitors
+                appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+        
+                // refresh asset balance
+                appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+            }
+            else {
+                ; // nop
+                // server is better placed to than here handle addr-monitor connection better 
+            }
             
-                    // refresh asset balance
-                    appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
-                }
-                else {
-                    ; // nop
-                    // server is better placed to than here handle addr-monitor connection better 
-                }
-                
-                // ret ok
-                utilsWallet.softNuke(rawAssets); pt_rawAssets = null
-                utilsWallet.logMajor('green','white', `generateNewAddress - complete`, null, { logServerConsole: true })
-                return { newAddr: newDisplayableAddr, newCount: genAccount.privKeys.length }
+            // ret ok
+            utilsWallet.softNuke(rawAssets); pt_rawAssets = null
+            utilsWallet.logMajor('green','white', `generateNewAddress - complete`, null, { logServerConsole: true })
+            return { newAddr: newDisplayableAddr, newCount: genAccount.privKeys.length }
 
-            //})
-            // .catch(err => {
-            //     utilsWallet.error(`## Wallet - generateNewAddress -- FAIL posting, err=`, err)
-            //     utilsWallet.softNuke(rawAssets); pt_rawAssets = null
-            //     return { err: err.toString(), newAddr: undefined }
-            // })
-        
         } else {
             // ret fail
             utilsWallet.softNuke(rawAssets); pt_rawAssets = null
@@ -395,19 +387,20 @@ module.exports = {
     //  server: persists only to redux store
     //
     generateWallets: async (p) => {
-        const { store, userAccountName, e_serverAssets, eosActiveWallet, callbackProcessed, 
+        const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
                 activePubKey, e_email, h_mpk } = p
         if (!store) { throw("Invalid store") }
         if (!h_mpk) { throw("Invalid h_mpk") }
-        //if (!userAccountName) { throw("generateWallets - not logged in") }
 
-        // decrypt server assets
-        var pt_serverAssets
+        // decrypt existing raw assets, if supplied (either from server in client mode, or from file in server mode)
+        var pt_storedRawAssets
         var currentAssets
-        if (e_serverAssets !== undefined && e_serverAssets !== null && e_serverAssets !== '') {
-            pt_serverAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_serverAssets)
-            //utilsWallet.log('generateWallets - pt_serverAssets=', pt_serverAssets)
-            currentAssets = JSON.parse(pt_serverAssets) // take from server
+        if (e_storedAssetsRaw !== undefined && e_storedAssetsRaw !== null && e_storedAssetsRaw !== '') {
+            pt_storedRawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_storedAssetsRaw)
+            if (!pt_storedRawAssets || pt_storedRawAssets.length === 0) {
+                return null // decrypt failed
+            }
+            currentAssets = JSON.parse(pt_storedRawAssets)
         } else {
             currentAssets = {} // generate new
         }
@@ -418,7 +411,6 @@ module.exports = {
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
-        //utilsWallet.log(`generateWallets - currentAssets,currentTypes,needToGenerate,supportWalletTypes=`, currentAssets, currentTypes, needToGenerate, supportWalletTypes)
 
         // (re)generate wallets
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
@@ -499,7 +491,7 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiWallet.updateAssetsJsonApi(userAccountName, pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
+                apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
@@ -518,16 +510,39 @@ module.exports = {
             rawAssetsJsonUpdated = null
 
         } else {
-
             utilsWallet.logMajor('green', 'white', `FINISHED LOAD & X-REF CHECK FOR ASSET TYPES...`)
-            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_serverAssets }) // persist encrypted local - no changes
+            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_storedAssetsRaw }) // persist encrypted local - no changes
         }
 
         // ***
         // store local state: viewable asset data, e.g. last known balances: subset of currentAssets, persisted to browser storage, without privkeys
         // ***
-        store.dispatch(displayableWalletAssets(currentAssets, userAccountName))
+        const displayableAssets = displayableWalletAssets(currentAssets, userAccountName)
+        store.dispatch((action) => {
+            action({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
+        })
+
         utilsWallet.softNuke(currentAssets)
+        return displayableAssets
+    },
+    
+    pruneRawAssets: (currentAssets, activePubKey, h_mpk) => {
+        // prune
+        var currentAssetsKeysOnly = {} 
+        Object.keys(currentAssets).map(assetName => {
+            var assetAccounts = _.cloneDeep(currentAssets[assetName].accounts)
+            currentAssetsKeysOnly[assetName] = { accounts: assetAccounts }
+        })
+
+        // stringify
+        var pt_assetsJsonPruned = JSON.stringify(currentAssetsKeysOnly, null, 1)
+
+        // encrypt
+        const e_assetsRawPruned = utilsWallet.aesEncryption(activePubKey, h_mpk, pt_assetsJsonPruned)
+
+        utilsWallet.softNuke(currentAssetsKeysOnly)
+        pt_assetsJsonPruned = null
+        return e_assetsRawPruned
     },
 
     //
@@ -650,39 +665,27 @@ function generateWalletAccount(p) {
             }
             // note: we leave any other server-populated address indexes alone, so any user-activated (non-default) addresses persist across logins
         }
-
-        //utilsWallet.log(`wallets - generateWallets - genType=${genType} pushed defaultPrivKeys=`, defaultPrivKeys)
         return true
     }
     return false
 }
 
 // creates wallet.assets[] safe/displayable core wallet data
-function displayableWalletAssets(assets, owner) {
-    return (dispatch) => {
-        var displayableAssets = []
-        if (assets) {
-            for (const key in assets) {
-
-                if (!configWallet.getSupportedWalletTypes().includes(key)) continue
-
-                if (assets[key]) {
-                    var displayableAsset =
-                        Object.assign(
-                            {
-                                // multi-addr: v2
-                                addresses: assets[key].addresses,
-                                local_txs: [],
-                            },
-                            configWallet.walletsMeta[key] 
-                        )
-
-                    displayableAssets.push(displayableAsset)
-                }
+function displayableWalletAssets(assets) {
+    var displayableAssets = []
+    if (assets) {
+        for (const key in assets) {
+            if (!configWallet.getSupportedWalletTypes().includes(key)) continue
+            if (assets[key]) {
+                var displayableAsset = Object.assign(
+                    { addresses: assets[key].addresses, local_txs: [], },
+                    configWallet.walletsMeta[key])
+                    
+                displayableAssets.push(displayableAsset)
             }
         }
-        dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner } })
     }
+    return displayableAssets
 }
 
 //
@@ -748,25 +751,6 @@ function getUtxoNetwork(symbol) {
         default:
             return undefined
     }
-}
-
-function pruneRawAssets(currentAssets, activePubKey, h_mpk) {
-    // prune
-    var currentAssetsKeysOnly = {} 
-    Object.keys(currentAssets).map(assetName => {
-        var assetAccounts = _.cloneDeep(currentAssets[assetName].accounts)
-        currentAssetsKeysOnly[assetName] = { accounts: assetAccounts }
-    })
-
-    // stringify
-    var pt_assetsJsonPruned = JSON.stringify(currentAssetsKeysOnly, null, 1)
-
-    // encrypt
-    const e_assetsRawPruned = utilsWallet.aesEncryption(activePubKey, h_mpk, pt_assetsJsonPruned)
-
-    utilsWallet.softNuke(currentAssetsKeysOnly)
-    pt_assetsJsonPruned = null
-    return e_assetsRawPruned
 }
 
 //

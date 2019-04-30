@@ -7,6 +7,15 @@ const colors = require('colors')
 
 module.exports = {
 
+    param: (name, value, source) => {
+        console.log(`<< ${name.toString().padEnd(15, '.').cyan.bold} ${source.padEnd(15, '.')}: ${value}`)
+    },
+
+    cmd: (s, p) => {
+        if (p) console.log(`\n<< ${s.toString().bgCyan.white.bold}`, p)
+        else   console.log(`\n<< ${s.toString().bgCyan.white.bold}`)
+    },
+
     info: (s, p) => {
         if (p) console.log(`<< ${s.toString().cyan.bold}`, p)
         else   console.log(`<< ${s.toString().cyan.bold}`)
@@ -14,20 +23,18 @@ module.exports = {
     },
     
     warn: (s, p) => {
-        if (p) console.log(`<< ${s.toString().red.bold}`, p)
-        else   console.log(`<< ${s.toString().red.bold}`)
-        //utilsWallet.log('(cli-warn) << ' + s.toString(), p)
+        if (p) console.log(`<< ${' WARNING '.bgYellow.black.bold + ' '  + s.toString().yellow.bold}`, p)
+        else   console.log(`<< ${' WARNING '.bgYellow.black.bold + ' '  + s.toString().yellow.bold}`)
     },
     
     error: (s, p) => {
-        if (p) console.log(`<< ## ${s} ## `.bgRed.white.bold, p)
-        else   console.log(`<< ## ${s} ## `.bgRed.white.bold)
-        //utilsWallet.error('(cli-err) << ' + s.toString(), p)
+        if (p) console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold}`, p)
+        else   console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold}`)
     },
     
     success: (s, p) => {
-        console.log(`---`)
-        module.exports.info(s, p)
+        if (p) console.log(`<< ${' OK '.bgGreen.white.bold + ' '  + s.toString().cyan.bold}`, p)
+        else   console.log(`<< ${' OK '.bgGreen.white.bold + ' '  + s.toString().cyan.bold}`)
     },
     
     logTail: (store, p) => {

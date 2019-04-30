@@ -603,7 +603,7 @@ const walletsMeta = {
 
 module.exports = {
 
-      WALLET_VER: '0.3.0'
+      WALLET_VER: require('../package.json').version
     , WALLET_ENV: isNode ? "SERVER" : "BROWSER"
 
     // wallet config - core

@@ -27,7 +27,7 @@ if (configWallet.WALLET_ENV === "SERVER") {
         utilsWallet.error(`## unhandledRejection (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
     })
     process.on('uncaughtException', (err, origin) => {
-        utilsWallet.error(`## uncaughtException (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
+        utilsWallet.error(`## uncaughtException (cpuWorker) - ${err.toString()}`, origin, { logServerConsole: true })
     })
 }
 

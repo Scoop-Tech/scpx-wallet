@@ -1,11 +1,6 @@
 'use strict';
 
-const Keygen = require('eosjs-keygen').KeyGgen
-const BigNumber = require('bignumber.js')
-const MD5 = require('crypto-js').MD5
 const _ = require('lodash')
-
-const { Worker, isMainThread, parentPort } = require('worker_threads')
 
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
@@ -23,6 +18,8 @@ module.exports = {
     
     // connects 3PBP sockets, and requests initial load for all assets in the current wallet
     connectData: (appWorker, store, p) => {
+        log.cmd('connectData')
+
         return new Promise((resolve) => {
     
             appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
@@ -66,29 +63,31 @@ module.exports = {
     },
 
     // dumps current wallet asset data
-    dump: (appWorker, store, p) => {
-
+    walletDump: (appWorker, store, p) => {
         var { mpk, apk, s, txs, privkeys } = p
+        log.cmd('walletDump')
+        log.param(`apk`, apk, `(param)`)
+        log.param(`mpk`, mpk, `(param)`)
 
         // extract filter symbol, if any
         var filterSymbol
         if (s && s.length > 0) {
             filterSymbol = s
-            log.info(`       s: ${filterSymbol}`, `(param)`)
+            log.param(`s`, filterSymbol, `(param)`)
         }
 
         // dump tx's, if specified
         var dumpTxs = false
         if (utilsWallet.isParamTrue(txs)) {
             dumpTxs = true
-            log.info(`      tx: ${dumpTxs}`, `(param)`)
+            log.param(`tx`, dumpTxs, `(param)`)
         }
 
         // dump privkeys, if specified
         var dumpPrivKeys = false
         if (utilsWallet.isParamTrue(privkeys)) {
             dumpPrivKeys = true
-            log.info(`privkeys: ${dumpPrivKeys}`, `(param)`)
+            log.param(`privkeys`, dumpPrivKeys, `(param)`)
         }
         
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
@@ -150,20 +149,19 @@ module.exports = {
     // adds a sub-asset receive address
     walletAddAddress: async (appWorker, store, p) => {
         var { mpk, apk, s } = p
+        log.cmd('walletAddAddress')
+        log.param(`apk`, apk, `(param)`)
+        log.param(`mpk`, mpk, `(param)`)
         
         // validate
-        log.info(`  mpk: ${mpk}`, `(param)`)
-        log.info(`  apk: ${apk}`, `(param)`)
-        
         const wallet = store.getState().wallet
         if (!s) return new Promise((resolve) => resolve({ err: `Asset symbol is required` }))
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
         if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
-        log.info(`    s: ${asset.symbol}`, `(param)`)
-    
+        log.param(`s`, asset.symbol, `(param)`)
+
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-        log.info(`h_mpk: ${h_mpk}`, '(hased MPK)')
-        log.info(`  apk: ${apk}`,   '(active public key)')
+        log.param(`h_mpk`, h_mpk, `(hased MPK)`)
 
         // exec
         return opsWallet.generateNewAddress({
@@ -178,11 +176,11 @@ module.exports = {
         .then(generateNewAddressResult => {
 
             // (re)connect addr monitors
-            return module.exports.connectData(appWorker, store, p)
-            .then(connectDataResult => {
-                debugger
-                return new Promise((resolve) => resolve({ ok: { generateNewAddressResult, connectDataResult } } ))
-            })
+            // return module.exports.connectData(appWorker, store, p)
+            // .then(connectDataResult => {
+            //     return new Promise((resolve) => resolve({ ok: { generateNewAddressResult, connectDataResult } } ))
+            // })
+            return new Promise((resolve) => resolve({ ok: { generateNewAddressResult } } ))
         })
         .catch(err => {
             return new Promise((resolve) => resolve({ err: err.message || err.toString() } ))

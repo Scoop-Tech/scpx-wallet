@@ -3,6 +3,6 @@
     "env": {
       "NODE_OPTIONS": "--experimental-worker "
     },
-    "exec": "node ./sw-cli.js --fileHistory=true",
+    "exec": "node ./sw-cli.js --saveHistory=true",
     "restartable": false
 }
