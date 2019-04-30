@@ -1,6 +1,17 @@
 #!/usr/bin/env node --experimental-worker
 'use strict';
 
+// todo -- #### "too many files open" in scp-tx-np ...
+
+// todo -- log tail v. slow
+//         cli option to LOG_CORE_TO_CONSOLE ...
+
+// todo -- minimum viable set for launch ...
+//         .waa (wallet add addr) -- server, no limits
+//         .ws  (wallet save) -- to file, binary enc'd dump (instead of api/eos)
+//         .wl  (wallet load) 
+//         .wtx (wallet tx)
+
 
 const walletActions = require('./actions')
 const configWallet = require('./config/wallet')
@@ -39,6 +50,24 @@ if (cli.apk)         log.info(`cli.apk: ${cli.apk}`)
 if (cli.fileHistory) log.info(`cli.fileHistory: ${cli.fileHistory}`)
 console.log()
 
+// tst
+// var dirty = require('dirty');
+// var db = dirty('user.db');
+// db.on('load', function() {
+//     db.set('john', {eyes: 'blue'});
+//     console.log('Added john, he has %s eyes.', db.get('john').eyes);
+//     db.set('bob', {eyes: 'brown'}, function() {
+//       console.log('User bob is now saved on disk.')
+//     });
+//     db.forEach(function(key, val) {
+//       console.log('Found key: %s, val: %j', key, val);
+//     });
+//   });
+// db.on('drain', function() {
+// console.log('All records are saved on disk now.');
+// });
+// debugger
+
 // setup workers
 cliWorkers.workers_init(appStore.store).then(() => {
 
@@ -65,7 +94,5 @@ cliWorkers.workers_init(appStore.store).then(() => {
             svrWallet.walletLoad(walletContext.store, { apk: cli.apk, mpk: cli.mpk }).then(res => cliRepl.postCmd(prompt, res))
         }
     }
-
-    // TODO -- .tx -- the prize
 })
 

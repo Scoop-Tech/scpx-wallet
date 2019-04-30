@@ -33,6 +33,20 @@ if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
     self = global
     self.postMessage = (msg) => { return workerThreads.parentPort.postMessage(msg) }
+
+    // setup tx db cache (node-persist)
+    utilsWallet.logMajor('magenta','white', `... SETTING UP DIRTY TX DB ...`, null, { logServerConsole: true })
+    const dirty = require('dirty')
+    global.txdb_dirty = dirty('scp_tx.db')
+    // global.txdb_dirty.on('load', function() { ...
+
+    // utilsWallet.logMajor('magenta','white', `... SETTING UP NODE-PERSIST ...`, null, { logServerConsole: true })
+    // if (!global.txdb_nodePersist) {
+    //     global.txdb_nodePersist = require('node-persist')
+    //     global.txdb_nodePersist.init({
+    //         dir: './scp_tx_np' 
+    //     }).then(() => {})
+    // }
 }
 else { // browser
     onmessage = handler
@@ -189,7 +203,7 @@ function handler(e) {
                     
                     const pendingInitialLoad = wallet.assets.filter(p => p.lastAssetUpdateAt === undefined)
                     if (pendingInitialLoad.length > 0) {
-                        utilsWallet.warn(`appWorker >> ${self.workerId} - ASSET_REFRESH_NEW_BLOCK - ${asset.symbol} - not all assets yet loaded: ignoring - pendingInitialLoad=`, pendingInitialLoad)
+                        utilsWallet.warn(`appWorker >> ${self.workerId} - ASSET_REFRESH_NEW_BLOCK - ${asset.symbol} - not all assets yet loaded: ignoring - pendingInitialLoad=`, pendingInitialLoad.map(p => p.symbol).join(', '))
                     }
                     else {
                         // if we have pending tx's, we want to do a full update, otherwise a lightweight balance update is sufficient

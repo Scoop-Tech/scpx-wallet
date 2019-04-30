@@ -21,12 +21,7 @@ if (configWallet.WALLET_ENV === "BROWSER") {
     })
 }
 else {
-    if (!global.txdb_nodePersist) {
-        global.txdb_nodePersist = require('node-persist')
-        global.txdb_nodePersist.init({
-            dir: './scp_tx_np' // TODO: move txdb out of here; cpuWorker ref's and creats multiple nodePersist connections
-        }).then(() => {})
-    }
+    //... node-persist setup by singleton appworker
 }
 
 // file logging (server)
@@ -78,7 +73,8 @@ module.exports = {
             return txdb_localForage.getItem(key)
         }
         else {
-            return global.txdb_nodePersist.getItem(key)
+            return new Promise((resolve) => { resolve(global.txdb_dirty.get(key)) })
+            //return global.txdb_nodePersist.getItem(key)
         }
     },
     txdb_setItem: (key, value) => {
@@ -86,7 +82,8 @@ module.exports = {
             return txdb_localForage.setItem(key, value)
         }
         else {
-            return global.txdb_nodePersist.setItem(key, value)
+            return new Promise((resolve) => { resolve(global.txdb_dirty.set(key, value)) })
+            //return global.txdb_nodePersist.setItem(key, value)
         }
     },
     txdb_localForage: () => { return txdb_localForage },
@@ -324,6 +321,18 @@ module.exports = {
             // if (p) console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
             // else   console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
         }
+    },
+
+    //
+    // cli helpers
+    //
+    isParamTrue: (s) => {
+        if (s) {
+            if (s.toString().toLowerCase() === 'true' || s === 1) {
+                return true
+            }
+        }
+        return false
     },
 
     //

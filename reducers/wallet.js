@@ -147,7 +147,7 @@ const handlers = {
 
     [WCORE_SET_ADDRESSES_FULL_MULTI]: (state, action) => {
         if (!state.assets) { return {...state} }
-        utilsWallet.logMajor('red','white', `WCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} x${action.payload.newAddresses.length}`, null, { logServerConsole: true })
+        utilsWallet.logMajor('red','white', `WCORE_SET_ADDRESSES_FULL_MULTI ${action.payload.symbol} #`, action.payload.newAddresses.length, { logServerConsole: true })
         return SetAddressFull_ReconcileLocalTxs(state, action)
     },
     [WCORE_SET_ADDRESS_FULL]: (state, action) => {

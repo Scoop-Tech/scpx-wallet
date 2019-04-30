@@ -68,7 +68,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
 
                 if (!utxoData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
 
-                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData,utxoData=`, txData, utxoData)
+                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs.length}, utxoData.length=${utxoData.length}`)
 
                 // utxo's
                 const utxos = utxoData.map(p => { return { satoshis: Number(p.value), txid: p.txid, vout: p.vout, } })                
@@ -91,7 +91,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     unconfirmedBalance: txData.unconfirmedBalance,
                     utxos,
                     totalTxCount,
-                    capped_txs: addrTxs.length < totalTxCount, 
+                    cappedTxs: addrTxs.length < totalTxCount, 
                 }
     
                 if (newMinimalTxs.length > 0) {

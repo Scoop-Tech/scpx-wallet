@@ -631,7 +631,7 @@ module.exports = {
     , VOLATILE_SOCKETS_REINIT_SECS: 10                      // volatile sockets - reinit timer (seconds)
 
     // cli 
-    , CLI_SAVE_LOADED_WALLET_KEYS: true                     // if false, you will need to pass APK/MPK via CLI cmd params to wallet-dump
+    , CLI_SAVE_LOADED_WALLET_KEYS: true                     // if false, you will need to pass APK/MPK via CLI cmd params to wallet functions
 
 
     // wallet config - network

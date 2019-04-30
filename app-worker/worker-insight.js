@@ -263,7 +263,7 @@ module.exports = {
                     //txs: new_txs, 
                     utxos,
                     totalTxCount,
-                    capped_txs: addrData.transactions.length < totalTxCount
+                    cappedTxs: addrData.transactions.length < totalTxCount
                 }
 
                 if (newMinimalTxs.length > 0) {

@@ -1,7 +1,7 @@
 'use strict';
 
 const { createStore, applyMiddleware } = require('redux')
-const { thunk } = require('redux-thunk')
+const thunk = require('redux-thunk').default
 const reduxPersist = require('redux-persist')
 
 const reduxBatchedActions = require('redux-batched-actions')
@@ -15,8 +15,8 @@ const rootReducer = (state, action) => {
 const store = createStore(
     reduxBatchedActions.enableBatching(
         rootReducer // no persistence
-    )
-    //applyMiddleware(thunk), 
+    ),
+    applyMiddleware(thunk)
 )
 
 const persistor = reduxPersist.persistStore(store)

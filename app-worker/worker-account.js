@@ -30,7 +30,7 @@ module.exports = {
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
     utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
-    if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], capped_txs: false } ); return } // todo
+    if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
 
     // ETH v2
     const height = await self.ws_web3.eth.getBlockNumber()
@@ -90,7 +90,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         unconfirmedBalance: "0",
                         txs: [],
                         totalTxCount, // see below - tmp value
-                        capped_txs: txids.length < totalTxCount // see below - tmp value
+                        cappedTxs: txids.length < totalTxCount // see below - tmp value
                     }
                     
                     // await all done, then callback (for asset store update)
@@ -111,7 +111,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 const dispatchTxs_Top = dispatchTxs.slice(0, configWallet.WALLET_MAX_TX_HISTORY)  // already sorted desc
 
                                 res.totalTxCount = dispatchTxs.length
-                                res.capped_txs = dispatchTxs_Top.length < dispatchTxs.length
+                                res.cappedTxs = dispatchTxs_Top.length < dispatchTxs.length
 
                                 //
                                 // filter
@@ -596,7 +596,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
 
         var txs = []
         var balance = 0
-        var capped_txs = false
+        var cappedTxs = false
         if (!res || res === undefined || res.length < 2) {
             utilsWallet.warn(`getAddressFull_Account ${symbol} -- unexpected data!`)
         }
@@ -644,7 +644,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         return (a.date > b.date) ? -1 : ((b.date > a.date) ? 1 : 0)
                     })
 
-                capped_txs = res[1].data.result.length > txs.length
+                cappedTxs = res[1].data.result.length > txs.length
             }
         }
 
@@ -652,7 +652,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
             balance, // wei 
             unconfirmedBalance: "0",
             txs,
-            capped_txs,
+            cappedTxs,
         }
     })
 }*/

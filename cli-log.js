@@ -27,13 +27,13 @@ module.exports = {
     
     success: (s, p) => {
         console.log(`---`)
-        info(s, p)
+        module.exports.info(s, p)
     },
     
     debugLogTail: (p) => {
         var { n } = p
         if (!n || !Number.isInteger(Number(n))) n = 100
-        info(`n: ${n} (param)`)
+        module.exports.info(`n: ${n} (param)`)
     
         const readLastLines = require('read-last-lines')
         return readLastLines.read('./debug.log', n)

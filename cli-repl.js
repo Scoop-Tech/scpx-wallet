@@ -23,9 +23,10 @@ const walletLoadHelp = `${helpBanner}\n` +
 
 const walletDumpHelp = `${helpBanner}\n` +
 `cmd: .wd (wallet-dump) - decrypts and dumps sub-asset key and addresses values from the loaded scoop wallet\n`.cyan.bold +
-`arg: --mpk <master private key>\t\t[required]\t\tentropy for redux store (L1) decryption passphrase\n` +
-`arg: --apk <active public key>\t\t[required]\t\tsalt for redux store (L1) decryption\n` +
-`arg: --s <symbol>\t\t[optional]\t\trestrict output to supplied asset symbol if supplied\n`
+`arg: --mpk <master private key>\t\t[required]\t(not required if config/wallet/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
+`arg: --apk <active public key>\t\t[required]\t(not required if config/wallet/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
+`arg: --s <symbol>\t\t[optional]\t\trestrict output to supplied asset symbol if supplied\n` +
+`arg: --tx <boolean>\t\t[optional: def. false]\t\tdump address transactions\n`
 
 const walletConnectHelp = `${helpBanner}\n` +
 `cmd: .wc (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
@@ -54,10 +55,11 @@ module.exports = {
             useColors: true,
             prompt: `${nodeVersion} SW-CLI > `,
         })
-        debugger
-        if (enableFileHistory === "true") {
+
+        // init file history
+        if (utilsWallet.isParamTrue(enableFileHistory)) {
             prompt.clearBufferedCommand()
-            log.warn('\nCommand history is being saved to file at ./node_history. This may include sensitive data.\n')
+            log.warn('\nNOTE: Command history is being saved to file at ./node_history. This may include sensitive data.\n')
             require('repl.history')(prompt, './.node_history')
             prompt.displayPrompt()
         }
@@ -96,7 +98,7 @@ module.exports = {
             action: function (args) {
                 this.clearBufferedCommand()
                 var argv = require('minimist')(args.split(' '))
-                svrWallet.walletDump(walletContext.store, argv).then(res => postCmd(this, res, walletDumpHelp))
+                svrWallet.walletFunction('DUMP', walletContext.store, argv).then(res => postCmd(this, res, walletDumpHelp))
             }
         })
     
@@ -105,7 +107,7 @@ module.exports = {
             help: walletConnectHelp,
             action: function (args) {
                 this.clearBufferedCommand()
-                svrWallet.walletConnect(walletContext.store).then(res => postCmd(this, res, walletConnectHelp))
+                svrWallet.walletFunction('CONNECT', walletContext.store, {}).then(res => postCmd(this, res, walletConnectHelp))
             }
         })
     

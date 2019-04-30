@@ -3,16 +3,18 @@
 const Keygen = require('eosjs-keygen').KeyGgen
 const BigNumber = require('bignumber.js')
 const MD5 = require('crypto-js').MD5
+const _ = require('lodash')
 
 const { Worker, isMainThread, parentPort } = require('worker_threads')
 
-const configWallet = require('./config/wallet')
-const walletActions = require('./actions/wallet')
-const utilsWallet = require('./utils')
+const configWallet = require('../config/wallet')
+const walletActions = require('../actions/wallet')
+const utilsWallet = require('../utils')
 
-const opsWallet = require('./actions/wallet')
+const opsWallet = require('../actions/wallet')
+const log = require('../cli-log')
 
-const log = require('./cli-log')
+const walletFunctions = require('./functions')
 
 // loaded wallet apk and mpk are into this object
 var loadedWalletKeys = {}
@@ -60,15 +62,15 @@ module.exports = {
                     h_mpk: h_mpk,
           userAccountName: undefined, // no EOS persistence for server wallets - not required
                   e_email: undefined, // no EOS persistence for server wallets - not required
-           e_serverAssets: undefined, // new account
-          eosActiveWallet: undefined, // TODO -- REMOVE THIS (or handle it properly -- maybe by key import only to start with?)
+           e_serverAssets: undefined, // new account 
+          eosActiveWallet: undefined, // todo
         callbackProcessed: (ret, totalReqCount) => {}
         })
         .then(res => {
             
             if (configWallet.CLI_SAVE_LOADED_WALLET_KEYS === true) {
                 loadedWalletKeys = { mpk, apk }
-                log.info('* Cached MPK & APK *')
+                log.warn('\nNOTE: Cached MPK & APK')
                 return { ok: { "wallet-load": `.wl --mpk ${mpk} --apk ${apk}`,
                                "wallet-dump": `.wd` } }
             }
@@ -82,8 +84,8 @@ module.exports = {
         })
     },
     
-    walletDump: async (store, p) => {
-        var { mpk, apk, s } = p
+    /*walletDump: async (store, p) => {
+        var { mpk, apk, s, tx } = p
     
         // take apk/mpk from cache if present and not on cmdline
         if (loadedWalletKeys.mpk && !mpk) { 
@@ -100,6 +102,11 @@ module.exports = {
         
         const invalidMpkApk = validateMpkApk(mpk, apk)
         if (invalidMpkApk) return invalidMpkApk
+
+        const storeState = store.getState()
+        if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
+        const wallet = storeState.wallet
+        if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
     
         // extract filter symbol, if any
         var filterSymbol
@@ -107,12 +114,14 @@ module.exports = {
             filterSymbol = s
             log.info(`  s: ${filterSymbol} (param)`)
         }
-    
-        const storeState = store.getState()
-        if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
-        const wallet = storeState.wallet
-        if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
-    
+
+        // dump tx's, if specified
+        var dumpTxs = false
+        if (utilsWallet.isParamTrue(tx)) {
+            dumpTxs = true
+            log.info(` tx: ${tx} (param)`)
+        }
+        
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
     
         // decrypt raw assets (private keys) from the store
@@ -143,7 +152,12 @@ module.exports = {
     
                     pathKeyAddr.symbol = meta.symbol
                     pathKeyAddr.accountName = walletAddr.accountName
-                    pathKeyAddr.addr = walletAddr
+                    pathKeyAddr.addr = _.cloneDeep(walletAddr)
+
+                    if (!dumpTxs) {
+                        delete pathKeyAddr.addr.txs
+                        delete pathKeyAddr.addr.utxos
+                    }
                     
                     if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {
                         allPathKeyAddrs.push(pathKeyAddr)
@@ -158,59 +172,59 @@ module.exports = {
         return new Promise((resolve) => {
             resolve({ ok: allPathKeyAddrs })
         })
-    },
+    },*/
     
-    walletConnect: (store) => {
-        const globalScope = utilsWallet.getMainThreadGlobalScope()
-        const appWorker = globalScope.appWorker
+    // general functions: for a loaded wallet
+    walletFunction: (fn, store, p) => {
+        debugger
+
+        // sanity check - app worker present
+        const appWorker = utilsWallet.getMainThreadGlobalScope().appWorker
         if (!appWorker) throw 'No app worker'
     
-        const storeState = store.getState()
-        if (!storeState) return new Promise((resolve) => resolve({ err: 'invalid store state' }))
-        const wallet = storeState.wallet
-        //if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'no loaded wallet' }))
-    
-        return new Promise((resolve) => {
-    
-            appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
-            appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
-            
-            function blockbookListener(event) {
-                if (event && event.data && event.msg) {
-                    const data = event.data
-                    const msg = event.msg
-    
-                    if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
-    
-                        if (storeState.wallet && storeState.wallet.assets) {
-                            appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-    
-                            appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-    
-                            walletActions.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
-                            .then(p => {
-                                resolve({ ok: true })
-                            })
-                        }
-                        else {
-                            resolve({ ok: false })
-                        }
-    
-                        appWorker.removeListener('message', blockbookListener)
-                    }
-                }
+        // param check - store is valid, if supplied
+        var storeState = undefined
+        if (store !== null) {
+            storeState = store.getState()
+            if (!storeState) return new Promise((resolve) => resolve({ err: 'Invalid store state' }))
+            const wallet = storeState.wallet
+            if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'No loaded wallet' }))
+        }
+
+        // param check - apk/mpk are valid, if supplied - take from cache, if setup
+        if (p !== null) {
+            var { mpk, apk } = p
+
+            if (loadedWalletKeys.mpk && !mpk) { 
+                mpk = loadedWalletKeys.mpk
+                log.info(`mpk: ${mpk} (cache)`)
             }
-            appWorker.on('message', blockbookListener)
-    
-            appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
-            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
-            var volatileReInit_intId = setInterval(() => {
-                appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
-                appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
-            }, configWallet.VOLATILE_SOCKETS_REINIT_SECS * 1000)
-    
-        })
-    }
+            else log.info(`mpk: ${mpk} (param)`)
+        
+            if (loadedWalletKeys.apk && !apk) {
+                apk = loadedWalletKeys.apk
+                log.info(`apk: ${apk} (cache)`)
+            }
+            else log.info(`apk: ${apk} (param)`)
+            
+            const invalidMpkApk = validateMpkApk(mpk, apk)
+            if (invalidMpkApk) return invalidMpkApk
+
+            debugger
+            p = {...p, apk, mpk}
+        }
+
+        switch (fn) {
+            case 'DUMP':
+                return walletFunctions.dump(appWorker, store, p)
+
+            case 'CONNECT': 
+                return walletFunctions.connectData(appWorker, store, p)
+
+            default: 
+                return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
+        }
+    },
 }
 
 function validateMpkApk(mpk, apk) {

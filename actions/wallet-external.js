@@ -104,7 +104,7 @@ module.exports = {
             return dispatchAction
         }
         else {
-            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx=${newTx}, balanceChanged=${balanceChanged}, new_txs_value=${new_txs_value.toString()}, delta_bal_conf=${delta_bal_conf.toString()}`)
+            //utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - dropping state update! newTx=${newTx}, balanceChanged=${balanceChanged}, new_txs_value=${new_txs_value.toString()}, delta_bal_conf=${delta_bal_conf.toString()}`)
             return null
         }
     },
