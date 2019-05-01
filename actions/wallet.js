@@ -171,7 +171,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then((res) => {
             rawAssetsJsonUpdated = null
 
@@ -239,7 +239,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then(() => {
 
             rawAssetsJsonUpdated = null
@@ -332,7 +332,7 @@ module.exports = {
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+                await apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
             }
         
             rawAssetsJsonUpdated = null
@@ -491,7 +491,7 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiWallet.updateAssetsJsonApi(userAccountName, exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
+                apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
@@ -680,7 +680,7 @@ function displayableWalletAssets(assets) {
                 var displayableAsset = Object.assign(
                     { addresses: assets[key].addresses, local_txs: [], },
                     configWallet.walletsMeta[key])
-                    
+
                 displayableAssets.push(displayableAsset)
             }
         }

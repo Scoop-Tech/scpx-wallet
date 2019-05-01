@@ -1,4 +1,4 @@
-'use strict';
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 const repl = require('repl')
 const colors = require('colors')

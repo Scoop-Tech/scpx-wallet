@@ -1,3 +1,5 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const BigDecimal = require('js-big-decimal')
 const BigNumber = require('bignumber.js')
 const CryptoJS = require('crypto-js')
@@ -28,7 +30,7 @@ else {
 var fileLogger = undefined
 if (configWallet.WALLET_ENV === "SERVER") {
     const { createLogger, format, transports } = require('winston')
-    const { combine, timestamp, align, label, prettyPrint, printf  } = format
+    const { combine, timestamp, align, label, prettyPrint, printf } = format
     const { SPLAT } = require('triple-beam')
     const { isObject } = require('lodash')
     function formatObject(param) {

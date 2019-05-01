@@ -1,3 +1,5 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const isoWs = require('isomorphic-ws')
 
 const actionsWallet = require('../actions')

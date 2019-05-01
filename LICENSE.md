@@ -2,7 +2,7 @@ Copyright © 2019 Dominic Morris
 
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
-Preamble
+## Preamble
 The GNU Affero General Public License is a free, copyleft license for software and other kinds of works, specifically designed to ensure cooperation with the community in the case of network server software.
 
 The licenses for most software and other practical works are designed to take away your freedom to share and change the works. By contrast, our General Public Licenses are intended to guarantee your freedom to share and change all versions of a program--to make sure it remains free software for all its users.
@@ -19,7 +19,8 @@ An older license, called the Affero General Public License and published by Affe
 
 The precise terms and conditions for copying, distribution and modification follow.
 
-TERMS AND CONDITIONS
+## TERMS AND CONDITIONS
+
 0. Definitions.
 "This License" refers to version 3 of the GNU Affero General Public License.
 
@@ -176,3 +177,4 @@ IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY C
 
 17. Interpretation of Sections 15 and 16.
 If the disclaimer of warranty and limitation of liability provided above cannot be given local legal effect according to their terms, reviewing courts shall apply local law that most closely approximates an absolute waiver of all civil liability in connection with the Program, unless a warranty or assumption of liability accompanies a copy of the Program in return for a fee.
+

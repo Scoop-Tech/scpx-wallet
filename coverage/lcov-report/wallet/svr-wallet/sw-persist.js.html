@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for wallet/svr-wallet/sw-persist.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="..\..\prettify.css" />
+    <link rel="stylesheet" href="..\..\base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(..\..\sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="..\..\index.html">All files</a> / <a href="index.html">wallet/svr-wallet</a> sw-persist.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12.12% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>8/66</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/31</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">16.33% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>8/49</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+&nbsp;
+const _ = require('lodash')
+&nbsp;
+const configWallet = require('../config/wallet')
+const walletActions = require('../actions/wallet')
+const utilsWallet = require('../utils')
+&nbsp;
+const opsWallet = require('../actions/wallet')
+&nbsp;
+const swCreate = require('./sw-create')
+&nbsp;
+const log = require('../cli-log')
+&nbsp;
+//
+// wallet file persistence
+//
+&nbsp;
+module.exports = {
+    walletSave: <span class="fstat-no" title="function not covered" >(a</span>ppWorker, store, p) =&gt; {
+        var { mpk, apk, n, f } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        log.cmd('walletSave')</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`apk`, apk, `(param)`)</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`mpk`, mpk, `(param)`)</span>
+&nbsp;
+        const e_assetsRaw = <span class="cstat-no" title="statement not covered" >store.getState().wallet.assetsRaw</span>
+&nbsp;
+        // validate
+<span class="cstat-no" title="statement not covered" >        if (!n || n.length === 0 || n === true) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Wallet name is required` }))</span></span></span>
+<span class="cstat-no" title="statement not covered" >        if (n.toString().match(/^[a-z0-9]+$/i) == null) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Wallet name must be alphanumeric characters only` }))</span></span></span>
+        const fileName = <span class="cstat-no" title="statement not covered" >`./wallet_${n.toString()}.dat`</span>
+<span class="cstat-no" title="statement not covered" >        log.param('n', fileName, '(param)')</span>
+&nbsp;
+        var overwrite = <span class="cstat-no" title="statement not covered" >false</span>
+<span class="cstat-no" title="statement not covered" >        if (utilsWallet.isParamTrue(f)) {</span>
+<span class="cstat-no" title="statement not covered" >            overwrite = true</span>
+<span class="cstat-no" title="statement not covered" >            log.param(`f`, overwrite, `(param)`)</span>
+        }
+&nbsp;
+        // check overwrite
+        const fs = <span class="cstat-no" title="statement not covered" >require('fs')</span>
+        const exists = <span class="cstat-no" title="statement not covered" >fs.existsSync(fileName)</span>
+<span class="cstat-no" title="statement not covered" >        if (exists &amp;&amp; !overwrite) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `File ${fileName} already exists. Use --f to overwrite.` }))</span></span></span>
+&nbsp;
+        // exec
+<span class="cstat-no" title="statement not covered" >        return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            fs.writeFile(fileName, e_assetsRaw, <span class="fstat-no" title="function not covered" >fu</span>nction (err) {</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                if (err) <span class="cstat-no" title="statement not covered" >resolve({ err })</span></span>
+                else {
+<span class="cstat-no" title="statement not covered" >                    log.warn(`the supplied MPK and APK will be required to load this wallet.`)</span>
+<span class="cstat-no" title="statement not covered" >                    resolve({ ok: fileName })</span>
+                }
+            })
+        })
+    },
+&nbsp;
+    walletLoad: <span class="fstat-no" title="function not covered" >(a</span>ppWorker, store, p) =&gt; {
+        var { mpk, apk, n } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        log.cmd('walletLoad')</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`apk`, apk, `(param)`)</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`mpk`, mpk, `(param)`)</span>
+&nbsp;
+        // validate
+<span class="cstat-no" title="statement not covered" >        if (!n || n.length == 0) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Wallet name is required` }))</span></span></span>
+<span class="cstat-no" title="statement not covered" >        if (n.toString().match(/^[a-z0-9]+$/i) == null) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Wallet name must be alphanumeric characters only` }))</span></span></span>
+        const fileName = <span class="cstat-no" title="statement not covered" >`./wallet_${n.toString()}.dat`</span>
+<span class="cstat-no" title="statement not covered" >        log.param('n', fileName, '(param)')</span>
+&nbsp;
+        // check exists
+        const fs = <span class="cstat-no" title="statement not covered" >require('fs')</span>
+        const exists = <span class="cstat-no" title="statement not covered" >fs.existsSync(fileName)</span>
+<span class="cstat-no" title="statement not covered" >        if (!exists) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `File ${fileName} not found.` }))</span></span></span>
+&nbsp;
+        // exec
+<span class="cstat-no" title="statement not covered" >        return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            fs.readFile(fileName, "utf8", <span class="fstat-no" title="function not covered" >fu</span>nction (err, data) {</span>
+<span class="cstat-no" title="statement not covered" >                if (err) <span class="cstat-no" title="statement not covered" >resolve({ err })</span></span>
+                else {
+<span class="cstat-no" title="statement not covered" >                    if (!data || data.length == 0) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `No data in file ${fileName}.` }))</span></span></span>
+&nbsp;
+                    const e_storedAssetsRaw = <span class="cstat-no" title="statement not covered" >data.toString()</span>
+<span class="cstat-no" title="statement not covered" >                    log.info(`Read wallet ${fileName} data OK - length=`, e_storedAssetsRaw.length)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                    swCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)</span>
+                    .then(<span class="fstat-no" title="function not covered" >wa</span>lletInitResult =&gt; {
+<span class="cstat-no" title="statement not covered" >                        if (walletInitResult.err) <span class="cstat-no" title="statement not covered" >resolve(walletInitResult)</span></span>
+<span class="cstat-no" title="statement not covered" >                        resolve({ ok: { fileName, walletInitResult } })</span>
+                    })
+                }
+            })
+        })
+    },
+&nbsp;
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Wed May 01 2019 14:30:49 GMT+0800 (Singapore Standard Time)
+</div>
+</div>
+<script src="..\..\prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="..\..\sorter.js"></script>
+</body>
+</html>

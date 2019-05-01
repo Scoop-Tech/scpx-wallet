@@ -1,3 +1,5 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bitgoUtxoLib = require('bitgo-utxo-lib')
 const bchAddr = require('bchaddrjs')

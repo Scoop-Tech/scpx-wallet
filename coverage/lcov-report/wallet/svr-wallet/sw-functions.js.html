@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for wallet/svr-wallet/sw-functions.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="..\..\prettify.css" />
+    <link rel="stylesheet" href="..\..\base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(..\..\sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="..\..\index.html">All files</a> / <a href="index.html">wallet/svr-wallet</a> sw-functions.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">7.29% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>7/96</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/33</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/21</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">8.14% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>7/86</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+&nbsp;
+const _ = require('lodash')
+&nbsp;
+const configWallet = require('../config/wallet')
+const walletActions = require('../actions/wallet')
+const utilsWallet = require('../utils')
+&nbsp;
+const opsWallet = require('../actions/wallet')
+&nbsp;
+const log = require('../cli-log')
+&nbsp;
+//
+// general wallet functions
+//
+&nbsp;
+module.exports = {
+    
+    // connects 3PBP sockets, and requests initial load for all assets in the current wallet
+    connectData: <span class="fstat-no" title="function not covered" >(a</span>ppWorker, store, p) =&gt; {
+<span class="cstat-no" title="statement not covered" >        log.cmd('connectData')</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+    
+<span class="cstat-no" title="statement not covered" >            appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })</span>
+<span class="cstat-no" title="statement not covered" >            appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })</span>
+            
+            function <span class="fstat-no" title="function not covered" >blockbookListener(</span>event) {
+<span class="cstat-no" title="statement not covered" >                if (event &amp;&amp; event.data &amp;&amp; event.msg) {</span>
+                    const data = <span class="cstat-no" title="statement not covered" >event.data</span>
+                    const msg = <span class="cstat-no" title="statement not covered" >event.msg</span>
+    
+<span class="cstat-no" title="statement not covered" >                    if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {</span>
+                        const storeState = <span class="cstat-no" title="statement not covered" >store.getState()</span>
+<span class="cstat-no" title="statement not covered" >                        if (storeState.wallet &amp;&amp; storeState.wallet.assets) {</span>
+<span class="cstat-no" title="statement not covered" >                            appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })</span>
+    
+<span class="cstat-no" title="statement not covered" >                            appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })</span>
+    
+<span class="cstat-no" title="statement not covered" >                            walletActions.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })</span>
+                            .then(<span class="fstat-no" title="function not covered" >p </span>=&gt; {
+<span class="cstat-no" title="statement not covered" >                                resolve({ ok: true })</span>
+                            })
+                        }
+                        else {
+<span class="cstat-no" title="statement not covered" >                            resolve({ ok: false })</span>
+                        }
+    
+<span class="cstat-no" title="statement not covered" >                        appWorker.removeListener('message', blockbookListener)</span>
+                    }
+                }
+            }
+<span class="cstat-no" title="statement not covered" >            appWorker.on('message', blockbookListener)</span>
+    
+<span class="cstat-no" title="statement not covered" >            appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })</span>
+<span class="cstat-no" title="statement not covered" >            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) </span>
+            var volatileReInit_intId = <span class="cstat-no" title="statement not covered" >setInterval(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })</span>
+            }, configWallet.VOLATILE_SOCKETS_REINIT_SECS * 1000)
+    
+        })
+    },
+&nbsp;
+    // dumps current wallet asset data
+    walletDump: <span class="fstat-no" title="function not covered" >(a</span>ppWorker, store, p) =&gt; {
+        var { mpk, apk, s, txs, privkeys } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        log.cmd('walletDump')</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`apk`, apk, `(param)`)</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`mpk`, mpk, `(param)`)</span>
+&nbsp;
+        // extract filter symbol, if any
+        var filterSymbol
+<span class="cstat-no" title="statement not covered" >        if (s &amp;&amp; s.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            filterSymbol = s</span>
+<span class="cstat-no" title="statement not covered" >            log.param(`s`, filterSymbol, `(param)`)</span>
+        }
+&nbsp;
+        // dump tx's, if specified
+        var dumpTxs = <span class="cstat-no" title="statement not covered" >false</span>
+<span class="cstat-no" title="statement not covered" >        if (utilsWallet.isParamTrue(txs)) {</span>
+<span class="cstat-no" title="statement not covered" >            dumpTxs = true</span>
+<span class="cstat-no" title="statement not covered" >            log.param(`tx`, dumpTxs, `(param)`)</span>
+        }
+&nbsp;
+        // dump privkeys, if specified
+        var dumpPrivKeys = <span class="cstat-no" title="statement not covered" >false</span>
+<span class="cstat-no" title="statement not covered" >        if (utilsWallet.isParamTrue(privkeys)) {</span>
+<span class="cstat-no" title="statement not covered" >            dumpPrivKeys = true</span>
+<span class="cstat-no" title="statement not covered" >            log.param(`privkeys`, dumpPrivKeys, `(param)`)</span>
+        }
+        
+        const h_mpk = <span class="cstat-no" title="statement not covered" >utilsWallet.pbkdf2(apk, mpk)</span>
+        const wallet = <span class="cstat-no" title="statement not covered" >store.getState().wallet</span>
+    
+        // decrypt raw assets (private keys) from the store
+        var pt_assetsJson
+<span class="cstat-no" title="statement not covered" >        try {</span>
+<span class="cstat-no" title="statement not covered" >            pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)</span>
+        }
+        catch (err) {
+<span class="cstat-no" title="statement not covered" >            return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Decrypt failed (${err.message} - MPK and APK are probably incorrect` }))</span></span>
+        }
+        var pt_assetsObj = <span class="cstat-no" title="statement not covered" >JSON.parse(pt_assetsJson)</span>
+    
+        // match privkeys to addresses by HD path in the displayable assets (unencrypted) store 
+        var allPathKeyAddrs = <span class="cstat-no" title="statement not covered" >[]</span>
+<span class="cstat-no" title="statement not covered" >        Object.keys(pt_assetsObj).forEach(<span class="fstat-no" title="function not covered" >as</span>setName =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            pt_assetsObj[assetName].accounts.forEach(<span class="fstat-no" title="function not covered" >ac</span>count =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                account.privKeys.forEach(<span class="fstat-no" title="function not covered" >pr</span>ivKey =&gt; {</span>
+                    var pathKeyAddr = <span class="cstat-no" title="statement not covered" >{</span>
+                        assetName,
+                        path: privKey.path,
+                        privKey: privKey.privKey,
+                    }
+                    const meta = <span class="cstat-no" title="statement not covered" >configWallet.walletsMeta[assetName]</span>
+    
+                    // get corresponding addr, lookup by HD path
+                    const walletAsset = <span class="cstat-no" title="statement not covered" >wallet.assets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.symbol === meta.symbol)</span></span>
+                    const walletAddr = <span class="cstat-no" title="statement not covered" >walletAsset.addresses.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.path === privKey.path)</span></span>
+    
+<span class="cstat-no" title="statement not covered" >                    pathKeyAddr.symbol = meta.symbol</span>
+<span class="cstat-no" title="statement not covered" >                    pathKeyAddr.accountName = walletAddr.accountName</span>
+<span class="cstat-no" title="statement not covered" >                    pathKeyAddr.addr = _.cloneDeep(walletAddr)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                    if (!dumpTxs) {</span>
+<span class="cstat-no" title="statement not covered" >                        delete pathKeyAddr.addr.txs</span>
+<span class="cstat-no" title="statement not covered" >                        delete pathKeyAddr.addr.utxos</span>
+                    }
+<span class="cstat-no" title="statement not covered" >                    if (!dumpPrivKeys) {</span>
+<span class="cstat-no" title="statement not covered" >                        delete pathKeyAddr.addr.privKey</span>
+                    }
+                    
+<span class="cstat-no" title="statement not covered" >                    if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {</span>
+<span class="cstat-no" title="statement not covered" >                        allPathKeyAddrs.push(pathKeyAddr)</span>
+                    }
+                })
+            })
+        })
+    
+<span class="cstat-no" title="statement not covered" >        utilsWallet.softNuke(pt_assetsJson)</span>
+<span class="cstat-no" title="statement not covered" >        utilsWallet.softNuke(pt_assetsObj)</span>
+    
+<span class="cstat-no" title="statement not covered" >        return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            resolve({ ok: allPathKeyAddrs })</span>
+        })
+    },
+&nbsp;
+    // adds a sub-asset receive address
+    walletAddAddress: <span class="fstat-no" title="function not covered" >as</span>ync (appWorker, store, p) =&gt; {
+        var { mpk, apk, s } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        log.cmd('walletAddAddress')</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`apk`, apk, `(param)`)</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`mpk`, mpk, `(param)`)</span>
+        
+        // validate
+        const wallet = <span class="cstat-no" title="statement not covered" >store.getState().wallet</span>
+<span class="cstat-no" title="statement not covered" >        if (!s) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Asset symbol is required` }))</span></span></span>
+        const asset = <span class="cstat-no" title="statement not covered" >wallet.assets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.symbol.toLowerCase() === s.toLowerCase())</span></span>
+<span class="cstat-no" title="statement not covered" >        if (!asset) <span class="cstat-no" title="statement not covered" >return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: `Invalid asset symbol "${s}"` }))</span></span></span>
+<span class="cstat-no" title="statement not covered" >        log.param(`s`, asset.symbol, `(param)`)</span>
+&nbsp;
+        const h_mpk = <span class="cstat-no" title="statement not covered" >utilsWallet.pbkdf2(apk, mpk)</span>
+<span class="cstat-no" title="statement not covered" >        log.param(`h_mpk`, h_mpk, `(hased MPK)`)</span>
+&nbsp;
+        // exec
+<span class="cstat-no" title="statement not covered" >        return opsWallet.generateNewAddress({</span>
+                    store: store,
+             activePubKey: apk,
+                    h_mpk: h_mpk,
+                assetName: asset.name,
+          userAccountName: undefined, // no EOS persistence for server wallets - not required
+                  e_email: undefined, // no EOS persistence for server wallets - not required
+          eosActiveWallet: undefined, // todo
+        })
+        .then(<span class="fstat-no" title="function not covered" >ge</span>nerateNewAddressResult =&gt; {
+&nbsp;
+            // (re)connect addr monitors
+            // return module.exports.connectData(appWorker, store, p)
+            // .then(connectDataResult =&gt; {
+            //     return new Promise((resolve) =&gt; resolve({ ok: { generateNewAddressResult, connectDataResult } } ))
+            // })
+<span class="cstat-no" title="statement not covered" >            return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ ok: { generateNewAddressResult } } ))</span></span>
+        })
+        .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >            return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; <span class="cstat-no" title="statement not covered" >resolve({ err: err.message || err.toString() } ))</span></span>
+        })
+    },
+&nbsp;
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Wed May 01 2019 14:30:49 GMT+0800 (Singapore Standard Time)
+</div>
+</div>
+<script src="..\..\prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="..\..\sorter.js"></script>
+</body>
+</html>

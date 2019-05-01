@@ -1,4 +1,5 @@
-const abiDecoder = require('abi-decoder')
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const BigNumber = require('bignumber.js')
 const _ = require('lodash')
 
@@ -6,6 +7,10 @@ const configExternal = require('../config/wallet-external')
 const configWallet = require('../config/wallet')
 const erc20ABI = require('../config/erc20ABI')
 const configWS = require('../config/websockets')
+
+//const abiDecoder = require('abi-decoder')
+const InputDataDecoder = require('ethereum-input-data-decoder')
+const decoder = new InputDataDecoder(require('../config/erc20ABI').abi)
 
 const actionsWallet = require('../actions')
 
@@ -403,22 +408,19 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         // map tx (eth or erc20)
                         var mappedTx
                         if (erc20 !== undefined) { // ERC20 TX
-                        
 
-                            abiDecoder.addABI(erc20ABI.abi)
-                            const decodedData = abiDecoder.decodeMethod(txData.input)
-                            //const erc20Asset = wallet.assets.find(p => { return p.symbol === erc20.symbol })
+                            //abiDecoder.addABI(erc20ABI.abi)
+                            //const decodedData = abiDecoder.decodeMethod(txData.input)
+                            const decodedData = decoder.decodeData(txData.input)
+
                             if (decodedData) {
-                                if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
-                                    const param_to = decodedData.params[0]
-                                    const param_value = decodedData.params[1]
-                                    const tokenValue = param_value.value
+                                //if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
+                                if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
+                                    const param_to = '0x' + decodedData.inputs[0] //decodedData.params[0].value
+                                    const tokenValue = decodedData.inputs[1] //decodedData.params[1].value
 
                                     const bn_tokenValue = new BigNumber(tokenValue)
                                     const assetErc20 = wallet.assets.find(p => p.symbol === erc20.symbol )
-                                    // if (tx.txid === '0x04fee2607691670304f732d7df0bf2cfa35fab444da50a01009a5a0305717be7') {
-                                    //     debugger
-                                    // }
                                     const du_value = utilsWallet.toDisplayUnit(bn_tokenValue, assetErc20)
                                     
                                     if (tokenValue) {
@@ -431,7 +433,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                             isIncoming: !weAreSender,
                                             value: Number(du_value),
                                             toOrFrom: !weAreSender ? txData.from : txData.to,
-                                            account_to: param_to.value.toLowerCase(),
+                                            account_to: param_to.toLowerCase(),
                                             account_from: txData.from.toLowerCase(),
                                             block_no: txData.blockNumber, 
                                             fees: weAreSender

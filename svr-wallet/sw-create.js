@@ -1,4 +1,4 @@
-'use strict';
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 const Keygen = require('eosjs-keygen').Keygen
 
@@ -27,7 +27,7 @@ module.exports = {
             const res = module.exports.walletInit(store, { 
                 mpk: keys.masterPrivateKey,
                 apk: keys.publicKeys.active,
-              //email: `s+${emailEntropyBase36}@scoop.tech`
+            //email: `s+${emailEntropyBase36}@scoop.tech`
             })
             return res
         })

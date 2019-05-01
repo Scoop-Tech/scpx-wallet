@@ -1,0 +1,2705 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for wallet/actions/wallet.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="..\..\prettify.css" />
+    <link rel="stylesheet" href="..\..\base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(..\..\sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="..\..\index.html">All files</a> / <a href="index.html">wallet/actions</a> wallet.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">3.34% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>16/479</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/218</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/70</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">4% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>16/400</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775
+776
+777
+778
+779
+780
+781
+782
+783
+784
+785
+786
+787
+788
+789
+790
+791
+792
+793
+794
+795
+796
+797
+798
+799
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+810
+811
+812
+813
+814
+815
+816
+817
+818
+819
+820
+821
+822
+823
+824
+825
+826
+827
+828
+829
+830
+831
+832
+833
+834
+835
+836
+837
+838
+839
+840
+841
+842
+843
+844
+845
+846
+847
+848
+849
+850
+851
+852
+853
+854
+855
+856
+857
+858
+859
+860
+861
+862
+863
+864
+865
+866
+867
+868
+869
+870
+871
+872
+873
+874
+875
+876
+877
+878
+879
+880
+881</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const Buffer = require('buffer').Buffer
+const _ = require('lodash')
+const pLimit = require('p-limit')
+&nbsp;
+const bitgoUtxoLib = require('bitgo-utxo-lib')
+&nbsp;
+const bitcoinJsLib = require('bitcoinjs-lib')
+const bip32 = require('bip32')
+const ethereumJsUtil = require('ethereumjs-util')
+const bchAddr = require('bchaddrjs')
+&nbsp;
+const configWallet = require('../config/wallet')
+const configExternal = require('../config/wallet-external')
+&nbsp;
+const actionsWallet = require('../actions')
+const actionsWalletUtxo = require('./wallet-utxo')
+const actionsWalletAccount = require('./wallet-account')
+&nbsp;
+const apiWallet = require('../api/wallet')
+&nbsp;
+const utilsWallet = require('../utils')
+&nbsp;
+module.exports = { 
+&nbsp;
+    //
+    // issues appWorker requests to populate asset data (balances &amp; tx's) for the loaded wallet
+    //
+    loadAllAssets: <span class="fstat-no" title="function not covered" >(p</span>) =&gt; {
+&nbsp;
+        const { bbSymbols_SocketReady, store } = <span class="cstat-no" title="statement not covered" >p </span>// todo - could make use of BB field to exclude BBv3 assets with known sockets down 
+<span class="cstat-no" title="statement not covered" >        if (!store) <span class="cstat-no" title="statement not covered" >throw 'No store supplied'</span></span>
+        var storeState = <span class="cstat-no" title="statement not covered" >store.getState()</span>
+<span class="cstat-no" title="statement not covered" >        if (!storeState) <span class="cstat-no" title="statement not covered" >throw 'Invalid store state'</span></span>
+        const wallet = <span class="cstat-no" title="statement not covered" >storeState.wallet</span>
+<span class="cstat-no" title="statement not covered" >        if (!wallet || !wallet.assets) <span class="cstat-no" title="statement not covered" >throw 'No wallet supplied'</span></span>
+        
+<span class="cstat-no" title="statement not covered" >        utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })</span>
+&nbsp;
+        const globalScope = <span class="cstat-no" title="statement not covered" >utilsWallet.getMainThreadGlobalScope()</span>
+        const appWorker = <span class="cstat-no" title="statement not covered" >globalScope.appWorker</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve) =&gt; {</span>
+&nbsp;
+            // fetch eth first -- all erc20 fetches will then use eth's cached tx data in the indexeddb
+            const ethAssets = <span class="cstat-no" title="statement not covered" >wallet.assets.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.symbol === 'ETH' || p.symbol === 'ETH_TEST')</span></span>
+<span class="cstat-no" title="statement not covered" >            ethAssets.forEach(<span class="fstat-no" title="function not covered" >et</span>hAsset =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })</span>
+            })
+&nbsp;
+            // then fetch all others, except erc20s
+            const otherAssets = <span class="cstat-no" title="statement not covered" >wallet.assets.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >(p.symbol !== 'ETH' &amp;&amp; p.symbol !== 'ETH_TEST') &amp;&amp; !utilsWallet.isERC20(p))</span></span>
+<span class="cstat-no" title="statement not covered" >            otherAssets.forEach(<span class="fstat-no" title="function not covered" >ot</span>herAsset =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })</span>
+            })
+&nbsp;
+            // get initial sync (block) info, all assets
+<span class="cstat-no" title="statement not covered" >            wallet.assets.forEach(<span class="fstat-no" title="function not covered" >as</span>set =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })</span>
+            })
+&nbsp;
+            // wait for eth fetch to finish, then fetch erc20's
+            const eth_intId = <span class="cstat-no" title="statement not covered" >setInterval(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                storeState = store.getState()</span>
+<span class="cstat-no" title="statement not covered" >                if (storeState &amp;&amp; storeState.wallet &amp;&amp; storeState.wallet.assets) {</span>
+                    const ethAsset = <span class="cstat-no" title="statement not covered" >storeState.wallet.assets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.symbol === 'ETH')</span></span>
+<span class="cstat-no" title="statement not covered" >                    if (ethAsset.lastAssetUpdateAt === undefined) {</span>
+<span class="cstat-no" title="statement not covered" >                        utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)</span>
+                    }
+                    else {
+                        const erc20Assets = <span class="cstat-no" title="statement not covered" >wallet.assets.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >utilsWallet.isERC20(p))</span></span>
+<span class="cstat-no" title="statement not covered" >                        erc20Assets.forEach(<span class="fstat-no" title="function not covered" >er</span>c20Asset =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })</span>
+                        })
+<span class="cstat-no" title="statement not covered" >                        clearInterval(eth_intId)</span>
+&nbsp;
+                        // now wait for all erc20 fetches to finish, then resolve for caller
+                        const erc20s_intId = <span class="cstat-no" title="statement not covered" >setInterval(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                            storeState = store.getState()</span>
+<span class="cstat-no" title="statement not covered" >                            if (storeState &amp;&amp; storeState.wallet &amp;&amp; storeState.wallet.assets) {</span>
+                                const erc20Assets = <span class="cstat-no" title="statement not covered" >storeState.wallet.assets.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >utilsWallet.isERC20(p))</span></span>
+<span class="cstat-no" title="statement not covered" >                                if (!erc20Assets.some(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.lastAssetUpdateAt === undefined)</span>) {</span>
+                                    // done
+<span class="cstat-no" title="statement not covered" >                                    clearInterval(erc20s_intId)</span>
+<span class="cstat-no" title="statement not covered" >                                    resolve()</span>
+<span class="cstat-no" title="statement not covered" >                                    utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })</span>
+                                }
+                                else {
+<span class="cstat-no" title="statement not covered" >                                    utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ERC20s to finish...`)</span>
+                                }
+                            }
+                        }, 1000)
+                    }
+                }
+            }, 1000)
+        })
+    },
+&nbsp;
+    //
+    // imports external privkeys into a new import account
+    //
+    importPrivKeys: <span class="fstat-no" title="function not covered" >as</span>ync (p) =&gt; { 
+<span class="cstat-no" title="statement not covered" >        if (configWallet.WALLET_ENV === "SERVER") <span class="cstat-no" title="statement not covered" >throw("Not yet supported on server")</span></span>
+&nbsp;
+        const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
+                activePubKey, e_email, h_mpk } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        if (!store) { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - invalid store") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!h_mpk) { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - invalid h_mpk") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!addrKeyPairs) { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - no addr/key pairs supplied") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!userAccountName) { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - not logged in") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!e_rawAssets || e_rawAssets == '') { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - no wallet data") </span>}</span>
+        const displayableAssets = <span class="cstat-no" title="statement not covered" >wallet.assets</span>
+&nbsp;
+        // decrypt raw assets
+        var pt_rawAssets = <span class="cstat-no" title="statement not covered" >utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)</span>
+        var rawAssets = <span class="cstat-no" title="statement not covered" >JSON.parse(pt_rawAssets)</span>
+&nbsp;
+        // get asset 
+        const genAsset = <span class="cstat-no" title="statement not covered" >rawAssets[assetName.toLowerCase()]</span>
+<span class="cstat-no" title="statement not covered" >        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { <span class="cstat-no" title="statement not covered" >throw("importPrivKeys - invalid asset") </span>}</span>
+        const meta = <span class="cstat-no" title="statement not covered" >configWallet.walletsMeta[assetName.toLowerCase()]</span>
+        const genSymbol = <span class="cstat-no" title="statement not covered" >meta.symbol</span>
+&nbsp;
+        // make new HD account for import
+        const existingImports = <span class="cstat-no" title="statement not covered" >genAsset.importCount || 0 </span>//genAsset.accounts.length - 1 // first account is default Scoop addresses
+        const importAccount = <span class="cstat-no" title="statement not covered" >{ // new import account</span>
+            name: `Import #${existingImports+1} ${meta.displayName}`,
+            privKeys: []
+        }
+<span class="cstat-no" title="statement not covered" >        genAsset.accounts.push(importAccount)</span>
+        const accountNdx = <span class="cstat-no" title="statement not covered" >existingImports + 1 </span>// imported accounts start at our HD index 1 (scoop default is 0)
+<span class="cstat-no" title="statement not covered" >        genAsset.importCount = accountNdx</span>
+&nbsp;
+        // map raw suplied priv keys to our internal format; note -- there is no "real" HD path for imported keys (they're not derived keys)
+        // we use custom path prefix 'i' for imported to denote this
+        const privKeys = <span class="cstat-no" title="statement not covered" >[]</span>
+<span class="cstat-no" title="statement not covered" >        for (var i=0 ; i &lt; addrKeyPairs.length ; i++) {</span>
+            const privKey = <span class="cstat-no" title="statement not covered" >addrKeyPairs[i].privKey</span>
+            var chainNdx = <span class="cstat-no" title="statement not covered" >0 </span>// bip44: 0=external chain, 1=internal chain (change addresses)
+<span class="cstat-no" title="statement not covered" >            privKeys.push({ privKey, path: `i/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}` })</span>
+        }
+&nbsp;
+        // add new priv keys
+<span class="cstat-no" title="statement not covered" >        privKeys.forEach(<span class="fstat-no" title="function not covered" >pr</span>ivKey =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            importAccount.privKeys.push(privKey)</span>
+        })
+&nbsp;
+        // update local persisted raw assets
+        var rawAssetsJsonUpdated = <span class="cstat-no" title="statement not covered" >JSON.stringify(rawAssets, null, 4)</span>
+        const e_rawAssetsUpdated = <span class="cstat-no" title="statement not covered" >utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)</span>
+<span class="cstat-no" title="statement not covered" >        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })</span>
+&nbsp;
+        // add to displayable asset addresses - this fails inside .then() below; no idea why
+        const newDisplayableAssets = <span class="cstat-no" title="statement not covered" >_.cloneDeep(displayableAssets)</span>
+        const newDisplayableAsset = <span class="cstat-no" title="statement not covered" >newDisplayableAssets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; { <span class="cstat-no" title="statement not covered" >return p.symbol === genSymbol </span>})</span>
+<span class="cstat-no" title="statement not covered" >        for (var i=0 ; i &lt; addrKeyPairs.length ; i++) {</span>
+            const addr = <span class="cstat-no" title="statement not covered" >addrKeyPairs[i].addr</span>
+            var newDisplayableAddr = <span class="cstat-no" title="statement not covered" >newWalletAddressFromPrivKey( {</span>
+                  assetName: assetName.toLowerCase(),
+                accountName: importAccount.name,
+                        key: privKeys.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.privKey == addrKeyPairs[i].privKey)</span>,
+            eosActiveWallet: eosActiveWallet,
+                  knownAddr: addr,
+                     symbol: newDisplayableAsset.symbol
+            })
+<span class="cstat-no" title="statement not covered" >            if (newDisplayableAddr.addr === null) {</span>
+<span class="cstat-no" title="statement not covered" >                utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>utilsWallet.softNuke(genAsset); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >                return { err: "Invalid Private Key" }</span>
+            }
+<span class="cstat-no" title="statement not covered" >            newDisplayableAsset.addresses.push(newDisplayableAddr)</span>
+        }
+<span class="cstat-no" title="statement not covered" >        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })</span>
+&nbsp;
+        // raw assets: post encrypted
+<span class="cstat-no" title="statement not covered" >        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)</span>
+        .then(<span class="fstat-no" title="function not covered" >(r</span>es) =&gt; {
+<span class="cstat-no" title="statement not covered" >            rawAssetsJsonUpdated = null</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            if (configWallet.WALLET_ENV === "BROWSER") {</span>
+&nbsp;
+                // update addr monitors
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+&nbsp;
+                // refresh asset balance
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })</span>
+            }
+            
+            // ret ok
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>utilsWallet.softNuke(genAsset); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            return { importedAddrCount: privKeys.length, accountName: importAccount.name }</span>
+        })
+        .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >            utilsWallet.error(`## Wallet - importPrivKeys -- FAIL posting, err=`, err)</span>
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>utilsWallet.softNuke(genAsset); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            return { err: err.toString() }</span>
+        })
+    },
+&nbsp;
+    //
+    // removes imported account(s)
+    //
+    removeImportedAccounts: <span class="fstat-no" title="function not covered" >as</span>ync (p) =&gt; {
+<span class="cstat-no" title="statement not covered" >        if (configWallet.WALLET_ENV === "SERVER") <span class="cstat-no" title="statement not covered" >throw("Not yet supported on server")</span></span>
+&nbsp;
+        const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
+                activePubKey, e_email, h_mpk } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        if (!store) { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - invalid store") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!h_mpk) { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - invalid h_mpk") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!removeAccounts) { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - no remove accounts supplied") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!userAccountName) { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - not logged in") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!e_rawAssets || e_rawAssets == '') { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - no wallet data") </span>}</span>
+        const displayableAssets = <span class="cstat-no" title="statement not covered" >wallet.assets</span>
+&nbsp;
+        // decrypt raw assets
+        var pt_rawAssets = <span class="cstat-no" title="statement not covered" >utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)</span>
+        var rawAssets = <span class="cstat-no" title="statement not covered" >JSON.parse(pt_rawAssets)</span>
+&nbsp;
+        // get asset 
+        const genAsset = <span class="cstat-no" title="statement not covered" >rawAssets[assetName.toLowerCase()]</span>
+<span class="cstat-no" title="statement not covered" >        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { <span class="cstat-no" title="statement not covered" >throw("removeImportedAccounts - no asset") </span>}</span>
+        const meta = <span class="cstat-no" title="statement not covered" >configWallet.walletsMeta[assetName.toLowerCase()]</span>
+        const genSymbol = <span class="cstat-no" title="statement not covered" >meta.symbol</span>
+&nbsp;
+        // raw assets: remove specified accounts &amp; addresses
+        const removedAccountCount = <span class="cstat-no" title="statement not covered" >genAsset.accounts.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >removeAccounts.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p2 === p.name)</span> === true)</span>.length</span>
+<span class="cstat-no" title="statement not covered" >        genAsset.accounts = genAsset.accounts.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >removeAccounts.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p2 === p.name)</span> === false)</span></span>
+<span class="cstat-no" title="statement not covered" >        genAsset.addresses = genAsset.addresses.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >removeAccounts.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p2 === p.accountName)</span> === false)</span></span>
+&nbsp;
+        // raw assets: update local persisted copy
+        var rawAssetsJsonUpdated = <span class="cstat-no" title="statement not covered" >JSON.stringify(rawAssets, null, 4)</span>
+        const e_rawAssetsUpdated = <span class="cstat-no" title="statement not covered" >utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)</span>
+<span class="cstat-no" title="statement not covered" >        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })</span>
+&nbsp;
+        // displayableAssets: remove specified accounts &amp; addresses
+        const newDisplayableAssets = <span class="cstat-no" title="statement not covered" >_.cloneDeep(displayableAssets)</span>
+        const newDisplayableAsset = <span class="cstat-no" title="statement not covered" >newDisplayableAssets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; { <span class="cstat-no" title="statement not covered" >return p.symbol === genSymbol </span>})</span>
+        const removedAddrCount = <span class="cstat-no" title="statement not covered" >newDisplayableAsset.addresses.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >removeAccounts.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p2 === p.accountName)</span> === true)</span>.length</span>
+<span class="cstat-no" title="statement not covered" >        newDisplayableAsset.addresses = newDisplayableAsset.addresses.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >removeAccounts.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p2 === p.accountName)</span> === false)</span></span>
+<span class="cstat-no" title="statement not covered" >        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })</span>
+&nbsp;
+        // raw assets: post encrypted
+<span class="cstat-no" title="statement not covered" >        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)</span>
+        .then(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            rawAssetsJsonUpdated = null</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            if (configWallet.WALLET_ENV === "BROWSER") {</span>
+&nbsp;
+                // update addr monitors
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+&nbsp;
+                // refresh asset balance
+<span class="cstat-no" title="statement not covered" >                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })</span>
+            }
+&nbsp;
+            // ret ok
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>utilsWallet.softNuke(genAsset); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            return { removedAddrCount, removedAccountCount }</span>
+        })
+        .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >            utilsWallet.error(`## Wallet - removeImportedAccounts -- FAIL posting, err=`, err)</span>
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>utilsWallet.softNuke(genAsset); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            return { err: err.toString() }</span>
+        })
+    },
+&nbsp;
+    //
+    // generates new address (in the primary scoop account)
+    //
+    generateNewAddress: <span class="fstat-no" title="function not covered" >as</span>ync (p) =&gt; {
+        const { store, activePubKey, h_mpk, assetName, // required - browser &amp; server
+                userAccountName, e_email,              // required - browser 
+                eosActiveWallet } = <span class="cstat-no" title="statement not covered" >p</span>
+&nbsp;
+        // validation
+<span class="cstat-no" title="statement not covered" >        if (!store) <span class="cstat-no" title="statement not covered" >throw("store is required")</span></span>
+<span class="cstat-no" title="statement not covered" >        if (!activePubKey) <span class="cstat-no" title="statement not covered" >throw("activePubKey is required")</span></span>
+<span class="cstat-no" title="statement not covered" >        if (!store) <span class="cstat-no" title="statement not covered" >throw("store is required")</span></span>
+<span class="cstat-no" title="statement not covered" >        if (!h_mpk) <span class="cstat-no" title="statement not covered" >throw("h_mpk is required")</span></span>
+&nbsp;
+        const storeState = <span class="cstat-no" title="statement not covered" >store.getState()</span>
+<span class="cstat-no" title="statement not covered" >        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) <span class="cstat-no" title="statement not covered" >throw("Invalid store state")</span></span>
+        const wallet = <span class="cstat-no" title="statement not covered" >storeState.wallet</span>
+        const e_rawAssets = <span class="cstat-no" title="statement not covered" >storeState.wallet.assetsRaw</span>
+        
+        //if (!userAccountName) { throw("generateNewAddress - not logged in") }
+        const displayableAssets = <span class="cstat-no" title="statement not covered" >wallet.assets</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        utilsWallet.logMajor('green','white', `generateNewAddress...`, null, { logServerConsole: true })</span>
+&nbsp;
+        // decrypt raw assets
+        var pt_rawAssets = <span class="cstat-no" title="statement not covered" >utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)</span>
+        var rawAssets = <span class="cstat-no" title="statement not covered" >JSON.parse(pt_rawAssets)</span>
+&nbsp;
+        // get asset and account to generate into
+        const genAsset = <span class="cstat-no" title="statement not covered" >rawAssets[assetName.toLowerCase()]</span>
+<span class="cstat-no" title="statement not covered" >        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) <span class="cstat-no" title="statement not covered" >throw("Invalid assetName")</span></span>
+        const meta = <span class="cstat-no" title="statement not covered" >configWallet.walletsMeta[assetName.toLowerCase()]</span>
+        const genSymbol = <span class="cstat-no" title="statement not covered" >meta.symbol</span>
+        const genAccount = <span class="cstat-no" title="statement not covered" >genAsset.accounts[0] </span>// default (Scoop) account
+&nbsp;
+        // generate new address
+        var newPrivKey
+<span class="cstat-no" title="statement not covered" >        switch (meta.type) {</span>
+            case configWallet.WALLET_TYPE_UTXO:
+<span class="cstat-no" title="statement not covered" >                newPrivKey = generateUtxoBip44Wifs({</span>
+                    entropySeed: h_mpk, 
+                         symbol: genSymbol === 'BTC_SEG' || genSymbol === 'BTC_TEST' ? 'BTC' : genSymbol,
+                        addrNdx: genAccount.privKeys.length,
+                       genCount: 1 })[0]
+<span class="cstat-no" title="statement not covered" >                break</span>
+            
+            case configWallet.WALLET_TYPE_ACCOUNT: 
+<span class="cstat-no" title="statement not covered" >                if (genSymbol === 'EOS') ; //todo</span>
+                else <span class="cstat-no" title="statement not covered" >if (meta.addressType === configWallet.ADDRESS_TYPE_ETH) { // including erc20</span>
+<span class="cstat-no" title="statement not covered" >                    newPrivKey = generateEthereumWallet({</span>
+                        entropySeed: h_mpk,
+                            addrNdx: genAccount.privKeys.length, 
+                           genCount: 1 })[0]
+                }
+<span class="cstat-no" title="statement not covered" >                break</span>
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (newPrivKey) {</span>
+            // add new priv key (assets raw)
+<span class="cstat-no" title="statement not covered" >            genAccount.privKeys.push(newPrivKey)</span>
+            
+            var rawAssetsJsonUpdated = <span class="cstat-no" title="statement not covered" >JSON.stringify(rawAssets, null, 4)</span>
+            const e_rawAssetsUpdated = <span class="cstat-no" title="statement not covered" >utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)</span>
+<span class="cstat-no" title="statement not covered" >            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })</span>
+&nbsp;
+            // post to server
+<span class="cstat-no" title="statement not covered" >            if (userAccountName &amp;&amp; configWallet.WALLET_ENV === "BROWSER") {</span>
+<span class="cstat-no" title="statement not covered" >                await apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)</span>
+            }
+        
+<span class="cstat-no" title="statement not covered" >            rawAssetsJsonUpdated = null</span>
+&nbsp;
+            // add new displayable asset address object
+            const newDisplayableAssets = <span class="cstat-no" title="statement not covered" >_.cloneDeep(displayableAssets)</span>
+            const newDisplayableAsset = <span class="cstat-no" title="statement not covered" >newDisplayableAssets.find(<span class="fstat-no" title="function not covered" >p </span>=&gt; { <span class="cstat-no" title="statement not covered" >return p.symbol === genSymbol </span>})</span>
+&nbsp;
+            const newDisplayableAddr = <span class="cstat-no" title="statement not covered" >newWalletAddressFromPrivKey( {</span>
+                      assetName: assetName.toLowerCase(),
+                    accountName: genAccount.name,
+                            key: newPrivKey,
+                eosActiveWallet: eosActiveWallet,
+                      knownAddr: undefined,
+                         symbol: newDisplayableAsset.symbol
+            })
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            newDisplayableAsset.addresses.push(newDisplayableAddr)</span>
+<span class="cstat-no" title="statement not covered" >            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            if (configWallet.WALLET_ENV === "BROWSER") {</span>
+                const globalScope = <span class="cstat-no" title="statement not covered" >utilsWallet.getMainThreadGlobalScope()</span>
+                const appWorker = <span class="cstat-no" title="statement not covered" >globalScope.appWorker    </span>
+&nbsp;
+                // update addr monitors
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })</span>
+        
+                // refresh asset balance
+<span class="cstat-no" title="statement not covered" >                appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })</span>
+            }
+            else {
+                ; // nop
+                // server is better placed to than here handle addr-monitor connection better 
+            }
+            
+            // ret ok
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            utilsWallet.logMajor('green','white', `generateNewAddress - complete`, null, { logServerConsole: true })</span>
+<span class="cstat-no" title="statement not covered" >            return { newAddr: newDisplayableAddr, newCount: genAccount.privKeys.length }</span>
+&nbsp;
+        } else {
+            // ret fail
+<span class="cstat-no" title="statement not covered" >            utilsWallet.softNuke(rawAssets); <span class="cstat-no" title="statement not covered" ></span>pt_rawAssets = null</span>
+<span class="cstat-no" title="statement not covered" >            return { err: 'PrivKey-gen failed', newAddr: undefined }</span>
+        }
+    },
+&nbsp;
+    //
+    // generates a new scoop wallet, for all supported assets
+    // browser: decrypts saved eos server data and merges &amp; saves back to eos any previosuly imported accounts
+    //  server: persists only to redux store
+    //
+    generateWallets: <span class="fstat-no" title="function not covered" >as</span>ync (p) =&gt; {
+        const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
+                activePubKey, e_email, h_mpk } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >        if (!store) { <span class="cstat-no" title="statement not covered" >throw("Invalid store") </span>}</span>
+<span class="cstat-no" title="statement not covered" >        if (!h_mpk) { <span class="cstat-no" title="statement not covered" >throw("Invalid h_mpk") </span>}</span>
+&nbsp;
+        // decrypt existing raw assets, if supplied (either from server in client mode, or from file in server mode)
+        var pt_storedRawAssets
+        var currentAssets
+<span class="cstat-no" title="statement not covered" >        if (e_storedAssetsRaw !== undefined &amp;&amp; e_storedAssetsRaw !== null &amp;&amp; e_storedAssetsRaw !== '') {</span>
+<span class="cstat-no" title="statement not covered" >            pt_storedRawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_storedAssetsRaw)</span>
+<span class="cstat-no" title="statement not covered" >            if (!pt_storedRawAssets || pt_storedRawAssets.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >                return null </span>// decrypt failed
+            }
+<span class="cstat-no" title="statement not covered" >            currentAssets = JSON.parse(pt_storedRawAssets)</span>
+        } else {
+<span class="cstat-no" title="statement not covered" >            currentAssets = {} </span>// generate new
+        }
+&nbsp;
+        // determine what wallets to generate, if any
+        const currentTypes = <span class="cstat-no" title="statement not covered" >Object.keys(currentAssets)</span>
+        var supportWalletTypes = <span class="cstat-no" title="statement not covered" >configWallet.getSupportedWalletTypes()</span>
+        var needToGenerate = <span class="cstat-no" title="statement not covered" >configWallet.WALLET_REGEN_EVERYTIME</span>
+            ? supportWalletTypes
+            : supportWalletTypes.filter(<span class="fstat-no" title="function not covered" >as</span>setType =&gt; <span class="cstat-no" title="statement not covered" >!currentTypes.includes(assetType))</span>
+&nbsp;
+        // (re)generate wallets
+        // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
+<span class="cstat-no" title="statement not covered" >        if (needToGenerate.length &gt; 0) {</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)...`, null, { logServerConsole: true })</span>
+&nbsp;
+            // inverse/remove: remove server assets no longer in client-side asset list
+            const currentAssetNames = <span class="cstat-no" title="statement not covered" >Object.keys(currentAssets)</span>
+            const currentAssetsToRemove = <span class="cstat-no" title="statement not covered" >currentAssetNames.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >needToGenerate.some(<span class="fstat-no" title="function not covered" >p2</span> =&gt; <span class="cstat-no" title="statement not covered" >p === p2)</span> === false)</span></span>
+<span class="cstat-no" title="statement not covered" >            if (currentAssetsToRemove.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >                utilsWallet.warn(`REMOVING ${currentAssetsToRemove.length} ASSETS TYPE(s) (NOT PRESENT IN CLIENT LIST)... ***`, currentAssetsToRemove)</span>
+<span class="cstat-no" title="statement not covered" >                currentAssetsToRemove.forEach(<span class="fstat-no" title="function not covered" >re</span>moveAssetName =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                    delete currentAssets[removeAssetName]</span>
+                })
+            }
+&nbsp;
+            // generate ETH first (ERC20 and ETH(T) will use its privkey)
+<span class="cstat-no" title="statement not covered" >            if (needToGenerate.includes('ethereum')) {</span>
+                var ret = <span class="cstat-no" title="statement not covered" >generateWalletAccount({ assets: currentAssets, genType: 'ethereum', h_mpk })</span>
+<span class="cstat-no" title="statement not covered" >                needToGenerate = needToGenerate.filter(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p !== 'ethereum')</span></span>
+                //utilsWallet.log(`generateWallets - did ETH ret=${ret}, new needToGenerate=${JSON.stringify(needToGenerate)}`)
+            }
+&nbsp;
+            // generate the rest
+<span class="cstat-no" title="statement not covered" >            needToGenerate.forEach(<span class="fstat-no" title="function not covered" >ge</span>nType =&gt; <span class="cstat-no" title="statement not covered" >generateWalletAccount({ assets: currentAssets, genType, h_mpk, eosActiveWallet }))</span></span>
+&nbsp;
+            // create top-level addresses - w/ cpuWorkers
+            // perf -- a flattened list of ops across all assets/accounts/keys
+            // thottled-promise pattern, dispatch op to oen of n cpuWorkers
+            var opParams = <span class="cstat-no" title="statement not covered" >[]</span>
+            var reqId = <span class="cstat-no" title="statement not covered" >0</span>
+<span class="cstat-no" title="statement not covered" >            Object.keys(currentAssets).forEach(<span class="fstat-no" title="function not covered" >fu</span>nction(assetName) {</span>
+                var o = <span class="cstat-no" title="statement not covered" >currentAssets[assetName]</span>
+<span class="cstat-no" title="statement not covered" >                if (configWallet.WALLET_REGEN_EVERYTIME || o.addresses == undefined) {</span>
+<span class="cstat-no" title="statement not covered" >                    o.addresses = [] </span>// initialize asset addresses[]
+<span class="cstat-no" title="statement not covered" >                    for (var i=0; i &lt; o.accounts.length ; i++) {</span>
+                        const accountNdx = <span class="cstat-no" title="statement not covered" >i</span>
+                        const accountOpParams = 
+<span class="cstat-no" title="statement not covered" >                            o.accounts[i].privKeys.map(<span class="fstat-no" title="function not covered" >ke</span>y =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+                                    reqId: `${reqId++}`,
+                                params: {
+                                            symbol: configWallet.walletsMeta[assetName].symbol,
+                                         assetName: assetName, 
+                                       accountName: o.accounts[accountNdx].name,
+                                               key: key, 
+                                   eosActiveWallet: eosActiveWallet, 
+                                         knownAddr: undefined,
+                                }
+                            } ))
+<span class="cstat-no" title="statement not covered" >                        opParams = opParams.concat(accountOpParams)</span>
+                    }
+                }
+            })
+&nbsp;
+            const globalScope = <span class="cstat-no" title="statement not covered" >utilsWallet.getMainThreadGlobalScope()</span>
+            const limit = <span class="cstat-no" title="statement not covered" >pLimit(globalScope.CPU_WORKERS)</span>
+<span class="cstat-no" title="statement not covered" >            opParams.forEach(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >p.totalReqCount = opParams.length)</span></span>
+            const results = <span class="cstat-no" title="statement not covered" >await Promise.all(opParams.map(<span class="fstat-no" title="function not covered" >p </span>=&gt; <span class="cstat-no" title="statement not covered" >limit(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >utilsWallet.op_WalletAddrFromPrivKey(p, callbackProcessed))</span>)</span>)</span>
+&nbsp;
+            const assetNames = <span class="cstat-no" title="statement not covered" >Object.keys(currentAssets)</span>
+<span class="cstat-no" title="statement not covered" >            results.forEach(<span class="fstat-no" title="function not covered" >fu</span>nction(addr) { // populate asset addresses[] with results</span>
+<span class="cstat-no" title="statement not covered" >                for (var i=0 ; i &lt; assetNames.length ; i++) {</span>
+                    const assetName = <span class="cstat-no" title="statement not covered" >assetNames[i],</span> assetMeta = <span class="cstat-no" title="statement not covered" >configWallet.walletsMeta[assetName]</span>
+<span class="cstat-no" title="statement not covered" >                    if (assetMeta.symbol === addr.symbol) {</span>
+<span class="cstat-no" title="statement not covered" >                        currentAssets[assetName].addresses.push(addr)</span>
+<span class="cstat-no" title="statement not covered" >                        break</span>
+                    }
+                }
+            })
+&nbsp;
+            // log, all done 
+<span class="cstat-no" title="statement not covered" >            utilsWallet.logMajor('green', 'white', `FINISHED GENERATING NEW ASSET TYPE(s)...`, null, { logServerConsole: true })</span>
+&nbsp;
+            //
+            // encrypt &amp; postback raw asset data to server - potentially with newly added assets
+            // 
+&nbsp;
+            // persist raw encrypted to eos server - pruned raw assets (without addresss data)
+<span class="cstat-no" title="statement not covered" >            if (userAccountName &amp;&amp; configWallet.WALLET_ENV === "BROWSER") {</span>
+<span class="cstat-no" title="statement not covered" >                apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)</span>
+                .catch(<span class="fstat-no" title="function not covered" >er</span>ror =&gt; {
+<span class="cstat-no" title="statement not covered" >                    utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")</span>
+                    let msg = <span class="cstat-no" title="statement not covered" >"Unknown Error"</span>
+<span class="cstat-no" title="statement not covered" >                    try {</span>
+<span class="cstat-no" title="statement not covered" >                        msg = error.response.data.msg || error.message || "Unknown Error"</span>
+                    } catch (_) {
+<span class="cstat-no" title="statement not covered" >                        msg = error.message || "Unknown Error"</span>
+                    }
+                })
+            }
+&nbsp;
+            // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)
+            var rawAssetsJsonUpdated = <span class="cstat-no" title="statement not covered" >JSON.stringify(currentAssets, null, 4) </span>
+            const e_rawAssetsUpdated = <span class="cstat-no" title="statement not covered" >utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)</span>
+<span class="cstat-no" title="statement not covered" >            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })</span>
+<span class="cstat-no" title="statement not covered" >            rawAssetsJsonUpdated = null</span>
+&nbsp;
+        } else {
+<span class="cstat-no" title="statement not covered" >            utilsWallet.logMajor('green', 'white', `FINISHED LOAD &amp; X-REF CHECK FOR ASSET TYPES...`)</span>
+<span class="cstat-no" title="statement not covered" >            store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_storedAssetsRaw }) </span>// persist encrypted local - no changes
+        }
+&nbsp;
+        // ***
+        // store local state: viewable asset data, e.g. last known balances: subset of currentAssets, persisted to browser storage, without privkeys
+        // ***
+        const displayableAssets = <span class="cstat-no" title="statement not covered" >displayableWalletAssets(currentAssets, userAccountName)</span>
+<span class="cstat-no" title="statement not covered" >        store.dispatch(<span class="fstat-no" title="function not covered" >(a</span>ction) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            action({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })</span>
+        })
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        utilsWallet.softNuke(currentAssets)</span>
+<span class="cstat-no" title="statement not covered" >        return displayableAssets</span>
+    },
+    
+    pruneRawAssets: <span class="fstat-no" title="function not covered" >(c</span>urrentAssets, activePubKey, h_mpk) =&gt; {
+        // prune
+        var currentAssetsKeysOnly = <span class="cstat-no" title="statement not covered" >{} </span>
+<span class="cstat-no" title="statement not covered" >        Object.keys(currentAssets).map(<span class="fstat-no" title="function not covered" >as</span>setName =&gt; {</span>
+            var assetAccounts = <span class="cstat-no" title="statement not covered" >_.cloneDeep(currentAssets[assetName].accounts)</span>
+<span class="cstat-no" title="statement not covered" >            currentAssetsKeysOnly[assetName] = { accounts: assetAccounts }</span>
+        })
+&nbsp;
+        // stringify
+        var pt_assetsJsonPruned = <span class="cstat-no" title="statement not covered" >JSON.stringify(currentAssetsKeysOnly, null, 1)</span>
+&nbsp;
+        // encrypt
+        const e_assetsRawPruned = <span class="cstat-no" title="statement not covered" >utilsWallet.aesEncryption(activePubKey, h_mpk, pt_assetsJsonPruned)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        utilsWallet.softNuke(currentAssetsKeysOnly)</span>
+<span class="cstat-no" title="statement not covered" >        pt_assetsJsonPruned = null</span>
+<span class="cstat-no" title="statement not covered" >        return e_assetsRawPruned</span>
+    },
+&nbsp;
+    //
+    // get fees
+    //
+    getAssetFeeData: <span class="fstat-no" title="function not covered" >(a</span>sset) =&gt; {
+        //utilsWallet.log("fees - getAssetFeeData")
+<span class="cstat-no" title="statement not covered" >        switch (asset.type) {</span>
+&nbsp;
+            case configWallet.WALLET_TYPE_UTXO:
+<span class="cstat-no" title="statement not covered" >                return actionsWalletUtxo.estimateFees_Utxo(asset.symbol)</span>
+                .then(<span class="fstat-no" title="function not covered" >re</span>s =&gt; {
+<span class="cstat-no" title="statement not covered" >                    utilsWallet.log(`fees - (UTXO) getAssetFeeData - ${asset.symbol}, res=`, res)</span>
+<span class="cstat-no" title="statement not covered" >                    return res</span>
+                })
+                .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >                    utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)</span>
+                })
+<span class="cstat-no" title="statement not covered" >                break</span>
+&nbsp;
+            case configWallet.WALLET_TYPE_ACCOUNT:
+                const estimateGasParams = <span class="cstat-no" title="statement not covered" >{</span>
+                    from: asset.addresses[0].addr,
+                      to: configExternal.walletExternal_config[asset.symbol].donate,
+                   value: 1.0
+                }
+<span class="cstat-no" title="statement not covered" >                return actionsWalletAccount.estimateGasInEther(asset, estimateGasParams)</span>
+                .then(<span class="fstat-no" title="function not covered" >re</span>s =&gt; {
+<span class="cstat-no" title="statement not covered" >                    utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)</span>
+<span class="cstat-no" title="statement not covered" >                    return res</span>
+                })
+                .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >                    utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)</span>
+                })
+<span class="cstat-no" title="statement not covered" >                break</span>
+&nbsp;
+            default: <span class="cstat-no" title="statement not covered" >utilsWallet.error(`fees - unsupported asset type ${asset.type}`)</span>
+        }
+    },
+&nbsp;
+    //
+    // Get bitcoin-js / bitgo-utxo-lib network object for supplied
+    //
+    getUtxoNetwork: <span class="fstat-no" title="function not covered" >(s</span>ymbol) =&gt; {
+<span class="cstat-no" title="statement not covered" >        return getUtxoNetwork(symbol)</span>
+    },
+&nbsp;
+    //
+    // PrivKey -&gt; Address (all types)
+    //
+    getAddressFromPrivateKey: <span class="fstat-no" title="function not covered" >(p</span>) =&gt; {
+<span class="cstat-no" title="statement not covered" >        return getAddressFromPrivateKey(p)</span>
+    },
+&nbsp;
+    //
+    // for safe mapping to displayable wallet assets - keyed by path on underlying encrypted privKey
+    //
+    newWalletAddressFromPrivKey: <span class="fstat-no" title="function not covered" >(p</span>) =&gt; {
+<span class="cstat-no" title="statement not covered" >        return newWalletAddressFromPrivKey(p)</span>
+    },
+}
+&nbsp;
+//
+// wallet generation
+// https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+//
+function <span class="fstat-no" title="function not covered" >generateWalletAccount(</span>p) {
+    const { assets, genType, h_mpk, eosActiveWallet } = <span class="cstat-no" title="statement not covered" >p</span>
+<span class="cstat-no" title="statement not covered" >    utilsWallet.log(`generateWalletAccount - genType=`, genType, { logServerConsole: true })</span>
+    var defaultPrivKeys
+<span class="cstat-no" title="statement not covered" >    switch (genType) {</span>
+        case 'btc(t)':   <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_TEST' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+&nbsp;
+        case 'bitcoin':  <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+        case 'btc(s)':   <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_SEG' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+        case 'litecoin': <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'LTC' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+        case 'zcash':    <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'ZEC' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+        case 'dash':     <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'DASH' }); <span class="cstat-no" title="statement not covered" ></span>break; </span>
+        case 'vertcoin': <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'VTC' }); <span class="cstat-no" title="statement not covered" ></span>break;</span>
+        case 'qtum':     <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'QTUM' }); <span class="cstat-no" title="statement not covered" ></span>break;</span>
+        case 'digibyte': <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'DGB' }); <span class="cstat-no" title="statement not covered" ></span>break;</span>
+        case 'bchabc':   <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BCHABC' }); <span class="cstat-no" title="statement not covered" ></span>break;</span>
+&nbsp;
+        case 'ethereum': <span class="cstat-no" title="statement not covered" >defaultPrivKeys = generateEthereumWallet({ entropySeed: h_mpk, addrNdx: 0, genCount: configWallet.WALLET_DEFAULT_ADDRESSES }); <span class="cstat-no" title="statement not covered" ></span>break</span>
+&nbsp;
+        case 'eos':
+            //utilsWallet.log(`eos=`, eosActiveWallet)
+<span class="cstat-no" title="statement not covered" >            if (eosActiveWallet) {</span>
+                const meta = <span class="cstat-no" title="statement not covered" >configWallet.getMetaBySymbol('EOS')</span>
+<span class="cstat-no" title="statement not covered" >                defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }]; <span class="cstat-no" title="statement not covered" ></span>break</span>
+            }
+&nbsp;
+        default:
+<span class="cstat-no" title="statement not covered" >            if (configWallet.walletsMeta[genType].addressType === configWallet.ADDRESS_TYPE_ETH) {</span>
+<span class="cstat-no" title="statement not covered" >                defaultPrivKeys = assets['ethereum'].accounts !== undefined</span>
+                    ? assets['ethereum'].accounts[0].privKeys.slice()
+                    : [{ privKey: assets['ethereum'].wif }]
+            }
+<span class="cstat-no" title="statement not covered" >            break</span>
+    }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    if (defaultPrivKeys !== undefined) { // save only the wifs/privkeys</span>
+&nbsp;
+        var asset = <span class="cstat-no" title="statement not covered" >assets[genType]</span>
+<span class="cstat-no" title="statement not covered" >        if (asset === undefined) {</span>
+            // no existing server data: first-time creation
+<span class="cstat-no" title="statement not covered" >            asset = { accounts: [] }    </span>
+<span class="cstat-no" title="statement not covered" >            asset.accounts.push({ // new default asset account</span>
+                name: `Scoop ${configWallet.walletsMeta[genType].displayName}`,
+            privKeys: []
+            })
+<span class="cstat-no" title="statement not covered" >            asset.accounts[0].privKeys = defaultPrivKeys.slice() </span>// new asset default address indexes
+<span class="cstat-no" title="statement not covered" >            assets[genType] = asset</span>
+        } else {
+            // we are "merging" (actually, replacing) existing server data in the default account's default address indexes;
+            // this isn't strictly necessary, as the server already has recorded and sent us the default indexes, but in the interests
+            // of being strictly deterministic:
+<span class="cstat-no" title="statement not covered" >            for (var ndx=0 ; ndx &lt; defaultPrivKeys.length ; ndx++) {</span>
+<span class="cstat-no" title="statement not covered" >                asset.accounts[0].privKeys[ndx] = defaultPrivKeys[ndx]</span>
+            }
+            // note: we leave any other server-populated address indexes alone, so any user-activated (non-default) addresses persist across logins
+        }
+<span class="cstat-no" title="statement not covered" >        return true</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return false</span>
+}
+&nbsp;
+// creates wallet.assets[] safe/displayable core wallet data
+function <span class="fstat-no" title="function not covered" >displayableWalletAssets(</span>assets) {
+    var displayableAssets = <span class="cstat-no" title="statement not covered" >[]</span>
+<span class="cstat-no" title="statement not covered" >    if (assets) {</span>
+<span class="cstat-no" title="statement not covered" >        for (const key in assets) {</span>
+<span class="cstat-no" title="statement not covered" >            if (!configWallet.getSupportedWalletTypes().includes(key)) <span class="cstat-no" title="statement not covered" >continue</span></span>
+<span class="cstat-no" title="statement not covered" >            if (assets[key]) {</span>
+                var displayableAsset = <span class="cstat-no" title="statement not covered" >Object.assign(</span>
+                    { addresses: assets[key].addresses, local_txs: [], },
+                    configWallet.walletsMeta[key])
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                displayableAssets.push(displayableAsset)</span>
+            }
+        }
+    }
+<span class="cstat-no" title="statement not covered" >    return displayableAssets</span>
+}
+&nbsp;
+//
+// general
+//
+function <span class="fstat-no" title="function not covered" >newWalletAddressFromPrivKey(</span>p) {
+    const { assetName, accountName, key, eosActiveWallet, knownAddr, symbol } = <span class="cstat-no" title="statement not covered" >p</span>
+    
+    var addr = <span class="cstat-no" title="statement not covered" >!knownAddr ? getAddressFromPrivateKey(</span>
+                    { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }
+                )
+            : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return {</span>
+        symbol,
+        addr, 
+        accountName, 
+        path: key.path, // see config/wallet -- we don't have completely unique HD paths (e.g. BTC/SW, and testnets), but seems not to matter too much (?)
+        txs: [],
+        utxos: [],
+        lastAddrFetchAt: undefined,
+    }
+}
+&nbsp;
+function <span class="fstat-no" title="function not covered" >getAddressFromPrivateKey(</span>p) {
+    const { assetMeta, privKey, eosActiveWallet } = <span class="cstat-no" title="statement not covered" >p</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    if (assetMeta.type === configWallet.WALLET_TYPE_UTXO) {</span>
+<span class="cstat-no" title="statement not covered" >        return getUtxoTypeAddressFromWif(privKey, assetMeta.symbol)</span>
+    }
+&nbsp;
+    else <span class="cstat-no" title="statement not covered" >if (assetMeta.type === configWallet.WALLET_TYPE_ACCOUNT) {</span>
+<span class="cstat-no" title="statement not covered" >        return getAccountTypeAddress(privKey, assetMeta.symbol, eosActiveWallet)</span>
+    }
+&nbsp;
+    else <span class="cstat-no" title="statement not covered" >utilsWallet.warn('### Wallet type ' + assetMeta.type + ' not supported!')</span>
+}
+&nbsp;
+function <span class="fstat-no" title="function not covered" >getUtxoNetwork(</span>symbol) {
+&nbsp;
+    // https://github.com/BitGo/bitgo-utxo-lib/blob/master/src/networks.js
+    // https://www.npmjs.com/package/@upincome/coininfo
+    // https://github.com/libbitcoin/libbitcoin-system/wiki/Altcoin-Version-Mappings
+    // https://github.com/libbitcoin/libbitcoin-system/issues/319
+&nbsp;
+    const coininfo = <span class="cstat-no" title="statement not covered" >require('coininfo')</span>
+<span class="cstat-no" title="statement not covered" >    switch (symbol) { </span>
+        case "BTC":      <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.bitcoin</span>
+        case "BTC_SEG":  <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.bitcoin</span>
+        case "BTC_TEST": <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.testnet</span>
+        case "LTC":      <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.litecoin</span>
+        case "ZEC":      <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.zcash</span>
+        case "DASH":     <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.dash</span>
+        case "BCHABC":   <span class="cstat-no" title="statement not covered" >return bitgoUtxoLib.networks.bitcoincash</span>
+        case "VTC":      <span class="cstat-no" title="statement not covered" >return coininfo('VTC').toBitcoinJS()</span>
+        case "QTUM":     <span class="cstat-no" title="statement not covered" >return coininfo('QTUM').toBitcoinJS()</span>
+        case "DGB":
+            var ret = <span class="cstat-no" title="statement not covered" >coininfo('DGB')</span>
+<span class="cstat-no" title="statement not covered" >            ret.versions.bip32 = { public: 0x0488B21E, private: 0x0488ADE4 }</span>
+            var ret_js = <span class="cstat-no" title="statement not covered" >ret.toBitcoinJS()</span>
+<span class="cstat-no" title="statement not covered" >            return ret_js</span>
+&nbsp;
+        default:
+<span class="cstat-no" title="statement not covered" >            return undefined</span>
+    }
+}
+&nbsp;
+//
+// account types
+//
+function <span class="fstat-no" title="function not covered" >generateEthereumWallet(</span>p) {
+    const { entropySeed, addrNdx = <span class="branch-0 cbranch-no" title="branch not covered" >0,</span> genCount = <span class="branch-0 cbranch-no" title="branch not covered" >configWallet.WALLET_DEFAULT_ADDRESSES </span>} = <span class="cstat-no" title="statement not covered" >p</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    try {</span>
+        var privKeys = <span class="cstat-no" title="statement not covered" >[]</span>
+        const root = <span class="cstat-no" title="statement not covered" >bip32.fromSeed(Buffer.from(utilsWallet.hextoba(utilsWallet.sha256_shex(entropySeed))))</span>
+        var meta = <span class="cstat-no" title="statement not covered" >configWallet.getMetaBySymbol('ETH')</span>
+        var accountNdx = <span class="cstat-no" title="statement not covered" >0 </span>// scoop default account
+        var chainNdx = <span class="cstat-no" title="statement not covered" >0 </span>  // bip44: 0=external chain, 1=internal chain (change addresses)
+<span class="cstat-no" title="statement not covered" >        for (var i = addrNdx; i &lt; addrNdx + genCount; i++) {</span>
+            const path = <span class="cstat-no" title="statement not covered" >`m/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}`</span>
+            const child = <span class="cstat-no" title="statement not covered" >root.derivePath(path)</span>
+<span class="cstat-no" title="statement not covered" >            privKeys.push({ privKey: utilsWallet.batohex(child.privateKey), path })</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return privKeys</span>
+    }
+    catch (err) { 
+<span class="cstat-no" title="statement not covered" >        debugger</span>
+<span class="cstat-no" title="statement not covered" >        utilsWallet.error(`generateEthereumWallet - FAIL: ${err.message}`, err)</span>
+<span class="cstat-no" title="statement not covered" >        return null</span>
+    }
+}
+&nbsp;
+function <span class="fstat-no" title="function not covered" >getAccountTypeAddress(</span>privKey, symbol, eosActiveWallet) {
+    //utilsWallet.log(`getAccountTypeAddress privKey=${privKey} symbol=${symbol}...`)
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >        if (symbol === "EOS") {</span>
+<span class="cstat-no" title="statement not covered" >            if (eosActiveWallet !== undefined &amp;&amp; eosActiveWallet !== null) {</span>
+<span class="cstat-no" title="statement not covered" >                return eosActiveWallet.address</span>
+            }
+            else {
+<span class="cstat-no" title="statement not covered" >                utilsWallet.warn(`## getAccountTypeAddress - eosActiveWallet undefined!`)</span>
+<span class="cstat-no" title="statement not covered" >                return undefined</span>
+            }
+        }
+        else {
+<span class="cstat-no" title="statement not covered" >            return "0x" + ethereumJsUtil.privateToAddress(Buffer.from(utilsWallet.hextoba(privKey), 'hex')).toString('hex')</span>
+        }
+    }
+    catch (err) {
+<span class="cstat-no" title="statement not covered" >        debugger</span>
+<span class="cstat-no" title="statement not covered" >        utilsWallet.error(`getAccountTypeAddress - FAIL: ${err.message}`, err)</span>
+<span class="cstat-no" title="statement not covered" >        return null</span>
+    }
+}
+&nbsp;
+//
+// utxo types
+//
+function <span class="fstat-no" title="function not covered" >generateUtxoBip44Wifs(</span>p) { 
+    const { entropySeed, symbol, addrNdx = <span class="branch-0 cbranch-no" title="branch not covered" >0,</span> genCount = <span class="branch-0 cbranch-no" title="branch not covered" >configWallet.WALLET_DEFAULT_ADDRESSES </span>} = <span class="cstat-no" title="statement not covered" >p</span>
+&nbsp;
+    var keyPairs = <span class="cstat-no" title="statement not covered" >[]</span>
+    const network = <span class="cstat-no" title="statement not covered" >getUtxoNetwork(symbol) </span>// bitgo
+<span class="cstat-no" title="statement not covered" >    if (network === undefined) <span class="cstat-no" title="statement not covered" >throw ('generateUtxoBip44Wifs - unsupported type')</span></span>
+&nbsp;
+    var meta = <span class="cstat-no" title="statement not covered" >configWallet.getMetaBySymbol(symbol)</span>
+&nbsp;
+    const entropySha256 = <span class="cstat-no" title="statement not covered" >utilsWallet.sha256_shex(entropySeed)</span>
+    var root = <span class="cstat-no" title="statement not covered" >bitgoUtxoLib.HDNode.fromSeedHex(entropySha256, network) </span>// bitgo HDNode 
+&nbsp;
+    var accountNdx = <span class="cstat-no" title="statement not covered" >0 </span>// scoop default account
+    var chainNdx = <span class="cstat-no" title="statement not covered" >0 </span>  // bip44: 0=external chain, 1=internal chain (change addresses)
+<span class="cstat-no" title="statement not covered" >    for (var i = addrNdx; i &lt; addrNdx + genCount; i++) {</span>
+        const path = <span class="cstat-no" title="statement not covered" >`m/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}`</span>
+        const child = <span class="cstat-no" title="statement not covered" >root.derivePath(path)</span>
+&nbsp;
+        //var keyPair = ECPair.fromPrivateKey(child.privateKey, { network }) // bitcoin-js (no ZEC support, see https://github.com/bitcoinjs/bitcoinjs-lib/issues/865)
+        var keyPair = <span class="cstat-no" title="statement not covered" >child.keyPair </span>// bitgo
+&nbsp;
+        var wif = <span class="cstat-no" title="statement not covered" >keyPair.toWIF()</span>
+        //utilsWallet.log(`generateUtxoBip44Wifs - ${symbol} @ BIP44 ndx ${i} - child,keyPair,network=`, child, keyPair, network)
+<span class="cstat-no" title="statement not covered" >        keyPairs.push({ privKey: wif, path })</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return keyPairs</span>
+}
+&nbsp;
+function <span class="fstat-no" title="function not covered" >getUtxoTypeAddressFromWif(</span>wif, symbol) {
+<span class="cstat-no" title="statement not covered" >    try {</span>
+        const network = <span class="cstat-no" title="statement not covered" >getUtxoNetwork(symbol) </span>// bitgo networks: supports ZEC UInt16 pubKeyHash || scriptHash
+&nbsp;
+        const keyPair = <span class="cstat-no" title="statement not covered" >bitgoUtxoLib.ECPair.fromWIF(wif, network) </span>// bitgo ECPair, below: .getPublicKeyBuffer() instead of .publicKey in bitcoin-js
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (symbol === "BTC" || symbol === "LTC" || symbol === "BTC_TEST") {</span>
+            // bitcoinjs-lib
+&nbsp;
+            // native segwit - BlockCypher throws errors on address_balance -- generated bc1 addr isn't viewable on any block explorers!
+            // const { address } = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
+            // return address
+&nbsp;
+            // ** preferred **
+            // p2sh-wrapped segwit -- need to generate tx json entirely, blockcypher doesn't support
+            // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
+            // return address
+&nbsp;
+            // legacy addr
+            const { address } = <span class="cstat-no" title="statement not covered" >bitcoinJsLib.payments.p2pkh({ pubkey: keyPair.getPublicKeyBuffer(), network }) </span>// bitcoin-js payments (works with bitgo networks)
+<span class="cstat-no" title="statement not covered" >            return address</span>
+        }
+        else <span class="cstat-no" title="statement not covered" >if (symbol === "BTC_SEG") {</span>
+            // bitcoinjs-lib
+            
+            // p2sh(p2wpkh) addr
+            const { address } = <span class="cstat-no" title="statement not covered" >bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), network }), network })</span>
+<span class="cstat-no" title="statement not covered" >            return address</span>
+        }
+        else { 
+            // bitgo-utxo-lib (note - can't use bitcoin-js payment.p2pkh with ZEC UInt16 pubKeyHash || scriptHash)
+&nbsp;
+            var addr = <span class="cstat-no" title="statement not covered" >keyPair.getAddress()</span>
+<span class="cstat-no" title="statement not covered" >            if (symbol === 'BCHABC') {</span>
+<span class="cstat-no" title="statement not covered" >                if (addr.startsWith('1')) {</span>
+<span class="cstat-no" title="statement not covered" >                    addr = bchAddr.toCashAddress(addr)</span>
+                }
+            }
+<span class="cstat-no" title="statement not covered" >            return addr</span>
+        }
+    }
+    catch (err) { 
+<span class="cstat-no" title="statement not covered" >        utilsWallet.error(`getUtxoTypeAddressFromWif (${wif}) - FAIL: ${err.message}`, err)</span>
+<span class="cstat-no" title="statement not covered" >        return null</span>
+    }
+}</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Wed May 01 2019 14:30:49 GMT+0800 (Singapore Standard Time)
+</div>
+</div>
+<script src="..\..\prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="..\..\sorter.js"></script>
+</body>
+</html>

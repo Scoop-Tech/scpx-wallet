@@ -1,8 +1,13 @@
-const abiDecoder = require('abi-decoder')
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const BigNumber = require('bignumber.js')
 
 const configExternal = require('../config/wallet-external')
 const configErc20 = require('../config/erc20ABI')
+
+//const abiDecoder = require('abi-decoder')
+const InputDataDecoder = require('ethereum-input-data-decoder')
+const decoder = new InputDataDecoder(require('../config/erc20ABI').abi)
 
 const actionsWallet = require('../actions')
 
@@ -237,9 +242,10 @@ function mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20
     if (erc20 !== undefined) { // ERC20
         inboundSymbol = erc20.symbol
 
-        //utilsWallet.log(configErc20.abi)
-        abiDecoder.addABI(configErc20.abi)
-        const decodedData = abiDecoder.decodeMethod(tx.input)
+        //abiDecoder.addABI(configErc20.abi)
+        //const decodedData = abiDecoder.decodeMethod(tx.input)
+        const decodedData = decoder.decodeData(txData.input)
+
         const erc20Asset = wallet.assets.find(p => { return p.symbol === inboundSymbol })
 
         const txAlready_in_local_txs = erc20Asset.local_txs.some(p => p.txid === txid)
@@ -254,11 +260,12 @@ function mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20
 
         if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
             if (decodedData) {
-                if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
+                //if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
+                if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
 
-                    const param_to = decodedData.params[0]
-                    const param_value = decodedData.params[1]
-                    const tokenValue = param_value.value
+                    const param_to = '0x' + decodedData.inputs[0] //decodedData.params[0].value
+                    const tokenValue = decodedData.inputs[1] //decodedData.params[1].value
+
                     const du_value = utilsWallet.toDisplayUnit(new BigNumber(tokenValue), erc20Asset)
                     
                     if (erc20Asset && tokenValue) {
@@ -270,7 +277,7 @@ function mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20
                             date: new Date(),
                             value: Number(du_value),
                             toOrFrom: tx.from,
-                            account_to: param_to.value.toLowerCase(),
+                            account_to: param_to.toLowerCase(),
                             account_from: tx.from.toLowerCase(),
                             block_no: -1,
                             fees: weAreSender

@@ -1,4 +1,12 @@
-var isNode = require('detect-node')
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
+const npmPackage = require('../package.json')
+const isNode = require('detect-node')
+
+// static - license, copyright, env
+const WALLET_VER = require('../package.json').version
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see the /LICENSE terms. Copyright 2019 Dominic Morris.`
+const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types
 const WALLET_TYPE_UTXO = 'WALLET_TYPE_UTXO'
@@ -603,8 +611,9 @@ const walletsMeta = {
 
 module.exports = {
 
-      WALLET_VER: require('../package.json').version
-    , WALLET_ENV: isNode ? "SERVER" : "BROWSER"
+      WALLET_VER
+    , WALLET_COPYRIGHT
+    , WALLET_ENV
 
     // wallet config - core
     , WALLET_INCLUDE_ETHTEST
