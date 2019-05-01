@@ -1,9 +1,7 @@
 node_modules
-/scp_tx_np
 .vscode/
 .node_history
+scp_tx.db
 *.log
 *.dat
 *.db
-
-
