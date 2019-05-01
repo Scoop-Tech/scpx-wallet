@@ -7,8 +7,8 @@ const appStore = require('./store')
 const utilsWallet = require('./utils')
 const log = require('./cli-log')
 
-const swWallet = require('./svr-wallet/sw-wallet')
-const swCreate = require('./svr-wallet/sw-create')
+const svrWallet = require('./svr-wallet/sw-wallet')
+const svrWalletCreate = require('./svr-wallet/sw-create')
 
 const helpBanner = ' HELP '.bgCyan.white.bold + ' '
 
@@ -24,32 +24,35 @@ const walletConnectHelp = `${helpBanner}` +
     `.wc (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
 
 const walletDumpHelp = `${helpBanner}` +
-    `.wd (wallet-dump) - decrypts and dumps sub-asset key and addresses values from the loaded scoop wallet\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
-    `\targ: --apk      <active public key>   <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
+    `.wd (wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --apk      <active public key>   <required>  \n` +
     `\targ: --s        [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
     `\targ: --txs      [bool]                [optional]  dump address transactions (default: false)\n` +
     `\targ: --privkeys [bool]                [optional]  dump private keys (default: false)\n`
 
 const walletAddAddrHelp = `${helpBanner}` +
-    `.waa (wallet-add-address) - adds a receive address for the specified asset\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
-    `\targ: --apk      <active public key>   <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
+    `.waa (wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --apk      <active public key>   <required>  \n` +
     `\targ: --s        [string]              <required>  the asset for which to to add an address, e.g. "ETH" or "BTC"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `.ws (wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
-    `\targ: --apk      <active public key>   <required>  (not required if config/wallet.js/CLI_SAVE_LOADED_WALLET_KEYS is set)\n` +
     `\targ: --n        [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
     `\targ: --f        [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
 
 const walletLoadHelp = `${helpBanner}` +
     `.wl (wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  the MPK used to generate and encrypt the saved wallet\n` +
-    `\targ: --apk      <active public key>   <required>  the APK used to generate and encrypt the saved wallet\n` +
-    `\targ: --n        [string]              <required>  the name of the saved wallet\n`
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --apk      <active public key>   <required>  \n` +
+    `\targ: --n        [string]              <required>  the name of the wallet to load\n`
 
+const walletBalanceHelp = `${helpBanner}` +
+    `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
+    `\targ: --s        [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
+
+    
 
 
 const logTailHelp = `${helpBanner}` +
@@ -120,26 +123,29 @@ module.exports = {
         }
 
         // wallet-new, new random MPK
-        defineWalletCmd(prompt, 'wn', walletNewHelp, swCreate.walletNew)
+        defineWalletCmd(prompt, 'wn', walletNewHelp, svrWalletCreate.walletNew)
 
         // wallet-init, by supplied MPK
-        defineWalletCmd(prompt, 'wi', walletInitHelp, swCreate.walletInit)
+        defineWalletCmd(prompt, 'wi', walletInitHelp, svrWalletCreate.walletInit)
 
         // wallet-connect, block/tx updates for all asset-types & addr-monitors
-        defineWalletCmd(prompt, 'wc', walletConnectHelp, swWallet.walletFunction, 'CONNECT')
+        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.walletFunction, 'CONNECT')
 
         // wallet-dump, decrypt & dump values from redux store
-        defineWalletCmd(prompt, 'wd', walletDumpHelp, swWallet.walletFunction, 'DUMP')
+        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.walletFunction, 'DUMP')
 
         // wallet-add-address, creates a new receive address
-        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, swWallet.walletFunction, 'ADD-ADDR')
+        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.walletFunction, 'ADD-ADDR')
 
         // wallet-save, saves a wallet to file
-        defineWalletCmd(prompt, 'ws', walletSaveHelp, swWallet.walletFunction, 'SAVE')
+        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
 
         // wallet-load, saves a wallet to file
-        defineWalletCmd(prompt, 'wl', walletLoadHelp, swWallet.walletFunction, 'LOAD')
+        defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
 
+        // wallet-balances, shows wallet asset balances
+        defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.walletFunction, 'BALANCE')
+        
 
         // log-tail, show last n lines of verbose (debug) log
         defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)

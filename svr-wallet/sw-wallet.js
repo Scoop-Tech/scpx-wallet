@@ -15,8 +15,8 @@ const utilsWallet = require('../utils')
 const opsWallet = require('../actions/wallet')
 const log = require('../cli-log')
 
-const swFunctions = require('./sw-functions')
-const swPersist = require('./sw-persist')
+const svrWalletFunctions = require('./sw-functions')
+const svrWalletPersist = require('./sw-persist')
 
 //
 // validates & routes wallet functions
@@ -28,7 +28,7 @@ module.exports = {
 
     // general functions: for a loaded wallet
     walletFunction: (store, p, fn) => {
-        const apkMpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SAVE')
+        const apkMpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD')
 
         // sanity check - app worker present
         const appWorker = utilsWallet.getMainThreadGlobalScope().appWorker
@@ -73,12 +73,12 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':  walletFn = swFunctions.connectData; break;
-            
-            case 'DUMP':     walletFn = swFunctions.walletDump; break;
-            case 'ADD-ADDR': walletFn = swFunctions.walletAddAddress; break;
-            case 'SAVE':     walletFn = swPersist.walletSave; break;
-            case 'LOAD':     walletFn = swPersist.walletLoad; break;
+            case 'CONNECT':  walletFn = svrWalletFunctions.connectData; break;
+            case 'DUMP':     walletFn = svrWalletFunctions.walletDump; break;
+            case 'ADD-ADDR': walletFn = svrWalletFunctions.walletAddAddress; break;
+            case 'SAVE':     walletFn = svrWalletPersist.walletSave; break;
+            case 'LOAD':     walletFn = svrWalletPersist.walletLoad; break;
+            case 'BALANCE':  walletFn = svrWalletFunctions.walletBalance; break;
             default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
         }
         return walletFn(appWorker, store, p)
@@ -87,7 +87,7 @@ module.exports = {
 
 function validateMpkApk(mpk, apk) {
     if (!mpk) return new Promise((resolve) => resolve({ err: 'MPK is required' }))
-    if (!apk) return new Promise((resolve) => resolve({ err: 'MPK is required' }))
+    if (!apk) return new Promise((resolve) => resolve({ err: 'APK is required' }))
     if (mpk.length < 53) return new Promise((resolve) => resolve({ err: 'MPK too short (53 chars min)' }))
     if (apk.length < 53) return new Promise((resolve) => resolve({ err: 'APK too short (53 chars min)' }))
     return undefined

@@ -4,6 +4,7 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
+const walletExternalActions = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
@@ -66,8 +67,8 @@ module.exports = {
     walletDump: (appWorker, store, p) => {
         var { mpk, apk, s, txs, privkeys } = p
         log.cmd('walletDump')
-        log.param(`apk`, apk, `(param)`)
         log.param(`mpk`, mpk, `(param)`)
+        log.param(`apk`, apk, `(param)`)
 
         // extract filter symbol, if any
         var filterSymbol
@@ -150,8 +151,8 @@ module.exports = {
     walletAddAddress: async (appWorker, store, p) => {
         var { mpk, apk, s } = p
         log.cmd('walletAddAddress')
-        log.param(`apk`, apk, `(param)`)
         log.param(`mpk`, mpk, `(param)`)
+        log.param(`apk`, apk, `(param)`)
         
         // validate
         const wallet = store.getState().wallet
@@ -187,4 +188,26 @@ module.exports = {
         })
     },
 
+    // displays combined balances (for all addresses) 
+    walletBalance: (appWorker, store, p) => {
+        var { s } = p
+        log.cmd('walletBalance')
+        
+        const wallet = store.getState().wallet
+        if (wallet.assets.some(p => !p.lastAssetUpdateAt)) {
+            return new Promise((resolve) => resolve({ err: 
+                `One or more assets' balance data has not yet been loaded. Have you connected the wallet with ".wc"?`
+            }))
+        }
+
+        const balances = wallet.assets.map(asset => {
+            const bal = walletExternalActions.get_combinedBalance(asset)
+            return {
+                symbol: asset.symbol,
+                  conf: utilsWallet.toDisplayUnit(bal.conf, asset),
+                unconf: utilsWallet.toDisplayUnit(bal.unconf, asset)
+            }
+        })
+        return new Promise((resolve) => resolve({ ok: { balances } } ))
+    }
 }

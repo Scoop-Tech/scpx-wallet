@@ -5,7 +5,7 @@ const isNode = require('detect-node')
 
 // static - license, copyright, env
 const WALLET_VER = require('../package.json').version
-const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see the /LICENSE terms. Copyright 2019 Dominic Morris.`
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types

@@ -8,7 +8,7 @@ const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
 
-const swCreate = require('./sw-create')
+const svrWalletCreate = require('./sw-create')
 
 const log = require('../cli-log')
 
@@ -18,10 +18,8 @@ const log = require('../cli-log')
 
 module.exports = {
     walletSave: (appWorker, store, p) => {
-        var { mpk, apk, n, f } = p
+        var { n, f } = p
         log.cmd('walletSave')
-        log.param(`apk`, apk, `(param)`)
-        log.param(`mpk`, mpk, `(param)`)
 
         const e_assetsRaw = store.getState().wallet.assetsRaw
 
@@ -58,8 +56,8 @@ module.exports = {
     walletLoad: (appWorker, store, p) => {
         var { mpk, apk, n } = p
         log.cmd('walletLoad')
-        log.param(`apk`, apk, `(param)`)
         log.param(`mpk`, mpk, `(param)`)
+        log.param(`apk`, apk, `(param)`)
 
         // validate
         if (!n || n.length == 0) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
@@ -82,7 +80,7 @@ module.exports = {
                     const e_storedAssetsRaw = data.toString()
                     log.info(`Read wallet ${fileName} data OK - length=`, e_storedAssetsRaw.length)
 
-                    swCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
+                    svrWalletCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
                     .then(walletInitResult => {
                         if (walletInitResult.err) resolve(walletInitResult)
                         resolve({ ok: { fileName, walletInitResult } })

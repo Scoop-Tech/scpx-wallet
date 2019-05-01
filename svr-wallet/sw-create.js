@@ -38,11 +38,11 @@ module.exports = {
         log.cmd('walletInit')
         
         // validate
-        const swWallet = require('./sw-wallet')
-        const invalidMpkApk = swWallet.validateMpkApk(mpk, apk)
+        const svrWallet = require('./sw-wallet')
+        const invalidMpkApk = svrWallet.validateMpkApk(mpk, apk)
         if (invalidMpkApk) return invalidMpkApk
-        log.param(`apk`, apk, `(param)`)
         log.param(`mpk`, mpk, `(param)`)
+        log.param(`apk`, apk, `(param)`)
     
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)

@@ -1,13 +1,6 @@
 #!/usr/bin/env node --experimental-worker
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
-// todo -- minimum viable set for launch ...
-//         .ws  (wallet save) -- to file, binary enc'd dump (instead of api/eos)
-//         .wl  (wallet load) -- from file (==> curent .wl becomes wallet-init)
-//         .wtx (wallet tx)
-
-// then -- optional, .wl from eos (w/ imported & added addr's)
-
 const walletActions = require('./actions')
 const configWallet = require('./config/wallet')
 const configWalletExternal = require('./config/wallet-external')
@@ -15,10 +8,10 @@ const appStore = require('./store')
 const utilsWallet = require('./utils')
 
 const cliRepl = require('./cli-repl')
-const cliWorkers = require('./svr-workers')
-const swCreate = require('./svr-wallet/sw-create')
-const swWallet = require('./svr-wallet/sw-wallet')
-const swPersist = require('./svr-wallet/sw-persist')
+const svrWorkers = require('./svr-workers')
+const svrWalletCreate = require('./svr-wallet/sw-create')
+const svrWallet = require('./svr-wallet/sw-wallet')
+const svrWalletPersist = require('./svr-wallet/sw-persist')
 const log = require('./cli-log')
 const npmPackage = require('./package.json')
 
@@ -73,16 +66,22 @@ else {
     if (cli.saveHistory) log.info(`cli.saveHistory: ${cli.saveHistory}`)
     console.log()
 
-    // error handlers
+    // handlers - unhandlded exceptions, and process exit
     process.on('unhandledRejection', (reason, promise) => {
         utilsWallet.error(`## unhandledRejection ${reason}`, promise, { logServerConsole: true})
+        svrWorkers.workers_terminate()
+        process.exit(1)
     })
     process.on('uncaughtException', (err, origin) => {
         utilsWallet.error(`## uncaughtException ${err.toString()}`, origin, { logServerConsole: true})
+        svrWorkers.workers_terminate()
+        process.exit(1)
     })
+    process.on('exit', () => svrWorkers.workers_terminate())
+    process.on('SIGINT', () => svrWorkers.workers_terminate())
 
     // setup workers
-    cliWorkers.workers_init(appStore.store).then(async () => {
+    svrWorkers.workers_init(appStore.store).then(async () => {
 
         // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEYS)
         global.loadedWalletKeys = {} 
@@ -101,7 +100,7 @@ else {
 
         // init or load from cmdline, if specified
         if (cli.mpk && cli.apk) {
-            const validationErrors = await swWallet.validateMpkApk(cli.mpk, cli.apk)
+            const validationErrors = await svrWallet.validateMpkApk(cli.mpk, cli.apk)
             if (validationErrors && validationErrors.err) {
                 cliRepl.postCmd(prompt, { err: `Validation failed: ${validationErrors.err}` })
             }
@@ -109,13 +108,13 @@ else {
                 if (cli.loadFile) {
                     log.info(`Loading supplied ${cli.loadFile}...`)
                     const globalScope = utilsWallet.getMainThreadGlobalScope()
-                    swPersist.walletLoad(globalScope.appWorker, walletContext.store,
+                    svrWalletPersist.walletLoad(globalScope.appWorker, walletContext.store,
                         { apk: cli.apk, mpk: cli.mpk, n: cli.loadFile })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }
                 else {
                     log.info('Initializing supplied wallet...')
-                    swCreate.walletInit(walletContext.store,
+                    svrWalletCreate.walletInit(walletContext.store,
                         { apk: cli.apk, mpk: cli.mpk })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }

@@ -1,5 +1,6 @@
 node_modules
 .vscode/
+coverage/
 .node_history
 scp_tx.db
 *.log

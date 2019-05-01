@@ -6,6 +6,8 @@ const utilsWallet = require('./utils')
 
 const appWorkerCallbacks = require('./actions/appWorkerCallbacks')
 
+const log = require('./cli-log')
+
 module.exports = {
 
     // setup cpuWorkers and singleton appWorker
@@ -49,5 +51,24 @@ module.exports = {
             })
         })
         return Promise.all(pongs)
+    },
+
+    workers_terminate: () => {
+        const globalScope = utilsWallet.getMainThreadGlobalScope()
+        if (globalScope.cpuWorkers !== undefined) {
+            log.info(`Terminating ${globalScope.cpuWorkers.length} CPU workers...`)
+            globalScope.cpuWorkers.forEach(worker => { 
+                worker.unref()
+                worker.terminate()
+            })
+            globalScope.cpuWorkers = undefined
+        }
+
+        if (globalScope.appWorker !== undefined) {
+            log.info(`Terminating app worker...`)
+            globalScope.appWorker.unref()
+            globalScope.appWorker.terminate()
+            globalScope.appWorker = undefined
+        }
     }
 }
