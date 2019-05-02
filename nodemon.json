@@ -1,7 +1,7 @@
 {
     "ext": "js",
     "env": {
-      "NODE_OPTIONS": "--experimental-worker "
+      "NODE_OPTIONS": "--experimental-worker"
     },
     "exec": "node ./sw-cli.js --saveHistory=true",
     "restartable": false

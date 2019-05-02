@@ -1,3 +1,7 @@
 language: node_js
+env: 
+  - NODE_OPTIONS=--experimental-worker
 node_js:
   - "10"
+script:
+  - npm run travis
