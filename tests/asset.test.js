@@ -28,16 +28,19 @@ describe('asset', function () {
     it('can create a new receive address for all asset types', async () => {
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
-            const wallet = appStore.store.getState().wallet
-            var countOk = 0
-            wallet.assets.forEach(async (asset) => {
-                const add = await svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ADD-ADDR')
-                if (add.ok) countOk++
-            })
-            resolve({ create, countOk })
+            var wallet = appStore.store.getState().wallet
+            const ops = wallet.assets.map(asset => { return svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ADD-ADDR') })
+            const results = await Promise.all(ops)
+            const countOk = results.filter(p => p.ok).length
+            
+            wallet = appStore.store.getState().wallet
+            const countAdded = wallet.assets.filter(p => p.addresses.length === 2).length
+
+            resolve({ create, countOk, countAdded })
         })
         const wallet = appStore.store.getState().wallet
         expect(result.create.ok).toBeDefined()
-        expect(result.create.countOk).toEqual(wallet.assets.length)
+        expect(result.countOk).toEqual(wallet.assets.length)
+        expect(result.countAdded).toEqual(wallet.assets.length)
     })
 })

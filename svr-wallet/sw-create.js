@@ -71,6 +71,7 @@ module.exports = {
             }
 
             return { ok: { 
+                        mpk, apk, 
                         generateWalletsResult: generateWalletsResult.map(p => { return {
                                symbol: p.symbol,
                             addresses: p.addresses.map(p2 => p2.addr).join(', ')

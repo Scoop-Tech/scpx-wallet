@@ -41,7 +41,9 @@ module.exports = {
             if (!storeState) return new Promise((resolve) => resolve({ err: 'Invalid store state' }))
             if (fn !== 'LOAD') {
                 const wallet = storeState.wallet
-                if (!wallet || !wallet.assetsRaw || !wallet.assets) return new Promise((resolve) => resolve({ err: 'No loaded wallet' }))
+                if (!wallet || !wallet.assetsRaw || !wallet.assets)  {
+                    return new Promise((resolve) => resolve({ err: 'No loaded wallet' }))
+                }
             }
         }
 
