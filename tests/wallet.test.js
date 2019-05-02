@@ -8,11 +8,6 @@ const svrWorkers = require('../svr-workers')
 const svrWalletCreate = require('../svr-wallet/sw-create')
 const svrWalletFunctions = require('../svr-wallet/sw-functions')
 const svrWallet = require('../svr-wallet/sw-wallet')
-const svrWalletPersist = require('../svr-wallet/sw-persist')
-
-const cliRepl = require('../cli-repl')
-const log = require('../cli-log')
-
 
 beforeAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60

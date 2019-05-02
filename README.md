@@ -18,7 +18,7 @@ For maintenance of user accounts and settings, Scoop user accounts are persisted
 
 Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet layer, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for full details on SCPX's security and encryption model.
 
-This repo contains the open-source Core Wallet with integrated JS REPL command line interface. The CLI is decoupled from the Data Storage Contract and does not read from or write to it.
+This repo contains the open-source Core Wallet with integrated JS REPL command line interface. The Core Wallet is decoupled from the Data Storage Contract and instead uses local ```wallet_xxx.dat``` encrypted files for persistence.
 
 ## Features
 
@@ -44,22 +44,30 @@ This repo contains the open-source Core Wallet with integrated JS REPL command l
 
 ## Dependencies: Architecture 
 
-  * https://github.com/EOSIO/eos
-  * https://github.com/trezor/blockbook
-  * https://github.com/bitpay/insight-api
+  * https://github.com/trezor/blockbook - primary 3PBP interface: preferred, due to pure websocket interface
+  * https://github.com/EOSIO/eos - used as the backing store for web client accounts: not required by Core Wallet
+  * https://github.com/bitpay/insight-api - secondary/deprecated 3PBP interface: no assets are currently using this: code is retained as a fallback
 
- ## Building from Source
+## Building from Source
 
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
   * ```npm install```
   * ```npm start``` or ```nodemon```
-  
-Primary/recommended build environment is node 10.14.1 and npm 6.4.1.
 
-NOTE: ```./nodemon.json``` configuration - ```--experimental-worker``` is required at runtime.
+The recommended build environment is node 10.14.1 and npm 6.4.1.
 
-Example ./vscode/launch.json for Visual Studio Code debugging: 
+NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required at runtime. This is set by the npm scripts, but you can also set it in your environment, e.g. ```$env:NODE_OPTIONS = "--experimental-worker"```, or your OS equivalent.
+
+## Running Tests
+
+  * ```npm run test``` to run the full test suite.
+  * To run individual tests, use Jest CLI, e.g. ```jest asset``` if you want to run tests in asset.test.js.
+
+## Debugging
+
+Visual Studio Code is recommended. An example ./vscode/launch.json is: 
+
 ```{
     "version": "0.2.0",
     "configurations": [
@@ -70,12 +78,17 @@ Example ./vscode/launch.json for Visual Studio Code debugging:
                 "NODE_OPTIONS": "--experimental-worker"
             },
             "name": "wallet-dev",
-            "program": "${workspaceFolder}/sw-cli.js",
-            "args": ["--mpk=PW5J3tux27JbqxhamhxJbhPe9VnpTFyoXYmGrKVswWjyZtzAfHdPC", "--apk=EOS8m1uUReqLiP1GEkeJWQHd2HKoCPAzCMgrjLp1aWwYem7sTF4ft"],
-            "runtimeExecutable": "babel-node",
+            "cwd": "${workspaceFolder}/ext/wallet",
+            "program": "${workspaceFolder}/ext/wallet/sw-cli.js",
+            "args": [//"--mpk=...", 
+                     //"--apk=...",
+                     //"--loadFile=...",
+                     "--saveHistory=true"
+                    ],
+            "console": "externalTerminal",
+            "runtimeExecutable": "node",
             "runtimeArgs": ["--nolazy"],
-            "autoAttachChildProcesses": true,
-            "cwd": "${workspaceFolder}"
+            "autoAttachChildProcesses": true
         },
     ]
 }
