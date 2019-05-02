@@ -54,14 +54,12 @@ module.exports = {
         else if (msg === 'ASSET_UPDATE_FULL_INSIGHT') {
             const dispatchAction = walletExternal.getAddressFull_ProcessResult(postback.res, postback.asset, postback.addrNdx)
             if (dispatchAction !== null) {
-                debugger
                 store.dispatch(dispatchAction)
             }
         }
         else if (msg === 'ASSET_UPDATE_FULL_ACCOUNT') { 
             const dispatchAction = walletExternal.getAddressFull_ProcessResult(postback.res, postback.asset, postback.addrNdx)
             if (dispatchAction !== null) {
-                debugger
                 store.dispatch(dispatchAction)
             }
         }

@@ -131,7 +131,7 @@ const handlers = {
         })
 
         // run full asset update to reconcile local_txs (we may have added new external tx's above - we want the local_txs removed atomically)
-        const updatedState = { ...state, assets }//, selectedAsset }
+        const updatedState = { ...state, assets }
 
         const ret = SetAddressFull_ReconcileLocalTxs(updatedState, { payload: {
             symbol: symbol,
@@ -160,7 +160,6 @@ const handlers = {
     },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {
-        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH - ${action.payload.symbol}, txid=${action.payload.tx.txid}`, null, { logServerConsole: true })
         var assets = _.cloneDeep(state.assets)
         var asset = assets.find(p => p.symbol === action.payload.symbol)
 
@@ -169,19 +168,17 @@ const handlers = {
             return { ...state }
         }
 
-        // update asset
-        if (asset.local_txs.some(p => { return p.txid === action.payload.tx.txid }) === false) {
-            asset.local_txs.push(_.cloneDeep(action.payload.tx))
-        }
-        else { 
-            utilsWallet.warn(`LOCAL_TX - PUSH - ${action.payload.symbol} ignoring; txid already present in local_tx - tx=`, action.payload.tx, { logServerConsole: true })
+        // don't push the local tx if it's already in the local_tx list (reasons not quite clear; possibly duplicate BB bitcoind/address data?)
+        if (asset.local_txs.some(p => { return p.txid === action.payload.tx.txid })) {
+            return { ...state }
         }
 
-        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH DONE - ${action.payload.symbol} asset.local_txs=`, asset.local_txs, { logServerConsole: true })
+        // update asset
+        asset.local_txs.push(_.cloneDeep(action.payload.tx))
+        utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH DONE - ${action.payload.symbol} txid=${action.payload.tx.txid}, asset.local_txs=`, asset.local_txs, { logServerConsole: true })
+
         return { ...state, assets }
     },
 }
 
-//export default 
-module.exports = 
-createReducer(initialState, handlers)
+module.exports = createReducer(initialState, handlers)

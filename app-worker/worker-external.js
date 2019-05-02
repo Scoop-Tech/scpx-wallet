@@ -133,7 +133,6 @@ function getAddressBalance_External(p, callback) {
 
                     // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
                     return getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds: undefined, bbSocket }, (dispatchActions) => {
-                        debugger
                         callback(dispatchActions)
                     })
                 }

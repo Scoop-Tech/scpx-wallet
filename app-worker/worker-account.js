@@ -409,21 +409,21 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         var mappedTx
                         if (erc20 !== undefined) { // ERC20 TX
 
-                            //abiDecoder.addABI(erc20ABI.abi)
-                            //const decodedData = abiDecoder.decodeMethod(txData.input)
                             const decodedData = decoder.decodeData(txData.input)
-
                             if (decodedData) {
-                                //if (decodedData.name === "transfer" && decodedData.params && decodedData.params.length > 1) {
                                 if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
-                                    const param_to = '0x' + decodedData.inputs[0] //decodedData.params[0].value
-                                    const tokenValue = decodedData.inputs[1] //decodedData.params[1].value
+                                    const param_to = '0x' + decodedData.inputs[0] 
+                                    const tokenValue = decodedData.inputs[1] 
 
                                     const bn_tokenValue = new BigNumber(tokenValue)
                                     const assetErc20 = wallet.assets.find(p => p.symbol === erc20.symbol )
                                     const du_value = utilsWallet.toDisplayUnit(bn_tokenValue, assetErc20)
                                     
                                     if (tokenValue) {
+                                        const sendToSelf = 
+                                               ownAddresses.some(ownAddr => ownAddr.toLowerCase() === param_to.toLowerCase())
+                                            && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
+
                                         mappedTx = { // EXTERNAL_TX (enriched) - ERC20
                                             erc20: erc20.symbol,
                                             erc20_contract: txData.to,
@@ -431,6 +431,8 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                             txid: tx.txid,
                                             isMinimal: false,
                                             isIncoming: !weAreSender,
+                                            sendToSelf,
+
                                             value: Number(du_value),
                                             toOrFrom: !weAreSender ? txData.from : txData.to,
                                             account_to: param_to.toLowerCase(),
@@ -446,12 +448,18 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                             }
                         }
                         else { // ETH TX
+                            const sendToSelf =
+                                   ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.to.toLowerCase())
+                                && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
+
                             mappedTx = { // EXTERNAL_TX (enriched) - ETH 
                                 erc20: undefined,
                                 date: new Date(blockTimestamp * 1000), 
                                 txid: tx.txid,
                                 isMinimal: false,
                                 isIncoming: !weAreSender, 
+                                sendToSelf,
+
                                 value: Number(web3.utils.fromWei(txData.value, 'ether')),
                                 toOrFrom:  !weAreSender ? txData.from : txData.to,
                                 account_to: txData.to.toLowerCase(), 

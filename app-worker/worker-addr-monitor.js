@@ -2,7 +2,7 @@
 
 const configExternal = require('../config/wallet-external')
 
-const workerAddrMemPool = require('./worker-addr-mempool')
+const workerAddrMemPool = require('./worker-blockbook-mempool')
 
 const utilsWallet = require('../utils')
 
@@ -83,15 +83,15 @@ function subAddr_Blockbook(wallet, asset) {
                         //postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
 
                         // as below for SW; BB mempool is simply not reliably in sync with its bitcoind/addresstxid callbacks
-                        // so, we query web3 directly for the txid and process with mempool_process_EthTx();
+                        // so, we query web3 directly for the txid and process with mempool_process_BB_EthTx();
                         // double and tripple checked: the BB mempool is definitely lagging, i.e. we get bitcoind/addresstxid notifications
                         // but BB *doesn't* report the tx in its mempool (sometimes it does, sometimes it doesn't until the next block) -- this lines up
                         // with its status page intermitently reporting mempool is not in sync for ETH
 
-                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - web3 getTx... txid=`, txid)
+                        utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - web3 getTx... txid=`, txid, { logServerConsole: true })
                         const web3 = self.ws_web3 // singleton socket instance
                         if (!web3) {
-                            utilsWallet.error(`appWorker >> ${self.workerId} mempool_GetTx - ${asset.symbol} - singleton web3 socket provider is not available!`); return
+                            utilsWallet.error(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - singleton web3 socket provider is not available!`); return
                         }
                         else {
                             web3.eth.getTransaction(txid)
@@ -99,9 +99,7 @@ function subAddr_Blockbook(wallet, asset) {
                                 const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
                                 const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === tx.to.toLowerCase() })
                                 const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())
-                                if (!weAreSender) { // no need to do this for our own sent tx's (we push the local_tx ourselves); but looks like we could do if we wanted or needed to
-                                    workerAddrMemPool.mempool_process_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
-                                }
+                                workerAddrMemPool.mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
                             })
                         }
 
@@ -109,7 +107,7 @@ function subAddr_Blockbook(wallet, asset) {
                         postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
                     }
                     else {
-                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - BB getDetailedTransaction... txid=`, txid)
+                        utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - BB getDetailedTransaction... txid=`, txid, { logServerConsole: true })
 
                         // query blockbook for full tx details (see https://btc1.trezor.io/static/test.html for full blockbook socket interface)
                         socket.send({ method: 'getDetailedTransaction', params: [txid] }, (bb_txData) => {
@@ -123,7 +121,7 @@ function subAddr_Blockbook(wallet, asset) {
                                 const ownAddresses = asset.addresses.map(p => { return p.addr })
                                 const weAreSender = tx.inputs.some(p => { return ownAddresses.some(p2 => p2 === p.address) })
                                 const mempool_spent_txids = []
-                                workerAddrMemPool.mempool_process_Btc_SW(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids)
+                                workerAddrMemPool.mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids)
                             }
                         })
                     }

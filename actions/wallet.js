@@ -773,7 +773,6 @@ function generateEthereumWallet(p) {
         return privKeys
     }
     catch (err) { 
-        debugger
         utilsWallet.error(`generateEthereumWallet - FAIL: ${err.message}`, err)
         return null
     }
@@ -796,7 +795,6 @@ function getAccountTypeAddress(privKey, symbol, eosActiveWallet) {
         }
     }
     catch (err) {
-        debugger
         utilsWallet.error(`getAccountTypeAddress - FAIL: ${err.message}`, err)
         return null
     }

@@ -56,7 +56,7 @@ module.exports = {
                 //         const weAreSender = tx.inputs.some(p => { return ownAddresses.some(p2 => p2 === p.address) })
                 //         const spent_txids = []
                         
-                //         workerAddrMemPool.mempool_process_Btc_SW(wallet, asset, txid, tx, weAreSender, ownAddresses, spent_txids)
+                //         workerAddrMemPool.mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, spent_txids)
 
                 //         utilsWallet.log('appWorker >> blockbook_pushTx - spent_txids=', spent_txids)
 

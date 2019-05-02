@@ -8,7 +8,7 @@ const workerPrices = require('./worker-prices')
 const workerWeb3 = require('./worker-web3')
 const workerInsight = require('./worker-insight')
 const workerGeth = require('./worker-geth')
-const workerAddressMempool = require('./worker-addr-mempool')
+const workerAddressMempool = require('./worker-blockbook-mempool')
 const workerAddressMonitor = require('./worker-addr-monitor')
 const workerPushTx = require('./worker-pushtx')
 
@@ -52,7 +52,7 @@ self.blockbookAddrTxs = []  // "
 self.gethBlockNos = []      // similar issue to address monitors: geth web3 sub - disregard if block already processed (polled) -- seeing sometimes same block sent twice
 
 self.gethSockets = {}       // eth - isomorphic-ws - used for slightly faster tx and block polling compared to web3 subscriptions
-self.web3s = {}             // eth - used by mempool_GetTx: TODO -- replace with singleton ws_web3
+self.web3s = {}             // eth - used by mempool_get_BB_txs: TODO -- replace with singleton ws_web3
 self.ws_web3 = undefined    // eth - singleton web3 socket for faster balance polling compared to HttpProvider
 
 // tx subscriptions - for throttling and TPS calcs
@@ -338,7 +338,7 @@ function handler(e) {
     // these fn's populate the store data after retrieving data from 3PBPs (blockbook, insight, web3)
     //
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
-        workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
+        workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
             utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
@@ -375,7 +375,7 @@ function handler(e) {
 
     function refreshAssetBalance(asset, wallet) {
 
-        workerAddressMempool.mempool_GetTx(asset, wallet, (utxo_mempool_spentTxIds) => {
+        workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
             utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
