@@ -71,8 +71,12 @@
         "help": "TITLE scpx-w[HELP] && node --experimental-worker ./sw-cli.js --help ",
         "dev": "TITLE scpx-w[DEV] && node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "TITLE scpx-wp[PROD] && node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false ",
-        "devtest": "SET NODE_OPTIONS=--experimental-worker && jest --forceExit --verbose --runInBand --coverage",
-        "test": "jest --forceExit --verbose --runInBand --coverage"
+        "test": "SET NODE_OPTIONS=--experimental-worker && jest --forceExit --verbose --runInBand --coverage && codecov",
+        "travis": "jest --forceExit --verbose --runInBand --coverage"
+    },
+    "jest": {
+        "coverageDirectory": "./coverage/",
+        "collectCoverage": true
     },
     "engines": {
         "node": ">=10.14.1",
@@ -128,6 +132,7 @@
         "sw-cli": "./sw-cli.js"
     },
     "devDependencies": {
+        "codecov": "^3.3.0",
         "jest": "20.0.4",
         "nodemon": "^1.18.11"
     }
