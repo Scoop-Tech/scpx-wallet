@@ -73,13 +73,11 @@ describe('wallet', function () {
         const testWalletFile = `test${new Date().getTime()}`
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
-            const add = await svrWallet.walletFunction(appStore.store, { s: 'ETH' }, 'ADD-ADDR')
             const save = await svrWallet.walletFunction(appStore.store, { n: testWalletFile }, 'SAVE')
             const load = await svrWallet.walletFunction(appStore.store, { n: testWalletFile }, 'LOAD')
-            resolve({ create, add, save, load })
+            resolve({ create, save, load })
         })
         expect(result.create.ok).toBeDefined()
-        expect(result.add.ok).toBeDefined()
         expect(result.save.ok).toBeDefined()
         expect(result.load.ok).toBeDefined()
     })

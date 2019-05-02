@@ -10,8 +10,10 @@ const ltcInsightApi = 'https://insight.litecore.io/api/'
 //const ltcInsightApi = 'https://scp-ltc2.southeastasia.cloudapp.azure.com:4001/insight-lite-api/'
 const zecInsightApi = 'https://zcashnetwork.info/api/'
 //const zecInsightApi = 'https://scp-zec1.southeastasia.cloudapp.azure.com:4001/insight-api-zcash/' // hard to find usable and maintained insight forks
-const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
 const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
+
+const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
+//const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
 
 //
 // eth

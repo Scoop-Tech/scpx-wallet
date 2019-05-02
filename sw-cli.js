@@ -60,6 +60,7 @@ else {
     utilsWallet.logMajor('green','white', `... scpx-wallet - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV})  - init ...`, null, { logServerConsole: true })
     console.log(configWallet.WALLET_COPYRIGHT.gray)
     console.log()
+    log.info('NODE_ENV:', process.env.NODE_ENV)
     if (cli.mpk)         log.info(`cli.mpk: ${cli.mpk}`)
     if (cli.apk)         log.info(`cli.apk: ${cli.apk}`)
     if (cli.loadFile)    log.info(`cli.loadFile: ${cli.loadFile}`)

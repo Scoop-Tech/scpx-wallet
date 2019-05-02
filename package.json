@@ -69,10 +69,9 @@
     "main": "sw-cli.js",
     "scripts": {
         "help": "node --experimental-worker ./sw-cli.js --help ",
-        "dev": "node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
-        "start": "node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false ",
-        "test": "set NODE_OPTIONS=--experimental-worker&& jest --forceExit --verbose --runInBand --coverage && codecov",
-        "travis": "jest --forceExit --verbose --runInBand --coverage"
+        "test": "set NODE_ENV=development&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --verbose --runInBand --coverage",
+        "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
+        "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false "
     },
     "jest": {
         "coverageDirectory": "./coverage/",

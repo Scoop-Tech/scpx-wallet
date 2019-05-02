@@ -29,9 +29,9 @@ const PRICE_SOURCE_CRYPTOCOMPARE = 'CC'   // primary
 const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - todo: move to WS (no CORS) interface, make bitfinex WS primary
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
-// config - dbg
+// config - dbg/test
+const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development")
 const WALLET_INCLUDE_ETHTEST = false
-const WALLET_INCLUDE_BTCTEST = false
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
 
