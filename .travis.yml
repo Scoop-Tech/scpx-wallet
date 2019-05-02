@@ -1,7 +1,6 @@
 language: node_js
 env: 
-  - NODE_OPTIONS=--experimental-worker
-  - CODECOV_TOKEN=f65ece69-8be4-4cd8-bb6f-c397d2dbc967
+  - NODE_OPTIONS=--experimental-worker CODECOV_TOKEN=f65ece69-8be4-4cd8-bb6f-c397d2dbc967
 node_js:
   - "10"
 script:
