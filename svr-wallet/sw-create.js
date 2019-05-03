@@ -44,6 +44,7 @@ module.exports = {
         log.param('mpk', mpk)
 
         const apk = (await Keygen.generateMasterKeys(mpk)).publicKeys.active
+        log.param('apk', apk)
     
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)

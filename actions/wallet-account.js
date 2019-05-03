@@ -6,9 +6,11 @@ const axiosRetry = require('axios-retry')
 const EthTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
 
+const actionsWallet = require('.')
+
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
-const actionsWallet = require('../actions')
+
 const erc20ABI = require('../config/erc20ABI')
 const utilsWallet = require('../utils')
 

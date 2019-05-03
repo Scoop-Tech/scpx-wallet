@@ -8,8 +8,6 @@ const walletActions = require('../actions/wallet')
 const walletExternalActions = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
-const opsWallet = require('../actions/wallet')
-
 const log = require('../cli-log')
 
 //
@@ -157,7 +155,7 @@ module.exports = {
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // exec
-        return opsWallet.generateNewAddress({
+        return walletActions.generateNewAddress({
                     store: store,
              activePubKey: apk,
                     h_mpk: h_mpk,

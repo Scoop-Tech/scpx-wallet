@@ -7,10 +7,9 @@ const BigNumber = require('bignumber.js')
 const _ = require('lodash')
 
 const actionsWallet = require('.')
+const walletUtxo = require('./wallet-utxo')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
-
-const walletUtxo = require('./wallet-utxo')
 
 const utilsWallet = require('../utils')
 

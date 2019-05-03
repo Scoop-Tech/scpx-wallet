@@ -216,7 +216,7 @@ module.exports = {
     },
 
     //
-    // logging for core wallet functions
+    // notifications & logging for core wallet functions
     // server always logs to file, but by default does not log to the console (it interferes with the REPL)
     // browser logs to console
     //
@@ -357,11 +357,14 @@ module.exports = {
     },
 
     //
-    // global object
+    // global objects - cross server & browser
     //
     getMainThreadGlobalScope: () => {
         return getMainThreadGlobalScope()
     },
+    getAppWorker: () => {
+        return getMainThreadGlobalScope().appWorker
+    },    
 
     //
     // cpuWorkers
@@ -463,6 +466,8 @@ module.exports = {
             cpuWorker.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
         })
     },
+
+    EMOJI_HAPPY_KITTY: '😸',
 }
 
 const getKeyAndIV = (saltStr, passphrase) => {

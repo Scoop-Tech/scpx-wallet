@@ -104,6 +104,13 @@ function handler(e) {
             self.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
             break
 
+        case 'NOTIFY_USER': 
+            // posts the notification payload back to the main thread, so it can display accordingly
+            // (toastr notification in browser, console log on server)
+            utilsWallet.log(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
+            self.postMessage({ msg: 'NOTIFY_USER', status: 'RES', data })
+            break
+
         case 'CONNECT_PRICE_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Connect()

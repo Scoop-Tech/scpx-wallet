@@ -1,22 +1,23 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+
 const Buffer = require('buffer').Buffer
 const _ = require('lodash')
 const pLimit = require('p-limit')
 
 const bitgoUtxoLib = require('bitgo-utxo-lib')
-
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bip32 = require('bip32')
 const ethereumJsUtil = require('ethereumjs-util')
 const bchAddr = require('bchaddrjs')
 
-const configWallet = require('../config/wallet')
-const configExternal = require('../config/wallet-external')
-
-const actionsWallet = require('../actions')
+const actionsWallet = require('.')
 const actionsWalletUtxo = require('./wallet-utxo')
 const actionsWalletAccount = require('./wallet-account')
 
-const apiWallet = require('../api/wallet')
+const configWallet = require('../config/wallet')
+const configExternal = require('../config/wallet-external')
+
+const apiDataContract = require('../api/data-contract')
 
 const utilsWallet = require('../utils')
 
@@ -171,7 +172,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then((res) => {
             rawAssetsJsonUpdated = null
 
@@ -239,7 +240,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then(() => {
 
             rawAssetsJsonUpdated = null
@@ -332,7 +333,7 @@ module.exports = {
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
             }
         
             rawAssetsJsonUpdated = null
@@ -491,7 +492,7 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiWallet.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
+                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
