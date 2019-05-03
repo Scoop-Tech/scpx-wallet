@@ -44,10 +44,10 @@ const walletLoadHelp = `${helpBanner}` +
     `\targ: --mpk      <master private key>  <required>  \n` +
     `\targ: --n        [string]              <required>  the name of the wallet to load\n`
 
-// const walletServerLoadHelp = `${helpBanner}` +
-//     `.wsl (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
-//     `\targ: --mpk      <master private key>  <required>  \n` +
-//     `\targ: --n        [string]              <required>  the name of the wallet to load\n`
+const walletServerLoadHelp = `${helpBanner}` +
+    `.wsl (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --e        [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
 
 const walletBalanceHelp = `${helpBanner}` +
     `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
@@ -149,7 +149,7 @@ module.exports = {
         defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
 
         // wallet-server-load, loads a wallet from public eos sidechain
-        //defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
+        defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
 
         // wallet-balances, shows wallet asset balances
         defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.walletFunction, 'BALANCE')

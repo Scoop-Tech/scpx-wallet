@@ -77,7 +77,7 @@ module.exports = {
                                symbol: p.symbol,
                             addresses: p.addresses.map(p2 => p2.addr).join(', ')
                         }} ),
-                        mpk
+                        mpk, apk,
                    }}
         })
         .catch(err => {

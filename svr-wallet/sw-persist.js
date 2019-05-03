@@ -94,7 +94,7 @@ module.exports = {
     // server (eos/api) persistence
     walletServerLoad: async (appWorker, store, p) => {
         var { mpk, apk, e } = p
-        log.cmd('walletFileLoad')
+        log.cmd('walletServerLoad')
 
         // validate
         if (utilsWallet.isParamEmpty(e)) return new Promise((resolve) => resolve({ err: `Pseudo-email is required` }))
@@ -119,13 +119,10 @@ module.exports = {
             return new Promise((resolve) => resolve({ err: `No key accounts found for owner` }))
         }
 
-
         // svrWalletCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
         // .then(walletInitResult => {
         //     if (walletInitResult.err) resolve(walletInitResult)
         //     resolve({ ok: { fileName, walletInitResult } })
         // })
-
     },
-
 }

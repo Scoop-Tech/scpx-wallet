@@ -69,7 +69,7 @@
     "main": "sw-cli.js",
     "scripts": {
         "help": "node --experimental-worker ./sw-cli.js --help ",
-        "test": "set NODE_ENV=development&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --verbose --runInBand --coverage",
+        "test": "set NODE_ENV=development&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --coverage",
         "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false "
     },
@@ -90,12 +90,12 @@
         "bignumber.js": "^8.0.2",
         "bip32": "^1.0.4",
         "bip39": "^2.5.0",
-        "bitcoinjs-lib": "^5.0.2",
+        "bitcoinjs-lib": "^5.0.3",
         "bitgo-utxo-lib": "^1.3.1",
         "cashaddrjs": "^0.3.3",
         "chalk": "^2.4.2",
         "clear": "^0.1.0",
-        "coininfo": "^4.4.0",
+        "coininfo": "^4.5.0",
         "colors": "^1.3.3",
         "commander": "^2.20.0",
         "detect-node": "^2.0.4",
@@ -124,7 +124,7 @@
         "repl.history": "^0.1.4",
         "socket.io-client": "2.2.0",
         "web3": "1.0.0-beta.52",
-        "web3-eth-abi": "^1.0.0-beta.53",
+        "web3-eth-abi": "^1.0.0-beta.54",
         "winston": "^3.2.1"
     },
     "bin": {
@@ -133,6 +133,6 @@
     "devDependencies": {
         "codecov": "^3.3.0",
         "jest": "20.0.4",
-        "nodemon": "^1.18.11"
+        "nodemon": "^1.19.0"
     }
 }

@@ -58,7 +58,7 @@ This repo contains the open-source Core Wallet with integrated JS REPL command l
   * ```npm install```
   * ```npm start``` or ```nodemon```
 
-The recommended build environment is node 10.14.1 and npm 6.4.1.
+The tested target build environment is node 10.14.1 and npm 6.9.0.
 
 NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required at runtime. This is set by the npm scripts, but you can also set it in your environment, e.g. ```$env:NODE_OPTIONS = "--experimental-worker"```, or your OS equivalent.
 

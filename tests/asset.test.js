@@ -43,3 +43,6 @@ describe('asset', function () {
         expect(result.countAdded).toEqual(wallet.assets.length)
     })
 })
+
+//it('can run a dummy asset test', async () => { expect(1).toEqual(1) })
+

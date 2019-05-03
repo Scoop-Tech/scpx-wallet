@@ -82,13 +82,16 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':    walletFn = svrWalletFunctions.connectData; break;
-            case 'DUMP':       walletFn = svrWalletFunctions.walletDump; break;
-            case 'ADD-ADDR':   walletFn = svrWalletFunctions.walletAddAddress; break;
-            case 'BALANCE':    walletFn = svrWalletFunctions.walletBalance; break;
-            case 'SAVE':       walletFn = svrWalletPersist.walletFileSave; break;
-            case 'LOAD':       walletFn = svrWalletPersist.walletFileLoad; break;
-            case 'TX-GET-FEE': walletFn = svrWalletTx.txGetFee; break;
+            case 'CONNECT':     walletFn = svrWalletFunctions.connectData; break;
+            case 'DUMP':        walletFn = svrWalletFunctions.walletDump; break;
+            case 'ADD-ADDR':    walletFn = svrWalletFunctions.walletAddAddress; break;
+            case 'BALANCE':     walletFn = svrWalletFunctions.walletBalance; break;
+            case 'SAVE':        walletFn = svrWalletPersist.walletFileSave; break;
+            case 'LOAD':        walletFn = svrWalletPersist.walletFileLoad; break;
+            
+            case 'SERVER-LOAD': walletFn = svrWalletPersist.walletServerLoad; break; // ##
+            case 'TX-GET-FEE':  walletFn = svrWalletTx.txGetFee; break; // ##
+
             default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
         }
         return walletFn(appWorker, store, p)

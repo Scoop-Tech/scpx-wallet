@@ -74,7 +74,7 @@ describe('wallet', function () {
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
             const save = await svrWallet.walletFunction(appStore.store, { n: testWalletFile }, 'SAVE')
-            const load = await svrWallet.walletFunction(appStore.store, { n: testWalletFile }, 'LOAD')
+            const load = await svrWallet.walletFunction(appStore.store, { mpk: create.ok.mpk, n: testWalletFile }, 'LOAD')
             resolve({ create, save, load })
         })
         expect(result.create.ok).toBeDefined()
@@ -82,3 +82,6 @@ describe('wallet', function () {
         expect(result.load.ok).toBeDefined()
     })
 })
+
+//it('can run a dummy wallet test', async () => { expect(1).toEqual(1) })
+
