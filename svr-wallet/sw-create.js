@@ -55,15 +55,13 @@ module.exports = {
                     store: store,
              activePubKey: apk,
                     h_mpk: h_mpk,
-          userAccountName: undefined,         // no EOS persistence for server wallets - not required
-                  e_email: undefined,         // no EOS persistence for server wallets - not required
-        e_storedAssetsRaw: e_storedAssetsRaw, // undefined for a new wallet, otherwise supplied by wallet-load
+          userAccountName: undefined,         // no default DSC persistence for server wallets - not required
+                  e_email: undefined,         // "
+        e_storedAssetsRaw: e_storedAssetsRaw, // undefined for a new wallet, otherwise supplied by wallet-load or by wallet-server-load
           eosActiveWallet: undefined, 
         callbackProcessed: (ret, totalReqCount) => {}
         })
         .then(generateWalletsResult => {
-
-            console.log('generateWalletsResult', generateWalletsResult)
 
             if (!generateWalletsResult && e_storedAssetsRaw) {
                 return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
@@ -74,10 +72,10 @@ module.exports = {
             }
 
             return { ok: { 
-                        generateWalletsResult: generateWalletsResult.map(p => { return {
-                               symbol: p.symbol,
-                            addresses: p.addresses.map(p2 => p2.addr).join(', ')
-                        }} ),
+                        // generateWalletsResult: generateWalletsResult.map(p => { return {
+                        //        symbol: p.symbol,
+                        //     addresses: p.addresses.map(p2 => p2.addr).join(', ')
+                        // }} ),
                         mpk, apk,
                    }}
         })

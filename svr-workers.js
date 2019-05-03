@@ -31,15 +31,15 @@ module.exports = {
                 // handle app worker callbacks
                 appWorkerCallbacks.appWorkerHandler(store, event)
 
-                debugger
                 const postback = event.data
                 const msg = event.msg
                 const status = event.status
                 if (msg === 'NOTIFY_USER') {
+                    debugger
                     utilsWallet.logMajor('green', 'white',
                         `${postback.type}: ${postback.headline} ${postback.info} ${postback.desc1} ${postback.desc2} ${txid}`,
                         null, { logServerConsole: true })
-                }                
+                }
             })
 
             // request and wait for dirty DB setup

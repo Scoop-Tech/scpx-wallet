@@ -5,7 +5,7 @@ const { Keygen } = require('eosjs-keygen')
 const { SHA256, MD5 } = require('crypto-js')
 const _ = require('lodash')
 
-const walletActions = require('../actions/')
+const walletActions = require('../actions')
 const opsWallet = require('../actions/wallet')
 
 const configWallet = require('../config/wallet')
@@ -87,50 +87,5 @@ module.exports = {
                 }
             })
         })
-    },
-
-    // server (eos/api) persistence
-    walletServerLoad: async (appWorker, store, p) => {
-        var { mpk, e } = p
-        log.cmd('walletServerLoad')
-
-        log.param('mpk', mpk)
-
-        // test unknown MPK
-        const testKeys = await Keygen.generateMasterKeys()
-        mpk = testKeys.masterPrivateKey
-
-        // validate
-        if (utilsWallet.isParamEmpty(e)) return new Promise((resolve) => resolve({ err: `Pseudo-email is required` }))
-        const email = e
-
-        // exec: effectively, session.login
-        const keys = await Keygen.generateMasterKeys(mpk)
-        log.param('apk', keys.publicKeys.active)
-
-        const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, configEos.scpEosConfig)
-        const eos = Eos(config)
-
-        const hashedMasterPrivateKey = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)
-        const encryptedEmail = utilsWallet.aesEncryption(keys.publicKeys.active, hashedMasterPrivateKey, email)
-        const hashedEmail = MD5(email).toString()
-        const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
-
-        // at least one scoop eos account created for by this MPK?
-        if (keyAccounts.account_names && keyAccounts.account_names.length > 0 && keyAccounts.account_names[0] !== undefined) { 
-
-            login_v2Api(hashedEmail, encryptedEmail)
-
-            //... login_v2 call ...
-        }
-        else {
-            return new Promise((resolve) => resolve({ err: `No key account(s) found by public key` }))
-        }
-
-        // svrWalletCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
-        // .then(walletInitResult => {
-        //     if (walletInitResult.err) resolve(walletInitResult)
-        //     resolve({ ok: { fileName, walletInitResult } })
-        // })
     },
 }

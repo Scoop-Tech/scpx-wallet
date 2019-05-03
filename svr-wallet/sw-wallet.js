@@ -13,9 +13,10 @@ const walletActions = require('../actions/wallet')
 const opsWallet = require('../actions/wallet')
 const utilsWallet = require('../utils')
 
-const svrWalletFunctions = require('./sw-functions')
-const svrWalletPersist = require('./sw-persist')
-const svrWalletTx = require('./sw-tx')
+const functions = require('./sw-functions')
+const filePersist = require('./sw-file-persist')
+const serverPersist = require('./sw-server-persist')
+const tx = require('./sw-tx')
 
 const log = require('../cli-log')
 
@@ -62,7 +63,7 @@ module.exports = {
             }
         } else throw('Store is required')
 
-        // param check - check apk/mpk are valid if required & supplied, & take from cache if setup
+        // param check - check apk/mpk are valid if required & supplied, & take from cache if required and not supplied
         if (mpkRequired) {
             if (p !== null) {
                 var { mpk } = p
@@ -71,7 +72,6 @@ module.exports = {
                 }
                 const invalidMpk = await validateMpk(mpk)
                 if (invalidMpk.err) return invalidMpk
-                log.param('mpk', mpk)
 
                 const apk = (await Keygen.generateMasterKeys(mpk)).publicKeys.active
                 p = {...p, apk, mpk}
@@ -82,15 +82,15 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':     walletFn = svrWalletFunctions.connectData; break;
-            case 'DUMP':        walletFn = svrWalletFunctions.walletDump; break;
-            case 'ADD-ADDR':    walletFn = svrWalletFunctions.walletAddAddress; break;
-            case 'BALANCE':     walletFn = svrWalletFunctions.walletBalance; break;
-            case 'SAVE':        walletFn = svrWalletPersist.walletFileSave; break;
-            case 'LOAD':        walletFn = svrWalletPersist.walletFileLoad; break;
+            case 'CONNECT':     walletFn = functions.connectData; break;
+            case 'DUMP':        walletFn = functions.walletDump; break;
+            case 'ADD-ADDR':    walletFn = functions.walletAddAddress; break;
+            case 'BALANCE':     walletFn = functions.walletBalance; break;
+            case 'SAVE':        walletFn = filePersist.walletFileSave; break;
+            case 'LOAD':        walletFn = filePersist.walletFileLoad; break;
             
-            case 'SERVER-LOAD': walletFn = svrWalletPersist.walletServerLoad; break; // ##
-            case 'TX-GET-FEE':  walletFn = svrWalletTx.txGetFee; break; // ##
+            case 'SERVER-LOAD': walletFn = serverPersist.walletServerLoad; break; // ##
+            case 'TX-GET-FEE':  walletFn = tx.txGetFee; break; // ##
 
             default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
         }

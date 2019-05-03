@@ -13,7 +13,7 @@ const cliRepl = require('./cli-repl')
 const svrWorkers = require('./svr-workers')
 const svrWalletCreate = require('./svr-wallet/sw-create')
 const svrWallet = require('./svr-wallet/sw-wallet')
-const svrWalletPersist = require('./svr-wallet/sw-persist')
+const svrWalletPersist = require('./svr-wallet/sw-file-persist')
 const log = require('./cli-log')
 const npmPackage = require('./package.json')
 
