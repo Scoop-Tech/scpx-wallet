@@ -1,8 +1,14 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
+const Eos = require('eosjs')
+const { Keygen } = require('eosjs-keygen')
+const { SHA256, MD5 } = require('crypto-js')
+
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
+const configEos = require('../config/eos')
+
 const walletActions = require('../actions/wallet')
 const utilsWallet = require('../utils')
 
@@ -17,22 +23,21 @@ const log = require('../cli-log')
 //
 
 module.exports = {
-    walletSave: (appWorker, store, p) => {
+    // file persistence
+    walletFileSave: (appWorker, store, p) => {
         var { n, f } = p
-        log.cmd('walletSave')
+        log.cmd('walletFileSave')
 
         const e_assetsRaw = store.getState().wallet.assetsRaw
 
         // validate
-        if (!n || n.length === 0 || n === true) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
+        if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
         if (n.toString().match(/^[a-z0-9]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
         const fileName = `./wallet_${n.toString()}.dat`
-        log.param('n', fileName, '(param)')
 
         var overwrite = false
         if (utilsWallet.isParamTrue(f)) {
             overwrite = true
-            log.param(`f`, overwrite, `(param)`)
         }
 
         // check overwrite
@@ -46,24 +51,20 @@ module.exports = {
 
                 if (err) resolve({ err })
                 else {
-                    log.warn(`the supplied MPK and APK will be required to load this wallet.`)
+                    log.warn(`the MPK used to generate this wallet will be required to load it from file.`)
                     resolve({ ok: fileName })
                 }
             })
         })
     },
-
-    walletLoad: (appWorker, store, p) => {
-        var { mpk, apk, n } = p
-        log.cmd('walletLoad')
-        log.param(`mpk`, mpk, `(param)`)
-        log.param(`apk`, apk, `(param)`)
+    walletFileLoad: (appWorker, store, p) => {
+        var { mpk, n } = p
+        log.cmd('walletFileLoad')
 
         // validate
-        if (!n || n.length == 0) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
+        if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
         if (n.toString().match(/^[a-z0-9]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
         const fileName = `./wallet_${n.toString()}.dat`
-        log.param('n', fileName, '(param)')
 
         // check exists
         const fs = require('fs')
@@ -80,7 +81,7 @@ module.exports = {
                     const e_storedAssetsRaw = data.toString()
                     log.info(`Read wallet ${fileName} data OK - length=`, e_storedAssetsRaw.length)
 
-                    svrWalletCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
+                    svrWalletCreate.walletInit(store, { mpk }, e_storedAssetsRaw)
                     .then(walletInitResult => {
                         if (walletInitResult.err) resolve(walletInitResult)
                         resolve({ ok: { fileName, walletInitResult } })
@@ -88,6 +89,43 @@ module.exports = {
                 }
             })
         })
+    },
+
+    // server (eos/api) persistence
+    walletServerLoad: async (appWorker, store, p) => {
+        var { mpk, apk, e } = p
+        log.cmd('walletFileLoad')
+
+        // validate
+        if (utilsWallet.isParamEmpty(e)) return new Promise((resolve) => resolve({ err: `Pseudo-email is required` }))
+        const email = e
+
+        // exec: effectively, session.login
+        const keys = await Keygen.generateMasterKeys(mpk)
+        const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, configEos.scpEosConfig)
+        const eos = Eos(config)
+
+        const hashedMasterPrivateKey = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)
+        const encryptedEmail = utilsWallet.aesEncryption(keys.publicKeys.active, hashedMasterPrivateKey, email)
+        const hashedEmail = MD5(email).toString()
+        const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
+
+        // at least one scoop eos account created for by this MPK?
+        if (keyAccounts.account_names && keyAccounts.account_names.length > 0 && keyAccounts.account_names[0] !== undefined) { 
+
+            //... login_v2 call ...
+        }
+        else {
+            return new Promise((resolve) => resolve({ err: `No key accounts found for owner` }))
+        }
+
+
+        // svrWalletCreate.walletInit(store, { mpk, apk }, e_storedAssetsRaw)
+        // .then(walletInitResult => {
+        //     if (walletInitResult.err) resolve(walletInitResult)
+        //     resolve({ ok: { fileName, walletInitResult } })
+        // })
+
     },
 
 }

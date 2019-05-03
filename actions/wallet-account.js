@@ -3,9 +3,6 @@
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
 
-// https://github.com/ethereum/web3.js/issues/2723
-//const Web3 = require('web3')
-
 const EthTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
 
@@ -136,7 +133,9 @@ module.exports = {
     // params: // { from, to, value } 
     estimateGasInEther: (asset, params) => {
         utilsWallet.debug(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
-        const Web3 = require('web3')
+
+        //console.log('global.svr_Web3=', global.svr_Web3)
+        const Web3 = /*global.svr_Web3 ||*/ require('web3')
         const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[asset.symbol].httpProvider))
 
         var ret = {}
@@ -150,7 +149,6 @@ module.exports = {
 
         return web3.eth.estimateGas(params)  // tx gas limit estimate
         .then(gasLimit => {
-
             // use estimate if not erc20, otherwise use a reasonable static max gas value
             if (!utilsWallet.isERC20(asset)) {
                 ret.gasLimit = gasLimit
@@ -182,9 +180,6 @@ module.exports = {
             }
             return ret
         })
-        // .catch((err) => {
-        //     utilsWallet.error(`### fees - estimateGasInEther ${asset.symbol} FAIL - err=`, err)
-        // })
     },
 }
 

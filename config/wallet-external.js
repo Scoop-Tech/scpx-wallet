@@ -12,8 +12,8 @@ const zecInsightApi = 'https://zcashnetwork.info/api/'
 //const zecInsightApi = 'https://scp-zec1.southeastasia.cloudapp.azure.com:4001/insight-api-zcash/' // hard to find usable and maintained insight forks
 const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
 
-const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
-//const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
+const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
+//const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 
 //
 // eth
@@ -176,7 +176,6 @@ module.exports = {
                 utxo: (address) => { return `${bchabcBlockbookApi}v1/utxo/${address}` },
             }
         },
-
 
         BTC_TEST: { // BTC TestNet3 -- http://bitcoinfaucet.uo1.net/send.php
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },

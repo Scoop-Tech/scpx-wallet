@@ -1,6 +1,8 @@
 #!/usr/bin/env node --experimental-worker
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
+const Keygen = require('eosjs-keygen').Keygen
+
 const walletActions = require('./actions')
 const configWallet = require('./config/wallet')
 const configWalletExternal = require('./config/wallet-external')
@@ -31,7 +33,6 @@ console.log()
 cli
 .version('0.3.0', '-v, -V, -ver, --version')
 .option('-m, --mpk <string>', 'Master Private Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
-.option('-a, --apk <string>', 'Active Public Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
 .option('-f, --loadFile <string>', 'wallet filename: passed to wallet.load (.wl)') 
 .option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)') 
 .option('--about', 'about this software') 
@@ -61,11 +62,20 @@ else {
     console.log(configWallet.WALLET_COPYRIGHT.gray)
     console.log()
     log.info('NODE_ENV:', process.env.NODE_ENV)
-    if (cli.mpk)         log.info(`cli.mpk: ${cli.mpk}`)
-    if (cli.apk)         log.info(`cli.apk: ${cli.apk}`)
-    if (cli.loadFile)    log.info(`cli.loadFile: ${cli.loadFile}`)
-    if (cli.saveHistory) log.info(`cli.saveHistory: ${cli.saveHistory}`)
+    if (cli.mpk)         log.info(`cli.mpk:`, cli.mpk)
+    if (cli.loadFile)    log.info(`cli.loadFile:`, cli.loadFile)
+    if (cli.saveHistory) log.info(`cli.saveHistory:`, cli.saveHistory)
     console.log()
+
+    // Keygen.generateMasterKeys('').then(keys => {
+    //     console.dir(keys)
+    //     keys.publicKeys.active
+    // })
+
+    // https://github.com/ethereum/web3.js/issues/2723 -- define a global reference to Web3 
+    // for some reason it works fine here -- we will use it in preference to require-ing it again,
+    // in wallet-account (where it fails)
+    //global.svr_Web3 = require('web3')
 
     // handlers - unhandlded exceptions, and process exit
     process.on('unhandledRejection', (reason, promise) => {
@@ -84,7 +94,7 @@ else {
     // setup workers
     svrWorkers.workers_init(appStore.store).then(async () => {
 
-        // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEYS)
+        // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEY)
         global.loadedWalletKeys = {} 
 
         // wallet context
@@ -100,8 +110,8 @@ else {
         const prompt = cliRepl.repl_init(walletContext, cli.saveHistory)
 
         // init or load from cmdline, if specified
-        if (cli.mpk && cli.apk) {
-            const validationErrors = await svrWallet.validateMpkApk(cli.mpk, cli.apk)
+        if (cli.mpk) { 
+            const validationErrors = await svrWallet.validateMpk(cli.mpk)
             if (validationErrors && validationErrors.err) {
                 cliRepl.postCmd(prompt, { err: `Validation failed: ${validationErrors.err}` })
             }
@@ -109,14 +119,14 @@ else {
                 if (cli.loadFile) {
                     log.info(`Loading supplied ${cli.loadFile}...`)
                     const globalScope = utilsWallet.getMainThreadGlobalScope()
-                    svrWalletPersist.walletLoad(globalScope.appWorker, walletContext.store,
-                        { apk: cli.apk, mpk: cli.mpk, n: cli.loadFile })
+                    svrWalletPersist.walletFileLoad(globalScope.appWorker, walletContext.store,
+                        { mpk: cli.mpk, n: cli.loadFile })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }
                 else {
                     log.info('Initializing supplied wallet...')
                     svrWalletCreate.walletInit(walletContext.store,
-                        { apk: cli.apk, mpk: cli.mpk })
+                        { mpk: cli.mpk })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }
             }

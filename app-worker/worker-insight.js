@@ -158,7 +158,7 @@ module.exports = {
                                             const receivedBlockNo = resBlockData.data.height
                                             const receivedBlockTime = new Date(resBlockData.data.time * 1000)
                                 
-                                            utilsWallet.logMajor('green','black', `appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime}`)
+                                            utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime}`)
                                 
                                             // get node sync status
                                             getSyncInfo_Insight(x, receivedBlockNo, receivedBlockTime)
@@ -301,34 +301,37 @@ module.exports = {
     },
 
     getSyncInfo_Insight: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) => {
-        if (configExternal.walletExternal_config[symbol] === undefined ||
-            configExternal.walletExternal_config[symbol].api == undefined ||
-            configExternal.walletExternal_config[symbol].api.sync === undefined) {
-            utilsWallet.debug(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
-            return
-        }
-        axios.get(configExternal.walletExternal_config[symbol].api.sync())
-            .then(syncData => {
-                if (syncData && syncData.data) {
-                    const insightSyncStatus = syncData.data.status
-                    const insightSyncBlockChainHeight = syncData.data.blockChainHeight
-                    const insightSyncHeight = syncData.data.height
-                    const insightSyncError = syncData.data.error
+        return getSyncInfo_Insight(symbol, receivedBlockNo, receivedBlockTime)
+    }
+}
 
-                    utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - request dispatch SET_ASSET_BLOCK_INFO...`)
+function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) {
+    if (configExternal.walletExternal_config[symbol] === undefined ||
+        configExternal.walletExternal_config[symbol].api == undefined ||
+        configExternal.walletExternal_config[symbol].api.sync === undefined) {
+        utilsWallet.debug(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
+        return
+    }
+    axios.get(configExternal.walletExternal_config[symbol].api.sync())
+    .then(syncData => {
+        if (syncData && syncData.data) {
+            const insightSyncStatus = syncData.data.status
+            const insightSyncBlockChainHeight = syncData.data.blockChainHeight
+            const insightSyncHeight = syncData.data.height
+            const insightSyncError = syncData.data.error
 
-                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
-                       type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                    payload: { symbol,
-                                receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
-                                receivedBlockTime: receivedBlockTime || new Date().getTime(),
-                                insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
-                    }} ] }
-                    })
-                }
+            utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - request dispatch SET_ASSET_BLOCK_INFO...`)
+
+            self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
+                type: actionsWallet.SET_ASSET_BLOCK_INFO,
+            payload: { symbol,
+                        receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
+                        receivedBlockTime: receivedBlockTime || new Date().getTime(),
+                        insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
+            }} ] }
             })
-    },
-
+        }
+    })
 }
 
 function enrichTx(wallet, asset, tx, pollAddress) {

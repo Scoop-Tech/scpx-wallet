@@ -17,8 +17,7 @@ const walletNewHelp = `${helpBanner}` +
 
 const walletInitHelp = `${helpBanner}` +
     `.wi (wallet-init) - recreates a wallet from supplied seed values\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n` +
-    `\targ: --apk      <active public key>   <required>  entropy for keygen, and salt for redux store (L1) encryption\n`
+    `\targ: --mpk      <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
 
 const walletConnectHelp = `${helpBanner}` +
     `.wc (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
@@ -26,7 +25,6 @@ const walletConnectHelp = `${helpBanner}` +
 const walletDumpHelp = `${helpBanner}` +
     `.wd (wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
     `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --apk      <active public key>   <required>  \n` +
     `\targ: --s        [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
     `\targ: --txs      [bool]                [optional]  dump address transactions (default: false)\n` +
     `\targ: --privkeys [bool]                [optional]  dump private keys (default: false)\n`
@@ -34,8 +32,7 @@ const walletDumpHelp = `${helpBanner}` +
 const walletAddAddrHelp = `${helpBanner}` +
     `.waa (wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
     `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --apk      <active public key>   <required>  \n` +
-    `\targ: --s        [string]              <required>  the asset for which to to add an address, e.g. "ETH" or "BTC"\n`
+    `\targ: --s        [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `.ws (wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
@@ -45,14 +42,22 @@ const walletSaveHelp = `${helpBanner}` +
 const walletLoadHelp = `${helpBanner}` +
     `.wl (wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
     `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --apk      <active public key>   <required>  \n` +
     `\targ: --n        [string]              <required>  the name of the wallet to load\n`
+
+// const walletServerLoadHelp = `${helpBanner}` +
+//     `.wsl (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
+//     `\targ: --mpk      <master private key>  <required>  \n` +
+//     `\targ: --n        [string]              <required>  the name of the wallet to load\n`
 
 const walletBalanceHelp = `${helpBanner}` +
     `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
     `\targ: --s        [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
 
-    
+const txGetFeeHelp = `${helpBanner}` +
+    `.txgf (tx-get-fee) - gets the network fee for sending the specified asset value to a single recipient\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
+    `\targ: --v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
 
 
 const logTailHelp = `${helpBanner}` +
@@ -140,12 +145,17 @@ module.exports = {
         // wallet-save, saves a wallet to file
         defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
 
-        // wallet-load, saves a wallet to file
+        // wallet-load, loads a wallet from file
         defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
+
+        // wallet-server-load, loads a wallet from public eos sidechain
+        //defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
 
         // wallet-balances, shows wallet asset balances
         defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.walletFunction, 'BALANCE')
         
+        // tx-get-fee, computes (estimates) the fee for a single-recipient transaction
+        defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.walletFunction, 'TX-GET-FEE')
 
         // log-tail, show last n lines of verbose (debug) log
         defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)
@@ -197,8 +207,8 @@ function postCmd(prompt, res, help) {
             log.success(`${JSON.stringify(res.ok, null, 2)}`)
         }
 
-        if (global.loadedWalletKeys && global.loadedWalletKeys.mpk && global.loadedWalletKeys.apk) {
-            log.warn('the wallet MPK & APK are being cached in-memory (CLI_SAVE_LOADED_WALLET_KEYS == true)')
+        if (global.loadedWalletKeys && global.loadedWalletKeys.mpk) {
+            log.warn('the wallet MPK is being cached in-memory (CLI_SAVE_LOADED_WALLET_KEY == true)')
         }
 
         prompt.displayPrompt()

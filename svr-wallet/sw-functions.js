@@ -1,5 +1,6 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
+const Keygen = require('eosjs-keygen').Keygen
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
@@ -67,40 +68,35 @@ module.exports = {
     walletDump: (appWorker, store, p) => {
         var { mpk, apk, s, txs, privkeys } = p
         log.cmd('walletDump')
-        log.param(`mpk`, mpk, `(param)`)
-        log.param(`apk`, apk, `(param)`)
 
         // extract filter symbol, if any
         var filterSymbol
         if (s && s.length > 0) {
             filterSymbol = s
-            log.param(`s`, filterSymbol, `(param)`)
         }
 
         // dump tx's, if specified
         var dumpTxs = false
         if (utilsWallet.isParamTrue(txs)) {
             dumpTxs = true
-            log.param(`tx`, dumpTxs, `(param)`)
         }
 
         // dump privkeys, if specified
         var dumpPrivKeys = false
         if (utilsWallet.isParamTrue(privkeys)) {
             dumpPrivKeys = true
-            log.param(`privkeys`, dumpPrivKeys, `(param)`)
         }
         
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-        const wallet = store.getState().wallet
-    
+
         // decrypt raw assets (private keys) from the store
+        const wallet = store.getState().wallet
         var pt_assetsJson
         try {
             pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
         }
         catch (err) {
-            return new Promise((resolve) => resolve({ err: `Decrypt failed (${err.message} - MPK and APK are probably incorrect` }))
+            return new Promise((resolve) => resolve({ err: `Decrypt failed (${err.message} - MPK is probably incorrect` }))
         }
         var pt_assetsObj = JSON.parse(pt_assetsJson)
     
@@ -151,18 +147,14 @@ module.exports = {
     walletAddAddress: async (appWorker, store, p) => {
         var { mpk, apk, s } = p
         log.cmd('walletAddAddress')
-        log.param(`mpk`, mpk, `(param)`)
-        log.param(`apk`, apk, `(param)`)
         
         // validate
         const wallet = store.getState().wallet
-        if (!s) return new Promise((resolve) => resolve({ err: `Asset symbol is required` }))
+        if (utilsWallet.isParamEmpty(s)) return new Promise((resolve) => resolve({ err: `Asset symbol is required` }))
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
         if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
-        log.param(`s`, asset.symbol, `(param)`)
 
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-        log.param(`h_mpk`, h_mpk, `(hased MPK)`)
 
         // exec
         return opsWallet.generateNewAddress({
@@ -190,16 +182,9 @@ module.exports = {
 
     // displays combined balances (for all addresses) 
     walletBalance: (appWorker, store, p) => {
-        var { s } = p
         log.cmd('walletBalance')
-        
-        const wallet = store.getState().wallet
-        if (wallet.assets.some(p => !p.lastAssetUpdateAt)) {
-            return new Promise((resolve) => resolve({ err: 
-                `One or more assets' balance data has not yet been loaded. Have you connected the wallet with ".wc"?`
-            }))
-        }
 
+        const wallet = store.getState().wallet
         const balances = wallet.assets.map(asset => {
             const bal = walletExternalActions.get_combinedBalance(asset)
             return {

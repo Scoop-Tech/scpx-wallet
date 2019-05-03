@@ -356,6 +356,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 if (dedicatedWeb3[pollAddress] === undefined) {
                     const Web3 = require('web3')
                     dedicatedWeb3[pollAddress] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config['ETH'].url)) 
+                    console.log('>> created dedicatedWeb3: OK.') 
                 }
                 if (dedicatedWeb3[pollAddress].currentProvider.connection.readyState != 1) {
                     dedicatedWeb3[pollAddress].currentProvider.on("connect", data => { 

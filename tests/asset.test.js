@@ -24,7 +24,6 @@ afterAll(async () => {
 })
 
 describe('asset', function () {
-
     it('can create a new receive address for all asset types', async () => {
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)

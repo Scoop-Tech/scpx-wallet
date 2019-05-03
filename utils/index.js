@@ -286,10 +286,10 @@ module.exports = {
     error: (s, p, opts) => { // level: error
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log('[SW-ERR] ' + s.red.bold, p)
                 else   console.log('[SW-ERR] ' + s.red.bold)
-            }
+            //}
         }
         else {
             if (p) console.error('[SW-ERR]' + s, p)
@@ -335,6 +335,9 @@ module.exports = {
             }
         }
         return false
+    },
+    isParamEmpty: (s) => {
+        return (!s || s.length === 0 || s === true)
     },
 
     //

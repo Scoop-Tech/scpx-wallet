@@ -10,6 +10,7 @@ const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
 const utilsWallet = require('../utils')
 const opsWallet = require('../actions/wallet')
+
 const log = require('../cli-log')
 
 //
@@ -23,10 +24,9 @@ module.exports = {
         log.cmd('walletNew')
         
         return Keygen.generateMasterKeys()
-        .then(keys => {
-            const res = module.exports.walletInit(store, { 
+        .then(async keys => {
+            const res = await module.exports.walletInit(store, { 
                 mpk: keys.masterPrivateKey,
-                apk: keys.publicKeys.active,
             //email: `s+${emailEntropyBase36}@scoop.tech`
             })
             return res
@@ -34,20 +34,20 @@ module.exports = {
     },
     
     walletInit: async (store, p, e_storedAssetsRaw) => {
-        var { mpk, apk } = p
+        var { mpk } = p
         log.cmd('walletInit')
         
         // validate
         const svrWallet = require('./sw-wallet')
-        const invalidMpkApk = svrWallet.validateMpkApk(mpk, apk)
-        if (invalidMpkApk) return invalidMpkApk
-        log.param(`mpk`, mpk, `(param)`)
-        log.param(`apk`, apk, `(param)`)
+        const invalidMpk = await svrWallet.validateMpk(mpk)
+        if (invalidMpk.err) return invalidMpk
+        log.param('mpk', mpk)
+
+        const apk = (await Keygen.generateMasterKeys(mpk)).publicKeys.active
     
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         //const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
         //const md5_email = MD5(email).toString()
-        log.param(`h_mpk`, h_mpk, `(hased MPK)`)
     
         // exec
         return opsWallet.generateWallets({
@@ -62,24 +62,23 @@ module.exports = {
         })
         .then(generateWalletsResult => {
 
+            console.log('generateWalletsResult', generateWalletsResult)
+
             if (!generateWalletsResult && e_storedAssetsRaw) {
-                return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK and APK are probably incorrect` }))
+                return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
             }
             
-            if (configWallet.CLI_SAVE_LOADED_WALLET_KEYS === true) {
-                global.loadedWalletKeys = { mpk, apk }
+            if (configWallet.CLI_SAVE_LOADED_WALLET_KEY === true) {
+                global.loadedWalletKeys = { mpk }
             }
 
             return { ok: { 
-                        mpk, apk, 
                         generateWalletsResult: generateWalletsResult.map(p => { return {
                                symbol: p.symbol,
                             addresses: p.addresses.map(p2 => p2.addr).join(', ')
                         }} ),
-                        commands: {
-                             "params": `--apk ${apk} --mpk ${mpk}`,
-                        }
-                    }}
+                        mpk
+                   }}
         })
         .catch(err => {
             return { err: err.message || err.toString() }

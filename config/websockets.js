@@ -8,8 +8,8 @@ module.exports = {
     // note also: that insight doesn't support segwit mempool tx's at all - so BB v3 is a strong requirement for btc_seg
     //
     insightApi_ws_config: {
-        'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                 subBlocks: true  },
-        //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
+        'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
+        //'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                 subBlocks: true  },
         
         'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
         //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },

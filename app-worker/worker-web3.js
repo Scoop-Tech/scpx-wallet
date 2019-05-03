@@ -14,6 +14,7 @@ module.exports = {
 
                 // geth: fails on geth v 1.8.2 w/ large web3 getTransactionDetail return packets (large ~= 16kb ?) -- gets EOF and hard-disconnects the WS from server
                 const Web3 = require('web3')
+
                 const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config['ETH'].url))
 
                 // parity: try-fix - https://github.com/ethereum/go-ethereum/issues/16846 ...

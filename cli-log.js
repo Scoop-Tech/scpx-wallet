@@ -8,7 +8,7 @@ const colors = require('colors')
 module.exports = {
 
     param: (name, value, source) => {
-        console.log(`<< ${name.toString().padEnd(15, '.').cyan.bold} ${source.padEnd(15, '.')}: ${value}`)
+        console.log(`<< ${name.toString().padEnd(15, '.').cyan.bold} ${(source||'').padEnd(15, '.')}: ${value}`)
     },
 
     cmd: (s, p) => {
@@ -23,13 +23,13 @@ module.exports = {
     },
     
     warn: (s, p) => {
-        if (p) console.log(`<< ${' WARNING '.bgYellow.black.bold + ' '  + s.toString().yellow.bold}`, p)
-        else   console.log(`<< ${' WARNING '.bgYellow.black.bold + ' '  + s.toString().yellow.bold}`)
+        if (p) console.log(`<< ${'WARNING'.yellow.bold.underline + ' '  + s.toString().yellow.bold}`, p)
+        else   console.log(`<< ${'WARNING'.yellow.bold.underline + ' '  + s.toString().yellow.bold}`)
     },
     
     error: (s, p) => {
-        if (p) console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold}`, p)
-        else   console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold}`)
+        if (p) console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold.underline}`, p)
+        else   console.log(`<< ${' FAIL '.bgRed.white.bold + ' '  + s.toString().red.bold.underline}`)
     },
     
     success: (s, p) => {
