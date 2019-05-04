@@ -8,4 +8,4 @@ script:
 before_install:
   - pip install --user codecov
 after_success:
-  - codecov --file ./coverage/lcov.info 
+  - codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967
