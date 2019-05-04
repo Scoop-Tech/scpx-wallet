@@ -156,6 +156,12 @@ describe('tx', function () {
             const init = await svrWalletCreate.walletInit(appStore.store, { mpk: btcTestNetMpk })
             const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
             const wallet = appStore.store.getState().wallet
+            
+            console.log('process.env.NODE_ENV=', process.env.NODE_ENV)
+            console.log('wallet.assets=', wallet.assets)
+            const btcTest = wallet.assets.find(p => p.symbol === 'BTC_TEST')
+            console.log('BTC_TEST=', BTC_TEST)
+
             const ops = wallet.assets
                 // we need actual utxo's to compute tx fee, so use the defined (populated) btc_test account 
                 .filter(p => p.symbol === 'BTC_TEST')  // todo -- ethtest
