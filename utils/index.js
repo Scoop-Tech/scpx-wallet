@@ -12,7 +12,7 @@ const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
 // dbg - log core wallet to console (interferes with repl prompt)
-const LOG_CORE_TO_CONSOLE = false
+const LOG_CORE_TO_CONSOLE = true
 
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
@@ -226,6 +226,7 @@ module.exports = {
     //
     logMajor: (bg, fg, s, p, opts) => { // level: info
         if (configWallet.WALLET_ENV === "SERVER") {
+            if (!s) return
             fileLogger.log('info', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
@@ -272,6 +273,7 @@ module.exports = {
         }
     },
     log: (s, p, opts) => { // level: info
+        if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
@@ -285,6 +287,7 @@ module.exports = {
         }
     },
     error: (s, p, opts) => { // level: error
+        if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
             //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
@@ -298,6 +301,7 @@ module.exports = {
         }
     },
     warn: (s, p, opts) => { // level: warn 
+        if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
@@ -311,6 +315,7 @@ module.exports = {
         }
     },
     debug: (s, p, opts) => { 
+        if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {

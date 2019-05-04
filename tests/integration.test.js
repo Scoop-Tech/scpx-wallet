@@ -161,6 +161,8 @@ describe('tx', function () {
                 .map(asset => { 
                 return new Promise(async (resolve, reject) => {
                     const bal = walletExternal.get_combinedBalance(asset)
+                    console.log('asset BTC_TEST=', asset)
+                    console.log('bal BTC_TEST=', bal)
                     if (!bal.avail.isGreaterThan(0)) throw('Invalid test data')
                     const feeData = await opsWallet.getAssetFeeData(asset) 
                     const txFee = await walletExternal.computeTxFee({
@@ -172,6 +174,7 @@ describe('tx', function () {
                        activePubKey: init.ok.apk,
                               h_mpk: init.ok.h_mpk,
                     })
+                    console.log('txFee BTC_TEST=', txFee)
                     resolve({ symbol: asset.symbol, txFee })
                 })
             })
