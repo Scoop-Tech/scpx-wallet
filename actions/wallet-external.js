@@ -469,7 +469,7 @@ async function createTxHex(params) {
                 })
             }
 
-            console.time('ext-createTxHex-utxo-createSignTx')
+            //console.time('ext-createTxHex-utxo-createSignTx')
                 const opsWallet = require('./wallet')
                 const network = opsWallet.getUtxoNetwork(asset.symbol)
                 var tx
@@ -630,7 +630,7 @@ async function createTxHex(params) {
                         utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
                     }
                 }
-            console.timeEnd('ext-createTxHex-utxo-createSignTx')
+            //console.timeEnd('ext-createTxHex-utxo-createSignTx')
             
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ hex, inputsCount: txSkeleton.inputs.length, vSize, cu_sendValue: cu_sendValue.toString() }) }) 

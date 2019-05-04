@@ -151,6 +151,7 @@ describe('tx', function () {
 
     it('can create hex and compute fees for a BTC_TEST tx', async () => {
         const result = await new Promise(async (resolve, reject) => {
+            utilsWallet.setLogToConsole(true)
             const appWorker = utilsWallet.getAppWorker()
             const init = await svrWalletCreate.walletInit(appStore.store, { mpk: btcTestNetMpk })
             const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
@@ -164,7 +165,7 @@ describe('tx', function () {
                     console.log('asset BTC_TEST=', asset)
                     console.log('bal BTC_TEST=', bal)
                     if (!bal.avail.isGreaterThan(0)) throw('Invalid test data')
-                    const feeData = await opsWallet.getAssetFeeData(asset) 
+                    const feeData = await opsWallet.getAssetFeeData(asset)
                     const txFee = await walletExternal.computeTxFee({
                               asset: asset,
                             feeData: feeData,

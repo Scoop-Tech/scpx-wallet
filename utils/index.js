@@ -12,7 +12,7 @@ const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
 // dbg - log core wallet to console (interferes with repl prompt)
-const LOG_CORE_TO_CONSOLE = true
+getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE = false
 
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
@@ -224,46 +224,49 @@ module.exports = {
     // (re. colors - chalk doesn't work in worker threads, colors does)
     // (also, re. powershell: https://github.com/nodejs/node/issues/14243)
     //
+    setLogToConsole: (v) => { 
+        getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE = v
+    },
     logMajor: (bg, fg, s, p, opts) => { // level: info
         if (configWallet.WALLET_ENV === "SERVER") {
             if (!s) return
             fileLogger.log('info', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
-                    if (!p)  console.log('' + s.bgRed.white.bold)
-                    else     console.log('' + s.bgRed.white.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgRed.white.bold)
+                    else     console.log('' + s.toString().bgRed.white.bold, stringify(p))
                 }
                 else if (bg === 'green') {
-                    if (!p)  console.log('' + s.bgGreen.white.bold)
-                    else     console.log('' + s.bgGreen.white.bold,stringify(p))
+                    if (!p)  console.log('' + s.toString().bgGreen.white.bold)
+                    else     console.log('' + s.toString().bgGreen.white.bold,stringify(p))
                 }
                 else if (bg === 'blue') {
-                    if (!p)  console.log('' + s.bgBlue.white.bold)
-                    else     console.log('' + s.bgBlue.white.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgBlue.white.bold)
+                    else     console.log('' + s.toString().bgBlue.white.bold, stringify(p))
                 }            
                 else if (bg === 'cyan') {
-                    if (!p)  console.log('' + s.bgCyan.white.bold)
-                    else     console.log('' + s.bgCyan.white.bold ,stringify(p))
+                    if (!p)  console.log('' + s.toString().bgCyan.white.bold)
+                    else     console.log('' + s.toString().bgCyan.white.bold ,stringify(p))
                 }
                 else if (bg === 'yellow') { // # powershell colorblind
-                    if (!p)  console.log('' + s.bgYellow.black.bold)
-                    else     console.log('' + s.bgYellow.black.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgYellow.black.bold)
+                    else     console.log('' + s.toString().bgYellow.black.bold, stringify(p))
                 }
                 else if (bg === 'magenta') { // # powershell colorblind
-                    if (!p)  console.log('' + s.bgMagenta.white.bold)
-                    else     console.log('' + s.bgMagenta.white.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgMagenta.white.bold)
+                    else     console.log('' + s.toString().bgMagenta.white.bold, stringify(p))
                 }
                 else if (bg === 'white') { 
-                    if (!p)  console.log('' + s.bgWhite.black.bold)
-                    else     console.log('' + s.bgWhite.black.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgWhite.black.bold)
+                    else     console.log('' + s.toString().bgWhite.black.bold, stringify(p))
                 }
                 else if (bg === 'gray') { 
-                    if (!p)  console.log('' + s.bgWhite.gray.bold)
-                    else     console.log('' + s.bgWhite.gray.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgWhite.gray.bold)
+                    else     console.log('' + s.toString().bgWhite.gray.bold, stringify(p))
                 }
                 else {
-                    if (!p)  console.log('' + s.bgWhite.black.bold)
-                    else     console.log('' + s.bgWhite.black.bold, stringify(p))
+                    if (!p)  console.log('' + s.toString().bgWhite.black.bold)
+                    else     console.log('' + s.toString().bgWhite.black.bold, stringify(p))
                 }
             }
         }
@@ -276,9 +279,9 @@ module.exports = {
         if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-LOG] ' + s.white.bold, stringify(p))
-                else   console.log('[SW-LOG] ' + s.white.bold) 
+            if (getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+                if (p) console.log('[SW-LOG] ' + s.toString().white.bold, stringify(p))
+                else   console.log('[SW-LOG] ' + s.toString().white.bold) 
             }
         }
         else {
@@ -291,8 +294,8 @@ module.exports = {
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
             //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-ERR] ' + s.red.bold, stringify(p))
-                else   console.log('[SW-ERR] ' + s.red.bold)
+                if (p) console.log('[SW-ERR] ' + s.toString().red.bold, stringify(p))
+                else   console.log('[SW-ERR] ' + s.toString().red.bold)
             //}
         }
         else {
@@ -304,9 +307,9 @@ module.exports = {
         if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-WRN] ' + s.yellow.bold, stringify(p))
-                else   console.log('[SW-WRN] ' + s.yellow.bold)  
+            if (getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+                if (p) console.log('[SW-WRN] ' + s.toString().yellow.bold, stringify(p))
+                else   console.log('[SW-WRN] ' + s.toString().yellow.bold)  
             }
         }
         else {
@@ -318,9 +321,9 @@ module.exports = {
         if (!s) return
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.debug('[sw-dbg] ' + s.gray, stringify(p))
-                else   console.debug('[sw-dbg] ' + s.gray)
+            if (getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+                if (p) console.debug('[sw-dbg] ' + s.toString().gray, stringify(p))
+                else   console.debug('[sw-dbg] ' + s.toString().gray)
             }
         }
         else {
