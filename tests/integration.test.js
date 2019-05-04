@@ -35,6 +35,7 @@ afterAll(async () => {
 describe('asset', function () {
 
     it('can create a new receive address for all asset types', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
             var wallet = appStore.store.getState().wallet
@@ -56,6 +57,7 @@ describe('asset', function () {
     })
 
     it('can fetch suggested network fee rates for all asset types', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const appWorker = utilsWallet.getAppWorker()
             const create = await svrWalletCreate.walletNew(appStore.store)
@@ -81,6 +83,7 @@ describe('asset', function () {
 describe('wallet', function () {
 
     it('can create a new in-memory wallet', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             resolve(await svrWalletCreate.walletNew(appStore.store))
         })
@@ -88,6 +91,7 @@ describe('wallet', function () {
     })
     
     it('can dump a wallet', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
             const dump = await svrWallet.walletFunction(appStore.store, { mpk: create.ok.mpk }, 'DUMP')
@@ -98,6 +102,7 @@ describe('wallet', function () {
     })
 
     it('can reinitialize in-memory a known wallet', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const res = await svrWalletCreate.walletInit(appStore.store, {
                 mpk: "PW5KaarU5Jtg8dyQvM3CqYEz97T4rFozdAbXMfdBfmyRhafkuWKg6"
@@ -113,6 +118,7 @@ describe('wallet', function () {
     })
 
     it('can persist a wallet to and from file', async function () {
+        utilsWallet.setLogToConsole(true)
         const testWalletFile = `test${new Date().getTime()}`
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
@@ -126,6 +132,7 @@ describe('wallet', function () {
     })
 
     it('can persist a wallet to and from the Data Storage Contract', async function () {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const load = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
             const save = await svrWallet.walletFunction(appStore.store, { mpk: load.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
@@ -136,6 +143,7 @@ describe('wallet', function () {
     })
 
     it('can connect a wallet to 3PBPs', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
             const appWorker = utilsWallet.getAppWorker()
             const init = await svrWalletCreate.walletInit(appStore.store, { mpk: btcTestNetMpk })
@@ -150,8 +158,8 @@ describe('wallet', function () {
 describe('tx', function () {
 
     it('can create hex and compute fees for a BTC_TEST tx', async () => {
+        utilsWallet.setLogToConsole(true)
         const result = await new Promise(async (resolve, reject) => {
-            //utilsWallet.setLogToConsole(true)
             const appWorker = utilsWallet.getAppWorker()
             const init = await svrWalletCreate.walletInit(appStore.store, { mpk: btcTestNetMpk })
             const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
