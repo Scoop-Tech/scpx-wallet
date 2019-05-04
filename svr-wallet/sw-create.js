@@ -71,7 +71,7 @@ module.exports = {
                 global.loadedWalletKeys = { mpk }
             }
 
-            utilsWallet.setTitle(`*UNSAVED* apk: ${apk}`)
+            utilsWallet.setTitle(`*UNSAVED* apk - ${apk}`)
 
             return { ok: { 
                         // generateWalletsResult: generateWalletsResult.map(p => { return {

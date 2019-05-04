@@ -69,7 +69,7 @@ module.exports = {
             .then(walletInitResult => {
                 if (walletInitResult.err) resolve(walletInitResult)
                 if (walletInitResult.ok) {
-                    utilsWallet.setTitle(`SERVER: ${email}`)
+                    utilsWallet.setTitle(`SERVER - ${email}`)
                 }
                 return { ok: { accountName, walletInitResult } }
             })                
