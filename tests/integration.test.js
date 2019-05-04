@@ -20,7 +20,7 @@ beforeAll(async () => {
     global.loadedWalletKeys = {}
     global.loadedServerWallet = {}
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 2
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 3
     await svrWorkers.workers_init(appStore.store)
 })
 afterAll(async () => {
