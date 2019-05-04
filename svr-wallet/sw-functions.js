@@ -55,8 +55,13 @@ module.exports = {
             appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
             setInterval(() => {
                 if (appWorker) {
-                    appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
-                    appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+                    try {
+                        appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+                        appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+                    }
+                    catch(err) { // test complete - disconnect timing
+                        utilsWallet.warn(err)
+                    }
                 }
             }, configWallet.VOLATILE_SOCKETS_REINIT_SECS * 1000)
     
