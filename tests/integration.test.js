@@ -32,7 +32,7 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-describe('asset', function () {
+/*describe('asset', function () {
 
     it('can create a new receive address for all asset types', async () => {
         const result = await new Promise(async (resolve, reject) => {
@@ -145,7 +145,7 @@ describe('wallet', function () {
         expect(result.init.ok).toBeDefined()
         expect(result.connect.ok).toBeDefined()
     })
-})
+})*/
 
 describe('tx', function () {
 
