@@ -30,7 +30,7 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development")
+const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ETHTEST = false
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
@@ -612,7 +612,7 @@ const walletsMeta = {
 module.exports = {
 
       WALLET_VER
-    , IS_DEV: process.env.NODE_ENV === "development"
+    , IS_DEV: (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
     , WALLET_COPYRIGHT
     , WALLET_ENV
 
