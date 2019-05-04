@@ -159,7 +159,7 @@ describe('tx', function () {
             
             console.log('process.env.NODE_ENV=', process.env.NODE_ENV)
             console.log('wallet.assets=', wallet.assets)
-            const btcTest = wallet.assets.find(p => p.symbol === 'BTC_TEST')
+            const BTC_TEST = wallet.assets.find(p => p.symbol === 'BTC_TEST')
             console.log('BTC_TEST=', BTC_TEST)
 
             const ops = wallet.assets
