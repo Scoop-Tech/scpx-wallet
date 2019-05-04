@@ -32,7 +32,7 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-/*describe('asset', function () {
+describe('asset', function () {
 
     it('can create a new receive address for all asset types', async () => {
         const result = await new Promise(async (resolve, reject) => {
@@ -145,31 +145,23 @@ describe('wallet', function () {
         expect(result.init.ok).toBeDefined()
         expect(result.connect.ok).toBeDefined()
     })
-})*/
+})
 
 describe('tx', function () {
 
     it('can create hex and compute fees for a BTC_TEST tx', async () => {
         const result = await new Promise(async (resolve, reject) => {
-            utilsWallet.setLogToConsole(true)
+            //utilsWallet.setLogToConsole(true)
             const appWorker = utilsWallet.getAppWorker()
             const init = await svrWalletCreate.walletInit(appStore.store, { mpk: btcTestNetMpk })
             const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
             const wallet = appStore.store.getState().wallet
-            
-            console.log('process.env.NODE_ENV=', process.env.NODE_ENV)
-            console.log('wallet.assets=', wallet.assets)
-            const BTC_TEST = wallet.assets.find(p => p.symbol === 'BTC_TEST')
-            console.log('BTC_TEST=', BTC_TEST)
-
             const ops = wallet.assets
                 // we need actual utxo's to compute tx fee, so use the defined (populated) btc_test account 
                 .filter(p => p.symbol === 'BTC_TEST')  // todo -- ethtest
                 .map(asset => { 
                 return new Promise(async (resolve, reject) => {
                     const bal = walletExternal.get_combinedBalance(asset)
-                    console.log('asset BTC_TEST=', asset)
-                    console.log('bal BTC_TEST=', bal)
                     if (!bal.avail.isGreaterThan(0)) throw('Invalid test data')
                     const feeData = await opsWallet.getAssetFeeData(asset)
                     const txFee = await walletExternal.computeTxFee({
