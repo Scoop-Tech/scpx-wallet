@@ -16,6 +16,7 @@ const utilsWallet = require('../utils')
 const functions = require('./sw-functions')
 const filePersist = require('./sw-file-persist')
 const serverPersist = require('./sw-server-persist')
+const asset = require('./sw-asset')
 const tx = require('./sw-tx')
 
 const log = require('../cli-log')
@@ -31,8 +32,8 @@ module.exports = {
     // general functions: for a loaded wallet
     walletFunction: async (store, p, fn) => {
         const mpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD')
-        const loadedWalletRequired = (fn !== 'LOAD')
-        const connectedWalletRequired = (fn === 'BALANCE' || fn === 'TX-GET-FEE')
+        const loadedWalletRequired = (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
+        const connectedWalletRequired = (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES')
 
         // sanity check - app worker present
         const appWorker = utilsWallet.getMainThreadGlobalScope().appWorker
@@ -82,15 +83,16 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':     walletFn = functions.connectData; break;
-            case 'DUMP':        walletFn = functions.walletDump; break;
-            case 'ADD-ADDR':    walletFn = functions.walletAddAddress; break;
-            case 'BALANCE':     walletFn = functions.walletBalance; break;
-            case 'SAVE':        walletFn = filePersist.walletFileSave; break;
-            case 'LOAD':        walletFn = filePersist.walletFileLoad; break;
+            case 'CONNECT':        walletFn = functions.connectData; break;
+            case 'DUMP':           walletFn = functions.walletDump; break;
+            case 'ADD-ADDR':       walletFn = functions.walletAddAddress; break;
+            case 'BALANCE':        walletFn = functions.walletBalance; break;
+            case 'SAVE':           walletFn = filePersist.walletFileSave; break;
+            case 'LOAD':           walletFn = filePersist.walletFileLoad; break;
             
-            case 'SERVER-LOAD': walletFn = serverPersist.walletServerLoad; break; // ##
-            case 'TX-GET-FEE':  walletFn = tx.txGetFee; break; // ##
+            case 'ASSET-GET-FEES': walletFn = asset.getNetworkFees; break; 
+            case 'SERVER-LOAD':    walletFn = serverPersist.walletServerLoad; break; // ##
+            case 'TX-GET-FEE':     walletFn = tx.txGetFee; break; // ##
 
             default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
         }

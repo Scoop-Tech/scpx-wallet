@@ -178,6 +178,7 @@ module.exports = {
         },
 
         BTC_TEST: { // BTC TestNet3 -- http://bitcoinfaucet.uo1.net/send.php
+            donate: 'mwZeWAYfPRB2pair6T1FvvutMRg2jf92Ya',
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
             api: {

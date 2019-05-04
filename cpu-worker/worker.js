@@ -24,12 +24,14 @@ else { // browser
 
 // error handlers
 if (configWallet.WALLET_ENV === "SERVER") {
-    process.on('unhandledRejection', (reason, promise) => {
-        utilsWallet.error(`## unhandledRejection (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
-    })
-    process.on('uncaughtException', (err, origin) => {
-        utilsWallet.error(`## uncaughtException (cpuWorker) - ${err.toString()}`, origin, { logServerConsole: true })
-    })
+    if (!configWallet.IS_DEV) {
+        process.on('unhandledRejection', (reason, promise) => {
+            utilsWallet.error(`## unhandledRejection (cpuWorker) - ${reason}`, promise, { logServerConsole: true })
+        })
+        process.on('uncaughtException', (err, origin) => {
+            utilsWallet.error(`## uncaughtException (cpuWorker) - ${err.toString()}`, origin, { logServerConsole: true })
+        })
+    }
 }
 
 utilsWallet.logMajor('magenta','white', `... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
@@ -66,6 +68,7 @@ function handler(e) {
             break
 
         case 'WALLET_ADDR_FROM_PRIVKEY':
+            utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY...`)
             if (data) {
                 const params = data.params
                 const reqId = data.reqId
@@ -80,7 +83,7 @@ function handler(e) {
                     utilsWallet.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY, e=`, err)
                 }
                 
-                //utilsWallet.log(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
+                utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
                 self.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, reqId, totalReqCount } })
             }
             else {
@@ -89,6 +92,7 @@ function handler(e) {
             break
 
         case 'ADDR_FROM_PRIVKEY':
+            utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY...`)
             if (data) {
                 const params = data.params
                 const reqId = data.reqId
@@ -97,13 +101,12 @@ function handler(e) {
                 var ret = null
                 try {
                     ret = walletActions.getAddressFromPrivateKey(params)
-                    //ret.symbol = params.symbol
                 }
                 catch(err) {
                     utilsWallet.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)
                 }
                 
-                //utilsWallet.log(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId,params,ret=`, reqId, params, ret)
+                utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
                 self.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, inputParams: params, reqId, totalReqCount } })
             }
             break

@@ -107,6 +107,21 @@ const walletsMeta = {
         bip44_index: 0, // ##
         tx_perInput_vsize: 147,
     },
+    'btc(t)': {
+        name: 'btc(t)',
+        type: WALLET_TYPE_UTXO,
+        addressType: ADDRESS_TYPE_BTC,
+        symbol: 'BTC_TEST',
+        displayName: 'BTC*',
+        desc: 'Testnet3',
+        displaySymbol: 'BTC*',
+        imageUrl: 'img/asset-icon/btc_test2.png',
+        primaryColor: '#f2a235',
+        sortOrder: 888,
+        bip44_index: 1, // ##
+        tx_perInput_vsize: 140,
+    },
+
     'litecoin': {
         name: 'litecoin',
         use_BBv3: true,
@@ -261,6 +276,20 @@ const walletsMeta = {
         bip44_index: 60,
         decimals: 18,
     },
+    'eth(t)': {
+        name: 'eth(t)',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'ETH_TEST',
+        displayName: 'ETH*',
+        desc: 'Ropsten',
+        displaySymbol: 'ETH*',
+        imageUrl: 'img/asset-icon/eth_test2.png',
+        primaryColor: '#6e7bc4',
+        sortOrder: 999,
+        bip44_index: 1, // ##
+        decimals: 18,
+    },    
 
     // ERC20
     'trueusd': {
@@ -568,35 +597,6 @@ const walletsMeta = {
         decimals: 18,
     },
 
-    'btc(t)': {
-        name: 'btc(t)',
-        type: WALLET_TYPE_UTXO,
-        addressType: ADDRESS_TYPE_BTC,
-        symbol: 'BTC_TEST',
-        displayName: 'BTC*',
-        desc: 'Testnet3',
-        displaySymbol: 'BTC*',
-        imageUrl: 'img/asset-icon/btc_test2.png',
-        primaryColor: '#f2a235',
-        sortOrder: 888,
-        bip44_index: 1, // ##
-        tx_base_vsize: 3028,
-    },
-    'eth(t)': {
-        name: 'eth(t)',
-        type: WALLET_TYPE_ACCOUNT,
-        addressType: ADDRESS_TYPE_ETH,
-        symbol: 'ETH_TEST',
-        displayName: 'ETH*',
-        desc: 'Ropsten',
-        displaySymbol: 'ETH*',
-        imageUrl: 'img/asset-icon/eth_test2.png',
-        primaryColor: '#6e7bc4',
-        sortOrder: 999,
-        bip44_index: 1, // ##
-        decimals: 18,
-    },
-
     // 'tron': {
     //     type: WALLET_TYPE_ACCOUNT,
     //     addressType: ADDRESS_TYPE_ETH,
@@ -612,6 +612,7 @@ const walletsMeta = {
 module.exports = {
 
       WALLET_VER
+    , IS_DEV: process.env.NODE_ENV === "development"
     , WALLET_COPYRIGHT
     , WALLET_ENV
 

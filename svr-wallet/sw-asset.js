@@ -18,9 +18,9 @@ const log = require('../cli-log')
 
 module.exports = {
 
-    // gets specific tx actual network fee
-    txGetFee: async (appWorker, store, p) => {
-        var { mpk, apk, s, v } = p
+    // gets suggested network fees from oracles
+    getNetworkFees: async (appWorker, store, p) => {
+        const { s } = p
 
         // validate
         const wallet = store.getState().wallet
@@ -28,25 +28,12 @@ module.exports = {
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
         if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
 
-        if (utilsWallet.isParamEmpty(v)) return new Promise((resolve) => resolve({ err: `Asset value is required` }))
-        if (isNaN(v)) return new Promise((resolve) => resolve({ err: `Invalid asset value` }))
-        const du_sendValue = Number(v)
-        if (du_sendValue < 0) return new Promise((resolve) => resolve({ err: `Asset value cannot be negative` }))
+        // if (utilsWallet.isParamEmpty(v)) return new Promise((resolve) => resolve({ err: `Asset value is required` }))
+        // if (isNaN(v)) return new Promise((resolve) => resolve({ err: `Invalid asset value` }))
+        // const du_sendValue = Number(v)
+        // if (du_sendValue < 0) return new Promise((resolve) => resolve({ err: `Asset value cannot be negative` }))
 
         const feeData = await opsWallet.getAssetFeeData(asset)
-
-        // TODO:
-        //     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-        
-        //     const estimatedFee = await walletExternalActions.computeTxFee({
-        //               asset: asset,
-        //             feeData: feeData,
-        //           sendValue: du_sendValue, 
-        //  encryptedAssetsRaw: asset.assetsRaw, 
-        //          useFastest: false, useSlowest: false, 
-        //        activePubKey: apk,
-        //               h_mpk: h_mpk,
-        //     })
 
         return new Promise((resolve) => resolve({ ok: { feeData } }))
     }

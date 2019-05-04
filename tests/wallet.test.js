@@ -31,7 +31,7 @@ describe('wallet', function () {
         })
         expect(result.ok).toBeDefined()
     })
-      
+    
     it('can dump a wallet', async () => {
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
@@ -59,10 +59,10 @@ describe('wallet', function () {
     })
 
     it('can connect a wallet to 3PBPs', async () => {
-        const globalScope = utilsWallet.getMainThreadGlobalScope()
         const result = await new Promise(async (resolve, reject) => {
+            const appWorker = utilsWallet.getAppWorker()
             const create = await svrWalletCreate.walletNew(appStore.store)
-            const connect = await svrWalletFunctions.connectData(globalScope.appWorker, appStore.store, {})
+            const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
             resolve({ create, connect })
         })
         expect(result.create.ok).toBeDefined()
@@ -83,5 +83,5 @@ describe('wallet', function () {
     })
 })
 
-//it('can run a dummy wallet test', async () => { expect(1).toEqual(1) })
+it('can run a dummy wallet test', async () => { expect(1).toEqual(1) })
 

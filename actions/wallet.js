@@ -37,8 +37,7 @@ module.exports = {
         
         utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
-        const globalScope = utilsWallet.getMainThreadGlobalScope()
-        const appWorker = globalScope.appWorker
+        const appWorker = utilsWallet.getAppWorker()
 
         return new Promise((resolve) => {
 
@@ -307,7 +306,7 @@ module.exports = {
             case configWallet.WALLET_TYPE_UTXO:
                 newPrivKey = generateUtxoBip44Wifs({
                     entropySeed: h_mpk, 
-                         symbol: genSymbol === 'BTC_SEG' || genSymbol === 'BTC_TEST' ? 'BTC' : genSymbol,
+                         symbol: genSymbol, //genSymbol === 'BTC_SEG' || genSymbol === 'BTC_TEST' ? 'BTC' : genSymbol,
                         addrNdx: genAccount.privKeys.length,
                        genCount: 1 })[0]
                 break
@@ -384,8 +383,15 @@ module.exports = {
 
     //
     // generates a new scoop wallet, for all supported assets
-    // browser: decrypts saved eos server data and merges & saves back to eos any previosuly imported accounts
-    //  server: persists only to redux store
+    //
+    // supplied e_storedAssetsRaw can originate from Data Storage Contract (DSC) (server and browser) or
+    // from raw file store (server only);
+    // /
+    // if supplied, DSC data is decrypted, and any newly added asset types are merged with the DSC data to
+    // preserve any previosuly imported accounts or added addresses
+    //
+    //  browser: merged data is re-encrypted and written back to the DSC
+    //   server: merged data is persisted in-memory to redux store
     //
     generateWallets: async (p) => {
         const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
@@ -402,6 +408,9 @@ module.exports = {
                 return null // decrypt failed
             }
             currentAssets = JSON.parse(pt_storedRawAssets)
+            
+            //delete currentAssets["btc(t)"] // fix bad data - tmp
+
         } else {
             currentAssets = {} // generate new
         }
@@ -453,7 +462,7 @@ module.exports = {
                         const accountOpParams = 
                             o.accounts[i].privKeys.map(key => ({
                                     reqId: `${reqId++}`,
-                                params: {
+                                   params: {
                                             symbol: configWallet.walletsMeta[assetName].symbol,
                                          assetName: assetName, 
                                        accountName: o.accounts[accountNdx].name,
@@ -570,15 +579,37 @@ module.exports = {
                       to: configExternal.walletExternal_config[asset.symbol].donate,
                    value: 1.0
                 }
-                return actionsWalletAccount.estimateGasInEther(asset, estimateGasParams)
-                .then(res => {
-                    utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
-                    return res
-                })
-                .catch(err => {
-                    utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+
+                return new Promise((resolve, reject) => {
+                    const appWorker = utilsWallet.getAppWorker()
+                    const listener = function(event) {
+                        const input = utilsWallet.unpackWorkerResponse(event)
+                        if (input) {
+                            const msg = input.msg
+                            if (msg === 'WEB3_GET_ESTIMATE_FEE_DONE') {
+                                const assetSymbol = input.data.assetSymbol
+                                const fees = input.data.fees
+                                if (assetSymbol === asset.symbol) {
+                                    resolve(fees)
+                                    appWorker.removeEventListener('message', listener)
+                                }
+                            } 
+                        }
+                    }
+                    appWorker.addEventListener('message', listener)
+                    appWorker.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE', data: { asset, params: estimateGasParams } })
                 })
                 break
+
+                // return actionsWalletAccount.estimateGasInEther(asset, estimateGasParams)
+                // .then(res => {
+                //     utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
+                //     return res
+                // })
+                // .catch(err => {
+                //     utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
+                // })
+                // break
 
             default: utilsWallet.error(`fees - unsupported asset type ${asset.type}`)
         }
@@ -769,6 +800,7 @@ function generateEthereumWallet(p) {
         for (var i = addrNdx; i < addrNdx + genCount; i++) {
             const path = `m/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}`
             const child = root.derivePath(path)
+            utilsWallet.debug(`generateEthereumWallet - ETH @ BIP44 path ${path}`)
             privKeys.push({ privKey: utilsWallet.batohex(child.privateKey), path })
         }
         return privKeys
@@ -826,7 +858,7 @@ function generateUtxoBip44Wifs(p) {
         var keyPair = child.keyPair // bitgo
 
         var wif = keyPair.toWIF()
-        //utilsWallet.log(`generateUtxoBip44Wifs - ${symbol} @ BIP44 ndx ${i} - child,keyPair,network=`, child, keyPair, network)
+        utilsWallet.debug(`generateUtxoBip44Wifs - ${symbol} @ BIP44 path ${path}`)
         keyPairs.push({ privKey: wif, path })
     }
     return keyPairs

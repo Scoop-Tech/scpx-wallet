@@ -67,27 +67,21 @@ else {
     if (cli.saveHistory) log.info(`cli.saveHistory:`, cli.saveHistory)
     console.log()
 
-    // Keygen.generateMasterKeys('').then(keys => {
-    //     console.dir(keys)
-    //     keys.publicKeys.active
-    // })
-
-    // https://github.com/ethereum/web3.js/issues/2723 -- define a global reference to Web3 
-    // for some reason it works fine here -- we will use it in preference to require-ing it again,
-    // in wallet-account (where it fails)
-    //global.svr_Web3 = require('web3')
+    utilsWallet.setTitle('')
 
     // handlers - unhandlded exceptions, and process exit
-    process.on('unhandledRejection', (reason, promise) => {
-        utilsWallet.error(`## unhandledRejection ${reason}`, promise, { logServerConsole: true})
-        svrWorkers.workers_terminate()
-        process.exit(1)
-    })
-    process.on('uncaughtException', (err, origin) => {
-        utilsWallet.error(`## uncaughtException ${err.toString()}`, origin, { logServerConsole: true})
-        svrWorkers.workers_terminate()
-        process.exit(1)
-    })
+    if (!configWallet.IS_DEV) {
+        process.on('unhandledRejection', (reason, promise) => {
+            utilsWallet.error(`## unhandledRejection (CLI) ${reason}`, promise, { logServerConsole: true})
+            svrWorkers.workers_terminate()
+            process.exit(1)
+        })
+        process.on('uncaughtException', (err, origin) => {
+            utilsWallet.error(`## uncaughtException (CLI) ${err.toString()}`, origin, { logServerConsole: true})
+            svrWorkers.workers_terminate()
+            process.exit(1)
+        })
+    }
     process.on('exit', () => svrWorkers.workers_terminate())
     process.on('SIGINT', () => svrWorkers.workers_terminate())
 

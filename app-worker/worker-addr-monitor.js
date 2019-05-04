@@ -156,6 +156,8 @@ function subAddr_Insight(asset) {
                     utilsWallet.warn(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring server dupe send: already processed this txid! data=`, data)
                 }
                 else {
+                    utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - insightApi.txid=`, data.txid, { logServerConsole: true })
+
                     self.insightAddrTxs.push(txid)
 
                     utilsWallet.log(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** data=`, data)

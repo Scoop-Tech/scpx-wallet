@@ -261,7 +261,6 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
             utilsWallet.warn(`mempool_process_BB_EthTx ${inboundSymbol} - mempool_process_BB_EthTx - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
         }
         if (txAlready_in_local_txs) { 
-            debugger
             utilsWallet.warn(`mempool_process_BB_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
         }
         utilsWallet.log(`mempool_process_BB_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
@@ -311,7 +310,6 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
             utilsWallet.warn(`mempool_process_BB_EthTx ${inboundSymbol} - got confirmed tx from BB reported in mempool - will ignore (txid=${txid})`)
         }
         if (txAlready_in_local_txs) { 
-            debugger
             utilsWallet.warn(`mempool_process_BB_EthTx ${inboundSymbol} - got tx from BB already in local_tx - will ignore (txid=${txid})`)
         }
         utilsWallet.log(`mempool_process_BB_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)

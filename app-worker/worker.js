@@ -64,14 +64,18 @@ self.window = self  // hack fix - web3 beta41 websocketprovider still references
 
 self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
+self.dirtyDbFile = 'scp_tx.db'
+
 // error handlers
 if (configWallet.WALLET_ENV === "SERVER") {
-    process.on('unhandledRejection', (reason, promise) => {
-    utilsWallet.error(`## unhandledRejection (appWorker) - ${reason}`, promise, { logServerConsole: true })
-    })
-    process.on('uncaughtException', (err, origin) => {
-        utilsWallet.error(`## uncaughtException (appWorker) - ${err.toString()}`, origin, { logServerConsole: true })
-    })
+    if (!configWallet.IS_DEV) {
+        process.on('unhandledRejection', (reason, promise) => {
+        utilsWallet.error(`## unhandledRejection (appWorker) - ${reason}`, promise, { logServerConsole: true })
+        })
+        process.on('uncaughtException', (err, origin) => {
+            utilsWallet.error(`## uncaughtException (appWorker) - ${err.toString()}`, origin, { logServerConsole: true })
+        })
+    }
 }
 
 utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
@@ -85,18 +89,15 @@ function handler(e) {
     const data = eventData.data
     switch (msg) {
 
-        case 'INIT_SERVER_TX_DB': 
+        case 'SERVER_INIT_TX_DB':  // setup tx db cache (dirty - replaces node-persist)
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`)
-            
-            // setup tx db cache (dirty - replaces node-persist)
-            utilsWallet.log(`global.txdb_dirty: init...`, null, { logServerConsole: true })
-            const dirty = require('dirty')
-            global.txdb_dirty = dirty('scp_tx.db')
-            global.txdb_dirty.on('load', function() {
-                utilsWallet.log(`global.txdb_dirty: init OK.`, null, { logServerConsole: true })
-                self.postMessage({ msg: 'INIT_SERVER_TX_DB_DONE', status: 'RES', data: { } })
-            })
+            dirtyDbInit()
             break
+        // ## broken -- see dirtyDbClear
+        // case 'SERVER_NUKE_TX_DB': 
+        //     utilsWallet.debug(`appWorker >> ${self.workerId} SERVER_NUKE_TX_DB...`)
+        //     dirtyDbClear()
+        //     break
 
         case 'DIAG_PING':
             utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
@@ -107,7 +108,7 @@ function handler(e) {
         case 'NOTIFY_USER': 
             // posts the notification payload back to the main thread, so it can display accordingly
             // (toastr notification in browser, console log on server)
-            utilsWallet.log(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
+            utilsWallet.debug(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
             self.postMessage({ msg: 'NOTIFY_USER', status: 'RES', data })
             break
 
@@ -186,6 +187,15 @@ function handler(e) {
         case 'INIT_WEB3_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             workerWeb3.web3_Setup_SingletonSocketProvider()
+            break
+        case 'WEB3_GET_ESTIMATE_FEE':
+            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_GET_ESTIMATE_FEE...`)
+            const asset = data.asset
+            const params = data.params
+            workerWeb3.estimateGasInEther(asset, params).then(fees => {
+                utilsWallet.log('WEB3_GET_ESTIMATE_FEE_DONE: posting back', fees)
+                self.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE_DONE', status: 'RES', data: { fees, assetSymbol: asset.symbol } }) 
+            })
             break
 
         case 'CONNECT_ADDRESS_MONITORS':
@@ -454,6 +464,43 @@ function handler(e) {
 
         return allDispatchActions
     }
+
+    //
+    // server file cache (npm dirty)
+    // 
+    function dirtyDbInit() {
+        utilsWallet.log(`global.txdb_dirty: init...`, null, { logServerConsole: true })
+        global.txdb_dirty = require('dirty')(self.dirtyDbFile)
+        global.txdb_dirty.on('load', function() {
+            utilsWallet.log(`global.txdb_dirty: init OK.`, null, { logServerConsole: true })
+            self.postMessage({ msg: 'SERVER_INIT_TX_DB_DONE', status: 'RES', data: { } })
+        })
+    }
+    /*function dirtyDbClear() { // ## broken
+        utilsWallet.log(`global.txdb_dirty: clear...`, null, { logServerConsole: true })
+        
+        // this fails to actually delete lines - just appends new undefined lines (so key declarations are duplicated)
+        // global.txdb_dirty.forEach((key,val) => {
+        //     //global.txdb_dirty.rm(key, (e) => {
+        //         global.txdb_dirty.set(key, undefined)   
+        //         utilsWallet.log(`dirty: remove ${key}...`, { logServerConsole: true })
+        //     //})
+        // })
+        
+        // this works
+        global.txdb_dirty.close()
+        const fs = require('fs')
+        const exists = fs.existsSync(self.dirtyDbFile)
+        if (exists) {
+            fs.unlinkSync(self.dirtyDbFile)
+        }
+
+        // but this (no matter how/where dirty is re-init'd) causes CLI commands to get written to the file after re-init (?!)
+        //sglobal.txdb_dirty = require('dirty')(self.dirtyDbFile)
+
+        // so we're left without a txdb, and no way to reinitialize it
+        self.postMessage({ msg: 'SERVER_NUKE_TX_DB_DONE', status: 'RES', data: {} })
+    }*/
 
     //
     // network, misc

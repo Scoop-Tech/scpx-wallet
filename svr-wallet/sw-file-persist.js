@@ -30,7 +30,7 @@ module.exports = {
 
         // validate
         if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
-        if (n.toString().match(/^[a-z0-9]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
+        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
         const fileName = `./wallet_${n.toString()}.dat`
 
         var overwrite = false
@@ -50,6 +50,7 @@ module.exports = {
                 if (err) resolve({ err })
                 else {
                     log.warn(`the MPK used to generate this wallet will be required to load it from file.`)
+                    utilsWallet.setTitle(`FILE: ${fileName}`)
                     resolve({ ok: fileName })
                 }
             })
@@ -61,7 +62,7 @@ module.exports = {
 
         // validate
         if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
-        if (n.toString().match(/^[a-z0-9]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
+        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
         const fileName = `./wallet_${n.toString()}.dat`
 
         // check exists
@@ -82,6 +83,9 @@ module.exports = {
                     svrWalletCreate.walletInit(store, { mpk }, e_storedAssetsRaw)
                     .then(walletInitResult => {
                         if (walletInitResult.err) resolve(walletInitResult)
+                        if (walletInitResult.ok) {
+                            utilsWallet.setTitle(`FILE: ${fileName}`)
+                        }
                         resolve({ ok: { fileName, walletInitResult } })
                     })
                 }

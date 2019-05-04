@@ -6,7 +6,7 @@ const colors = require('colors')
 const appStore = require('./store')
 const utilsWallet = require('./utils')
 const log = require('./cli-log')
-
+const svrWorkers = require('./svr-workers')
 const svrWallet = require('./svr-wallet/sw-wallet')
 const svrWalletCreate = require('./svr-wallet/sw-create')
 
@@ -53,12 +53,21 @@ const walletBalanceHelp = `${helpBanner}` +
     `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
     `\targ: --s        [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
 
+const assetGetFeesHelp = `${helpBanner}` +
+    `.agf (asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
+    `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n`
+
 const txGetFeeHelp = `${helpBanner}` +
     `.txgf (tx-get-fee) - gets the network fee for sending the specified asset value to a single recipient\n`.cyan.bold +
     `\targ: --mpk      <master private key>  <required>  \n` +
     `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
     `\targ: --v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
 
+
+// dbg/utils
+
+//const clearCacheHelp = `${helpBanner}` +
+//    `.cc (clear-tx-db-cache) - clears the TX cache file\n`.cyan.bold
 
 const logTailHelp = `${helpBanner}` +
     `.lt (log-tail) - tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
@@ -127,40 +136,48 @@ module.exports = {
             })
         }
 
-        // wallet-new, new random MPK
         defineWalletCmd(prompt, 'wn', walletNewHelp, svrWalletCreate.walletNew)
-
-        // wallet-init, by supplied MPK
         defineWalletCmd(prompt, 'wi', walletInitHelp, svrWalletCreate.walletInit)
 
-        // wallet-connect, block/tx updates for all asset-types & addr-monitors
-        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.walletFunction, 'CONNECT')
-
-        // wallet-dump, decrypt & dump values from redux store
-        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.walletFunction, 'DUMP')
-
-        // wallet-add-address, creates a new receive address
-        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.walletFunction, 'ADD-ADDR')
-
-        // wallet-save, saves a wallet to file
-        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
-
-        // wallet-load, loads a wallet from file
         defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
-
-        // wallet-server-load, loads a wallet from public eos sidechain
+        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
         defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
 
-        // wallet-balances, shows wallet asset balances
+        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.walletFunction, 'CONNECT')
+
+        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.walletFunction, 'DUMP')
         defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.walletFunction, 'BALANCE')
+
+        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.walletFunction, 'ADD-ADDR')
+        // TODO: add/remove imported accounts
+
+        defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.walletFunction, 'ASSET-GET-FEES')
         
-        // tx-get-fee, computes (estimates) the fee for a single-recipient transaction
         defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.walletFunction, 'TX-GET-FEE')
 
-        // log-tail, show last n lines of verbose (debug) log
+
         defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)
 
 
+        // clear, tx db cache 
+        // defineWalletCmd(prompt, 'cc', clearCacheHelp, async () => {
+        //     const txDbClear = new Promise((resolve) => {
+        //         const listener = (event) => {
+        //             if (event.msg === 'SERVER_NUKE_TX_DB_DONE') { 
+        //                 utilsWallet.getAppWorker().removeEventListener('message', listener)
+        //                 // ## re-init of txdb after clear causes cli commands to be written to it
+        //                 // setTimeout(() => {
+        //                 //     svrWorkers.txdb_init()
+        //                 //     resolve()
+        //                 // }, 1000)
+        //             }
+        //         }
+        //         utilsWallet.getAppWorker().addEventListener('message', listener)
+        //         utilsWallet.getAppWorker().postMessage({ msg: 'SERVER_NUKE_TX_DB', data: {} })
+        //     })
+        //     await txDbClear
+        //     return { ok: true }
+        // })
 
         // cls, clear console screen
         defineWalletCmd(prompt, 'cls', clsHelp, async () => {
@@ -171,20 +188,7 @@ module.exports = {
         // exit, clear console screen
         defineWalletCmd(prompt, 'exit', exitHelp, async () => {
             process.exit(0)
-            //return { ok: true }
         })
-
-        // dbg, dump store state
-        // prompt.defineCommand("drs", {
-        //     help: "dbg - dump redux store",
-        //     action: function (args) {
-        //         this.clearBufferedCommand()
-        //         console.dir(appStore.store.getState())
-        //         setTimeout(() => {
-        //             this.displayPrompt()
-        //         }, 100)
-        //     }
-        // })
 
         return prompt
     },

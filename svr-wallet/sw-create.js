@@ -71,12 +71,14 @@ module.exports = {
                 global.loadedWalletKeys = { mpk }
             }
 
+            utilsWallet.setTitle(`*UNSAVED* apk: ${apk}`)
+
             return { ok: { 
                         // generateWalletsResult: generateWalletsResult.map(p => { return {
                         //        symbol: p.symbol,
                         //     addresses: p.addresses.map(p2 => p2.addr).join(', ')
                         // }} ),
-                        mpk, apk,
+                        mpk, apk, h_mpk,
                    }}
         })
         .catch(err => {

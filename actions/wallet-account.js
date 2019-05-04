@@ -24,7 +24,7 @@ module.exports = {
     //     const height = await web3.eth.getBlockNumber()
     //     console.log('web3 >> height=', height)
     // },
-
+    
     createTxHex_Account: async (symbol, params, privateKey) => {
         utilsWallet.debug(`*** createTxHex_Account ${symbol} (${params})...`)
 
@@ -132,57 +132,6 @@ module.exports = {
         })
     },
 
-    // params: // { from, to, value } 
-    estimateGasInEther: (asset, params) => {
-        utilsWallet.debug(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
-
-        //console.log('global.svr_Web3=', global.svr_Web3)
-        const Web3 = /*global.svr_Web3 ||*/ require('web3')
-        const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[asset.symbol].httpProvider))
-
-        var ret = {}
-        // = { gasLimit, gasprice_Web3,                              // from web3
-        //     gasprice_safeLow, gasprice_fast, gasprice_fastest     // from oracle(s)
-        //   }
-
-        if (!utilsWallet.isERC20(asset)) {
-            params.value = web3.utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
-        }
-
-        return web3.eth.estimateGas(params)  // tx gas limit estimate
-        .then(gasLimit => {
-            // use estimate if not erc20, otherwise use a reasonable static max gas value
-            if (!utilsWallet.isERC20(asset)) {
-                ret.gasLimit = gasLimit
-            }
-            else {
-                if (!asset.erc20_transferGasLimit)
-                    utilsWallet.warn(`no erc20_transferGasLimit set for ${asset.symbol}; using fallback`)
-                ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
-            }
-
-            return web3.eth.getGasPrice() // web3/eth node gas price - fallback value
-        })
-        .then(gasprice_Web3 => {
-            ret.gasprice_Web3 = parseFloat(gasprice_Web3)
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
-        })
-        .then(res => {
-            if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000))) // gwei -> wei
-                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000)))
-                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000)))
-
-            } else { // fallback to web3
-                utilsWallet.warn(`### fees - estimateGasInEther ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
-                ret.gasprice_fast = ret.gasprice_Web3
-                ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
-                ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
-            }
-            return ret
-        })
-    },
 }
 
 async function createETHTransactionHex(symbol, params, privateKey) {

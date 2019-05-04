@@ -10,7 +10,7 @@ const svrWalletFunctions = require('../svr-wallet/sw-functions')
 const svrWallet = require('../svr-wallet/sw-wallet')
 
 beforeAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 
     await svrWorkers.workers_init(appStore.store)
 })
 
@@ -24,11 +24,14 @@ afterAll(async () => {
 })
 
 describe('asset', function () {
+
     it('can create a new receive address for all asset types', async () => {
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appStore.store)
             var wallet = appStore.store.getState().wallet
-            const ops = wallet.assets.map(asset => { return svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ADD-ADDR') })
+            const ops = wallet.assets.map(asset => { 
+                return svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ADD-ADDR')
+            })
             const results = await Promise.all(ops)
             const countOk = results.filter(p => p.ok).length
             
@@ -42,7 +45,29 @@ describe('asset', function () {
         expect(result.countOk).toEqual(wallet.assets.length)
         expect(result.countAdded).toEqual(wallet.assets.length)
     })
+
+    it('can fetch suggested network fee rates for all asset types', async () => {
+        const result = await new Promise(async (resolve, reject) => {
+            const appWorker = utilsWallet.getAppWorker()
+            const create = await svrWalletCreate.walletNew(appStore.store)
+            const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
+            const wallet = appStore.store.getState().wallet
+            
+            const ops = wallet.assets.map(asset => { 
+                return svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ASSET-GET-FEES')
+            })
+            const results = await Promise.all(ops)
+            const countOk = results.filter(p => p.ok && p.ok.feeData &&
+                (p.ok.feeData.fast_satPerKB || (p.ok.feeData.gasLimit && p.ok.feeData.gasprice_fast))).length
+            const countAssets = wallet.assets.length
+
+            resolve({ create, connect, countOk, countAssets })
+        })
+        expect(result.create.ok).toBeDefined()
+        expect(result.connect.ok).toBeDefined()
+        expect(result.countOk).toEqual(result.countAssets)
+    })
 })
 
-//it('can run a dummy asset test', async () => { expect(1).toEqual(1) })
+it('can run a dummy asset test', async () => { expect(1).toEqual(1) })
 

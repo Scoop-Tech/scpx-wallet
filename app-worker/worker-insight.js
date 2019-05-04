@@ -73,7 +73,7 @@ module.exports = {
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed, err=`, err) }
                         })
                         socket.on('connect_error', function (socketErr) {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, socketErr=`, socketErr)
+                            utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, socketErr=`, socketErr.message)
                             try {
                                 networkConnected(x, false)
                                 networkStatusChanged(x)

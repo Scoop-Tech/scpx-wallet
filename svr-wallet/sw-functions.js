@@ -25,18 +25,18 @@ module.exports = {
             appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
             appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
             
-            function blockbookListener(event) {
-                if (event && event.data && event.msg) {
-                    const data = event.data
-                    const msg = event.msg
-    
+            const listener = function(event) {
+                var input = utilsWallet.unpackWorkerResponse(event)
+                if (input) {
+                    const data = input.data
+                    const msg = input.msg
                     if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
                         const storeState = store.getState()
                         if (storeState.wallet && storeState.wallet.assets) {
+
+                            // connect addr monitors & populate all assets
                             appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-    
                             appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-    
                             walletActions.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
                             .then(p => {
                                 resolve({ ok: true })
@@ -45,18 +45,19 @@ module.exports = {
                         else {
                             resolve({ ok: false })
                         }
-    
-                        appWorker.removeListener('message', blockbookListener)
+                        appWorker.removeEventListener('message', listener)
                     }
                 }
             }
-            appWorker.on('message', blockbookListener)
+            appWorker.addEventListener('message', listener)
     
             appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
             appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
-            var volatileReInit_intId = setInterval(() => {
-                appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
-                appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+            setInterval(() => {
+                if (appWorker) {
+                    appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+                    appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+                }
             }, configWallet.VOLATILE_SOCKETS_REINIT_SECS * 1000)
     
         })

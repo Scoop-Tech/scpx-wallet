@@ -68,7 +68,9 @@ module.exports = {
             return svrWalletCreate.walletInit(store, { mpk, apk }, res.assetsJSON)
             .then(walletInitResult => {
                 if (walletInitResult.err) resolve(walletInitResult)
-
+                if (walletInitResult.ok) {
+                    utilsWallet.setTitle(`SERVER: ${email}`)
+                }
                 return { ok: { accountName, walletInitResult } }
             })                
         })

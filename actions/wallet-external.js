@@ -347,7 +347,7 @@ module.exports = {
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
                 activePubKey: activePubKey, 
-                    h_mpk: h_mpk,
+                       h_mpk: h_mpk,
             })
             if (res !== undefined) {
                 const inputsCount = res.inputsCount
@@ -355,7 +355,13 @@ module.exports = {
                 const cu_fee = new BigNumber(Math.ceil(((vsize / 1024) * cu_satPerKB)))  // actual tx KB size * sat/KB
 
                 const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset)) 
-                ret = { fee: du_fee, inputsCount, utxo_vsize: vsize, utxo_satPerKB: cu_satPerKB }
+                ret = { fee: du_fee,
+                        inputsCount,
+                        utxo_vsize: vsize,
+                        utxo_satPerKB: cu_satPerKB }
+            }
+            else {
+                utilsWallet.error(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
             }
         }
         else if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
@@ -395,7 +401,10 @@ module.exports = {
 //
 async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
-        activePubKey, h_mpk } = params
+            activePubKey, h_mpk } = params
+
+    if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'receiver is required'
+    if (payTo.length != 1) throw 'send-multi is not yet supported'
 
     utilsWallet.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
     const validationMode = !sendMode
@@ -406,13 +415,9 @@ async function createTxHex(params) {
     asset.addresses.forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
 
     // get private keys
-    var pt_AssetsJson = 
-        utilsWallet.aesDecryption(
-            activePubKey,
-            h_mpk,
-            encryptedAssetsRaw !== undefined ? encryptedAssetsRaw : ''
-        )
-    if (!pt_AssetsJson || pt_AssetsJson === '') return
+    var pt_AssetsJson = utilsWallet.aesDecryption(activePubKey, h_mpk, encryptedAssetsRaw)
+    if (!pt_AssetsJson || pt_AssetsJson === '') throw('Failed decrypting assets')
+
     var pt_assetsObj = JSON.parse(pt_AssetsJson)
     var pt_asset = pt_assetsObj[asset.name.toLowerCase()]
     utilsWallet.softNuke(pt_assetsObj)
@@ -440,6 +445,7 @@ async function createTxHex(params) {
     switch (asset.type) {
 
         case configWallet.WALLET_TYPE_UTXO: {
+            console.log('createTxHex UTXO', params)
 
             // get total receiver output value, for return
             const cu_sendValue = payTo.reduce((sum,p) => { return sum.plus(new BigNumber(p.value).times(100000000)) }, BigNumber(0))
@@ -447,17 +453,20 @@ async function createTxHex(params) {
             // get required inputs & outputs
             const utxoParams = {
                 changeAddress: asset.addresses[0].addr, // all change to primary address -- todo: probably should use new address on every send here
-                    outputs: payTo.map(p => { return {
-                        receiver: p.receiver,
-                            value: new BigNumber(p.value).times(100000000).toString()
-                        } }),
-                feeSatoshis: Math.floor(feeParams.du_utxo_feeSatoshis * 100000000),
+                      outputs: payTo.map(p => { return { receiver: p.receiver, value: new BigNumber(p.value).times(100000000).toString() }}),
+                  feeSatoshis: Math.floor(feeParams.du_utxo_feeSatoshis * 100000000),
                         utxos, // flattened list of all utxos across all addresses
             }
-
             const txSkeleton = walletUtxo.getUtxo_InputsOutputs(asset.symbol, utxoParams, sendMode)
-            if (txSkeleton === undefined) return undefined // validate/estimate tx fee mode - no utxo inputs
-            if (typeof txSkeleton.then == 'function') { // exec mode - getUtxo_InputsOutputs may return rejected promise, e.g. insufficient funds to construct
+
+            // no utxo inputs and we're on validation pass - no exception to be thrown in this case
+            if (txSkeleton === null) { 
+                return undefined 
+            } 
+            
+            // exec mode - getUtxo_InputsOutputs may return rejected promise, e.g. insufficient funds to construct
+            if (typeof txSkeleton.then == 'function') { 
+                console.log('createTxHex UTXO txSkeleton.then==function...')
                 return txSkeleton.catch((x) => {
                     return new Promise((resolve, reject) => { reject(x) }) 
                 })

@@ -23,8 +23,7 @@ module.exports = {
             status = event.status
         }
 
-        //const globalScope = utilsWallet.getMainThreadGlobalScope()
-        const appWorker = utilsWallet.getAppWorker() //globalScope.appWorker
+        const appWorker = utilsWallet.getAppWorker() 
 
         if (msg === 'REQUEST_STATE' && postback) {
             const stateItem = postback.stateItem
@@ -35,7 +34,7 @@ module.exports = {
                     const storeState = store.getState()
                     if (storeState && storeState.wallet && storeState.wallet.assets) {
                         const asset = storeState.wallet.assets.find((p) => { return p.symbol === stateKey })
-                        if (asset) { // response:
+                        if (asset) { // response
                             appWorker.postMessage({ msg: 'STATE_RESPONSE', status: 'RES', data: { 
                                 stateItem, stateKey, value: { asset, wallet: storeState.wallet, ux: storeState.ux }, context
                             } }) 
@@ -70,7 +69,6 @@ module.exports = {
                 // alert on any enrich_tx actions for newly mined tx's
                 const storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
-                    console.log('REQUEST_DISPATCH_BATCH, dispatchActions=', dispatchActions)
                     const enrichTxOps = dispatchActions.filter(p => { return p.type === 'WCORE_SET_ENRICHED_TXS_MULTI' })
 
                     enrichTxOps.forEach(enrichTxOp => {
@@ -87,14 +85,12 @@ module.exports = {
                                             ; // eth erc20 tx: nop - ignore the eth tx, just notify on for the erc20
                                         }
                                         else {
-                                            //if (configWallet.WALLET_ENV === "BROWSER") {
-                                                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: {
-                                                    type: 'success',
-                                                headline: `${asset.displaySymbol}: Confirmed TX`,
-                                                    info: `${asset.displayName} mined ${utilsWallet.EMOJI_HAPPY_KITTY}`,
-                                                    txid: enrichTx.txid
-                                                }})
-                                            //}
+                                            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: {
+                                                type: 'success',
+                                            headline: `${asset.displaySymbol}: Confirmed TX`,
+                                                info: `${asset.displayName} mined ${utilsWallet.EMOJI_HAPPY_KITTY}`,
+                                                txid: enrichTx.txid
+                                            }})
                                         }
                                     }
                                 })

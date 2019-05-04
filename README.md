@@ -53,12 +53,15 @@ This repo contains the open-source Core Wallet with integrated JS REPL command l
 
 ## Building from Source
 
+  * ```npm install -g node-gyp```
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
+  * ```npm install -g --production windows-build-tools@4.0.0``` (Windows) https://github.com/felixrieseberg/windows-build-tools/issues/152
+  * ```npm config set msvs_version 2015``` (Windows)
   * ```npm install```
   * ```npm start``` or ```nodemon```
 
-The tested target build environment is node 10.14.1 and npm 6.9.0.
+The tested target build environment is node 10.15.3 and npm 6.9.0.
 
 NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required at runtime. This is set by the npm scripts, but you can also set it in your environment, e.g. ```$env:NODE_OPTIONS = "--experimental-worker"```, or your OS equivalent.
 

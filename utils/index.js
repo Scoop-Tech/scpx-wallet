@@ -3,6 +3,7 @@
 const BigDecimal = require('js-big-decimal')
 const BigNumber = require('bignumber.js')
 const CryptoJS = require('crypto-js')
+var stringify = require('json-stringify-safe')
 
 const colors = require('colors')
 const chalk = require('chalk')
@@ -229,39 +230,39 @@ module.exports = {
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
                     if (!p)  console.log('' + s.bgRed.white.bold)
-                    else     console.log('' + s.bgRed.white.bold, p)
+                    else     console.log('' + s.bgRed.white.bold, stringify(p))
                 }
                 else if (bg === 'green') {
                     if (!p)  console.log('' + s.bgGreen.white.bold)
-                    else     console.log('' + s.bgGreen.white.bold, p)
+                    else     console.log('' + s.bgGreen.white.bold,stringify(p))
                 }
                 else if (bg === 'blue') {
                     if (!p)  console.log('' + s.bgBlue.white.bold)
-                    else     console.log('' + s.bgBlue.white.bold, p)
+                    else     console.log('' + s.bgBlue.white.bold, stringify(p))
                 }            
                 else if (bg === 'cyan') {
                     if (!p)  console.log('' + s.bgCyan.white.bold)
-                    else     console.log('' + s.bgCyan.white.bold, p)
+                    else     console.log('' + s.bgCyan.white.bold ,stringify(p))
                 }
                 else if (bg === 'yellow') { // # powershell colorblind
                     if (!p)  console.log('' + s.bgYellow.black.bold)
-                    else     console.log('' + s.bgYellow.black.bold, p)
+                    else     console.log('' + s.bgYellow.black.bold, stringify(p))
                 }
                 else if (bg === 'magenta') { // # powershell colorblind
                     if (!p)  console.log('' + s.bgMagenta.white.bold)
-                    else     console.log('' + s.bgMagenta.white.bold, p)
+                    else     console.log('' + s.bgMagenta.white.bold, stringify(p))
                 }
                 else if (bg === 'white') { 
                     if (!p)  console.log('' + s.bgWhite.black.bold)
-                    else     console.log('' + s.bgWhite.black.bold, p)
+                    else     console.log('' + s.bgWhite.black.bold, stringify(p))
                 }
                 else if (bg === 'gray') { 
                     if (!p)  console.log('' + s.bgWhite.gray.bold)
-                    else     console.log('' + s.bgWhite.gray.bold, p)
+                    else     console.log('' + s.bgWhite.gray.bold, stringify(p))
                 }
                 else {
                     if (!p)  console.log('' + s.bgWhite.black.bold)
-                    else     console.log('' + s.bgWhite.black.bold, p)
+                    else     console.log('' + s.bgWhite.black.bold, stringify(p))
                 }
             }
         }
@@ -274,7 +275,7 @@ module.exports = {
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-LOG] ' + s.white.bold, p)
+                if (p) console.log('[SW-LOG] ' + s.white.bold, stringify(p))
                 else   console.log('[SW-LOG] ' + s.white.bold) 
             }
         }
@@ -287,7 +288,7 @@ module.exports = {
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
             //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-ERR] ' + s.red.bold, p)
+                if (p) console.log('[SW-ERR] ' + s.red.bold, stringify(p))
                 else   console.log('[SW-ERR] ' + s.red.bold)
             //}
         }
@@ -300,7 +301,7 @@ module.exports = {
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-WRN] ' + s.yellow.bold, p)
+                if (p) console.log('[SW-WRN] ' + s.yellow.bold, stringify(p))
                 else   console.log('[SW-WRN] ' + s.yellow.bold)  
             }
         }
@@ -313,16 +314,17 @@ module.exports = {
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[sw-dbg] ' + s.gray, p)
-                else   console.log('[sw-dbg] ' + s.gray)
+                if (p) console.debug('[sw-dbg] ' + s.gray, stringify(p))
+                else   console.debug('[sw-dbg] ' + s.gray)
             }
         }
         else {
             if (p) console.debug(`[sw-dbg] ${s}`, p)
             else   console.debug(`[sw-dbg] ${s}`)
-            // if (p) console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;', p)
-            // else   console.debug(`%c[sw-dbg] ${s}`, 'color: gray; font-weight: 300; font-size: 12px;')
         }
+    },
+    setTitle: (s) => {
+        require('console-title')(`sw-cli - ${s}`)
     },
 
     //
@@ -367,33 +369,25 @@ module.exports = {
     },    
 
     //
-    // cpuWorkers
+    // workers
     //
     getNextCpuWorker: () => {
         return getNextCpuWorker()
+    },
+
+    unpackWorkerResponse: (event) => {
+        return unpackWorkerResponse(event)
     },
 
     op_WalletAddrFromPrivKey: (p, callbackProcessed) => {
         const ret = new Promise(resolve => {
             const cpuWorker = getNextCpuWorker()
 
-            if (configWallet.WALLET_ENV === "BROWSER") {
-                cpuWorker.addEventListener('message', listener)
-            }
-            else {
-                cpuWorker.on('message', listener)
-            }
+            cpuWorker.addEventListener('message', listener)
 
             function listener(event) {
-                var input
-                if (configWallet.WALLET_ENV === "BROWSER") {
-                    if (!event || !event.data) { resolve(null); return }
-                    input = event.data
-                }
-                else {
-                    if (!event) { resolve(null); return }
-                    input = event
-                }
+                var input = unpackWorkerResponse(event)
+                if (!input) { resolve(null); return }
 
                 const msg = input.msg
                 const status = input.status
@@ -403,12 +397,7 @@ module.exports = {
 
                 if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
                     resolve(ret)
-                    if (configWallet.WALLET_ENV === "BROWSER") {
-                        cpuWorker.removeEventListener('message', listener)
-                    }
-                    else {
-                        cpuWorker.removeListener('message', listener)
-                    }
+                    cpuWorker.removeEventListener('message', listener)
                     if (callbackProcessed) {
                         callbackProcessed(ret, totalReqCount)
                     }
@@ -424,23 +413,11 @@ module.exports = {
         return new Promise(resolve => {
             const cpuWorker = getNextCpuWorker()
 
-            if (configWallet.WALLET_ENV === "BROWSER") {
-                cpuWorker.addEventListener('message', listener)
-            }
-            else {
-                cpuWorker.on('message', listener)
-            }
+            cpuWorker.addEventListener('message', listener)
 
             function listener(event) {
-                var input
-                if (configWallet.WALLET_ENV === "BROWSER") {
-                    if (!event || !event.data) { resolve(null); return }
-                    input = event.data
-                }
-                else {
-                    if (!event) { resolve(null); return }
-                    input = event
-                }
+                var input = unpackWorkerResponse(event)
+                if (!input) { resolve(null); return }
 
                 const msg = input.msg
                 const status = input.status
@@ -451,12 +428,7 @@ module.exports = {
 
                 if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
                     resolve(ret)
-                    if (configWallet.WALLET_ENV === "BROWSER") {
-                        cpuWorker.removeEventListener('message', listener)
-                    }
-                    else {
-                        cpuWorker.removeListener('message', listener)
-                    }
+                    cpuWorker.removeEventListener('message', listener)
                     if (callbackProcessed) {
                         callbackProcessed(ret, inputParams, totalReqCount)
                     }
@@ -484,6 +456,17 @@ function getMainThreadGlobalScope() {
     }
     else {
         return global
+    }
+}
+
+function unpackWorkerResponse(event) {
+    if (configWallet.WALLET_ENV === "BROWSER") {
+        if (!event || !event.data) return null
+        return event.data
+    }
+    else {
+        if (!event) return null
+        return event
     }
 }
 

@@ -23,15 +23,15 @@ module.exports = {
         if (!params || !params.feeSatoshis || !params.utxos) {
             utilsWallet.error(`## getUtxo_InputsOutputs - invalid params`)
             if (throwOnInsufficient) return Promise.reject("Invalid parameters")
-            else return
+            else return null
         }
         if (params.utxos.length === 0) {
             utilsWallet.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance?`)
             if (throwOnInsufficient) return Promise.reject("Insufficient funds")
-            else return
+            else return null
         }
 
-        // sort avalable utxos by descending balance
+        // sort available utxos by descending balance
         const utxos = params.utxos.sort((a, b) => { return (b.satoshis - a.satoshis) })
 
         // this is either an estimated fee, or an exact amount depending on the call stack
@@ -78,7 +78,7 @@ module.exports = {
         if (unspentValue.gt(feeSatoshisAssumed)) { // the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust
             outputs.push({
                 address: params.changeAddress, // multi-addr: fixing change to addr0 for now
-                value: unspentValue.toString()
+                  value: unspentValue.toString()
             })
         }
 
@@ -99,19 +99,13 @@ module.exports = {
             // push with blockbook
             // register message handler for web worker's BB push
             const listener = function(event) {
-                if (event && event.data && event.data.data) {
-                    const postback = event.data.data
-                    const msg = event.data.msg
+                var input = utilsWallet.unpackWorkerResponse(event)
+                if (input) {
+                    const postback = input.data
+                    const msg = input.msg
                     if (postback && msg === 'PUSH_TX_BLOCKBOOK_DONE') {
                         if (postback.txhex === txhex) {
-                            
-                            if (configWallet.WALLET_ENV === "BROWSER") {
-                                appWorker.removeEventListener('message', listener)
-                            }
-                            else {
-                                appWorker.removeListener('message', listener)
-                            }
-                            
+                            appWorker.removeEventListener('message', listener)
                             const mappedTx = postback.mappedTx
                             const err = postback.error
                             if (err) {
@@ -129,13 +123,7 @@ module.exports = {
                     }
                 }
             }
-
-            if (configWallet.WALLET_ENV === "BROWSER") {
-                appWorker.addEventListener('message', listener)
-            }
-            else {
-                cpuWorker.on('message', listener)
-            }
+            appWorker.addEventListener('message', listener)
 
             // request worker BB push
             appWorker.postMessage({ msg: 'PUSH_TX_BLOCKBOOK', data: { asset, txhex, wallet } }) 
@@ -275,109 +263,113 @@ module.exports = {
     },
 
     map_insightTxs: (txs, ownAddresses) => {
-        return txs.map(tx => {
+        return map_insightTxs(txs, ownAddresses)
+    },
+}
 
-            // if (tx.txid === '58b601fe28b55730630e372eccd42f1b4b9ea04a499a82d164b209eb44d47f70') {
-            //     debugger
-            // }
+function map_insightTxs(txs, ownAddresses) {
+    return txs.map(tx => {
 
-            // we class a tx as outgoing if any of our addresses contributed to the utxo inputs; it is incoming otherwise. 
-            // (doing it this way round correctly abstracts away or ignores change utxo outputs - they are at the utxo level "incoming")
-            const isIncoming = tx.vin.some(p => {
-                return ownAddresses.some(p2 => {
-                    return p2 === p.addr
-                })
-            }) === false
+        // if (tx.txid === '58b601fe28b55730630e372eccd42f1b4b9ea04a499a82d164b209eb44d47f70') {
+        //     debugger
+        // }
 
-            var value = 0
-            var toOrFrom
-            var isFromShieldedAddr = false
+        // we class a tx as outgoing if any of our addresses contributed to the utxo inputs; it is incoming otherwise. 
+        // (doing it this way round correctly abstracts away or ignores change utxo outputs - they are at the utxo level "incoming")
+        const isIncoming = tx.vin.some(p => {
+            return ownAddresses.some(p2 => {
+                return p2 === p.addr
+            })
+        }) === false
 
-            if (isIncoming) {
-                if (tx.vin.length === 0) { // from a shielded addr?
-                    isFromShieldedAddr = true
-                    toOrFrom = "** shielded **"
-                }
-                else {
-                    toOrFrom = tx.vin[0].addr // there is no spoon. but let's pretend
-                }
+        var value = 0
+        var toOrFrom
+        var isFromShieldedAddr = false
+
+        if (isIncoming) {
+            if (tx.vin.length === 0) { // from a shielded addr?
+                isFromShieldedAddr = true
+                toOrFrom = "** shielded **"
             }
+            else {
+                toOrFrom = tx.vin[0].addr // there is no spoon. but let's pretend
+            }
+        }
 
-            // special case: we sent to ourself -- all inputs and outputs are ours
-            var sendToSelf = false
-            if (tx.vout.every(p => {
-                return ownAddresses.some(p2 => { // all outputs are ours
-                    return p.scriptPubKey && p.scriptPubKey.addresses && p.scriptPubKey.addresses[0] === p2
+        // special case: we sent to ourself -- all inputs and outputs are ours
+        var sendToSelf = false
+        if (tx.vout.every(p => {
+            return ownAddresses.some(p2 => { // all outputs are ours
+                return p.scriptPubKey && p.scriptPubKey.addresses && p.scriptPubKey.addresses[0] === p2
+            })
+        })) {
+
+            if (tx.vin.length > 0 // inputs are not shielded
+                && tx.vin.every(p => {
+                return ownAddresses.some(p2 => { // all inputs are ours
+                    return p.addr === p2
                 })
             })) {
 
-                if (tx.vin.length > 0 // inputs are not shielded
-                    && tx.vin.every(p => {
-                    return ownAddresses.some(p2 => { // all inputs are ours
-                        return p.addr === p2
-                    })
-                })) {
+                value = 0
+                toOrFrom = tx.vin[0].addr
+                sendToSelf = true
+            }
+        }
 
-                    value = 0
-                    toOrFrom = tx.vin[0].addr
-                    sendToSelf = true
+        if (!sendToSelf) {
+            for (var i = 0; i < tx.vout.length; i++) {
+
+                // incoming: tx value is the value of the *sum* of the outpust that are to one of our addresses
+                if (isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] === address) {  
+                    && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === true) {
+
+                    value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
+                }
+
+                // outgoing: tx value is the value of the *sum* of the outputs that are not our addresses (allows for sendmany tx's later)
+                else if (!isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] !== address) {
+                    && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === false) {
+
+                    value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
+
+                    toOrFrom = tx.vout[i].scriptPubKey.addresses[0] // still no spoon
                 }
             }
+        }
 
-            if (!sendToSelf) {
-                for (var i = 0; i < tx.vout.length; i++) {
+        // prune vin -- only our own inputs
+        const pruned_vin = tx.vin
+            .filter(p => { return ownAddresses.some(p2 => p2 == p.addr) })
+            .map(p => { return {
+                // these two are directly used
+                addr: p.addr, valueSat: p.valueSat,
 
-                    // incoming: tx value is the value of the *sum* of the outpust that are to one of our addresses
-                    if (isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] === address) {  
-                        && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === true) {
+                // these not used, but probably will be useful - could prune them further
+                txid: p.txid,
+                sequence: p.sequence,
+                vout: p.vout,
+                n: p.n,
+                
+                // note - p.scriptSig is the storage killer
+            }} )
 
-                        value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
-                    }
+        // prune vout completely -- not currently used
+        const pruned_vout = []
 
-                    // outgoing: tx value is the value of the *sum* of the outputs that are not our addresses (allows for sendmany tx's later)
-                    else if (!isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] !== address) {
-                        && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === false) {
-
-                        value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
-
-                        toOrFrom = tx.vout[i].scriptPubKey.addresses[0] // still no spoon
-                    }
-                }
-            }
-
-            // prune vin -- only our own inputs
-            const pruned_vin = tx.vin
-                .filter(p => { return ownAddresses.some(p2 => p2 == p.addr) })
-                .map(p => { return {
-                    // these two are directly used
-                    addr: p.addr, valueSat: p.valueSat,
-
-                    // these not used, but probably will be useful - could prune them further
-                    txid: p.txid,
-                    sequence: p.sequence,
-                    vout: p.vout,
-                    n: p.n,
-                    
-                    // note - p.scriptSig is the storage killer
-                }} )
-
-            // prune vout completely -- not currently used
-            const pruned_vout = []
-
-            return { // EXTERNAL_TX
-                isMinimal: false,
-                isIncoming,
-                sendToSelf,
-                date: new Date(tx.time * 1000),
-                value: value,
-                txid: tx.txid,
-                toOrFrom,
-                block_no: tx.blockheight,
-                fees: tx.fees,
-                utxo_vin: pruned_vin, 
-                utxo_vout: pruned_vout, 
-                isFromShieldedAddr,
-            }
-        })
-    }
+        return { // EXTERNAL_TX
+            isMinimal: false,
+            isIncoming,
+            sendToSelf,
+            date: new Date(tx.time * 1000),
+            value: value,
+            txid: tx.txid,
+            toOrFrom,
+            block_no: tx.blockheight,
+            fees: tx.fees,
+            utxo_vin: pruned_vin, 
+            utxo_vout: pruned_vout, 
+            isFromShieldedAddr,
+        }
+    })
 }
