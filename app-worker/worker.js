@@ -19,7 +19,7 @@ const workerUtxo = require('./worker-insight')
 
 const configWS = require('../config/websockets')
 const configWallet = require('../config/wallet')
-const walletExternalActions = require('../actions/wallet-external')
+const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 // setup
@@ -235,8 +235,8 @@ function handler(e) {
                     }
                     else {
                         // if we have pending tx's, we want to do a full update, otherwise a lightweight balance update is sufficient
-                        const unconfirmed_txs = walletExternalActions.getAll_unconfirmed_txs(asset)
-                        const local_txs = walletExternalActions.getAll_local_txs(asset)
+                        const unconfirmed_txs = walletExternal.getAll_unconfirmed_txs(asset)
+                        const local_txs = walletExternal.getAll_local_txs(asset)
                         if (unconfirmed_txs.length > 0 || local_txs.length > 0) {
                             //utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' got pending txs -- doing full update...')
                             refreshAssetFull(asset, wallet)

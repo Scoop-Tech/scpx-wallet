@@ -445,8 +445,6 @@ async function createTxHex(params) {
     switch (asset.type) {
 
         case configWallet.WALLET_TYPE_UTXO: {
-            console.log('createTxHex UTXO', params)
-
             // get total receiver output value, for return
             const cu_sendValue = payTo.reduce((sum,p) => { return sum.plus(new BigNumber(p.value).times(100000000)) }, BigNumber(0))
 
@@ -462,11 +460,10 @@ async function createTxHex(params) {
             // no utxo inputs and we're on validation pass - no exception to be thrown in this case
             if (txSkeleton === null) { 
                 return undefined 
-            } 
+            }
             
             // exec mode - getUtxo_InputsOutputs may return rejected promise, e.g. insufficient funds to construct
             if (typeof txSkeleton.then == 'function') { 
-                console.log('createTxHex UTXO txSkeleton.then==function...')
                 return txSkeleton.catch((x) => {
                     return new Promise((resolve, reject) => { reject(x) }) 
                 })

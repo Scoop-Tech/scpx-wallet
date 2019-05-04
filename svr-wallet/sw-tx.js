@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
-const walletExternalActions = require('../actions/wallet-external')
+const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
@@ -38,7 +38,7 @@ module.exports = {
         // TODO:
         //     const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         
-        //     const estimatedFee = await walletExternalActions.computeTxFee({
+        //     const estimatedFee = await walletExternal.computeTxFee({
         //               asset: asset,
         //             feeData: feeData,
         //           sendValue: du_sendValue, 

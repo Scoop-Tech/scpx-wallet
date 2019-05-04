@@ -21,7 +21,7 @@ const log = require('../cli-log')
 //
 
 module.exports = {
-    // file persistence
+
     walletFileSave: (appWorker, store, p) => {
         var { n, f } = p
         log.cmd('walletFileSave')
@@ -50,12 +50,13 @@ module.exports = {
                 if (err) resolve({ err })
                 else {
                     log.warn(`the MPK used to generate this wallet will be required to load it from file.`)
-                    utilsWallet.setTitle(`FILE - ${fileName}`)
+                    utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
                     resolve({ ok: fileName })
                 }
             })
         })
     },
+
     walletFileLoad: (appWorker, store, p) => {
         var { mpk, n } = p
         log.cmd('walletFileLoad')
@@ -84,7 +85,7 @@ module.exports = {
                     .then(walletInitResult => {
                         if (walletInitResult.err) resolve(walletInitResult)
                         if (walletInitResult.ok) {
-                            utilsWallet.setTitle(`FILE - ${fileName}`)
+                            utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
                         }
                         resolve({ ok: { fileName, walletInitResult } })
                     })

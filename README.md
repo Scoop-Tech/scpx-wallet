@@ -67,8 +67,8 @@ NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required
 
 ## Running Tests
 
-  * ```npm run test``` to run the full test suite.
-  * To run individual tests, use Jest CLI, e.g. ```jest asset``` if you want to run tests in asset.test.js.
+  * ```npm run test``` to run the all tests.
+  * ```npm run test -- -t "receive address"``` - to run individual tests, filtered by it() description.
 
 ## Debugging
 

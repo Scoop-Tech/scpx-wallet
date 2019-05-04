@@ -3,7 +3,7 @@
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
-const walletExternalActions = require('../actions/wallet-external')
+const walletExternal = require('../actions/wallet-external')
 
 const workerInsight = require('./worker-insight')
 const workerAccount = require('./worker-account')
@@ -37,7 +37,7 @@ function getAddressFull_External(p, callback) { // todo: accept already fetched 
             fullUpdateFn(wallet, asset, asset.addresses[addrNdx].addr, utxo_mempool_spentTxIds, allDispatchActions)
             .then(res => {
                 if (res) {
-                    const dispatchAction = walletExternalActions.getAddressFull_ProcessResult(res, asset, addrNdx)
+                    const dispatchAction = walletExternal.getAddressFull_ProcessResult(res, asset, addrNdx)
                     if (dispatchAction !== null) {
                         allDispatchActions = [...allDispatchActions, dispatchAction]
                     }
@@ -52,7 +52,7 @@ function getAddressFull_External(p, callback) { // todo: accept already fetched 
         case configWallet.WALLET_TYPE_ACCOUNT:
             workerAccount.getAddressFull_Account_v2(wallet, asset, asset.addresses[addrNdx].addr, bbSocket, allDispatchActions, (res) => {
                 if (res) {
-                    const dispatchAction = walletExternalActions.getAddressFull_ProcessResult(res, asset, addrNdx)
+                    const dispatchAction = walletExternal.getAddressFull_ProcessResult(res, asset, addrNdx)
                     if (dispatchAction !== null) {
                         allDispatchActions = [...allDispatchActions, dispatchAction]
                     }

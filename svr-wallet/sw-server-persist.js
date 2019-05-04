@@ -19,12 +19,49 @@ const svrWalletCreate = require('./sw-create')
 const log = require('../cli-log')
 
 //
-// wallet Data Storage Contract persistence
+// wallet Data Storage Contract (API+EOS chain, aka "server") persistence
 //
 
 module.exports = {
 
-    // Data Storage Contract (API+EOS chain) persistence
+    walletServerSave: async (appWorker, store, p) => {
+        var { mpk, e } = p
+        log.cmd('walletServerSave')
+        log.param('mpk', mpk)
+        const keys = await Keygen.generateMasterKeys(mpk)
+        const apk = keys.publicKeys.active
+        log.param('apk', apk)
+       
+        // validate
+        const { accountName, email } = global.loadedServerWallet
+        if (!accountName || !email) return new Promise((resolve) => resolve({ err: `No server wallet currently loaded` }))
+        const h_mpk = utilsWallet.pbkdf2(apk, keys.masterPrivateKey)
+        const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
+        const wallet = store.getState().wallet
+        if (!wallet || !wallet.assetsRaw) throw 'No wallet supplied'
+
+        // decrypt 
+        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
+        if (!pt_rawAssets) return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
+        var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
+
+        // post
+        return apiDataContract.updateAssetsJsonApi(accountName, opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk), e_email)
+        .then(res => {
+            if (!res) {
+                return new Promise((resolve) => resolve({ err: `DSC API: invalid or missing response data` }))
+            }             
+            if (!res.res === "ok") { 
+                return new Promise((resolve) => resolve({ err: `DSC API: update failed` }))
+            }
+            return { ok: { res } }
+        })
+        .finally(() => {
+            utilsWallet.softNuke(pt_rawAssets)
+            utilsWallet.softNuke(pt_rawAssetsObj)
+        })
+    },
+
     walletServerLoad: async (appWorker, store, p) => {
         var { mpk, e } = p
         log.cmd('walletServerLoad')
@@ -51,7 +88,10 @@ module.exports = {
         return apiDataContract.login_v2Api(h_email, e_email)
         .then(res => {
             if (!res || !res.owner || res.owner.length == 0 || !res.encryptedEmail || res.encryptedEmail.length == 0) { 
-                return new Promise((resolve) => resolve({ err: `DSC API: invalid or missing data` }))
+                return new Promise((resolve) => resolve({ err: `DSC API: invalid or missing response data` }))
+            }
+            if (!res.res === "ok") {
+                return new Promise((resolve) => resolve({ err: `DSC API: login failed` }))
             }
             if (!keyAccounts.account_names.includes(res.owner)) {
                 return new Promise((resolve) => resolve({ err: `DSC API: user mismatch (1)` }))
@@ -69,9 +109,10 @@ module.exports = {
             .then(walletInitResult => {
                 if (walletInitResult.err) resolve(walletInitResult)
                 if (walletInitResult.ok) {
-                    utilsWallet.setTitle(`SERVER - ${email}`)
+                    utilsWallet.setTitle(`SERVER WALLET - ${email} / ${accountName}`)
+                    global.loadedServerWallet = { accountName, email }
                 }
-                return { ok: { accountName, walletInitResult } }
+                return { ok: { accountName, email, walletInitResult } }
             })                
         })
         .catch(err => {

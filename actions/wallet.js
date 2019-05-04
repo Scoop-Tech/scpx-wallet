@@ -171,7 +171,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then((res) => {
             rawAssetsJsonUpdated = null
 
@@ -239,7 +239,7 @@ module.exports = {
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
 
         // raw assets: post encrypted
-        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
         .then(() => {
 
             rawAssetsJsonUpdated = null
@@ -332,7 +332,7 @@ module.exports = {
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(rawAssets, activePubKey, h_mpk), e_email)
+                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
             }
         
             rawAssetsJsonUpdated = null
@@ -501,7 +501,7 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.pruneRawAssets(currentAssets, activePubKey, h_mpk), e_email)
+                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(currentAssets, activePubKey, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
@@ -536,7 +536,7 @@ module.exports = {
         return displayableAssets
     },
     
-    pruneRawAssets: (currentAssets, activePubKey, h_mpk) => {
+    encryptPrunedAssets: (currentAssets, activePubKey, h_mpk) => {
         // prune
         var currentAssetsKeysOnly = {} 
         Object.keys(currentAssets).map(assetName => {
@@ -551,7 +551,7 @@ module.exports = {
         const e_assetsRawPruned = utilsWallet.aesEncryption(activePubKey, h_mpk, pt_assetsJsonPruned)
 
         utilsWallet.softNuke(currentAssetsKeysOnly)
-        pt_assetsJsonPruned = null
+        utilsWallet.softNuke(pt_assetsJsonPruned)
         return e_assetsRawPruned
     },
 

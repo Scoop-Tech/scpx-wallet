@@ -7,14 +7,13 @@ const EthTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
 
 const actionsWallet = require('.')
+const walletExternal = require('./wallet-external') 
 
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
 const erc20ABI = require('../config/erc20ABI')
 const utilsWallet = require('../utils')
-
-const walletExternal = require('./wallet-external') // ### ugly, maybe better these fn's in opsWallet
 
 module.exports = {
 

@@ -31,7 +31,7 @@ module.exports = {
 
     // general functions: for a loaded wallet
     walletFunction: async (store, p, fn) => {
-        const mpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD')
+        const mpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE')
         const loadedWalletRequired = (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
         const connectedWalletRequired = (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES')
 
@@ -91,7 +91,9 @@ module.exports = {
             case 'LOAD':           walletFn = filePersist.walletFileLoad; break;
             
             case 'ASSET-GET-FEES': walletFn = asset.getNetworkFees; break; 
-            case 'SERVER-LOAD':    walletFn = serverPersist.walletServerLoad; break; // ##
+            case 'SERVER-LOAD':    walletFn = serverPersist.walletServerLoad; break; 
+            case 'SERVER-SAVE':    walletFn = serverPersist.walletServerSave; break; 
+            
             case 'TX-GET-FEE':     walletFn = tx.txGetFee; break; // ##
 
             default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))

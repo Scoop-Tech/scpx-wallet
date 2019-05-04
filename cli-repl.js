@@ -49,6 +49,10 @@ const walletServerLoadHelp = `${helpBanner}` +
     `\targ: --mpk      <master private key>  <required>  \n` +
     `\targ: --e        [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
 
+const walletServerSaveHelp = `${helpBanner}` +
+    `.wss (wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n`
+
 const walletBalanceHelp = `${helpBanner}` +
     `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
     `\targ: --s        [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
@@ -142,6 +146,8 @@ module.exports = {
         defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
         defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
         defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
+        defineWalletCmd(prompt, 'wss', walletServerSaveHelp, svrWallet.walletFunction, 'SERVER-SAVE')
+
 
         defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.walletFunction, 'CONNECT')
 

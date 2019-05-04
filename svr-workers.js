@@ -45,9 +45,14 @@ module.exports = {
                 const postback = event.data
                 const msg = event.msg
                 const status = event.status
-                if (msg === 'NOTIFY_USER') {
+                if (postback && msg === 'NOTIFY_USER') {
                     utilsWallet.logMajor('green', 'white',
-                        `${postback.type}: ${postback.headline} ${postback.info} ${postback.desc1} ${postback.desc2} ${postback.txid}`,
+                        `${postback.type ? postback.type.toUpperCase() : ''}: ` + 
+                        `${postback.headline ? postback.headline : ''} ` + 
+                        `${postback.info ? postback.info : ''} ` + 
+                        `${postback.desc1 ? postback.desc1 : ''} ` + 
+                        `${postback.desc2 ? postback.desc2 : ''} ` + 
+                        `${postback.txid ? ('txid: ' + postback.txid) : ''}`,
                         null, { logServerConsole: true })
                 }
             })

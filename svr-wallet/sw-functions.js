@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
-const walletExternalActions = require('../actions/wallet-external')
+const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 const log = require('../cli-log')
@@ -95,19 +95,14 @@ module.exports = {
 
         // decrypt raw assets (private keys) from the store
         const wallet = store.getState().wallet
-        var pt_assetsJson
-        try {
-            pt_assetsJson = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
-        }
-        catch (err) {
-            return new Promise((resolve) => resolve({ err: `Decrypt failed (${err.message} - MPK is probably incorrect` }))
-        }
-        var pt_assetsObj = JSON.parse(pt_assetsJson)
+        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
+        if (!pt_rawAssets) return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
+        var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
     
         // match privkeys to addresses by HD path in the displayable assets (unencrypted) store 
         var allPathKeyAddrs = []
-        Object.keys(pt_assetsObj).forEach(assetName => {
-            pt_assetsObj[assetName].accounts.forEach(account => {
+        Object.keys(pt_rawAssetsObj).forEach(assetName => {
+            pt_rawAssetsObj[assetName].accounts.forEach(account => {
                 account.privKeys.forEach(privKey => {
                     var pathKeyAddr = {
                         assetName,
@@ -139,8 +134,8 @@ module.exports = {
             })
         })
     
-        utilsWallet.softNuke(pt_assetsJson)
-        utilsWallet.softNuke(pt_assetsObj)
+        utilsWallet.softNuke(pt_rawAssets)
+        utilsWallet.softNuke(pt_rawAssetsObj)
     
         return new Promise((resolve) => {
             resolve({ ok: allPathKeyAddrs })
@@ -190,7 +185,7 @@ module.exports = {
 
         const wallet = store.getState().wallet
         const balances = wallet.assets.map(asset => {
-            const bal = walletExternalActions.get_combinedBalance(asset)
+            const bal = walletExternal.get_combinedBalance(asset)
             return {
                 symbol: asset.symbol,
                   conf: utilsWallet.toDisplayUnit(bal.conf, asset),

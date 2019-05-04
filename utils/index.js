@@ -128,7 +128,7 @@ module.exports = {
                 }
 
             default:
-                console.warn(`toDisplayUnit - unsupported asset type ${asset.type}`)
+                module.exports.warn(`toDisplayUnit - unsupported asset type ${asset.type}`)
                 return NaN
         }
     },
@@ -151,7 +151,7 @@ module.exports = {
                 }
 
             default:
-                console.warn(`toCalculationUnit - unsupported asset type ${asset.type}`)
+                module.exports.warn(`toCalculationUnit - unsupported asset type ${asset.type}`)
                 return NaN
         }
     },
@@ -185,7 +185,7 @@ module.exports = {
             return plaintext
         }
         catch (err) {
-            console.error('## utils.aesDecryption -- err=', err)
+            module.exports.error('## utils.aesDecryption -- err=', err.toString())
             return null
         }
     },

@@ -88,8 +88,11 @@ else {
     // setup workers
     svrWorkers.workers_init(appStore.store).then(async () => {
 
-        // loaded wallet apk and mpk are cached here (CLI_SAVE_LOADED_WALLET_KEY)
-        global.loadedWalletKeys = {} 
+        // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
+        global.loadedWalletKeys = {}
+
+        // loaded server wallet accountName & email are cached here (always)
+        global.loadedServerWallet = {}
 
         // wallet context
         const walletContext = {
