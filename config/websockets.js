@@ -32,6 +32,10 @@ module.exports = {
         'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
         'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
+
+        'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        
+        'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
     },
 
     //
@@ -63,6 +67,10 @@ module.exports = {
         'LTC'      : { url: 'wss://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
         'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+
+        'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
+
+        'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
     },
 
     //

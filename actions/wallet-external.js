@@ -476,7 +476,8 @@ async function createTxHex(params) {
                 var hex
                 var vSize
                 if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
-                || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC')
+                || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
+                || asset.symbol === 'ZEC_TEST')
                 {
                     //
                     // UTXO - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )
@@ -565,6 +566,10 @@ async function createTxHex(params) {
                     // UTXO - bitcoin-js tx builder
                     //
                     const txb = new bitcoinJsLib.TransactionBuilder(network)
+
+                    if (asset.symbol === 'LTC_TEST') {
+                        debugger
+                    }
                     
                     // add the outputs
                     txb.setVersion(1)

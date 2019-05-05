@@ -31,6 +31,8 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 
 // config - dbg/test
 const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_LTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ZECTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ETHTEST = false
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
@@ -43,13 +45,13 @@ const API_DOMAIN = `https://scpx-svr.scoop.tech/`
 const API_URL = `${API_DOMAIN}api/`
 
 //
-// RE. ADDING NEW TYPES -- add here, and:
+// RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
 //
 //   add also: config/wallet-external
-//   add also: config/websockets (prices)
+//   add also: config/websockets (prices, insight and BB)
 //   add also: reducers/prices + actions/index
 //   add also: commons.scss (:root)
-//   add also: getSupportedWalletTypes() (above)
+//   add also: getSupportedWalletTypes() (below)
 //
 // for new utxo-types:
 //
@@ -136,9 +138,25 @@ const walletsMeta = {
         imageUrl: 'img/asset-icon/ltc.png',
         primaryColor: '#535353',
         sortOrder: 9,
-        bip44_index: 2,
+        bip44_index: 2, // ##
         tx_perInput_vsize: 147,
     },
+    'ltc(t)': {
+        name: 'ltc(t)',
+        use_BBv3: true,
+        type: WALLET_TYPE_UTXO,
+        addressType: ADDRESS_TYPE_LTC,
+        symbol: 'LTC_TEST',
+        displayName: 'LTC*',
+        desc: 'Testnet4',
+        displaySymbol: 'LTC*',
+        imageUrl: 'img/asset-icon/ltc_test.png',
+        primaryColor: '#f2a235',
+        sortOrder: 777,
+        bip44_index: 2, // ##
+        tx_perInput_vsize: 147,
+    },
+
     'zcash': {
         name: 'zcash',
         use_BBv3: true,
@@ -153,9 +171,28 @@ const walletsMeta = {
         imageUrl: 'img/asset-icon/zec.png',
         primaryColor: '#F4B728',
         sortOrder: 10,
-        bip44_index: 133,
+        bip44_index: 133, // ##
         tx_perInput_vsize: 147,
     },
+    'zcash(t)': {
+        name: 'zcash(t)',
+        use_BBv3: true,
+        desc: undefined,
+        web: 'https://z.cash/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_UTXO,
+        addressType: ADDRESS_TYPE_ZEC_T,
+        symbol: 'ZEC_TEST',
+        displayName: 'ZCash*',
+        desc: 'Testnet',
+        displaySymbol: 'ZEC*',
+        imageUrl: 'img/asset-icon/zec_test.png',
+        primaryColor: '#F4B728',
+        sortOrder: 666, 
+        bip44_index: 133, // ##
+        tx_perInput_vsize: 147,
+    },
+
     'bchabc': {
         name: 'bchabc',
         use_BBv3: true,
@@ -619,6 +656,8 @@ module.exports = {
     // wallet config - core
     , WALLET_INCLUDE_ETHTEST
     , WALLET_INCLUDE_BTCTEST
+    , WALLET_INCLUDE_LTCTEST
+    , WALLET_INCLUDE_ZECTEST
     , DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                           // no. of address slots to (re)gen by default
@@ -654,7 +693,6 @@ module.exports = {
     // wallet test params
     //,TEST_PAD_TXS:100                                   // pad TX list -- testing LS/SS limits
     //,TEST_LARGE_BALANCE:123.12345678                    // mock balances
-
 
     // static - asset types
     , WALLET_TYPE_UTXO
@@ -703,6 +741,12 @@ module.exports = {
         }
         if (WALLET_INCLUDE_BTCTEST) {
             ret.push('btc(t)')
+        }
+        if (WALLET_INCLUDE_LTCTEST) {
+            ret.push('ltc(t)')
+        }
+        if (WALLET_INCLUDE_ZECTEST) {
+            ret.push('zcash(t)')
         }
         return ret
     }

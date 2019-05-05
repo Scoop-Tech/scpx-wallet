@@ -175,18 +175,11 @@ module.exports = {
             return axios.get(configExternal.ltcFeeOracle_BlockCypher)
             .then(res => {
                 if (res && res.data && res.data) {
-                    // axios.get(configExternal.walletExternal_config[symbol].api.estimate_fee)
-                    // .then(nodeRes => {
-                    //var nodeEst = nodeRes.data[2] * 100000000
-                    //debugger
                     ret.fastest_satPerKB = res.data.high_fee_per_kb
-
                     // getting insufficient priority from node for much less than the highest value - todo: would like a more deterministic fee estimate!
                     ret.fast_satPerKB = ret.fastest_satPerKB // Math.ceil(ret.fastest_satPerKB * 0.8)
                     ret.slow_satPerKB = ret.fastest_satPerKB // Math.ceil(ret.fastest_satPerKB * 0.7)
-
                     return ret
-                    //})
                 }
             })
         }
@@ -247,6 +240,30 @@ module.exports = {
         }
         else if (symbol === 'BCHABC') {
             return axios.get(configExternal.bchabcFeeOracle_Blockbook)
+            .then(res => {
+                if (res && res.data && res.data.result) {
+                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+                    ret.fastest_satPerKB = satPerByte.toString() * 10
+                    ret.fast_satPerKB =  satPerByte.toString() * 5
+                    ret.slow_satPerKB = satPerByte.toString()
+                    return ret
+                }
+            })
+        }
+        else if (symbol === 'LTC_TEST') {
+            return axios.get(configExternal.ltcTestFeeOracle_Blockbook)
+            .then(res => {
+                if (res && res.data && res.data.result) {
+                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+                    ret.fastest_satPerKB = satPerByte.toString() * 10
+                    ret.fast_satPerKB =  satPerByte.toString() * 5
+                    ret.slow_satPerKB = satPerByte.toString()
+                    return ret
+                }
+            })
+        }
+        else if (symbol === 'ZEC_TEST') {
+            return axios.get(configExternal.zecTestFeeOracle_Blockbook)
             .then(res => {
                 if (res && res.data && res.data.result) {
                     const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)

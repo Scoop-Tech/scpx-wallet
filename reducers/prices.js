@@ -26,10 +26,11 @@ const { createReducer } = require('./utils')
 
 const initialState = {
     price : {
-        BTC: 0, BTC_TEST: 0, BTC_SEG: 0, EOS: 0, LTC: 0, ETH_TEST: 0,
+        BTC: 0, BTC_TEST: 0, BTC_SEG: 0, EOS: 0, LTC: 0, LTC_TEST: 0,
+        ZEC: 0, ZEC_TEST: 0,
         DASH: 0, VTC: 0, QTUM: 0, DGB: 0, BCHABC: 0, 
 
-        ETH: 0, 
+        ETH: 0, ETH_TEST: 0,
             TUSD: 0, ZRX: 0, BNT: 0, BAT: 0, BNB: 0,
              OMG: 0, GTO: 0, SNT: 0,  HT: 0, //VEN: 0, BTM: 0,
             USDT: 0, EURT: 0,
@@ -50,10 +51,10 @@ const handlers = {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BTC: action.payload.price, BTC_TEST: action.payload.price, BTC_SEG: action.payload.price } }
     },
     [LTC_PRICE_UPDATE]: (state, action) => {
-        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, LTC: action.payload.price } }
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, LTC: action.payload.price, LTC_TEST: action.payload.price } }
     },
     [ZEC_PRICE_UPDATE]: (state, action) => {
-        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, ZEC: action.payload.price } }
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, ZEC: action.payload.price, ZEC_TEST: action.payload.price } }
     },
     [DASH_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, DASH: action.payload.price } }

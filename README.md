@@ -67,8 +67,11 @@ NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required
 
 ## Running Tests
 
-  * ```npm run test``` to run the all tests.
+  * ```npm run test``` to run the the CI test suite.
   * ```npm run test -- -t "receive address"``` - to run individual tests, filtered by it() description.
+  
+NOTE: the ```coverage``` script executes full integration coverage tests that transact on testnet(s); these incur testnet network fees!
+Please top up the test account assets if you run it.
 
 ## Debugging
 
@@ -81,7 +84,8 @@ Visual Studio Code is recommended. An example ./vscode/launch.json is:
             "type": "node",
             "request": "launch",
             "env": {
-                "NODE_OPTIONS": "--experimental-worker"
+                "NODE_OPTIONS": "--experimental-worker",
+                "NODE_ENV": "development"
             },
             "name": "wallet-dev",
             "cwd": "${workspaceFolder}/ext/wallet",

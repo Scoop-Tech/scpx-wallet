@@ -93,6 +93,10 @@ module.exports = {
 
     ,bchabcBlockbookApi: 'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
 
+    ,ltcTestBlockbookApi: 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
+
+    ,zecTestBlockbookApi: 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
+
     //
     // fee oracles
     // 
@@ -104,6 +108,8 @@ module.exports = {
     ,qtumFeeOracle_Blockbook: `https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,dgbFeeOracle_Blockbook: `https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,bchabcFeeOracle_Blockbook: `https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
+    ,ltcTestFeeOracle_Blockbook: `https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api/v2/estimatefee/1`
+    ,zecTestFeeOracle_Blockbook: `https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api/v2/estimatefee/1`
 
     ,walletExternal_config: {
     
@@ -203,31 +209,25 @@ module.exports = {
             donate: 'LcTqsN3agVPA6EX2hhq2gtJBwjdpq2c6GC',
             explorerPath: (address) => { return 'https://live.blockcypher.com/ltc/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/ltc/tx/' + txid },
-
             api: {
                 utxo: (address) => { return `${ltcBlockbookApi}v1/utxo/${address}` },
             }
-            // api: {
-            //     sync: () => { return ltcInsightApi + 'sync' },
-            //     block: (blockHash) => { return ltcInsightApi + 'block/' + blockHash },
-            //     v2_tx: (txid) => { return ltcInsightApi + 'tx/' + txid },
-            //     v2_addrData: (address, from, to) => { return `${ltcInsightApi}addr/${address}?from=${from}&to=${to}` },
-            //     v2_addrBal: (address) => { return `${ltcInsightApi}addr/${address}?noTxList=1` },
-            //     balance: (address) => { return ltcInsightApi + 'addr/' + address + '/balance' },
-            //     unconfirmedBalance: (address) => { return ltcInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-            //     tx: (txid) => { return ltcInsightApi + 'tx/' + txid },
-            //     txs: (address) => { return ltcInsightApi + 'txs/?address=' + address },
-            //     utxo: (address) => { return ltcInsightApi + 'addrs/' + address + '/utxo' },
-            //     push_tx: ltcInsightApi + 'tx/send',
-            // }
         },
+        LTC_TEST: { // LTC TestNet4 -- no working faucet!
+            donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', 
+            explorerPath: (address) => { return 'https://chain.so/address/LTCTEST/address/' + address },
+            txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
+            api: {
+                utxo: (address) => { return `${ltcTestBlockbookApi}v1/utxo/${address}` },
+            }
+        },
+
         ZEC: {
             donate: 't1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi',
             explorerPath: (address) => { return 'https://chain.so/address/ZEC/' + address }, // shows unconfirmed better than zcha.in
             txExplorerPath: (txid) => { return 'https://chain.so/tx/ZEC/' + txid },
             //explorerPath: (address) => { return 'https://explorer.zcha.in/accounts/' + address },
             //txExplorerPath: (txid) => { return 'https://explorer.zcha.in/transactions/' + txid },
-            
             api: {
                 utxo: (address) => { return `${zecBlockbookApi}v1/utxo/${address}` },
             }        
@@ -244,6 +244,14 @@ module.exports = {
             //     utxo: (address) => { return zecInsightApi + 'addrs/' + address + '/utxo' },
             //     push_tx: zecInsightApi + 'tx/send',
             // }
+        },
+        ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/
+            donate: 'tmUVtiD2uZEkb3KGEa8ntcNi1hL23a8bKBe',
+            explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
+            txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
+            api: {
+                utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
+            }
         },
 
         EOS: {

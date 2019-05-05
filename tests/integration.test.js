@@ -13,6 +13,12 @@ const svrWallet = require('../svr-wallet/sw-wallet')
 const walletExternal = require('../actions/wallet-external')
 const opsWallet = require('../actions/wallet')
 
+//
+// "npm run coverage" -- to run all tests, including e2e testnet transactions
+// these will consume testnet coins from the following test account! Please help keep it topped up.
+// after successful coverage run, you can upload to codecov.com using:
+//   "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
+//
 const serverTestWallet = { mpk: 'PW5JF9k3njzJ3F7fYgPTAKcHg1uDXoKonXhHpfDs4Sw2fJcwgHxVT', email: 'testnets@scoop.tech' }
 
 beforeAll(async () => {
@@ -33,6 +39,7 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
+// CI integration suite 
 describe('travis', function () {
 
     describe('asset', function () {
@@ -130,12 +137,12 @@ describe('travis', function () {
 
         it('can persist a wallet to and from the Data Storage Contract', async function () {
             const result = await new Promise(async (resolve, reject) => {
-                const load = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-                const save = await svrWallet.walletFunction(appStore.store, { mpk: load.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
-                resolve({ load, save })
+                const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+                const serverSave = await svrWallet.walletFunction(appStore.store, { mpk: load.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
+                resolve({ serverLoad, serverSave })
             })
-            expect(result.load.ok).toBeDefined()
-            expect(result.save.ok).toBeDefined()
+            expect(result.serverLoad.ok).toBeDefined()
+            expect(result.serverSave.ok).toBeDefined()
         })
 
         it('can connect a wallet to 3PBPs', async () => {
@@ -151,13 +158,14 @@ describe('travis', function () {
     })
 })
 
+// testnet integration suite
 describe('testnets', function () {
 
     it('can connect 3PBP (Insight API), create tx hex and compute tx fees for BTC_TEST', async () => {
         const result = await new Promise(async (resolve, reject) => {
             // load test wallet, check test asset
             const appWorker = utilsWallet.getAppWorker()
-            const load = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+            const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
             const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
             const wallet = appStore.store.getState().wallet
             const asset = wallet.assets.find(p => p.symbol === 'BTC_TEST')
@@ -176,8 +184,8 @@ describe('testnets', function () {
                           sendValue: 0,
                  encryptedAssetsRaw: wallet.assetsRaw, 
                          useFastest: false, useSlowest: false, 
-                       activePubKey: load.ok.apk,
-                              h_mpk: load.ok.h_mpk,
+                       activePubKey: serverLoad.ok.walletInitResult.ok.apk,
+                              h_mpk: serverLoad.ok.walletInitResult.ok.h_mpk,
             })
             console.log('txFee asset=', txFee)
 
@@ -186,9 +194,9 @@ describe('testnets', function () {
             // send tx... use server account so can topup easily, also server account can have 2 addr of each test type
             //            test can pick addr with greatest balance and send min amount to addr with smaller balance
 
-            resolve({ load, connect, txFee })
+            resolve({ serverLoad, connect, txFee })
         })
-        expect(result.load.ok).toBeDefined()
+        expect(result.serverLoad.ok).toBeDefined()
         expect(result.connect.ok).toBeDefined()
         expect(result.txFee).toBeDefined()
         expect(result.txFee.fee).toBeGreaterThan(0)
