@@ -483,7 +483,7 @@ async function createTxHex(params) {
                     // UTXO - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )
                     //
                     const txb = new bitgoUtxoLib.TransactionBuilder(network)
-                    if (asset.symbol === 'ZEC') {
+                    if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
                         txb.setVersion(bitgoUtxoLib.Transaction.ZCASH_SAPLING_VERSION) // sapling: v4
                         txb.setVersionGroupId(2301567109) // sapling
                         txb.setExpiryHeight(0) // if non-zero, will be removed from mempool at this block height, if not yet mined
@@ -528,7 +528,7 @@ async function createTxHex(params) {
                         for (var i = 0; i < txSkeleton.inputs.length; i++) {
                             var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
                             var keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network)
-                            if (asset.symbol === 'ZEC') {
+                            if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
                                 txb.sign(i, keyPair, '', bitgoUtxoLib.Transaction.SIGHASH_SINGLE, txSkeleton.inputs[i].utxo.satoshis) // zec requires more data to sign
                             }
                             else if (asset.symbol === 'BCHABC') {

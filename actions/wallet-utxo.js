@@ -183,7 +183,7 @@ module.exports = {
                 }
             })
         }
-        else if (symbol === 'ZEC') {
+        else if (symbol === 'ZEC' || symbol === 'ZEC_TEST') {
             return new Promise((resolve, reject) => {
                 ret.fastest_satPerKB = Math.floor(0.0001 * 100000000)
                 ret.fast_satPerKB = ret.fastest_satPerKB
@@ -252,18 +252,6 @@ module.exports = {
         }
         else if (symbol === 'LTC_TEST') {
             return axios.get(configExternal.ltcTestFeeOracle_Blockbook)
-            .then(res => {
-                if (res && res.data && res.data.result) {
-                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
-                    ret.fastest_satPerKB = satPerByte.toString() * 10
-                    ret.fast_satPerKB =  satPerByte.toString() * 5
-                    ret.slow_satPerKB = satPerByte.toString()
-                    return ret
-                }
-            })
-        }
-        else if (symbol === 'ZEC_TEST') {
-            return axios.get(configExternal.zecTestFeeOracle_Blockbook)
             .then(res => {
                 if (res && res.data && res.data.result) {
                     const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)

@@ -109,7 +109,6 @@ module.exports = {
     ,dgbFeeOracle_Blockbook: `https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,bchabcFeeOracle_Blockbook: `https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,ltcTestFeeOracle_Blockbook: `https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api/v2/estimatefee/1`
-    ,zecTestFeeOracle_Blockbook: `https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api/v2/estimatefee/1`
 
     ,walletExternal_config: {
     
@@ -213,7 +212,7 @@ module.exports = {
                 utxo: (address) => { return `${ltcBlockbookApi}v1/utxo/${address}` },
             }
         },
-        LTC_TEST: { // LTC TestNet4 -- no working faucet!
+        LTC_TEST: { // LTC TestNet4 -- no working faucet
             donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', 
             explorerPath: (address) => { return 'https://chain.so/address/LTCTEST/address/' + address },
             txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
@@ -245,7 +244,7 @@ module.exports = {
             //     push_tx: zecInsightApi + 'tx/send',
             // }
         },
-        ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/
+        ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
             donate: 'tmUVtiD2uZEkb3KGEa8ntcNi1hL23a8bKBe',
             explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
             txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },

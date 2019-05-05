@@ -659,28 +659,28 @@ module.exports = {
     , WALLET_INCLUDE_LTCTEST
     , WALLET_INCLUDE_ZECTEST
     , DISABLE_BLOCK_UPDATES 
-    , WALLET_REGEN_EVERYTIME: true                          // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
-    , WALLET_DEFAULT_ADDRESSES: 1                           // no. of address slots to (re)gen by default
-    , WALLET_MAX_UNUSED_ADDRESSES: 2                        // max. no. of unused (zero-tx) addresses - don't allow add beyond this
-    , WALLET_MAX_ADDRESSES: 10                              // hard cap max. no. addresses per asset, used or otherwise
-    , WALLET_MAX_TX_HISTORY: 100                            // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+    , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
+    , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
+    , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
+    , WALLET_MAX_ADDRESSES: 10                                           // hard cap max. no. addresses per asset, used or otherwise
+    , WALLET_MAX_TX_HISTORY: 100                                         // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
     // wallet config - utxo
-    , UTXO_DUST_SAT: 1                                      // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
+    , UTXO_DUST_SAT: 1                                                   // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
 
     // wallet config - eth
-    , ETH_SENDMAX_PADDING_WEI: 50                           // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
-    , ETH_COALESCE_DUST_TO_ZERO: true                       // hide dust values: modifies balances at API and at calculation layers
-    , ETH_DUST_WEI: 200                                     // if less than this, we coalesce the Wei balance to zero
-    , ETH_USEWEB3_ACCOUNT_BALANCES: true                    // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
-    , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
-    , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000            // static gasLimit for ERC20 token transfers, if not specified on the asset's config
+    , ETH_SENDMAX_PADDING_WEI: 50                                        // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
+    , ETH_COALESCE_DUST_TO_ZERO: true                                    // hide dust values: modifies balances at API and at calculation layers
+    , ETH_DUST_WEI: 200                                                  // if less than this, we coalesce the Wei balance to zero
+    , ETH_USEWEB3_ACCOUNT_BALANCES: true                                 // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
+    , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                             // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
+    , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000                         // static gasLimit for ERC20 token transfers, if not specified on the asset's config
 
     // functional sockets - geth & blockbook
-    , VOLATILE_SOCKETS_REINIT_SECS: 10                      // volatile sockets - reinit timer (seconds)
+    , VOLATILE_SOCKETS_REINIT_SECS: 10                                   // volatile sockets - reinit timer (seconds)
 
     // cli 
-    , CLI_SAVE_LOADED_WALLET_KEY: false                     // if false, you will need to pass MPK via CLI to wallet functions
+    , CLI_SAVE_LOADED_WALLET_KEY: process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions
 
 
     // wallet config - network
@@ -691,8 +691,8 @@ module.exports = {
     }
 
     // wallet test params
-    //,TEST_PAD_TXS:100                                   // pad TX list -- testing LS/SS limits
-    //,TEST_LARGE_BALANCE:123.12345678                    // mock balances
+    //,TEST_PAD_TXS:100                                                  // pad TX list -- testing LS/SS limits
+    //,TEST_LARGE_BALANCE:123.12345678                                   // mock balances
 
     // static - asset types
     , WALLET_TYPE_UTXO

@@ -218,7 +218,7 @@ function postCmd(prompt, res, help) {
         }
 
         if (global.loadedWalletKeys && global.loadedWalletKeys.mpk) {
-            log.warn('the wallet MPK is being cached in-memory (CLI_SAVE_LOADED_WALLET_KEY == true)')
+            log.warn('DEV MODE - wallet MPK is being cached in-memory (CLI_SAVE_LOADED_WALLET_KEY == true)')
         }
 
         prompt.displayPrompt()

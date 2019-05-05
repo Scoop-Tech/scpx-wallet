@@ -184,10 +184,19 @@ module.exports = {
 
     // displays combined balances (for all addresses) 
     walletBalance: (appWorker, store, p) => {
+        var { s } = p
         log.cmd('walletBalance')
 
+        // validate
         const wallet = store.getState().wallet
-        const balances = wallet.assets.map(asset => {
+        if (!utilsWallet.isParamEmpty(s)) { 
+            const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
+            if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
+        }
+
+        const balances = wallet.assets
+            .filter(p => utilsWallet.isParamEmpty(s) || p.symbol.toLowerCase() === s.toLowerCase())
+            .map(asset => {
             const bal = walletExternal.get_combinedBalance(asset)
             return {
                 symbol: asset.symbol,

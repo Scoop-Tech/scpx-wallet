@@ -161,6 +161,10 @@ describe('travis', function () {
 // testnet integration suite
 describe('testnets', function () {
 
+    //
+    // TODO: ping/pong send tx's slot 1 to 2
+    //       for btc_test & zec_test (then eth_test)
+    //
     it('can connect 3PBP (Insight API), create tx hex and compute tx fees for BTC_TEST', async () => {
         const result = await new Promise(async (resolve, reject) => {
             // load test wallet, check test asset
