@@ -36,15 +36,13 @@ module.exports = {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
             utilsWallet.debug(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
 
-            const mempool_spent_txids = []
-            socket.send({ method: 'getAddressTxids', params: [ownAddresses, { start: 20000000, end: 0, queryMempoolOnly: true }] }, (data) => {
+            const mempool_spent_txids = []  
+            socket.send({ method: 'getAddressTxids', params: [ownAddresses, { /*start: 20000000, end: 0,*/ queryMempoolOnly: true }] }, (data) => {
+                
+                utilsWallet.debug('eth - getAddressTxids data', data)
+
                 if (data && data.result) {
                     var mempool_txids = data.result
-
-                    // if (asset.symbol === 'ETH' && mempool_txids.length > 0) {
-                    //     utilsWallet.log(`ETH DBG mempool_txids #${mempool_txids.length}, =`, mempool_txids)
-                    // }
-                    //utilsWallet.log(`blockbook ${asset.symbol} mempool txids = `, mempool_txids)
 
                     if (mempool_txids.length > 0) {
                         //if (asset.symbol === 'ETH') {

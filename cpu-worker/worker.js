@@ -1,10 +1,9 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
-const _ = require('lodash')
 
+const _ = require('lodash')
 const configWallet = require('../config/wallet')
 const walletActions = require('../actions/wallet')
 const walletAccount = require('../actions/wallet-account')
-
 const utilsWallet = require('../utils')
 
 // setup
@@ -21,6 +20,7 @@ if (workerThreads) { // server
 else { // browser
     onmessage = handler
 }
+self.window = self // for utilsWallet.getMainThreadGlobalScope in web worker context
 
 // error handlers
 if (configWallet.WALLET_ENV === "SERVER") {

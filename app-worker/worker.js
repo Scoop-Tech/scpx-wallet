@@ -3,7 +3,6 @@
 const io = require('socket.io-client')
 const BigNumber = require('bignumber.js')
 const _ = require('lodash')
-
 const workerPrices = require('./worker-prices')
 const workerWeb3 = require('./worker-web3')
 const workerInsight = require('./worker-insight')
@@ -11,12 +10,10 @@ const workerGeth = require('./worker-geth')
 const workerAddressMempool = require('./worker-blockbook-mempool')
 const workerAddressMonitor = require('./worker-addr-monitor')
 const workerPushTx = require('./worker-pushtx')
-
 const workerExternal  = require('./worker-external')
 const workerBlockbook = require('./worker-blockbook')
 const workerAccount = require('./worker-account')
 const workerUtxo = require('./worker-insight')
-
 const configWS = require('../config/websockets')
 const configWallet = require('../config/wallet')
 const walletExternal = require('../actions/wallet-external')
@@ -60,7 +57,7 @@ self.lastTx = {}
 self.firstTx = {}
 self.countTx = {}
 
-self.window = self  // hack fix - web3 beta41 websocketprovider still references "new window.WebSocket()" 
+self.window = self // for web3, and utilsWallet.getMainThreadGlobalScope in web worker context
 
 self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 
@@ -266,7 +263,7 @@ function handler(e) {
             break
         }
         case 'REFRESH_ASSET_FULL': {
-            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL ${data.asset.symbol}...`)
             // var updateAsset = data.asset
             // if (utils.isERC20(data.asset)) { 
             //     updateAsset = data.wallet.assets.find(p => p.symbol === 'ETH')
@@ -356,6 +353,7 @@ function handler(e) {
     //
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
+
             utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
@@ -535,7 +533,7 @@ function handler(e) {
     }
 }
 
-self.get_BlockbookSocketIo = function(asset) { // # - commonjs export style is failing in browser -- self/global instead
+self.get_BlockbookSocketIo = function(asset) { 
     const socketToUse = utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
     var socket = self.blockbookSocketIos[socketToUse]
 

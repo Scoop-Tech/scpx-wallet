@@ -53,7 +53,10 @@ module.exports = {
     
             appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
             appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
-            setInterval(() => {
+            
+            // volatile sockets reconnect / kee-alive timer
+            const globalScope = utilsWallet.getMainThreadGlobalScope()
+            globalScope.volatileSockets_intId = setInterval(() => {
                 if (appWorker) {
                     try {
                         appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })

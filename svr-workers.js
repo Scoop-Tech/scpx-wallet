@@ -76,6 +76,12 @@ module.exports = {
 
     workers_terminate: () => {
         const globalScope = utilsWallet.getMainThreadGlobalScope()
+        
+        if (globalScope.volatileSockets_intId) {
+            log.info(`Clearing volatile sockets reconnector...`)
+            clearInterval(globalScope.volatileSockets_intId)
+        }
+
         if (globalScope.cpuWorkers !== undefined) {
             log.info(`Terminating ${globalScope.cpuWorkers.length} CPU workers...`)
             globalScope.cpuWorkers.forEach(worker => { 
