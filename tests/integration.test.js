@@ -138,7 +138,7 @@ describe('travis', function () {
         it('can persist a wallet to and from the Data Storage Contract', async function () {
             const result = await new Promise(async (resolve, reject) => {
                 const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-                const serverSave = await svrWallet.walletFunction(appStore.store, { mpk: load.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
+                const serverSave = await svrWallet.walletFunction(appStore.store, { mpk: serverLoad.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
                 resolve({ serverLoad, serverSave })
             })
             expect(result.serverLoad.ok).toBeDefined()
