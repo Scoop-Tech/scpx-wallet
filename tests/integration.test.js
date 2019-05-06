@@ -114,7 +114,7 @@ describe('travis', function () {
         })
 
         it('can reinitialize in-memory a known wallet', async () => {
-            expect.assertions(2)
+            expect.assertions(3)
             const result = await new Promise(async (resolve, reject) => {
                 const res = await svrWalletCreate.walletInit(appStore.store, {
                     mpk: "PW5KaarU5Jtg8dyQvM3CqYEz97T4rFozdAbXMfdBfmyRhafkuWKg6"
