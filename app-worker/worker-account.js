@@ -38,7 +38,8 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
 
     // ETH v2
-    const height = await self.ws_web3.eth.getBlockNumber()
+    const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
+    const height = await self.ws_web3[wsSymbol].eth.getBlockNumber()
     const balData = await getAddressBalance_Account(asset.symbol, pollAddress) // balance - using web3
     try {
         bbSocket.send({ // ETH tx's
@@ -133,10 +134,6 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 res.txs = dispatchTxs_Top_toUpdate
 
                                 if (dispatchTxs_Top_toUpdate.length > 0) {
-                                    // if (asset.symbol === 'ETH') {
-                                    //     debugger
-                                    // }
-
                                     const dispatchAction = {
                                         type: actionsWallet.WCORE_SET_ENRICHED_TXS,
                                         payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res } 
@@ -195,20 +192,21 @@ async function getAddressBalance_Account(symbol, address) {
 }
 
 function getETHAddressBalance_api(symbol, address) {
+
     if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
         utilsWallet.debug(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
-            const web3 = self.ws_web3 || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const web3 = self.ws_web3[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             web3.eth.getBalance(address)
-                .then(balWei => {
-                    resolve(balWei.toString())
-                })
-                .catch((err) => {
-                    utilsWallet.warn(`### getETHAddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
-                    reject(err)
-                })
+            .then(balWei => {
+                resolve(balWei.toString())
+            })
+            .catch((err) => {
+                utilsWallet.warn(`### getETHAddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
+                reject(err)
+            })
         })
     }
     else {
@@ -220,9 +218,7 @@ function getETHAddressBalance_api(symbol, address) {
                 .then(res => {
                     if (res && res.status === 200 && res.data && res.data.message === "OK") {
                         var balWei = res.data.result
-
                         utilsWallet.log(`*** getETHAddressBalance_api (using api) ${symbol} (${address}), balWei=`, balWei)
-
                         resolve(balWei.toString())
                     } else {
                         const err = `### getETHAddressBalance_api (using api) ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
@@ -244,7 +240,7 @@ function getERC20AddressBalance_api(symbol, address) {
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
-            const web3 = self.ws_web3 || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const web3 = self.ws_web3['ETH'] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             const tknAddress = (address).substring(2)
             const contractData = ('0x70a08231000000000000000000000000' // balanceOf
                                 + tknAddress)                        // (address)
@@ -298,14 +294,15 @@ function getERC20AddressBalance_api(symbol, address) {
 var dedicatedWeb3 = []
 function closeDedicatedWeb3Socket(asset, pollAddress) {
     try {
-        if (dedicatedWeb3[pollAddress]) {
-            dedicatedWeb3[pollAddress].currentProvider.connection.close()
-            dedicatedWeb3[pollAddress] = undefined
-            utilsWallet.debug(`closeDedicatedWeb3Socket ${asset.symbol} ${pollAddress} - closed dedicated socket OK`)
+        const web3Key = (asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
+        if (dedicatedWeb3[web3Key]) {
+            dedicatedWeb3[web3Key].currentProvider.connection.close()
+            dedicatedWeb3[web3Key] = undefined
+            utilsWallet.debug(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - closed dedicated socket OK`)
         }
     }
     catch(err) {
-        utilsWallet.warn(`closeDedicatedWeb3Socket ${asset.symbol} ${pollAddress} - FAIL closing web3 dedicated socket, err=`, err)
+        utilsWallet.warn(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - FAIL closing web3 dedicated socket, err=`, err)
     }
 }
 
@@ -321,7 +318,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         //utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
 
         // try cache first
-        //utilsWallet.idb_tx.getItem(cacheKey)
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
@@ -339,32 +335,23 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 }
             }
             else {
-                // ### as above -- singleton web3 socket instance -- fails ("unexpected EOF") ###
-                //utilsWallet.log('web3.currentProvider.connection.readyState=', web3.currentProvider.connection.readyState)
-                // if (!web3 || !web3.currentProvider || !web3.currentProvider.connection) {
-                //     debugger
-                //     utilsWallet.error(`enrichTx - ${self.workerId} - ${symbol} - singleton web3 socket provider is not available!`)
-                //     resolve(null) // allow all enrich ops to run
-                // }
-                // if (web3.currentProvider.connection.readyState != 1) { // not open
-                //     debugger
-                //     utilsWallet.error(`enrichTx - ${self.workerId} - ${symbol} - web3 socket provider conenction is not open: re-initializing...`)
-                //     self.ws_web3 = undefined
-                //     workerWeb3.web3_Setup_SingletonSocketProvider()
-                // }
+                const web3Key = (asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
 
-                if (dedicatedWeb3[pollAddress] === undefined) {
+                if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
-                    dedicatedWeb3[pollAddress] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config['ETH'].url)) 
+
+                    const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
+                    dedicatedWeb3[web3Key] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[wsSymbol].url)) 
+
                     console.log('>> created dedicatedWeb3: OK.') 
                 }
-                if (dedicatedWeb3[pollAddress].currentProvider.connection.readyState != 1) {
-                    dedicatedWeb3[pollAddress].currentProvider.on("connect", data => { 
-                        getTxDetails_web3(resolve, dedicatedWeb3[pollAddress], wallet, asset, tx, cacheKey, ownAddresses)
+                if (dedicatedWeb3[web3Key].currentProvider.connection.readyState != 1) {
+                    dedicatedWeb3[web3Key].currentProvider.on("connect", data => { 
+                        getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses)
                     })
                 }
                 else {
-                    getTxDetails_web3(resolve, dedicatedWeb3[pollAddress], wallet, asset, tx, cacheKey, ownAddresses)
+                    getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses)
                 }
             }
         })

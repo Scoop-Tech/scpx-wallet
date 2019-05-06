@@ -20,7 +20,7 @@ module.exports = {
                         ; // nop - we get through eth addr-monitor
                     }
                     else {
-                        if (asset.use_BBv3 || asset.symbol === 'ETH') {
+                        if (asset.use_BBv3 || asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
                             subAddr_Blockbook(wallet, asset)
                         }
                         else {
@@ -38,7 +38,7 @@ module.exports = {
                         ; // nop 
                     }
                     else {
-                        if (asset.use_BBv3 || asset.symbol === 'ETH') {
+                        if (asset.use_BBv3 || asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
                             unsubAddr_Blockbook(asset.symbol)
                         }
                         else {
@@ -76,7 +76,7 @@ function subAddr_Blockbook(wallet, asset) {
                 else {
                     self.blockbookAddrTxs.push(txid)
 
-                    if (asset.symbol === 'ETH') {
+                    if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
                         //utilsWallet.log('DBG1 - got addr-monitor callback, txid=', txid)
                         
                         //utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid ETH data - requesting ASSET_REFRESH_ADDR_MONITOR`)
@@ -89,9 +89,9 @@ function subAddr_Blockbook(wallet, asset) {
                         // with its status page intermitently reporting mempool is not in sync for ETH
 
                         utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - web3 getTx... txid=`, txid, { logServerConsole: true })
-                        const web3 = self.ws_web3 // singleton socket instance
+                        const web3 = self.ws_web3[asset.symbol] // socket instance
                         if (!web3) {
-                            utilsWallet.error(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - singleton web3 socket provider is not available!`); return
+                            utilsWallet.error(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - web3 socket provider is not available!`); return
                         }
                         else {
                             web3.eth.getTransaction(txid)

@@ -209,7 +209,7 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
           receivedBlockTime: receivedBlockTime || new Date().getTime() }
         })
 
-        if (symbol === 'ETH') { // erc20s
+        if (symbol === 'ETH') { // eth mainnet - update erc20s
             const erc20_symbols = Object.keys(configExternal.erc20Contracts)
             erc20_symbols.forEach(erc20_symbol => {
                 dispatchActions.push({
@@ -235,6 +235,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
         if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
+        if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTCTEST) continue
+        if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZECTEST) continue
+        if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTCTEST) continue
 
         setupSymbols.push(
             (function (x) {

@@ -24,7 +24,7 @@ module.exports = {
     //  -- but note, re. ETH:  (BB limitation?) we're not getting eth outbound mempool tx's
     //
     mempool_get_BB_txs: (asset, wallet, callback) => {
-        if (asset.symbol !== 'ETH') { // nop unless ETH
+        if (asset.symbol !== 'ETH' && asset.symbol !== 'ETH_TEST') { // nop unless ETH
             callback([])
             return
         }
@@ -36,10 +36,10 @@ module.exports = {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
             utilsWallet.debug(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
 
-            const mempool_spent_txids = []  
+            const mempool_spent_txids = []
             socket.send({ method: 'getAddressTxids', params: [ownAddresses, { /*start: 20000000, end: 0,*/ queryMempoolOnly: true }] }, (data) => {
                 
-                utilsWallet.debug('eth - getAddressTxids data', data)
+                utilsWallet.debug(`${asset.symbol} - getAddressTxids data`, data)
 
                 if (data && data.result) {
                     var mempool_txids = data.result
@@ -48,7 +48,7 @@ module.exports = {
                         //if (asset.symbol === 'ETH') {
                             // can't getDetailedTransaction for ETH from BB (just doesn't return data); must use web3
 
-                            const web3 = self.ws_web3 // singleton socket instance
+                            const web3 = self.ws_web3[asset.symbol] // socket instance
                             if (!web3) {
                                 utilsWallet.warn(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - singleton web3 socket provider is not available!`); return
                             }
@@ -145,9 +145,6 @@ module.exports = {
 
 function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
     if (weAreSender) {
-        //
-        // ** BTC_SEG: we are sender ** 
-        //
 
         // keep track of utxos input txids, for removal from the lagging insight-api utxo list
         tx.inputs.map(p => { return p.txid }).forEach(txid => {
@@ -194,9 +191,6 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
         })
     }
     else {
-        //
-        // ** BTC_SEG: we are receiver ** 
-        //
         // add the tx to local_txs[] for display until mined and available in lagging insight-api tx list
         ownAddresses.forEach(ownAddr => {
             const valueToAddr = tx.outputs
@@ -239,7 +233,7 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
     //         hard requirement: this is the only way receiver will get notified, ahead of a new block with the confirmed tx
     //
     // ** ETH: if we are sender... **
-    //         BB (own node and public nodes) is *not* giving us our own tx's in mempool (?!)
+    //         BB (own nodes and trezor nodes) are *not* giving us our own tx's in mempool (?!)
     //
 
     var inboundSymbol
@@ -247,8 +241,6 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
     if (erc20 !== undefined) { // ERC20
         inboundSymbol = erc20.symbol
 
-        //abiDecoder.addABI(configErc20.abi)
-        //const decodedData = abiDecoder.decodeMethod(tx.input)
         const decodedData = decoder.decodeData(txData.input)
 
         const erc20Asset = wallet.assets.find(p => { return p.symbol === inboundSymbol })
@@ -299,7 +291,7 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
             }
         }
     }
-    else { // ETH
+    else { // ETH || ETH_TEST
         inboundSymbol = asset.symbol
 
         const txAlready_in_local_txs = asset.local_txs.some(p => p.txid === txid)
@@ -333,16 +325,11 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
                     : 0
             }
         }
-        else {
-            //utilsWallet.log(asset.symbol + ' - already got txid ', txid)
-        }
     }
 
     // write new local_tx, if any
     if (new_local_tx !== undefined) {
         utilsWallet.log(`mempool_process_BB_EthTx ${inboundSymbol} - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
-
-        //utilsWallet.log('DBG1 - REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX')
 
         postMessage({
             msg: 'REQUEST_DISPATCH', status: 'DISPATCH',

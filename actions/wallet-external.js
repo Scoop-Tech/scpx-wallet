@@ -116,10 +116,14 @@ module.exports = {
 
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
-        createTxHex({ 
-            payTo, asset, encryptedAssetsRaw: wallet.assetsRaw, feeParams, sendMode: true, sendFromAddrNdx,
-            activePubKey: activePubKey,
-                h_mpk: h_mpk,
+        createTxHex({ payTo,
+                      asset,
+         encryptedAssetsRaw: wallet.assetsRaw,
+                  feeParams,
+                   sendMode: true,
+            sendFromAddrNdx,
+               activePubKey: activePubKey,
+                      h_mpk: h_mpk,
         })
         .then(res => {
             const txHex = res.hex
@@ -342,7 +346,7 @@ module.exports = {
             const payTo = [ { receiver: configExternal.walletExternal_config[asset.symbol].donate, value: sendValue } ]
             
             // we need to pass some fee into createTxHex; we only care here though about the returned vsize
-            const feeParams = { du_utxo_feeSatoshis: (du_satPerKB / 4) } 
+            const feeParams = { txFee: { fee: (du_satPerKB / 4) } } 
 
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
@@ -368,8 +372,8 @@ module.exports = {
             if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
 
                 var gasPriceToUse = useFastest ? feeData.gasprice_fastest 
-                                : useSlowest ? feeData.gasprice_safeLow 
-                                :              feeData.gasprice_fast 
+                                  : useSlowest ? feeData.gasprice_safeLow 
+                                  :              feeData.gasprice_fast 
 
                 // gasPrice (our choice) * gasLimit (variable per tx)
                 var du_ethFee = new BigNumber(feeData.gasLimit).dividedBy(1000000000).multipliedBy(new BigNumber(gasPriceToUse)).dividedBy(1000000000).toString()
@@ -452,7 +456,7 @@ async function createTxHex(params) {
             const utxoParams = {
                 changeAddress: asset.addresses[0].addr, // all change to primary address -- todo: probably should use new address on every send here
                       outputs: payTo.map(p => { return { receiver: p.receiver, value: new BigNumber(p.value).times(100000000).toString() }}),
-                  feeSatoshis: Math.floor(feeParams.du_utxo_feeSatoshis * 100000000),
+                  feeSatoshis: Math.floor(feeParams.txFee.fee * 100000000),
                         utxos, // flattened list of all utxos across all addresses
             }
             const txSkeleton = walletUtxo.getUtxo_InputsOutputs(asset.symbol, utxoParams, sendMode)
@@ -662,8 +666,8 @@ async function createTxHex(params) {
                 from: senderAddr, 
                 to: receiver,
                 value: value,
-                gasLimit: feeParams.eth_gasLimit,
-                gasPrice: feeParams.eth_gasPrice,
+                gasLimit: feeParams.txFee.eth_gasLimit,
+                gasPrice: feeParams.txFee.eth_gasPrice,
                 asset,
             }
         

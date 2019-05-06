@@ -43,15 +43,15 @@ module.exports = {
     // used for "bitcoind/addresstxid" sub, block sub, mempool tx queries and for BB v3 (tx detail, tx addr history, and pushes)
     //
     blockbook_ws_config: {
-        'BTC_SEG' : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',         subBlocks: true  },
-         //'BTC_SEG' : { url: 'wss://btc1.trezor.io',                                           subBlocks: true  },
+        'BTC_SEG' : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',           subBlocks: true  },
+      //'BTC_SEG' : { url: 'wss://btc1.trezor.io',                                             subBlocks: true  },
 
         'ETH'     : { url: 'wss://scp-bb-eth01.southeastasia.cloudapp.azure.com:8888',         subBlocks: false },
-         //'ETH'     : { url: 'wss://eth1.trezor.io',                                           subBlocks: false },
-            
+      //'ETH'     : { url: 'wss://eth1.trezor.io',                                             subBlocks: false },
+
         'DASH'     : { url: 'wss://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
-         //'DASH'    : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10133',         subBlocks: true },
-         //'DASH'    : { url: 'wss://dash1.trezor.io',                                          subBlocks: true },
+      //'DASH'    : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10133',           subBlocks: true },
+      //'DASH'    : { url: 'wss://dash1.trezor.io',                                            subBlocks: true },
 
         'VTC'      : { url: 'wss://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
@@ -60,7 +60,7 @@ module.exports = {
         'DGB'      : { url: 'wss://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
         'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-         //'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
+      //'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
         
         'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
 
@@ -69,25 +69,24 @@ module.exports = {
         'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
         'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
-
         'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
+        'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
     },
 
     //
     // ETH -- web3 WS providers, supporting pendingTransactions
     //
     geth_ws_config: {
-        'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',           subBlocks: true  },
-        'ETH_TEST': { url: 'wss://ropsten.infura.io/ws/v3/93db2c7fd899496d8400e86100058297', subBlocks: true  },
+        'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
+        'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
     },
 
     //
     // ETH -- Parity WSs: for singleton-web3-WS instance -- try-fix workaround WS issue on geth > 1.8.2
     //
-    parityPubSub_ws_config: {
-        'ETH'     : { url: 'wss://scp-eth6.southeastasia.cloudapp.azure.com:9546', }
-        //'ETH_TEST': 'wss://scp-eth7.southeastasia.cloudapp.azure.com:9546',
-    },
+    // parityPubSub_ws_config: {
+    //     'ETH'     : { url: 'wss://scp-eth6.southeastasia.cloudapp.azure.com:9546', }
+    // },
 
     //
     // prices 

@@ -645,6 +645,7 @@ function generateWalletAccount(p) {
     const { assets, genType, h_mpk, eosActiveWallet } = p
     utilsWallet.log(`generateWalletAccount - genType=`, genType, { logServerConsole: true })
     var defaultPrivKeys
+
     switch (genType) {
         case 'btc(t)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_TEST' }); break; 
 
@@ -661,7 +662,7 @@ function generateWalletAccount(p) {
         case 'ethereum': defaultPrivKeys = generateEthereumWallet({ entropySeed: h_mpk, addrNdx: 0, genCount: configWallet.WALLET_DEFAULT_ADDRESSES }); break
 
         case 'ltc(t)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'LTC_TEST' }); break; 
-        case 'zcash(t)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'ZEC_TEST' }); break; 
+        case 'zcash(t)': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'ZEC_TEST' }); break; 
 
         case 'eos':
             //utilsWallet.log(`eos=`, eosActiveWallet)
@@ -776,7 +777,7 @@ function getUtxoNetwork(symbol) {
 
         case "LTC":      return bitgoUtxoLib.networks.litecoin
         case "LTC_TEST": return coininfo('LTC-TEST').toBitcoinJS()
-        
+
         case "ZEC":      return bitgoUtxoLib.networks.zcash
         case "ZEC_TEST": return bitgoUtxoLib.networks.zcashTest
 

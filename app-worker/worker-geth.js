@@ -16,7 +16,7 @@ module.exports = {
     // considered VOLATILE -- no built-in reconnect
     isosocket_Setup_Geth: (networkConnected, networkStatusChanged) => {
         var setupCount = 0
-        //utilsWallet.log('appWorker >> ${self.workerId} geth_Setup...')
+        utilsWallet.debug(`appWorker >> ${self.workerId} geth_Setup...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
             if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue

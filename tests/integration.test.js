@@ -165,22 +165,34 @@ describe('testnets', function () {
     // TODO: ping/pong send tx's slot 1 to 2
     //       for btc_test & zec_test (then eth_test)
     //
-    it('can connect 3PBP (Insight API), create tx hex and compute tx fees for BTC_TEST', async () => {
+    it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for BTC_TEST', async () => {
+        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
+        sendTestnetTx(appStore.store, serverLoad, connect, 'BTC_TEST')
+    })
+
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for ZEC_TEST', async () => {
+        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
+        sendTestnetTx(appStore.store, serverLoad, connect, 'ZEC_TEST')
+    })
+
+    async function sendTestnetTx(store, serverLoad, connect, testSymbol) {
         const result = await new Promise(async (resolve, reject) => {
+
             // load test wallet, check test asset
             const appWorker = utilsWallet.getAppWorker()
-            const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-            const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
             const wallet = appStore.store.getState().wallet
-            const asset = wallet.assets.find(p => p.symbol === 'BTC_TEST')
-            if (!asset) throw ('BTC_TEST is not configured')
+            
+            const asset = wallet.assets.find(p => p.symbol === testSymbol)
+            if (!asset) throw (`${testSymbol} is not configured`)
 
             // validate test asset state
             const bal = walletExternal.get_combinedBalance(asset)
             if (!bal.avail.isGreaterThan(0)) throw('Invalid testnet balance data')
             if (asset.addresses.length < 2) throw('Invalid test asset address setup')
 
-            // get network fee rate, compute null tx fee
+            // get network fee rate, compute a null tx fee
             const feeData = await opsWallet.getAssetFeeData(asset)
             const txFee = await walletExternal.computeTxFee({
                               asset: asset,
@@ -191,14 +203,35 @@ describe('testnets', function () {
                        activePubKey: serverLoad.ok.walletInitResult.ok.apk,
                               h_mpk: serverLoad.ok.walletInitResult.ok.h_mpk,
             })
-            console.log('txFee asset=', txFee)
 
-            //...
+            // send testnet tx from the higher balance address to the lower
+            const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1
+            const receiveAddrNdx = sendAddrNdx == 1 ? 0 : 1
+            const feeParams = { txFee }
+            const payTo = [{ receiver: asset.addresses[receiveAddrNdx].addr, value: txFee.fee * 5 }]
 
-            // send tx... use server account so can topup easily, also server account can have 2 addr of each test type
-            //            test can pick addr with greatest balance and send min amount to addr with smaller balance
+            var txid = await new Promise((resolve) => {
+                walletExternal.createAndPushTx( {
+                                store: store,
+                                payTo: payTo,
+                               wallet: wallet,
+                                asset: asset,
+                            feeParams: feeParams,
+                      sendFromAddrNdx: sendAddrNdx,
+                         activePubKey: serverLoad.ok.walletInitResult.ok.apk,
+                                h_mpk: serverLoad.ok.walletInitResult.ok.h_mpk,
+                }, (res, err) => {
+                    if (err) { 
+                        console.error(err)
+                        resolve(null)
+                    }
+                    else {
+                        resolve(res.tx.txid)
+                    }
+                })
+            })
 
-            resolve({ serverLoad, connect, txFee })
+            resolve({ serverLoad, connect, txFee, txid })
         })
         expect(result.serverLoad.ok).toBeDefined()
         expect(result.connect.ok).toBeDefined()
@@ -207,5 +240,6 @@ describe('testnets', function () {
         expect(result.txFee.inputsCount).toBeGreaterThan(0)
         expect(result.txFee.utxo_satPerKB).toBeGreaterThan(0)
         expect(result.txFee.utxo_vsize).toBeGreaterThan(0)
-    })
+        expect(result.txid).toBeDefined()
+    }
 })

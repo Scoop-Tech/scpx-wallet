@@ -11,44 +11,54 @@ const utilsWallet = require('../utils')
 
 module.exports = {
     // maintains a single websocket web3 provider for lighter/faster eth & erc20 balance updates
-    web3_Setup_SingletonSocketProvider: () => {
-        if (self.ws_web3 === undefined) {
-            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3(WS) - SocketProvider SETUP...`, null, { logServerConsole: true })
-            
-            try {   
+    web3_SetupSocketProvider: () => {
 
-                // geth: fails on geth v 1.8.2 w/ large web3 getTransactionDetail return packets (large ~= 16kb ?) -- gets EOF and hard-disconnects the WS from server
-                const Web3 = require('web3')
+        var setupCount = 0
+        utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
 
-                const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config['ETH'].url))
+        for (var assetSymbol in configWS.geth_ws_config) {
+            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
 
-                // parity: try-fix - https://github.com/ethereum/go-ethereum/issues/16846 ...
-                //const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.parityPubSub_ws_config['ETH'].url))
-                
-                const provider = web3.currentProvider
-                self.ws_web3 = web3
+            setupCount += (function (x) {
 
-                // these error/end handlers are *not* firing on the geth WS disconnect issue above ("unexpected EOF" from geth in WS response frame)
-                // if (provider) { 
-                //     provider.on("connect", data => { utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - socket connect, data=`, data) })
+                if (self.ws_web3[x] === undefined) {
+                    utilsWallet.debug(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider ${x} SETUP...`, null, { logServerConsole: true })
                     
-                //     // set disconnect/error handlers
-                //     provider.on("error", socketErr => { 
-                //         debugger
-                //         utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - socket error callback, socketErr=`, socketErr.message)
-                //         self.ws_web3 = undefined 
-                //     })
-                //     provider.on("end", socketErr => {
-                //         debugger
-                //         utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - socket end, socketErr=`, socketErr.message)
-                //         self.ws_web3 = undefined
-                //     })
-                // }
-            }
-            catch(err) {
-                utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - err=`, err)
-            }
+                    try {   
+        
+                        // geth: fails on geth v 1.8.2 w/ large web3 getTransactionDetail return packets (large ~= 16kb ?) -- gets EOF and hard-disconnects the WS from server
+                        const Web3 = require('web3')
+        
+                        const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[x].url))
+        
+                        // parity: try-fix - https://github.com/ethereum/go-ethereum/issues/16846 ...
+                        //const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.parityPubSub_ws_config[x].url))
+                        
+                        const provider = web3.currentProvider
+                        self.ws_web3[x] = web3
+        
+                        // these error/end handlers are *not* firing on the geth WS disconnect issue above ("unexpected EOF" from geth in WS response frame)
+                        // if (provider) { 
+                        //     provider.on("connect", data => { utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - socket connect, data=`, data) })
+                        //     // set disconnect/error handlers
+                        //     provider.on("error", socketErr => { 
+                        //         debugger
+                        //         utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - socket error callback, socketErr=`, socketErr.message)
+                        //     })
+                        //     provider.on("end", socketErr => {
+                        //         debugger
+                        //         utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - socket end, socketErr=`, socketErr.message)
+                        //     })
+                        // }
+                    }
+                    catch(err) {
+                        utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider - err=`, err)
+                    }
+                }
+
+            })(assetSymbol)
         }
+        return setupCount
     },
 
     // returns  { gasLimit, gasprice_Web3,                              // from web3
@@ -60,10 +70,10 @@ module.exports = {
         var ret = {}
 
         if (!utilsWallet.isERC20(asset)) {
-            params.value = self.ws_web3.utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
+            params.value = self.ws_web3[asset.symbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
         }
 
-        return self.ws_web3.eth.estimateGas(params)  // tx gas limit estimate
+        return self.ws_web3[asset.symbol].eth.estimateGas(params)  // tx gas limit estimate
         .then(gasLimit => {
             // use estimate if not erc20, otherwise use a reasonable static max gas value
             if (!utilsWallet.isERC20(asset)) {
@@ -75,7 +85,7 @@ module.exports = {
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
 
-            return self.ws_web3.eth.getGasPrice() // web3/eth node gas price - fallback value
+            return self.ws_web3[asset.symbol].eth.getGasPrice() // web3/eth node gas price - fallback value
         })
         .then(gasprice_Web3 => {
             ret.gasprice_Web3 = parseFloat(gasprice_Web3)

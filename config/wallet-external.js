@@ -19,6 +19,7 @@ const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:400
 // eth
 // 
 const ethHttpProvider = 'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' // geth
+const ethTestHttpProvider = 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545' // 'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297',
 const erc20Contracts = { 
     TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
     BNT:  '0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c',
@@ -119,19 +120,6 @@ module.exports = {
             api: {
                 utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             }
-            // api: {
-            //     sync: () => { return btcInsightApi + 'sync' },
-            //     block: (blockHash) => { return btcInsightApi + 'block/' + blockHash },
-            //     v2_tx: (txid) => { return btcInsightApi + 'tx/' + txid },
-            //     v2_addrData: (address, from, to) => { return `${btcInsightApi}addr/${address}?from=${from}&to=${to}` },
-            //     v2_addrBal: (address) => { return `${btcInsightApi}addr/${address}?noTxList=1` },
-            //     balance: (address) => { return btcInsightApi + 'addr/' + address + '/balance' },
-            //     unconfirmedBalance: (address) => { return btcInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-            //     tx: (txid) => { return btcInsightApi + 'tx/' + txid },
-            //     txs: (address) => { return btcInsightApi + 'txs/?address=' + address },
-            //     utxo: (address) => { return btcInsightApi + 'addrs/' + address + '/utxo' }, 
-            //     push_tx: btcInsightApi + 'tx/send',
-            // }
         },
         BTC_SEG: {
             donate: '32FtNE5ShUDh4wQJm3bGYGtjKpFeJqeVEw',
@@ -183,25 +171,21 @@ module.exports = {
         },
 
         BTC_TEST: { // BTC TestNet3 -- http://bitcoinfaucet.uo1.net/send.php
-            donate: 'mwZeWAYfPRB2pair6T1FvvutMRg2jf92Ya',
+            donate: 'mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y', // testnets@scoop.tech
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
-            api: {
+            api: { // insight-api -- active/fallback
                 sync: () => { return btcTestInsightApi + 'sync' },
                 block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
-
                 v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
                 v2_addrData: (address, from, to) => { return `${btcTestInsightApi}addr/${address}?from=${from}&to=${to}` },
                 v2_addrBal: (address) => { return `${btcTestInsightApi}addr/${address}?noTxList=1` },
-                
                 balance: (address) => { return btcTestInsightApi + 'addr/' + address + '/balance' },
                 unconfirmedBalance: (address) => { return btcTestInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-                
                 tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
                 txs: (address) => { return btcTestInsightApi + 'txs/?address=' + address },
                 utxo: (address) => { return btcTestInsightApi + 'addrs/' + address + '/utxo' },
                 push_tx: btcTestInsightApi + 'tx/send',
-                estimate_fee: btcTestInsightApi + 'utils/estimatefee'
             }
         },
         LTC: {
@@ -230,22 +214,9 @@ module.exports = {
             api: {
                 utxo: (address) => { return `${zecBlockbookApi}v1/utxo/${address}` },
             }        
-            // api: {
-            //     sync: () => { return zecInsightApi + 'sync' },
-            //     block: (blockHash) => { return zecInsightApi + 'block/' + blockHash },
-            //     v2_tx: (txid) => { return zecInsightApi + 'tx/' + txid },
-            //     v2_addrData: (address, from, to) => { return `${zecInsightApi}addr/${address}?from=${from}&to=${to}` },
-            //     v2_addrBal: (address) => { return `${zecInsightApi}addr/${address}?noTxList=1` },
-            //     balance: (address) => { return zecInsightApi + 'addr/' + address + '/balance' },
-            //     unconfirmedBalance: (address) => { return zecInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-            //     tx: (txid) => { return zecInsightApi + 'tx/' + txid },
-            //     txs: (address) => { return zecInsightApi + 'txs/?address=' + address },
-            //     utxo: (address) => { return zecInsightApi + 'addrs/' + address + '/utxo' },
-            //     push_tx: zecInsightApi + 'tx/send',
-            // }
         },
         ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
-            donate: 'tmUVtiD2uZEkb3KGEa8ntcNi1hL23a8bKBe',
+            donate: 'tmH76MkVHc1ZDyWvdY3RDnZzzmXoFpFtXt9', // testnets@scoop.tech
             explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
             txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
             api: {
@@ -269,7 +240,7 @@ module.exports = {
             explorerPath: (address) => eth_AddrExplorer(address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
-            // api: {
+            // api: { // etherscan-compatible REST API (deprecated)
             //     // txlist: (address) =>  { return `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${es_apiKeys[0]}` },
             //     // balance: (address) => { return `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${es_apiKeys[0]}` }
             //     txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc` },
@@ -277,15 +248,10 @@ module.exports = {
             // }
         },
         ETH_TEST: { // ropsten
+            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
             txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
-            httpProvider: 'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297',
-            // api: {
-            //     txlist: (address) =>  { return `https://api-ropsten.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${es_apiKeys[0]}` },
-            //     balance: (address) => { return `https://api-ropsten.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${es_apiKeys[1]}` }
-            //     //txlist: (address) =>  { return `https://blockscout.com/eth/ropsten/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc` },
-            //     //balance: (address) => { return `https://blockscout.com/eth/ropsten/api?module=account&action=balance&address=${address}` }
-            // }
+            httpProvider: ethTestHttpProvider,
         },
 
         TUSD: { 
@@ -294,12 +260,6 @@ module.exports = {
             explorerPath: (address) => erc20_AddrExplorer(address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
-            // api: {
-            //     // txlist: (address) =>  { return `https://api.etherscan.io/api?module=account&action=tokentx&contractaddress=0x0000000000085d4780b73119b644ae5ecd22b376&address=${address}&page=1&offset=100&sort=asc&apikey=${es_apiKeys[2]}` },
-            //     // balance: (address) => { return `https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=0x0000000000085d4780b73119b644ae5ecd22b376&address=${address}&tag=latest&apikey=${es_apiKeys[2]}` }
-            //     txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokentx&address=${address}&contractaddress=${erc20Contracts.TUSD}` },
-            //     balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokenbalance&address=${address}&contractaddress=${erc20Contracts.TUSD}` }
-            // }
         },
         BNT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
@@ -357,10 +317,6 @@ module.exports = {
             explorerPath: (address) => erc20_AddrExplorer(address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
-            // api: {
-            //     txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokentx&address=${address}&contractaddress=${erc20Contracts.HT}` },
-            //     balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokenbalance&address=${address}&contractaddress=${erc20Contracts.HT}` }
-            // }
         },
         // BTM: { // old erc20 - now on mainnet
         //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
@@ -368,10 +324,6 @@ module.exports = {
         //     explorerPath: (address) => erc20_AddrExplorer(address),
         //     txExplorerPath: (txid) => eth_TxExplorer(txid),
         //     httpProvider: ethHttpProvider,
-        //     api: {
-        //         txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokentx&address=${address}&contractaddress=${erc20Contracts.BTM}` },
-        //         balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokenbalance&address=${address}&contractaddress=${erc20Contracts.BTM}` }
-        //     }
         // },    
         // VEN: { // old erc20 - now on mainnet
         //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
@@ -379,10 +331,6 @@ module.exports = {
         //     explorerPath: (address) => erc20_AddrExplorer(address),
         //     txExplorerPath: (txid) => eth_TxExplorer(txid),
         //     httpProvider: ethHttpProvider,
-        //     api: {
-        //         txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokentx&address=${address}&contractaddress=${erc20Contracts.VEN}` },
-        //         balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=tokenbalance&address=${address}&contractaddress=${erc20Contracts.VEN}` }
-        //     }
         // },
 
         USDT: {

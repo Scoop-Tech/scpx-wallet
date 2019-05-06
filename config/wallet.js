@@ -33,7 +33,8 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_LTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ZECTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ETHTEST = false
+const WALLET_INCLUDE_ETHTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
 
@@ -310,7 +311,7 @@ const walletsMeta = {
         imageUrl: 'img/asset-icon/eth.png',
         primaryColor: '#6e7bc4',
         sortOrder: 3,
-        bip44_index: 60,
+        bip44_index: 60, // ##
         decimals: 18,
     },
     'eth(t)': {
@@ -324,7 +325,7 @@ const walletsMeta = {
         imageUrl: 'img/asset-icon/eth_test2.png',
         primaryColor: '#6e7bc4',
         sortOrder: 999,
-        bip44_index: 1, // ##
+        bip44_index: 60, // ##
         decimals: 18,
     },    
 
@@ -397,7 +398,7 @@ const walletsMeta = {
     },
     'bnb': {
         name: 'bnb',
-        desc: undefined,
+        desc: '(ERC20)',
         web: 'https://binance.com/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
         type: WALLET_TYPE_ACCOUNT,
@@ -567,7 +568,7 @@ const walletsMeta = {
     },
     'zil': {
         name: 'zil',
-        desc: undefined,
+        desc: '(ERC20)',
         web: 'https://zilliqa.com/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
         type: WALLET_TYPE_ACCOUNT,

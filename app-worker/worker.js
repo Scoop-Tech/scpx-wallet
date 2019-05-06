@@ -49,8 +49,7 @@ self.blockbookAddrTxs = []  // "
 self.gethBlockNos = []      // similar issue to address monitors: geth web3 sub - disregard if block already processed (polled) -- seeing sometimes same block sent twice
 
 self.gethSockets = {}       // eth - isomorphic-ws - used for slightly faster tx and block polling compared to web3 subscriptions
-self.web3s = {}             // eth - used by mempool_get_BB_txs: TODO -- replace with singleton ws_web3
-self.ws_web3 = undefined    // eth - singleton web3 socket for faster balance polling compared to HttpProvider
+self.ws_web3 = {}           // eth - web3 socket for faster balance polling compared to HttpProvider
 
 // tx subscriptions - for throttling and TPS calcs
 self.lastTx = {}
@@ -183,7 +182,10 @@ function handler(e) {
         
         case 'INIT_WEB3_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
-            workerWeb3.web3_Setup_SingletonSocketProvider()
+            var setupCount = workerWeb3.web3_SetupSocketProvider()
+            if (setupCount > 0) {
+                utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
+            }
             break
         case 'WEB3_GET_ESTIMATE_FEE':
             utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_GET_ESTIMATE_FEE...`)
