@@ -1,14 +1,13 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
+const InputDataDecoder = require('ethereum-input-data-decoder')
 
 const configExternal = require('../config/wallet-external')
-const configErc20 = require('../config/erc20ABI')
-
-//const abiDecoder = require('abi-decoder')
-const InputDataDecoder = require('ethereum-input-data-decoder')
 const decoder = new InputDataDecoder(require('../config/erc20ABI').abi)
 
+const workerBlockbook = require('./worker-blockbook')
+const walletUtxo = require('../actions/wallet-utxo')
 const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
@@ -144,6 +143,13 @@ module.exports = {
 }
 
 function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
+    
+    // send to self - all inputs and outputs are ours
+    const sendToSelf = 
+        tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
+    && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
+    console.log('sendToSelf=', sendToSelf)
+
     if (weAreSender) {
 
         // keep track of utxos input txids, for removal from the lagging insight-api utxo list
@@ -151,7 +157,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
             mempool_spent_txids.push(txid)
         })
 
-        // push local_tx: strong requirement to do this here for segwit (insight-api txlist has no knowledge of unconfirmed SW tx's)
+        // push local_tx - outbound
         ownAddresses.forEach(ownAddr => {
 
             const du_fee = Number(new BigNumber(tx.feeSatoshis).div(100000000))
@@ -171,6 +177,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) // not in external txs
                 {
                     const outbound_tx = { // LOCAL_TX (UTXO) OUT
+                        sendToSelf,
                         isIncoming: false,
                         date: new Date(),
                         value: Number(netValueSent),
@@ -183,7 +190,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                         msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
                         data: {
                             dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                            dispatchPayload: { symbol: asset.symbol, tx: outbound_tx }
+                         dispatchPayload: { symbol: asset.symbol, tx: outbound_tx }
                         }
                     })
                 }
@@ -191,7 +198,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
         })
     }
     else {
-        // add the tx to local_txs[] for display until mined and available in lagging insight-api tx list
+        // push local_tx - inbound
         ownAddresses.forEach(ownAddr => {
             const valueToAddr = tx.outputs
                 .filter(p => { return p.address === ownAddr })
@@ -201,6 +208,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                 if (!asset.local_txs.some(p => p.txid === txid) &&
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
                     const inbound_tx = { // LOCAL_TX (UTXO) IN
+                        sendToSelf,
                         isIncoming: true,
                         date: new Date(),
                         value: Number(valueToAddr),
@@ -305,6 +313,7 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
         utilsWallet.log(`mempool_process_BB_EthTx ${inboundSymbol} - ${txid} txAlready_in_local_txs=${txAlready_in_local_txs}, txAlready_in_external_txs=${txAlready_in_external_txs}`)
 
         if (!txAlready_in_local_txs && !txAlready_in_external_txs) {
+
             const sendToSelf =
                 ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.to.toLowerCase())
              && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())

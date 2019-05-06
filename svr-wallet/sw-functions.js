@@ -4,6 +4,7 @@ const Keygen = require('eosjs-keygen').Keygen
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
+const configExternal  = require('../config/wallet-external')
 const walletActions = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
@@ -52,15 +53,16 @@ module.exports = {
             appWorker.addEventListener('message', listener)
     
             appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
-            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} }) 
+            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
             
             // volatile sockets reconnect / kee-alive timer
+            log.info(`Setting volatile sockets reconnector...`)
             const globalScope = utilsWallet.getMainThreadGlobalScope()
             globalScope.volatileSockets_intId = setInterval(() => {
-                if (appWorker) {
+                if (globalScope.appWorker) {
                     try {
-                        appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
-                        appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+                        globalScope.appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+                        globalScope.appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
                     }
                     catch(err) { // test complete - disconnect timing
                         utilsWallet.warn(err)
@@ -121,11 +123,18 @@ module.exports = {
                     pathKeyAddr.symbol = meta.symbol
                     pathKeyAddr.accountName = walletAddr.accountName
                     pathKeyAddr.addr = _.cloneDeep(walletAddr)
+                    pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
 
                     if (!dumpTxs) {
                         delete pathKeyAddr.addr.txs
                         delete pathKeyAddr.addr.utxos
                     }
+                    else {
+                        pathKeyAddr.addr.txs.forEach(tx => {
+                            tx.txExplorerPath = configExternal.walletExternal_config[meta.symbol].txExplorerPath(tx.txid)
+                        })
+                    }
+
                     if (!dumpPrivKeys) {
                         delete pathKeyAddr.addr.privKey
                     }

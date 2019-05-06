@@ -115,12 +115,12 @@ module.exports = {
         })
     },
 
-    createETHTransactionHex: async (asset, params, privateKey) => {
+    createTxHex_Eth: async (asset, params, privateKey) => {
         if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
             debugger
             throw ('Invalid or missing parameters')
         }
-        utilsWallet.log(`*** createETHTransactionHex ${asset.symbol}, params=`, params)
+        utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, params=`, params)
 
         const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH' : asset.symbol
         const web3 = self.ws_web3[wsSymbol]
@@ -148,28 +148,29 @@ module.exports = {
         params.gasPrice = web3.utils.toHex(params.gasPrice)
 
         var nextNonce = await web3.eth.getTransactionCount(params.from, 'pending') // ~100 bytes ('pending' - fixed in geth 1.8.21 https://github.com/ethereum/go-ethereum/issues/2880)
-        try {
+        //try {
             params.nonce = nextNonce
             const tx = new EthTx(params)
-
-            utilsWallet.log(`*** createETHTransactionHex ${asset.symbol}, nextNonce=${nextNonce}, tx=`, tx)
-
             tx.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
+
+            utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, nextNonce=${nextNonce}, tx=`, tx)
+
             return { txhex: '0x' + tx.serialize().toString('hex'), cu_sendValue: wei_sendValue }
-        }
-        catch (err) {
-            utilsWallet.error(`### createETHTransactionHex ${asset.symbol} TX sign FAIL, error=`, err)
-            throw 'TX sign failed'
-        }
+        //}
+        // catch (err) {
+        //     utilsWallet.error(`### createTxHex_Eth ${asset.symbol} TX sign FAIL, error=`, err)
+        //     return null
+        //     //throw 'TX sign failed'
+        // }
     },
 
-    createERC20TransactionHex: (asset, params, privateKey) => {
+    createTxHex_erc20: (asset, params, privateKey) => {
         if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
             debugger
             throw ('Invalid or missing parameters')
         }
 
-        utilsWallet.log(`*** createERC20TransactionHex ${asset.symbol}, params=`, params)
+        utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
     
         const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH' : asset.symbol
         const web3 = self.ws_web3[wsSymbol]
@@ -285,7 +286,7 @@ module.exports = {
                             
                             //store.dispatch({
                             //    type: actionsWallet.WCORE_PUSH_LOCAL_TX, payload: { symbol: 'ETH',
-                            const eth_erc20fee_tx = { // LOCAL_TX eth tx for the erc20 send fee
+                            const erc20_ethFeeTx = { // LOCAL_TX eth tx for the erc20 send fee
                                          erc20: symbol,
                                 erc20_contract: txData.to,
                                           txid: txHash,
@@ -302,7 +303,7 @@ module.exports = {
                             
                             //callback({
                             resolve({ 
-                                res: { tx: local_tx, eth_erc20fee_tx },
+                                res: { tx: local_tx, erc20_ethFeeTx },
                                 err: null,
                             })
                         }

@@ -196,14 +196,14 @@ function handler(e) {
             break
         case 'GET_ETH_TX_HEX_WEB3':
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
-            workerWeb3.createETHTransactionHex(data.asset, data.params, data.privateKey).then(result => {
+            workerWeb3.createTxHex_Eth(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ETH_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
             break
         case 'GET_ERC20_TX_HEX_WEB3': 
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ERC20_TX_HEX_WEB3...`)
-            workerWeb3.createERC20TransactionHex(data.asset, data.params, data.privateKey).then(result => {
+            workerWeb3.createTxHex_erc20(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ERC20_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ERC20_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })

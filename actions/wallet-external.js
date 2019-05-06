@@ -27,6 +27,8 @@ module.exports = {
     // process asset full state updates
     //
     getAddressFull_ProcessResult: (res, asset, addrNdx) => {
+        utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} addrNdx=${addrNdx}...`)
+
         if (!res || !res.txs) return null
         if (configWallet.TEST_PAD_TXS) testPadTxs(res)
         if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE 
@@ -135,6 +137,7 @@ module.exports = {
                     callback(null, err)
                 }
                 else {
+                    utilsWallet.logMajor('green','white', `Broadcast txid=${res.tx.txid}`, txHex, { logServerConsole: true })
                     store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX, payload: { symbol: asset.symbol, tx: res.tx } }) 
                     callback(res)
                 }
@@ -356,15 +359,12 @@ module.exports = {
                        h_mpk: h_mpk,
             })
             if (res !== undefined) {
-                const inputsCount = res.inputsCount
-                const vsize = res.vSize 
-                const cu_fee = new BigNumber(Math.ceil(((vsize / 1024) * cu_satPerKB)))  // actual tx KB size * sat/KB
-
+                const cu_fee = new BigNumber(Math.ceil(((res.vSize / 1024) * cu_satPerKB)))  // actual tx KB size * sat/KB
                 const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset)) 
-                ret = { fee: du_fee,
-                        inputsCount,
-                        utxo_vsize: vsize,
-                        utxo_satPerKB: cu_satPerKB }
+                ret = { inputsCount: res.inputsCount,
+                         utxo_vsize: res.vSize,
+                      utxo_satPerKB: cu_satPerKB,
+                                fee: du_fee }
             }
             else {
                 utilsWallet.error(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
@@ -379,10 +379,10 @@ module.exports = {
 
                 // gasPrice (our choice) * gasLimit (variable per tx)
                 var du_ethFee = new BigNumber(feeData.gasLimit).dividedBy(1000000000).multipliedBy(new BigNumber(gasPriceToUse)).dividedBy(1000000000).toString()
-                ret = { fee: du_ethFee,
-                        inputsCount: 1,
-                        eth_gasLimit: feeData.gasLimit,
-                        eth_gasPrice: gasPriceToUse }
+                ret = { inputsCount: 1,
+                       eth_gasLimit: feeData.gasLimit,
+                       eth_gasPrice: gasPriceToUse,
+                                fee: du_ethFee }
                 
             }
             else throw(`unknown account address type`)
@@ -706,7 +706,7 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
             break
                 
         default:
-            utilsWallet.error(`unsupported type ${asset.type}`)
+            throw ('Unsupported asset type')
     }
 }
 

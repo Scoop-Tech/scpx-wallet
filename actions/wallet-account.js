@@ -17,9 +17,9 @@ module.exports = {
         switch (asset.symbol) {
             case 'ETH':
             case 'ETH_TEST':
-                return await createETHTransactionHex(asset, params, privateKey)
+                return await createTxHex_Eth(asset, params, privateKey)
             default:
-                return await createERC20TransactionHex(asset, params, privateKey)
+                return await createTxHex_erc20(asset, params, privateKey)
         }
     },
 
@@ -43,9 +43,9 @@ module.exports = {
                         }
 
                         // push local eth fee tx for an erc20 push
-                        if (res && res.eth_erc20fee_tx) {
+                        if (res && res.erc20_ethFeeTx) {
                             store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                                          payload: { symbol: 'ETH', tx: res.eth_erc20fee_tx } })
+                                          payload: { symbol: 'ETH', tx: res.erc20_ethFeeTx } })
                         }
                     }
                 }
@@ -56,7 +56,7 @@ module.exports = {
     },
 }
 
-function createETHTransactionHex(asset, params, privateKey) {
+function createTxHex_Eth(asset, params, privateKey) {
     return new Promise((resolve, reject) => {
         const appWorker = utilsWallet.getAppWorker()
         const listener = function(event) {
@@ -74,10 +74,10 @@ function createETHTransactionHex(asset, params, privateKey) {
         }
         appWorker.addEventListener('message', listener)
         appWorker.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3', data: { asset, params, privateKey } })
-    })    
+    })
 }
 
-function createERC20TransactionHex(asset, params, privateKey) {
+function createTxHex_erc20(asset, params, privateKey) {
     return new Promise((resolve, reject) => {
         const appWorker = utilsWallet.getAppWorker()
         const listener = function(event) {

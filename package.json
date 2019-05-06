@@ -71,7 +71,7 @@
         "help": "node --experimental-worker ./sw-cli.js --help ",
         "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false",
-        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --verbose --coverage --env=node -t travis",
+        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --verbose --coverage --env=node",
         "coverage": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --verbose --coverage --env=node"
     },
     "jest": {
