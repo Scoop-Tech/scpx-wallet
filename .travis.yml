@@ -5,9 +5,7 @@ node_js:
   - "10"
 script:
   - npm run coverage
-# coverage is generated manually from the npm "coverage" script;
-# it runs live testnet tx's, so to preserve testnet coins, is not run on every CI build 
-#before_install:
-#  - pip install --user codecov
-#after_success:
-#  - codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967
+before_install:
+  - pip install --user codecov
+after_success:
+  - codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967
