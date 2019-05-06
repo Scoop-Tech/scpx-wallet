@@ -187,19 +187,38 @@ function handler(e) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
             }
             break
-        case 'WEB3_GET_ESTIMATE_FEE':
-            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_GET_ESTIMATE_FEE...`)
-            workerWeb3.estimateGasInEther(data.asset, data.params).then(fees => {
-                utilsWallet.log('WEB3_GET_ESTIMATE_FEE_DONE: posting back', fees)
-                self.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE_DONE', status: 'RES', data: { fees, assetSymbol: data.asset.symbol } }) 
+        case 'GET_ETH_TX_FEE_WEB3':
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
+            workerWeb3.estimateGasInEther(data.asset, data.params).then(result => {
+                utilsWallet.log('GET_ETH_TX_FEE_WEB3_DONE: posting back', result)
+                self.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
             })
             break
-        case 'WEB3_ETH_TX_HEX':
-            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_ETH_TX_HEX...`)
-            workerWeb3.createETHTransactionHex(data.asset, data.params, data.privateKey).then(txHex => {
-                utilsWallet.log('WEB3_ETH_TX_HEX: posting back', txHex)
-                self.postMessage({ msg: 'WEB3_ETH_TX_HEX_DONE', status: 'RES', data: { txHex, assetSymbol: data.asset.symbol } }) 
+        case 'GET_ETH_TX_HEX_WEB3':
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
+            workerWeb3.createETHTransactionHex(data.asset, data.params, data.privateKey).then(result => {
+                utilsWallet.log('GET_ETH_TX_HEX_WEB3: posting back', result)
+                self.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
+            break
+        case 'GET_ERC20_TX_HEX_WEB3': 
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ERC20_TX_HEX_WEB3...`)
+            workerWeb3.createERC20TransactionHex(data.asset, data.params, data.privateKey).then(result => {
+                utilsWallet.log('GET_ERC20_TX_HEX_WEB3: posting back', result)
+                self.postMessage({ msg: 'GET_ERC20_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
+            })
+            break
+        case 'PUSH_TX_WEB3': 
+            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_WEB3...`)
+            workerWeb3.pushRawTransaction_Account(data.payTo, data.asset, data.txHex).then(result => {
+                utilsWallet.log('PUSH_TX_WEB3: posting back', result)
+                self.postMessage({ msg: 'PUSH_TX_WEB3_DONE', status: 'RES', data: { res: result.res, err: result.err, assetSymbol: data.asset.symbol } }) 
+            })
+            break            
+
+        case 'PUSH_TX_BLOCKBOOK':
+            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
+            workerPushTx.blockbook_pushTx(data.asset, data.txhex, data.wallet)
             break
 
         case 'CONNECT_ADDRESS_MONITORS':
@@ -278,11 +297,6 @@ function handler(e) {
             refreshAssetFull(data.asset, data.wallet)
             break
         }
-
-        case 'PUSH_TX_BLOCKBOOK':
-            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
-            workerPushTx.blockbook_pushTx(data.asset, data.txhex, data.wallet)
-            break
 
         case 'POST_OFFLINE_CHECK': 
             utilsWallet.debug(`appWorker >> ${self.workerId} POST_OFFLINE_CHECK...`)

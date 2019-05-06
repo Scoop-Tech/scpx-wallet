@@ -8,6 +8,8 @@ const _ = require('lodash')
 
 const actionsWallet = require('.')
 const walletUtxo = require('./wallet-utxo')
+const walletAccount = require('./wallet-account')
+
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
@@ -664,11 +666,10 @@ async function createTxHex(params) {
 
             const txParams = {
                 from: senderAddr, 
-                to: receiver,
-                value: value,
-                gasLimit: feeParams.txFee.eth_gasLimit,
-                gasPrice: feeParams.txFee.eth_gasPrice,
-                asset,
+                  to: receiver,
+               value: value,
+            gasLimit: feeParams.txFee.eth_gasLimit,
+            gasPrice: feeParams.txFee.eth_gasPrice,
             }
         
             const walletAccount = require('./wallet-account')
@@ -699,8 +700,7 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
             break
 
         case configWallet.WALLET_TYPE_ACCOUNT:
-            const walletAccount = require('./wallet-account')
-            walletAccount.pushRawTransaction_Account(store, payTo, asset, txHex, (res, err) => {
+            walletAccount.pushRawTransaction_Account(store, asset, payTo, txHex, (res, err) => {
                 callback(res, err)
             })
             break

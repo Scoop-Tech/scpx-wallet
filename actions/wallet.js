@@ -586,7 +586,7 @@ module.exports = {
                         const input = utilsWallet.unpackWorkerResponse(event)
                         if (input) {
                             const msg = input.msg
-                            if (msg === 'WEB3_GET_ESTIMATE_FEE_DONE') {
+                            if (msg === 'GET_ETH_TX_FEE_WEB3_DONE') {
                                 const assetSymbol = input.data.assetSymbol
                                 const fees = input.data.fees
                                 if (assetSymbol === asset.symbol) {
@@ -597,7 +597,7 @@ module.exports = {
                         }
                     }
                     appWorker.addEventListener('message', listener)
-                    appWorker.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE', data: { asset, params: estimateGasParams } })
+                    appWorker.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3', data: { asset, params: estimateGasParams } })
                 })
                 break
 
