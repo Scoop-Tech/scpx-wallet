@@ -165,17 +165,23 @@ describe('testnets', function () {
     // TODO: ping/pong send tx's slot 1 to 2
     //       for btc_test & zec_test (then eth_test)
     //
-    it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for BTC_TEST', async () => {
+    it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
         const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
         const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
         sendTestnetTx(appStore.store, serverLoad, connect, 'BTC_TEST')
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for ZEC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
         const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
         const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
         sendTestnetTx(appStore.store, serverLoad, connect, 'ZEC_TEST')
     })
+
+    it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
+        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
+        sendTestnetTx(appStore.store, serverLoad, connect, 'ETH_TEST')
+    })    
 
     async function sendTestnetTx(store, serverLoad, connect, testSymbol) {
         const result = await new Promise(async (resolve, reject) => {
@@ -230,7 +236,6 @@ describe('testnets', function () {
                     }
                 })
             })
-
             resolve({ serverLoad, connect, txFee, txid })
         })
         expect(result.serverLoad.ok).toBeDefined()

@@ -189,11 +189,16 @@ function handler(e) {
             break
         case 'WEB3_GET_ESTIMATE_FEE':
             utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_GET_ESTIMATE_FEE...`)
-            const asset = data.asset
-            const params = data.params
-            workerWeb3.estimateGasInEther(asset, params).then(fees => {
+            workerWeb3.estimateGasInEther(data.asset, data.params).then(fees => {
                 utilsWallet.log('WEB3_GET_ESTIMATE_FEE_DONE: posting back', fees)
-                self.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE_DONE', status: 'RES', data: { fees, assetSymbol: asset.symbol } }) 
+                self.postMessage({ msg: 'WEB3_GET_ESTIMATE_FEE_DONE', status: 'RES', data: { fees, assetSymbol: data.asset.symbol } }) 
+            })
+            break
+        case 'WEB3_ETH_TX_HEX':
+            utilsWallet.debug(`appWorker >> ${self.workerId} WEB3_ETH_TX_HEX...`)
+            workerWeb3.createETHTransactionHex(data.asset, data.params, data.privateKey).then(txHex => {
+                utilsWallet.log('WEB3_ETH_TX_HEX: posting back', txHex)
+                self.postMessage({ msg: 'WEB3_ETH_TX_HEX_DONE', status: 'RES', data: { txHex, assetSymbol: data.asset.symbol } }) 
             })
             break
 

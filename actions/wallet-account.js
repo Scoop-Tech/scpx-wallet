@@ -24,15 +24,16 @@ module.exports = {
     //     console.log('web3 >> height=', height)
     // },
     
-    createTxHex_Account: async (symbol, params, privateKey) => {
-        utilsWallet.debug(`*** createTxHex_Account ${symbol} (${params})...`)
+    // TODO -- drop params.asset ... 
+    createTxHex_Account: async (asset, params, privateKey) => {
+        utilsWallet.debug(`*** createTxHex_Account ${asset.symbol} (${params})...`)
 
-        switch (symbol) {
+        switch (asset.symbol) {
             case 'ETH':
             case 'ETH_TEST':
-                return await createETHTransactionHex(symbol, params, privateKey)
+                return await createETHTransactionHex(asset, params, privateKey)
             default:
-                return await createERC20TransactionHex(symbol, params, privateKey)
+                return await createERC20TransactionHex(asset.symbol, params, privateKey)
         }
     },
 
@@ -133,59 +134,81 @@ module.exports = {
 
 }
 
-async function createETHTransactionHex(symbol, params, privateKey) {
-    utilsWallet.log(`*** createETHTransactionHex ${symbol}, params=`, params)
-
-    const Web3 = require('web3')
-    const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
-
-    if (params.gasLimit !== undefined) {
-
-        var wei_sendValue = new BigNumber(web3.utils.toWei(params.value.toString(), 'ether'))
-
-        var bal = walletExternal.get_combinedBalance(params.asset)
-        var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
-
-        utilsWallet.log('*** eth txhex - params.value=', params.value.toString())
-
-        if (delta_avail == 0) {
-            utilsWallet.log('eth thxhex - appying send-max wei padding...')
-            // hack: geth is (sometimes) not accepting transactions that send the full account balance
-            // (tested very carefully -- values are exactly correct, minus fees:, all the way up to the hex conversions below)
-            wei_sendValue = wei_sendValue.minus(configWallet.ETH_SENDMAX_PADDING_WEI)
+async function createETHTransactionHex(asset, params, privateKey) {
+    
+    return new Promise((resolve, reject) => {
+        const appWorker = utilsWallet.getAppWorker()
+        const listener = function(event) {
+            const input = utilsWallet.unpackWorkerResponse(event)
+            if (input) {
+                const msg = input.msg
+                if (msg === 'WEB3_ETH_TX_HEX_DONE') {
+                    debugger
+                    const assetSymbol = input.data.assetSymbol
+                    const txHex = input.data.txHex
+                    if (assetSymbol === asset.symbol) {
+                        resolve(txHex)
+                        appWorker.removeEventListener('message', listener)
+                    }
+                } 
+            }
         }
+        appWorker.addEventListener('message', listener)
+        appWorker.postMessage({ msg: 'WEB3_ETH_TX_HEX', data: { asset, params, privateKey } })
+    })    
 
-        wei_sendValue = wei_sendValue.toString()
+    // utilsWallet.log(`*** createETHTransactionHex ${symbol}, params=`, params)
 
-        utilsWallet.log('*** eth txhex - params.gasLimit=', params.gasLimit)
-        utilsWallet.log('*** eth txhex - params.gasPrice=', params.gasPrice)
+    // const Web3 = require('web3')
+    // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
-        // repackage params for web3
-        params.value = web3.utils.toHex(wei_sendValue)
-        params.gasLimit = web3.utils.toHex(params.gasLimit)
-        params.gasPrice = web3.utils.toHex(params.gasPrice)
-        params.asset = undefined
+    // if (params.gasLimit !== undefined) {
 
-        //var nextNonce = await getNonce(web3, params.from) // way too heavy! ~3-4 MB 
-        var nextNonce = await web3.eth.getTransactionCount(params.from, 'pending') // ~100 bytes ('pending' - fixed in geth 1.8.21 https://github.com/ethereum/go-ethereum/issues/2880)
+    //     var wei_sendValue = new BigNumber(web3.utils.toWei(params.value.toString(), 'ether'))
 
-        try {
-            params.nonce = nextNonce
-            const tx = new EthTx(params)
+    //     var bal = walletExternal.get_combinedBalance(params.asset)
+    //     var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
 
-            utilsWallet.log(`*** createETHTransactionHex ${symbol}, nextNonce=${nextNonce}, tx=`, tx)
+    //     utilsWallet.log('*** eth txhex - params.value=', params.value.toString())
 
-            tx.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
-            return { txhex: '0x' + tx.serialize().toString('hex'), cu_sendValue: wei_sendValue }
-        }
-        catch (err) {
-            utilsWallet.warn(`### createETHTransactionHex ${symbol} TX sign FAIL, error=`, err)
-            throw 'TX sign failed'
-        }
+    //     if (delta_avail == 0) {
+    //         utilsWallet.log('eth thxhex - appying send-max wei padding...')
+    //         // hack: geth is (sometimes) not accepting transactions that send the full account balance
+    //         // (tested very carefully -- values are exactly correct, minus fees:, all the way up to the hex conversions below)
+    //         wei_sendValue = wei_sendValue.minus(configWallet.ETH_SENDMAX_PADDING_WEI)
+    //     }
 
-    } else {
-        throw 'gasLimit/Price should be passed in'
-    }
+    //     wei_sendValue = wei_sendValue.toString()
+
+    //     utilsWallet.log('*** eth txhex - params.gasLimit=', params.gasLimit)
+    //     utilsWallet.log('*** eth txhex - params.gasPrice=', params.gasPrice)
+
+    //     // repackage params for web3
+    //     params.value = web3.utils.toHex(wei_sendValue)
+    //     params.gasLimit = web3.utils.toHex(params.gasLimit)
+    //     params.gasPrice = web3.utils.toHex(params.gasPrice)
+    //     params.asset = undefined
+
+    //     //var nextNonce = await getNonce(web3, params.from) // way too heavy! ~3-4 MB 
+    //     var nextNonce = await web3.eth.getTransactionCount(params.from, 'pending') // ~100 bytes ('pending' - fixed in geth 1.8.21 https://github.com/ethereum/go-ethereum/issues/2880)
+
+    //     try {
+    //         params.nonce = nextNonce
+    //         const tx = new EthTx(params)
+
+    //         utilsWallet.log(`*** createETHTransactionHex ${symbol}, nextNonce=${nextNonce}, tx=`, tx)
+
+    //         tx.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
+    //         return { txhex: '0x' + tx.serialize().toString('hex'), cu_sendValue: wei_sendValue }
+    //     }
+    //     catch (err) {
+    //         utilsWallet.warn(`### createETHTransactionHex ${symbol} TX sign FAIL, error=`, err)
+    //         throw 'TX sign failed'
+    //     }
+
+    // } else {
+    //     throw 'gasLimit/Price should be passed in'
+    // }
 }
 
 function createERC20TransactionHex(symbol, params, privateKey) {

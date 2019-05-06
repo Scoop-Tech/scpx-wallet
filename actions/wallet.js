@@ -601,16 +601,6 @@ module.exports = {
                 })
                 break
 
-                // return actionsWalletAccount.estimateGasInEther(asset, estimateGasParams)
-                // .then(res => {
-                //     utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, res=`, res)
-                //     return res
-                // })
-                // .catch(err => {
-                //     utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
-                // })
-                // break
-
             default: utilsWallet.error(`fees - unsupported asset type ${asset.type}`)
         }
     },

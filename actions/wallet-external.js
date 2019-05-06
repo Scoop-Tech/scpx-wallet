@@ -672,7 +672,7 @@ async function createTxHex(params) {
             }
         
             const walletAccount = require('./wallet-account')
-            const txHexAndValue = await walletAccount.createTxHex_Account(asset.symbol, txParams, wif)
+            const txHexAndValue = await walletAccount.createTxHex_Account(asset, txParams, wif)
             utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex.length, hex=`, txHexAndValue.txhex.length, txHexAndValue.hex)
             
             utilsWallet.softNuke(addrPrivKeys)
