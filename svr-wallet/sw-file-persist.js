@@ -81,13 +81,13 @@ module.exports = {
                     const e_storedAssetsRaw = data.toString()
                     log.info(`Read wallet ${fileName} data OK - length=`, e_storedAssetsRaw.length)
 
-                    svrWalletCreate.walletInit(store, { mpk }, e_storedAssetsRaw)
-                    .then(walletInitResult => {
-                        if (walletInitResult.err) resolve(walletInitResult)
-                        if (walletInitResult.ok) {
+                    svrWalletCreate.walletInit(appWorker, store, { mpk }, e_storedAssetsRaw)
+                    .then(walletInit => {
+                        if (walletInit.err) resolve(walletInit)
+                        if (walletInit.ok) {
                             utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
                         }
-                        resolve({ ok: { fileName, walletInitResult } })
+                        resolve({ ok: { fileName, walletInit } })
                     })
                 }
             })

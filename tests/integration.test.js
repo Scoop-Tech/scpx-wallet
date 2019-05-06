@@ -2,7 +2,7 @@
 
 const BigNumber = require('bignumber.js')
 
-const appStore = require('../store')
+const appStore = require('../store').store
 const utilsWallet = require('../utils')
 
 const svrWorkers = require('../svr-workers')
@@ -28,7 +28,7 @@ beforeAll(async () => {
     console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 3
-    await svrWorkers.workers_init(appStore.store)
+    await svrWorkers.workers_init(appStore)
 })
 afterAll(async () => {
     await new Promise((resolve) => {
@@ -47,20 +47,20 @@ describe('travis', function () {
         it('can create a new receive address for all asset types', async () => {
             expect.assertions(3)
             const result = await new Promise(async (resolve, reject) => {
-                const create = await svrWalletCreate.walletNew(appStore.store)
-                var wallet = appStore.store.getState().wallet
+                const create = await svrWalletCreate.walletNew(appWorker, appStore)
+                var wallet = appStore.getState().wallet
                 const ops = wallet.assets.map(asset => { 
-                    return svrWallet.walletFunction(appStore.store, { s: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR')
+                    return svrWallet.fn(appWorker, appStore, { s: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR')
                 })
                 const results = await Promise.all(ops)
                 const countOk = results.filter(p => p.ok).length
                 
-                wallet = appStore.store.getState().wallet
+                wallet = appStore.getState().wallet
                 const countAdded = wallet.assets.filter(p => p.addresses.length === 2).length
 
                 resolve({ create, countOk, countAdded })
             })
-            const wallet = appStore.store.getState().wallet
+            const wallet = appStore.getState().wallet
             expect(result.create.ok).toBeDefined()
             expect(result.countOk).toEqual(wallet.assets.length)
             expect(result.countAdded).toEqual(wallet.assets.length)
@@ -69,23 +69,21 @@ describe('travis', function () {
         it('can fetch suggested network fee rates for all asset types', async () => {
             expect.assertions(3)
             const result = await new Promise(async (resolve, reject) => {
-                const appWorker = utilsWallet.getAppWorker()
-                const create = await svrWalletCreate.walletNew(appStore.store)
-                const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-                const wallet = appStore.store.getState().wallet
+                const create = await svrWalletCreate.walletNew(appWorker, appStore)
+                const wallet = appStore.getState().wallet
                 
                 const ops = wallet.assets.map(asset => { 
-                    return svrWallet.walletFunction(appStore.store, { s: asset.symbol }, 'ASSET-GET-FEES')
+                    return svrWallet.fn(appWorker, appStore, { s: asset.symbol }, 'ASSET-GET-FEES')
                 })
                 const results = await Promise.all(ops)
                 const countOk = results.filter(p => p.ok && p.ok.feeData &&
                     (p.ok.feeData.fast_satPerKB || (p.ok.feeData.gasLimit && p.ok.feeData.gasprice_fast))).length
                 const countAssets = wallet.assets.length
 
-                resolve({ create, connect, countOk, countAssets })
+                resolve({ create, countOk, countAssets })
             })
             expect(result.create.ok).toBeDefined()
-            expect(result.connect.ok).toBeDefined()
+            expect(result.create.ok.walletConnect.ok).toBeDefined()
             expect(result.countOk).toEqual(result.countAssets)
         })
     })
@@ -95,7 +93,7 @@ describe('travis', function () {
         it('can create a new in-memory wallet', async () => {
             expect.assertions(1)
             const result = await new Promise(async (resolve, reject) => {
-                resolve(await svrWalletCreate.walletNew(appStore.store))
+                resolve(await svrWalletCreate.walletNew(appWorker, appStore))
             })
             expect(result.ok).toBeDefined()
         })
@@ -103,9 +101,9 @@ describe('travis', function () {
         it('can dump a wallet', async () => {
             expect.assertions(3)
             const result = await new Promise(async (resolve, reject) => {
-                const init = await svrWalletCreate.walletInit(appStore.store, { mpk: serverTestWallet.mpk })
-                const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-                const dump = await svrWallet.walletFunction(appStore.store, { mpk: init.ok.mpk, txs: true, privkeys: true }, 'DUMP')
+                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
+                const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
+                const dump = await svrWallet.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, privkeys: true }, 'DUMP')
                 resolve( { init, connect, dump })
             })
             expect(result.init.ok).toBeDefined()
@@ -116,13 +114,13 @@ describe('travis', function () {
         it('can reinitialize in-memory a known wallet', async () => {
             expect.assertions(3)
             const result = await new Promise(async (resolve, reject) => {
-                const res = await svrWalletCreate.walletInit(appStore.store, {
+                const res = await svrWalletCreate.walletInit(appWorker, appStore, {
                     mpk: "PW5KaarU5Jtg8dyQvM3CqYEz97T4rFozdAbXMfdBfmyRhafkuWKg6"
                 })
                 resolve(res)
             })
             expect(result.ok).toBeDefined()
-            const storeState = appStore.store.getState()
+            const storeState = appStore.getState()
             const eth = storeState.wallet.assets.find(p => p.symbol === 'ETH')
             const btc = storeState.wallet.assets.find(p => p.symbol === 'BTC_SEG')
             expect(eth.addresses[0].addr).toEqual('0x5556903a7233b3cc04918843ccdb43b1cdabb044')
@@ -130,24 +128,42 @@ describe('travis', function () {
         })
 
         it('can persist a wallet to and from file', async function () {
-            expect.assertions(3)
+            expect.assertions(11)
             const testWalletFile = `test${new Date().getTime()}`
             const result = await new Promise(async (resolve, reject) => {
-                const create = await svrWalletCreate.walletNew(appStore.store)
-                const save = await svrWallet.walletFunction(appStore.store, { n: testWalletFile }, 'SAVE')
-                const load = await svrWallet.walletFunction(appStore.store, { mpk: create.ok.mpk, n: testWalletFile }, 'LOAD')
-                resolve({ create, save, load })
+                const create    = await svrWalletCreate.walletNew(appWorker, appStore)
+                const addEth    = await svrWallet.fn(appWorker, appStore, { mpk: create.ok.mpk, s: 'ETH' },     'ADD-ADDR')
+                const addBtc    = await svrWallet.fn(appWorker, appStore, { mpk: create.ok.mpk, s: 'BTC' },     'ADD-ADDR')
+                const addBtcSeg = await svrWallet.fn(appWorker, appStore, { mpk: create.ok.mpk, s: 'BTC_SEG' }, 'ADD-ADDR')
+                const addZec    = await svrWallet.fn(appWorker, appStore, { mpk: create.ok.mpk, s: 'ZEC' },     'ADD-ADDR')
+                const save      = await svrWallet.fn(appWorker, appStore, { n: testWalletFile }, 'SAVE')
+                const load      = await svrWallet.fn(appWorker, appStore, { mpk: create.ok.mpk, n: testWalletFile }, 'LOAD')
+                resolve({ create, addEth, addBtc, addBtcSeg, addZec, save, load })
             })
             expect(result.create.ok).toBeDefined()
+            expect(result.addEth.ok).toBeDefined()
+            expect(result.addBtc.ok).toBeDefined()
+            expect(result.addBtcSeg.ok).toBeDefined()
+            expect(result.addZec.ok).toBeDefined()
             expect(result.save.ok).toBeDefined()
             expect(result.load.ok).toBeDefined()
+
+            const storeState = appStore.getState()
+            const eth = storeState.wallet.assets.find(p => p.symbol === 'ETH')
+            const btc = storeState.wallet.assets.find(p => p.symbol === 'BTC')
+            const btcSeg = storeState.wallet.assets.find(p => p.symbol === 'BTC_SEG')
+            const zec = storeState.wallet.assets.find(p => p.symbol === 'ZEC')
+            expect(eth.addresses.length).toEqual(2)
+            expect(btc.addresses.length).toEqual(2)
+            expect(btcSeg.addresses.length).toEqual(2)
+            expect(zec.addresses.length).toEqual(2)
         })
 
         it('can persist a wallet to and from the Data Storage Contract', async function () {
             expect.assertions(2)
             const result = await new Promise(async (resolve, reject) => {
-                const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-                const serverSave = await svrWallet.walletFunction(appStore.store, { mpk: serverLoad.ok.walletInitResult.ok.mpk }, 'SERVER-SAVE')
+                const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+                const serverSave = await svrWallet.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
                 resolve({ serverLoad, serverSave })
             })
             expect(result.serverLoad.ok).toBeDefined()
@@ -157,13 +173,11 @@ describe('travis', function () {
         it('can connect a wallet to 3PBPs', async () => {
             expect.assertions(2)
             const result = await new Promise(async (resolve, reject) => {
-                const appWorker = utilsWallet.getAppWorker()
-                const init = await svrWalletCreate.walletInit(appStore.store, { mpk: serverTestWallet.mpk })
-                const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-                resolve({ init, connect })
+                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
+                resolve({ init })
             })
             expect(result.init.ok).toBeDefined()
-            expect(result.connect.ok).toBeDefined()
+            expect(result.init.ok.walletConnect.ok).toBeDefined()
         })
     })
 })
@@ -176,31 +190,28 @@ describe('testnets', function () {
     //       for btc_test & zec_test (then eth_test)
     //
     it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
-        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-        await sendTestnetTx(appStore.store, serverLoad, connect, 'BTC_TEST')
+        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
-        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-        await sendTestnetTx(appStore.store, serverLoad, connect, 'ZEC_TEST')
+        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+        await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
-        const serverLoad = await svrWallet.walletFunction(appStore.store, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-        const connect = await svrWalletFunctions.connectData(appWorker, appStore.store, {})
-        await sendTestnetTx(appStore.store, serverLoad, connect, 'ETH_TEST')
+        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
     })    
 
-    async function sendTestnetTx(store, serverLoad, connect, testSymbol) {
+    async function sendTestnetTx(store, serverLoad, testSymbol) {
         expect.assertions(8)
         
         const result = await new Promise(async (resolve, reject) => {
 
             // load test wallet, check test asset
-            const appWorker = utilsWallet.getAppWorker()
-            const wallet = appStore.store.getState().wallet
+            const wallet = store.getState().wallet
             
             const asset = wallet.assets.find(p => p.symbol === testSymbol)
             if (!asset) throw (`${testSymbol} is not configured`)
@@ -218,8 +229,8 @@ describe('testnets', function () {
                           sendValue: 0,
                  encryptedAssetsRaw: wallet.assetsRaw, 
                          useFastest: false, useSlowest: false, 
-                       activePubKey: serverLoad.ok.walletInitResult.ok.apk,
-                              h_mpk: serverLoad.ok.walletInitResult.ok.h_mpk,
+                       activePubKey: serverLoad.ok.walletInit.ok.apk,
+                              h_mpk: serverLoad.ok.walletInit.ok.h_mpk,
             })
 
             // send testnet tx from the higher balance address to the lower
@@ -236,8 +247,8 @@ describe('testnets', function () {
                                 asset: asset,
                             feeParams: feeParams,
                       sendFromAddrNdx: sendAddrNdx,
-                         activePubKey: serverLoad.ok.walletInitResult.ok.apk,
-                                h_mpk: serverLoad.ok.walletInitResult.ok.h_mpk,
+                         activePubKey: serverLoad.ok.walletInit.ok.apk,
+                                h_mpk: serverLoad.ok.walletInit.ok.h_mpk,
                 }, (res, err) => {
                     if (err) { 
                         console.error(err)
@@ -248,10 +259,10 @@ describe('testnets', function () {
                     }
                 })
             })
-            resolve({ serverLoad, connect, txFee, txid })
+            resolve({ serverLoad, txFee, txid })
         })
         expect(result.serverLoad.ok).toBeDefined()
-        expect(result.connect.ok).toBeDefined()
+        expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
         expect(result.txFee).toBeDefined()
         expect(Number(result.txFee.fee)).toBeGreaterThan(0)
         expect(result.txFee.inputsCount).toBeGreaterThan(0)

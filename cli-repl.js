@@ -3,7 +3,7 @@
 const repl = require('repl')
 const colors = require('colors')
 
-const appStore = require('./store')
+const appStore = require('./store').store
 const utilsWallet = require('./utils')
 const log = require('./cli-log')
 const svrWorkers = require('./svr-workers')
@@ -133,7 +133,8 @@ module.exports = {
                     if (argv.help) postCmd(prompt, null, help)
                     else {
                         //console.group()
-                        fn(walletContext.store, argv, walletFnName).then(res => postCmd(prompt, res, help))
+                        fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
+                            .then(res => postCmd(prompt, res, help))
                         //.finally(() => console.groupEnd())
                     }
                 }
@@ -143,23 +144,23 @@ module.exports = {
         defineWalletCmd(prompt, 'wn', walletNewHelp, svrWalletCreate.walletNew)
         defineWalletCmd(prompt, 'wi', walletInitHelp, svrWalletCreate.walletInit)
 
-        defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.walletFunction, 'LOAD')
-        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.walletFunction, 'SAVE')
-        defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.walletFunction, 'SERVER-LOAD')
-        defineWalletCmd(prompt, 'wss', walletServerSaveHelp, svrWallet.walletFunction, 'SERVER-SAVE')
+        defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.fn, 'LOAD')
+        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.fn, 'SAVE')
+        defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.fn, 'SERVER-LOAD')
+        defineWalletCmd(prompt, 'wss', walletServerSaveHelp, svrWallet.fn, 'SERVER-SAVE')
 
 
-        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.walletFunction, 'CONNECT')
+        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.fn, 'CONNECT')
 
-        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.walletFunction, 'DUMP')
-        defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.walletFunction, 'BALANCE')
+        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.fn, 'DUMP')
+        defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.fn, 'BALANCE')
 
-        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.walletFunction, 'ADD-ADDR')
+        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
         // TODO: add/remove imported accounts
 
-        defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.walletFunction, 'ASSET-GET-FEES')
+        defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
         
-        defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.walletFunction, 'TX-GET-FEE')
+        defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
 
 
         defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)

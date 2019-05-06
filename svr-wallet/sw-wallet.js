@@ -30,14 +30,12 @@ module.exports = {
     validateMpk: (mpk) => { return validateMpk(mpk) },
 
     // general functions: for a loaded wallet
-    walletFunction: async (store, p, fn) => {
+    fn: async (appWorker, store, p, fn) => {
+        if (!appWorker) throw 'No app worker'
+
         const mpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE')
         const loadedWalletRequired = (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
         const connectedWalletRequired = (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES')
-
-        // sanity check - app worker present
-        const appWorker = utilsWallet.getMainThreadGlobalScope().appWorker
-        if (!appWorker) throw 'No app worker'
     
         // param/state check - store is valid and wallet is loaded, if supplied and applicable
         var storeState = undefined
@@ -83,7 +81,7 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':        walletFn = functions.connectData; break;
+            case 'CONNECT':        walletFn = functions.walletConnect; break;
             case 'DUMP':           walletFn = functions.walletDump; break;
             case 'ADD-ADDR':       walletFn = functions.walletAddAddress; break;
             case 'BALANCE':        walletFn = functions.walletBalance; break;

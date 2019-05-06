@@ -18,8 +18,8 @@ const log = require('../cli-log')
 module.exports = {
     
     // connects 3PBP sockets, and requests initial load for all assets in the current wallet
-    connectData: (appWorker, store, p) => {
-        log.cmd('connectData')
+    walletConnect: (appWorker, store, p) => {
+        log.cmd('walletConnect')
 
         return new Promise((resolve) => {
     
@@ -177,14 +177,12 @@ module.exports = {
                   e_email: undefined, // no EOS persistence for server wallets - not required
           eosActiveWallet: undefined, // todo
         })
-        .then(generateNewAddressResult => {
+        .then(async (walletAddAddr) => {
 
             // (re)connect addr monitors
-            // return module.exports.connectData(appWorker, store, p)
-            // .then(connectDataResult => {
-            //     return new Promise((resolve) => resolve({ ok: { generateNewAddressResult, connectDataResult } } ))
-            // })
-            return new Promise((resolve) => resolve({ ok: { generateNewAddressResult } } ))
+            const walletConnect = await module.exports.walletConnect(appWorker, store, {})
+
+            return new Promise((resolve) => resolve({ ok: { walletAddAddr, walletConnect } } ))
         })
         .catch(err => {
             return new Promise((resolve) => resolve({ err: err.message || err.toString() } ))

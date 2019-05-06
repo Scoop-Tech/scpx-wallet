@@ -11,6 +11,7 @@ const walletActions = require('../actions/wallet')
 const utilsWallet = require('../utils')
 const opsWallet = require('../actions/wallet')
 
+const functions = require('./sw-functions')
 const log = require('../cli-log')
 
 //
@@ -19,13 +20,13 @@ const log = require('../cli-log')
 
 module.exports = {
 
-    walletNew: (store) => {
+    walletNew: (appWorker, store) => {
         //const emailEntropyBase36 = new BigNumber(BigNumber.random(80).times(1e80).toFixed()).toString(36)
         log.cmd('walletNew')
         
         return Keygen.generateMasterKeys()
         .then(async keys => {
-            const res = await module.exports.walletInit(store, { 
+            const res = await module.exports.walletInit(appWorker, store, { 
                 mpk: keys.masterPrivateKey,
             //email: `s+${emailEntropyBase36}@scoop.tech`
             })
@@ -33,7 +34,7 @@ module.exports = {
         })
     },
     
-    walletInit: async (store, p, e_storedAssetsRaw) => {
+    walletInit: async (appWorker, store, p, e_storedAssetsRaw) => {
         var { mpk } = p
         log.cmd('walletInit')
         
@@ -61,7 +62,7 @@ module.exports = {
           eosActiveWallet: undefined, 
         callbackProcessed: (ret, totalReqCount) => {}
         })
-        .then(generateWalletsResult => {
+        .then(async (generateWalletsResult) => {
 
             if (!generateWalletsResult && e_storedAssetsRaw) {
                 return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
@@ -73,12 +74,16 @@ module.exports = {
 
             utilsWallet.setTitle(`*UNSAVED WALLET* apk - ${apk}`)
 
+            // (re)connect addr monitors
+            const walletConnect = await functions.walletConnect(appWorker, store, {})
+
             return { ok: { 
                         // generateWalletsResult: generateWalletsResult.map(p => { return {
                         //        symbol: p.symbol,
                         //     addresses: p.addresses.map(p2 => p2.addr).join(', ')
                         // }} ),
                         mpk, apk, h_mpk,
+                        walletConnect,
                    }}
         })
         .catch(err => {

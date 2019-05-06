@@ -48,7 +48,8 @@ module.exports = {
             })
 
             // then fetch all others, except erc20s
-            const otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
+            var erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
+            var otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
             otherAssets.forEach(otherAsset => {
                 appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
             })
@@ -58,7 +59,7 @@ module.exports = {
                 appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
-            // wait for eth fetch to finish, then fetch erc20's
+            // wait for eth fetch to finish
             const eth_intId = setInterval(() => {
                 storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
@@ -67,22 +68,27 @@ module.exports = {
                         utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
                     }
                     else {
-                        const erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
+                        // now fetch erc20s - they will use cached eth tx's
+                        erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
                         erc20Assets.forEach(erc20Asset => {
                             appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
                         })
                         clearInterval(eth_intId)
 
-                        // now wait for all erc20 fetches to finish, then resolve for caller
-                        const erc20s_intId = setInterval(() => {
+                        // now wait for all erc20 - and all other types - to finish
+                        const allRemaining_intId = setInterval(() => {
                             storeState = store.getState()
                             if (storeState && storeState.wallet && storeState.wallet.assets) {
-                                const erc20Assets = storeState.wallet.assets.filter(p => utilsWallet.isERC20(p))
-                                if (!erc20Assets.some(p => p.lastAssetUpdateAt === undefined)) {
+
+                                erc20Assets = storeState.wallet.assets.filter(p => utilsWallet.isERC20(p))
+                                otherAssets = storeState.wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
+                                if (!erc20Assets.some(p => p.lastAssetUpdateAt === undefined)
+                                 && !otherAssets.some(p => p.lastAssetUpdateAt === undefined)) {
+
                                     // done
-                                    clearInterval(erc20s_intId)
-                                    resolve()
+                                    clearInterval(allRemaining_intId)
                                     utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
+                                    resolve()
                                 }
                                 else {
                                     utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ERC20s to finish...`)

@@ -170,7 +170,7 @@ module.exports = {
             }
         },
 
-        BTC_TEST: { // BTC TestNet3 -- http://bitcoinfaucet.uo1.net/send.php
+        BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
             donate: 'mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y', // testnets@scoop.tech
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },

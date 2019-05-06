@@ -86,7 +86,7 @@ module.exports = {
 
         // login 
         return apiDataContract.login_v2Api(h_email, e_email)
-        .then(res => {
+        .then(async (res) => {
             if (!res || !res.owner || res.owner.length == 0 || !res.encryptedEmail || res.encryptedEmail.length == 0) { 
                 return new Promise((resolve) => resolve({ err: `DSC API: invalid or missing response data` }))
             }
@@ -105,15 +105,13 @@ module.exports = {
             }
 
             const accountName = res.owner
-            return svrWalletCreate.walletInit(store, { mpk, apk }, res.assetsJSON)
-            .then(walletInitResult => {
-                if (walletInitResult.err) resolve(walletInitResult)
-                if (walletInitResult.ok) {
-                    utilsWallet.setTitle(`SERVER WALLET - ${email} / ${accountName}`)
-                    global.loadedServerWallet = { accountName, email }
-                }
-                return { ok: { accountName, email, walletInitResult } }
-            })                
+            const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
+            if (walletInit.err) resolve(walletInit)
+            if (walletInit.ok) {
+                utilsWallet.setTitle(`SERVER WALLET - ${email} / ${accountName}`)
+                global.loadedServerWallet = { accountName, email }
+            }
+            return { ok: { accountName, email, walletInit } }
         })
         .catch(err => {
             if (err.response && err.response.statusText) {

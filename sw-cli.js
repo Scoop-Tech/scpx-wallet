@@ -6,7 +6,7 @@ const Keygen = require('eosjs-keygen').Keygen
 const walletActions = require('./actions')
 const configWallet = require('./config/wallet')
 const configWalletExternal = require('./config/wallet-external')
-const appStore = require('./store')
+const { store: appStore, persistor: appPersistor  } = require('./store')
 const utilsWallet = require('./utils')
 
 const cliRepl = require('./cli-repl')
@@ -86,7 +86,7 @@ else {
     process.on('SIGINT', () => svrWorkers.workers_terminate())
 
     // setup workers
-    svrWorkers.workers_init(appStore.store).then(async () => {
+    svrWorkers.workers_init(appStore).then(async () => {
 
         // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
         global.loadedWalletKeys = {}
@@ -96,8 +96,8 @@ else {
 
         // wallet context
         const walletContext = {
-                store: appStore.store,
-            persistor: appStore.persistor,
+                store: appStore,
+            persistor: appPersistor,
                config: { wallet: configWallet, external: configWalletExternal, },
         }
 
@@ -115,14 +115,13 @@ else {
             else {
                 if (cli.loadFile) {
                     log.info(`Loading supplied ${cli.loadFile}...`)
-                    const globalScope = utilsWallet.getMainThreadGlobalScope()
-                    svrWalletPersist.walletFileLoad(globalScope.appWorker, walletContext.store,
+                    svrWalletPersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
                         { mpk: cli.mpk, n: cli.loadFile })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }
                 else {
                     log.info('Initializing supplied wallet...')
-                    svrWalletCreate.walletInit(walletContext.store,
+                    svrWalletCreate.walletInit(utilsWallet.getAppWorker(), walletContext.store,
                         { mpk: cli.mpk })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }

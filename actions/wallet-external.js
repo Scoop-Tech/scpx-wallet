@@ -690,7 +690,7 @@ async function createTxHex(params) {
 // push tx
 // 
 function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
-    utilsWallet.log(`*** pushTransactionHex (wallet-external), asset=`, asset)
+    utilsWallet.log(`*** pushTransactionHex (wallet-external) ${asset.symbol} txHex=`, txHex)
 
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
