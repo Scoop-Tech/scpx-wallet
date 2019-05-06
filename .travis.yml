@@ -4,7 +4,7 @@ env:
 node_js:
   - "10"
 script:
-  - npm run test
+  - npm run coverage
 # coverage is generated manually from the npm "coverage" script;
 # it runs live testnet tx's, so to preserve testnet coins, is not run on every CI build 
 #before_install:
