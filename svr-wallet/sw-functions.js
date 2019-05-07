@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const configExternal  = require('../config/wallet-external')
-const walletActions = require('../actions/wallet')
+const opsWallet = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
@@ -32,21 +32,32 @@ module.exports = {
                     const data = input.data
                     const msg = input.msg
                     if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
+                        
+                        log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsConnected=', data.symbolsConnected)
+                        log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsNotConnected=', data.symbolsNotConnected)
+
                         const storeState = store.getState()
                         if (storeState.wallet && storeState.wallet.assets) {
 
                             // connect addr monitors & populate all assets
                             appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
                             appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-                            walletActions.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
-                            .then(p => {
-                                resolve({ ok: true })
-                            })
+
+                            if (data.symbolsConnected.length > 0) {
+                                log.info('BLOCKBOOK_ISOSOCKETS_DONE: triggering loadAllAsets...')
+
+                                opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
+                                .then(p => {
+                                    resolve({ ok: true })
+                                })
+
+                            }
                         }
                         else {
-                            resolve({ ok: false })
+                            resolve({ ok: false })  // ** load resiliance (experimenting) ** -- keep waiting here
                         }
-                        appWorker.removeEventListener('message', listener)
+                        
+                        appWorker.removeEventListener('message', listener)  // ** load resiliance (experimenting) ** -- keep listening here
                     }
                 }
             }
@@ -55,7 +66,7 @@ module.exports = {
             appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
             appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
             
-            // volatile sockets reconnect / kee-alive timer
+            // volatile sockets reconnect / keep-alive timer
             log.info(`Setting volatile sockets reconnector...`)
             const globalScope = utilsWallet.getMainThreadGlobalScope()
             globalScope.volatileSockets_intId = setInterval(() => {
@@ -101,7 +112,7 @@ module.exports = {
         // decrypt raw assets (private keys) from the store
         const wallet = store.getState().wallet
         var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
-        if (!pt_rawAssets) return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
+        if (!pt_rawAssets) return Promise.resolve({ err: `Decrypt failed - MPK is probably incorrect` })
         var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
     
         // match privkeys to addresses by HD path in the displayable assets (unencrypted) store 
@@ -161,14 +172,14 @@ module.exports = {
         
         // validate
         const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return new Promise((resolve) => resolve({ err: `Asset symbol is required` }))
+        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
 
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // exec
-        return walletActions.generateNewAddress({
+        return opsWallet.generateNewAddress({
                     store: store,
              activePubKey: apk,
                     h_mpk: h_mpk,
@@ -182,10 +193,10 @@ module.exports = {
             // (re)connect addr monitors
             const walletConnect = await module.exports.walletConnect(appWorker, store, {})
 
-            return new Promise((resolve) => resolve({ ok: { walletAddAddr, walletConnect } } ))
+            return Promise.resolve({ ok: { walletAddAddr, walletConnect } })
         })
         .catch(err => {
-            return new Promise((resolve) => resolve({ err: err.message || err.toString() } ))
+            return Promise.resolve({ err })
         })
     },
 
@@ -198,7 +209,7 @@ module.exports = {
         const wallet = store.getState().wallet
         if (!utilsWallet.isParamEmpty(s)) { 
             const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-            if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
+            if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
         }
 
         const balances = wallet.assets
@@ -211,6 +222,6 @@ module.exports = {
                 unconf: utilsWallet.toDisplayUnit(bal.unconf, asset)
             }
         })
-        return new Promise((resolve) => resolve({ ok: { balances } } ))
+        return Promise.resolve({ ok: { balances } })
     }
 }

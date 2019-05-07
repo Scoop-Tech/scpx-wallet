@@ -10,10 +10,13 @@ const { store: appStore, persistor: appPersistor  } = require('./store')
 const utilsWallet = require('./utils')
 
 const cliRepl = require('./cli-repl')
+
 const svrWorkers = require('./svr-workers')
-const svrWalletCreate = require('./svr-wallet/sw-create')
+const svrCreate = require('./svr-wallet/sw-create')
 const svrWallet = require('./svr-wallet/sw-wallet')
-const svrWalletPersist = require('./svr-wallet/sw-file-persist')
+const svrFilePersist = require('./svr-wallet/sw-file-persist')
+const svrServerPersist = require('./svr-wallet/sw-server-persist')
+
 const log = require('./cli-log')
 const npmPackage = require('./package.json')
 
@@ -33,9 +36,10 @@ console.log()
 cli
 .version('0.3.0', '-v, -V, -ver, --version')
 .option('-m, --mpk <string>', 'Master Private Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
-.option('-f, --loadFile <string>', 'wallet filename: passed to wallet.load (.wl)') 
-.option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)') 
-.option('--about', 'about this software') 
+.option('-f, --loadFile <string>', 'load the specified file wallet: passed to wallet-load (.wl)') 
+.option('-f, --loadServer <string>', 'load the specified Data Storage Contract wallet: passed to wallet-server-load (.wsl)') 
+.option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)')
+.option('--about', 'about this software')
 .parse(process.argv)
 if (cli.about) {
     // about
@@ -64,6 +68,7 @@ else {
     log.info('NODE_ENV:', process.env.NODE_ENV)
     if (cli.mpk)         log.info(`cli.mpk:`, cli.mpk)
     if (cli.loadFile)    log.info(`cli.loadFile:`, cli.loadFile)
+    if (cli.loadServer)  log.info(`cli.loadServer:`, cli.loadServer)
     if (cli.saveHistory) log.info(`cli.saveHistory:`, cli.saveHistory)
     console.log()
 
@@ -113,15 +118,22 @@ else {
                 cliRepl.postCmd(prompt, { err: `Validation failed: ${validationErrors.err}` })
             }
             else {
-                if (cli.loadFile) {
-                    log.info(`Loading supplied ${cli.loadFile}...`)
-                    svrWalletPersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
+                if (cli.loadServer) {
+                    if (cli.loadFile) log.warn('Ignoring duplicate load directive: --loadFile')
+                    log.info(`Loading server wallet ${cli.loadServer}...`)
+                    svrServerPersist.walletServerLoad(utilsWallet.getAppWorker(), walletContext.store,
+                        { mpk: cli.mpk, e: cli.loadServer })
+                    .then(res => cliRepl.postCmd(prompt, res))
+                }
+                else if (cli.loadFile) {
+                    log.info(`Loading file wallet ${cli.loadFile}...`)
+                    svrFilePersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
                         { mpk: cli.mpk, n: cli.loadFile })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }
                 else {
-                    log.info('Initializing supplied wallet...')
-                    svrWalletCreate.walletInit(utilsWallet.getAppWorker(), walletContext.store,
+                    log.info('Initializing wallet...')
+                    svrCreate.walletInit(utilsWallet.getAppWorker(), walletContext.store,
                         { mpk: cli.mpk })
                     .then(res => cliRepl.postCmd(prompt, res))
                 }

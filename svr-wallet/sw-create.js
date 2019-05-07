@@ -7,7 +7,6 @@ const MD5 = require('crypto-js').MD5
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
-const walletActions = require('../actions/wallet')
 const utilsWallet = require('../utils')
 const opsWallet = require('../actions/wallet')
 
@@ -65,7 +64,7 @@ module.exports = {
         .then(async (generateWalletsResult) => {
 
             if (!generateWalletsResult && e_storedAssetsRaw) {
-                return new Promise((resolve) => resolve({ err: `Decrypt failed - MPK is probably incorrect` }))
+                return Promise.resolve({ err: `Decrypt failed - MPK is probably incorrect` })
             }
             
             if (configWallet.CLI_SAVE_LOADED_WALLET_KEY === true) {

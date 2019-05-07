@@ -134,8 +134,8 @@ function handler(e) {
             }
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS...`)
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
+            utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
 

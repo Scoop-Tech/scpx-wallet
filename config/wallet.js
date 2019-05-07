@@ -91,7 +91,8 @@ const walletsMeta = {
         primaryColor: '#f2a235',
         sortOrder: 0,
         bip44_index: 0, // ##
-        tx_perInput_vsize: 140,
+        tx_perInput_vsize: 92,
+        tx_perInput_byteLength: 174,
     },
     'bitcoin': {
         name: 'bitcoin',
@@ -109,6 +110,7 @@ const walletsMeta = {
         sortOrder: 1,
         bip44_index: 0, // ##
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147
     },
     'btc(t)': {
         name: 'btc(t)',
@@ -122,7 +124,8 @@ const walletsMeta = {
         primaryColor: '#f2a235',
         sortOrder: 888,
         bip44_index: 1, // ##
-        tx_perInput_vsize: 140,
+        tx_perInput_vsize: 148,
+        tx_perInput_byteLength: 148,
     },
 
     'litecoin': {
@@ -140,7 +143,8 @@ const walletsMeta = {
         primaryColor: '#535353',
         sortOrder: 9,
         bip44_index: 2, // ##
-        tx_perInput_vsize: 147,
+        tx_perInput_vsize: 148,
+        tx_perInput_byteLength: 148,
     },
     'ltc(t)': {
         name: 'ltc(t)',
@@ -155,7 +159,8 @@ const walletsMeta = {
         primaryColor: '#f2a235',
         sortOrder: 777,
         bip44_index: 2, // ##
-        tx_perInput_vsize: 147,
+        tx_perInput_vsize: 148,
+        tx_perInput_byteLength: 148,
     },
 
     'zcash': {
@@ -174,6 +179,7 @@ const walletsMeta = {
         sortOrder: 10,
         bip44_index: 133, // ##
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147,
     },
     'zcash(t)': {
         name: 'zcash(t)',
@@ -192,6 +198,7 @@ const walletsMeta = {
         sortOrder: 666, 
         bip44_index: 133, // ##
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147,
     },
 
     'bchabc': {
@@ -211,7 +218,8 @@ const walletsMeta = {
         primaryColor: '#380E09',
         sortOrder: 11,
         bip44_index: 145,
-        tx_perInput_vsize: 147,
+        tx_perInput_vsize: 148,
+        tx_perInput_byteLength: 148,
     },
     'dash': {
         name: 'dash',
@@ -229,6 +237,7 @@ const walletsMeta = {
         sortOrder: 20,
         bip44_index: 5,
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147,
     },
     'vertcoin': {
         name: 'vertcoin',
@@ -246,6 +255,7 @@ const walletsMeta = {
         sortOrder: 21,
         bip44_index: 28,
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147,
     },
     'qtum': {
         name: 'qtum',
@@ -263,6 +273,7 @@ const walletsMeta = {
         sortOrder: 19,
         bip44_index: 2301,
         tx_perInput_vsize: 147,
+        tx_perInput_byteLength: 147
     },
     'digibyte': {
         name: 'digibyte',
@@ -279,7 +290,8 @@ const walletsMeta = {
         primaryColor: '#4F2109',
         sortOrder: 22,
         bip44_index: 20, // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        tx_perInput_vsize: 147,
+        tx_perInput_vsize: 148,
+        tx_perInput_byteLength: 148
     },
 
     // wip

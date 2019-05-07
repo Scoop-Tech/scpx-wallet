@@ -4,7 +4,6 @@ const Keygen = require('eosjs-keygen').Keygen
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
-const walletActions = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
@@ -24,17 +23,12 @@ module.exports = {
 
         // validate
         const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return new Promise((resolve) => resolve({ err: `Asset symbol is required` }))
+        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return new Promise((resolve) => resolve({ err: `Invalid asset symbol "${s}"` }))
-
-        // if (utilsWallet.isParamEmpty(v)) return new Promise((resolve) => resolve({ err: `Asset value is required` }))
-        // if (isNaN(v)) return new Promise((resolve) => resolve({ err: `Invalid asset value` }))
-        // const du_sendValue = Number(v)
-        // if (du_sendValue < 0) return new Promise((resolve) => resolve({ err: `Asset value cannot be negative` }))
+        if (!asset) Promise.resolve({ err: `Invalid asset symbol "${s}"` })
 
         const feeData = await opsWallet.getAssetFeeData(asset)
 
-        return new Promise((resolve) => resolve({ ok: { feeData } }))
+        return Promise.resolve({ ok: { feeData } })
     }
 }

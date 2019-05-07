@@ -9,7 +9,6 @@ const _ = require('lodash')
 const { Worker, isMainThread, parentPort } = require('worker_threads')
 
 const configWallet = require('../config/wallet')
-const walletActions = require('../actions/wallet')
 const opsWallet = require('../actions/wallet')
 const utilsWallet = require('../utils')
 
@@ -33,31 +32,37 @@ module.exports = {
     fn: async (appWorker, store, p, fn) => {
         if (!appWorker) throw 'No app worker'
 
-        const mpkRequired = (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE')
-        const loadedWalletRequired = (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
-        const connectedWalletRequired = (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES')
+        const mpkRequired =
+            (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
+          || fn === 'TX-GET-FEE' || fn === 'TX-PUSH')
+        
+        const loadedWalletRequired =
+            (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
+
+        const connectedWalletRequired =
+            (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES' || fn === 'TX-PUSH')
     
         // param/state check - store is valid and wallet is loaded, if supplied and applicable
         var storeState = undefined
         if (store !== null) {
             // state check - store is valid 
             storeState = store.getState()
-            if (!storeState) return new Promise((resolve) => resolve({ err: 'Invalid store state' }))
+            if (!storeState) return Promise.resolve({ err: 'Invalid store state' })
             const wallet = storeState.wallet
 
             // state check - wallet is loaded
             if (loadedWalletRequired) {
                 if (!wallet || !wallet.assetsRaw || !wallet.assets)  {
-                    return new Promise((resolve) => resolve({ err: 'No loaded wallet: create a new one with ".wn"' }))
+                    return Promise.resolve({ err: 'No loaded wallet: create a new one with ".wn"' })
                 }
             }
 
             // state check - wallet is connected (all assets have data populated from 3PBPs)
             if (connectedWalletRequired) {
                 if (wallet.assets.some(p => !p.lastAssetUpdateAt)) {
-                    return new Promise((resolve) => resolve({ err: 
+                    return Promise.resolve({ err: 
                         `Wallet is not connected to 3PBPs: connect it with ".wc"`
-                    }))
+                    })
                 }
             }
         } else throw('Store is required')
@@ -75,7 +80,7 @@ module.exports = {
                 const apk = (await Keygen.generateMasterKeys(mpk)).publicKeys.active
                 p = {...p, apk, mpk}
             }
-            else return new Promise((resolve) => resolve({ err: 'MPK is required' }))
+            else return Promise.resolve({ err: 'MPK is required' })
         }
 
         // route
@@ -88,32 +93,33 @@ module.exports = {
             case 'SAVE':           walletFn = filePersist.walletFileSave; break;
             case 'LOAD':           walletFn = filePersist.walletFileLoad; break;
             
-            case 'ASSET-GET-FEES': walletFn = asset.getNetworkFees; break; 
             case 'SERVER-LOAD':    walletFn = serverPersist.walletServerLoad; break; 
             case 'SERVER-SAVE':    walletFn = serverPersist.walletServerSave; break; 
             
-            case 'TX-GET-FEE':     walletFn = tx.txGetFee; break; // ##
+            case 'ASSET-GET-FEES': walletFn = asset.getNetworkFees; break;
+            case 'TX-GET-FEE':     walletFn = tx.txGetFee; break;
+            case 'TX-PUSH':        walletFn = tx.txPush; break;
 
-            default: return new Promise((resolve) => resolve({ err: 'Invalid wallet function' }))
+            default: return Promise.resolve({ err: 'Invalid wallet function' })
         }
         return walletFn(appWorker, store, p)
     },
 }
 
 function validateMpk(mpk) {
-    if (!mpk) return new Promise((resolve) => resolve({ err: 'MPK is required' }))
-    if (mpk.length < 53) return new Promise((resolve) => resolve({ err: 'MPK too short (53 chars min)' }))
+    if (!mpk) return Promise.resolve({ err: 'MPK is required' })
+    if (mpk.length < 53) return Promise.resolve({ err: 'MPK too short (53 chars min)' })
     var apk = undefined
     try {
         return Keygen.generateMasterKeys(mpk).then(keys => {
-            return new Promise((resolve) => resolve({ ok: true }))
+            return Promise.resolve({ ok: true })
         }).catch(err => {
             log.error(err)
-            return new Promise((resolve) => resolve({ err: 'Invalid MPK' }))
+            return Promise.resolve({ err: 'Invalid MPK' })
         })
     }
     catch(err) {
         log.error(err)
-        return new Promise((resolve) => resolve({ err: 'Invalid MPK' }))
+        return Promise.resolve({ err: 'Invalid MPK' })
     }
 }

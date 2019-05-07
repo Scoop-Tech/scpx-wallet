@@ -185,23 +185,21 @@ describe('travis', function () {
 // testnet integration suite
 describe('testnets', function () {
 
-    //
-    // TODO: ping/pong send tx's slot 1 to 2
-    //       for btc_test & zec_test (then eth_test)
-    //
     it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
         const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
         await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
         const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-        //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
         await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
         const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
         await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
     })    
 
@@ -214,33 +212,29 @@ describe('testnets', function () {
             const wallet = store.getState().wallet
             
             const asset = wallet.assets.find(p => p.symbol === testSymbol)
-            if (!asset) throw (`${testSymbol} is not configured`)
+            if (!asset) throw `${testSymbol} is not configured`
 
             // validate test asset state
             const bal = walletExternal.get_combinedBalance(asset)
-            if (!bal.avail.isGreaterThan(0)) throw('Invalid testnet balance data')
-            if (asset.addresses.length < 2) throw('Invalid test asset address setup')
-
-            // get network fee rate, compute a null tx fee
-            const feeData = await opsWallet.getAssetFeeData(asset)
-            const txFee = await walletExternal.computeTxFee({
-                              asset: asset,
-                            feeData: feeData,
-                          sendValue: 0,
-                 encryptedAssetsRaw: wallet.assetsRaw, 
-                         useFastest: false, useSlowest: false, 
-                       activePubKey: serverLoad.ok.walletInit.ok.apk,
-                              h_mpk: serverLoad.ok.walletInit.ok.h_mpk,
-            })
+            if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
+            if (asset.addresses.length < 2) throw 'Invalid test asset address setup'
 
             // send testnet tx from the higher balance address to the lower
             const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1
             const receiveAddrNdx = sendAddrNdx == 1 ? 0 : 1
-            const feeParams = { txFee }
-            const payTo = [{ receiver: asset.addresses[receiveAddrNdx].addr, value: (txFee.fee * 5).toFixed(6) }]
+            var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
+            const sendValue = (du_sendBalance * 0.1).toFixed(6)
+            if (sendValue < 0.00001) throw 'Insufficient test currency'
+            const payTo = [{ receiver: asset.addresses[receiveAddrNdx].addr, value: sendValue }]
 
+            // get tx fee
+            const txGetFee = await svrWallet.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, s: testSymbol, v: sendValue }, 'TX-GET-FEE')
+            const txFee = txGetFee.ok.txFee
+            const feeParams = { txFee }
+
+            // push tx
             var txid = await new Promise((resolve) => {
-                walletExternal.createAndPushTx( {
+                walletExternal.createAndPushTx( { // --> TX_PUSH
                                 store: store,
                                 payTo: payTo,
                                wallet: wallet,
@@ -261,6 +255,7 @@ describe('testnets', function () {
             })
             resolve({ serverLoad, txFee, txid })
         })
+        
         expect(result.serverLoad.ok).toBeDefined()
         expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
         expect(result.txFee).toBeDefined()

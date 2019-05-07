@@ -3,7 +3,7 @@
 const Buffer = require('buffer').Buffer
 const _ = require('lodash')
 const pLimit = require('p-limit')
-
+const WAValidator = require('wallet-address-validator').validate
 const bitgoUtxoLib = require('bitgo-utxo-lib')
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bip32 = require('bip32')
@@ -105,15 +105,15 @@ module.exports = {
     // imports external privkeys into a new import account
     //
     importPrivKeys: async (p) => { 
-        if (configWallet.WALLET_ENV === "SERVER") throw("Not yet supported on server")
+        if (configWallet.WALLET_ENV === "SERVER") throw 'Not yet supported on server'
 
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
                 activePubKey, e_email, h_mpk } = p
-        if (!store) { throw("importPrivKeys - invalid store") }
-        if (!h_mpk) { throw("importPrivKeys - invalid h_mpk") }
-        if (!addrKeyPairs) { throw("importPrivKeys - no addr/key pairs supplied") }
-        if (!userAccountName) { throw("importPrivKeys - not logged in") }
-        if (!e_rawAssets || e_rawAssets == '') { throw("importPrivKeys - no wallet data") }
+        if (!store) { throw 'importPrivKeys - invalid store' }
+        if (!h_mpk) { throw 'importPrivKeys - invalid h_mpk' }
+        if (!addrKeyPairs) { throw 'importPrivKeys - no addr/key pairs supplied' }
+        if (!userAccountName) { throw 'importPrivKeys - not logged in' }
+        if (!e_rawAssets || e_rawAssets == '') { throw 'importPrivKeys - no wallet data' }
         const displayableAssets = wallet.assets
 
         // decrypt raw assets
@@ -122,7 +122,7 @@ module.exports = {
 
         // get asset 
         const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw("importPrivKeys - invalid asset") }
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'importPrivKeys - invalid asset' }
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol
 
@@ -206,15 +206,15 @@ module.exports = {
     // removes imported account(s)
     //
     removeImportedAccounts: async (p) => {
-        if (configWallet.WALLET_ENV === "SERVER") throw("Not yet supported on server")
+        if (configWallet.WALLET_ENV === "SERVER") throw 'Not yet supported on server'
 
         const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
                 activePubKey, e_email, h_mpk } = p
-        if (!store) { throw("removeImportedAccounts - invalid store") }
-        if (!h_mpk) { throw("removeImportedAccounts - invalid h_mpk") }
-        if (!removeAccounts) { throw("removeImportedAccounts - no remove accounts supplied") }
-        if (!userAccountName) { throw("removeImportedAccounts - not logged in") }
-        if (!e_rawAssets || e_rawAssets == '') { throw("removeImportedAccounts - no wallet data") }
+        if (!store) { throw 'removeImportedAccounts - invalid store' }
+        if (!h_mpk) { throw 'removeImportedAccounts - invalid h_mpk' }
+        if (!removeAccounts) { throw 'removeImportedAccounts - no remove accounts supplied' }
+        if (!userAccountName) { throw 'removeImportedAccounts - not logged in' }
+        if (!e_rawAssets || e_rawAssets == '') { throw 'removeImportedAccounts - no wallet data' }
         const displayableAssets = wallet.assets
 
         // decrypt raw assets
@@ -223,7 +223,7 @@ module.exports = {
 
         // get asset 
         const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw("removeImportedAccounts - no asset") }
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'removeImportedAccounts - no asset' }
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol
 
@@ -280,17 +280,16 @@ module.exports = {
                 eosActiveWallet } = p
 
         // validation
-        if (!store) throw("store is required")
-        if (!activePubKey) throw("activePubKey is required")
-        if (!store) throw("store is required")
-        if (!h_mpk) throw("h_mpk is required")
+        if (!store) throw 'store is required'
+        if (!activePubKey) throw 'activePubKey is required'
+        if (!store) throw 'store is required'
+        if (!h_mpk) throw 'h_mpk is required'
 
         const storeState = store.getState()
-        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw("Invalid store state")
+        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw 'Invalid store state'
         const wallet = storeState.wallet
         const e_rawAssets = storeState.wallet.assetsRaw
         
-        //if (!userAccountName) { throw("generateNewAddress - not logged in") }
         const displayableAssets = wallet.assets
 
         utilsWallet.logMajor('green','white', `generateNewAddress...`, null, { logServerConsole: true })
@@ -301,7 +300,7 @@ module.exports = {
 
         // get asset and account to generate into
         const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw("Invalid assetName")
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw 'Invalid assetName'
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol
         const genAccount = genAsset.accounts[0] // default (Scoop) account
@@ -402,8 +401,8 @@ module.exports = {
     generateWallets: async (p) => {
         const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
                 activePubKey, e_email, h_mpk } = p
-        if (!store) { throw("Invalid store") }
-        if (!h_mpk) { throw("Invalid h_mpk") }
+        if (!store) { throw 'Invalid store' }
+        if (!h_mpk) { throw 'Invalid h_mpk' }
 
         // decrypt existing raw assets, if supplied (either from server in client mode, or from file in server mode)
         var pt_storedRawAssets
@@ -631,6 +630,30 @@ module.exports = {
     newWalletAddressFromPrivKey: (p) => {
         return newWalletAddressFromPrivKey(p)
     },
+
+    //
+    // address validation
+    //
+    validateAssetAddress: (p) => {
+        var { testSymbol, testAddressType, validateAddr } = p
+        if (!testSymbol || testSymbol.length == 0) throw 'testSymbol is required'
+        if (!testAddressType || testAddressType.length == 0) throw 'testAddressType is required'
+
+        if (testSymbol === 'BCHABC') { // BCH: to legacy addr for validation
+            if (validateAddr && validateAddr.length > 0) {
+                try {
+                    if (bchAddr.isCashAddress(validateAddr) || bchAddr.isBitpayAddress(validateAddr)) {
+                        validateAddr = bchAddr.toLegacyAddress(validateAddr)
+                    }
+                }
+                catch(err) {
+                    console.warn(`## bchAddr.toLegacyAddress, err=`, err)
+                }
+            }
+        }
+
+        return WAValidator(validateAddr, testAddressType, testSymbol.includes('TEST') ? 'testnet' : 'prod')
+    }
 }
 
 //
@@ -848,7 +871,7 @@ function generateUtxoBip44Wifs(p) {
 
     var keyPairs = []
     const network = getUtxoNetwork(symbol) // bitgo
-    if (network === undefined) throw ('generateUtxoBip44Wifs - unsupported type')
+    if (network === undefined) throw 'generateUtxoBip44Wifs - unsupported type'
 
     var meta = configWallet.getMetaBySymbol(symbol)
 

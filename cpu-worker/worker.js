@@ -2,7 +2,7 @@
 
 const _ = require('lodash')
 const configWallet = require('../config/wallet')
-const walletActions = require('../actions/wallet')
+const opsWallet = require('../actions/wallet')
 const walletAccount = require('../actions/wallet-account')
 const utilsWallet = require('../utils')
 
@@ -76,7 +76,7 @@ function handler(e) {
 
                 var ret = null
                 try {
-                    ret = walletActions.newWalletAddressFromPrivKey(params)
+                    ret = opsWallet.newWalletAddressFromPrivKey(params)
                     ret.symbol = params.symbol
                 }
                 catch(err) {
@@ -100,7 +100,7 @@ function handler(e) {
 
                 var ret = null
                 try {
-                    ret = walletActions.getAddressFromPrivateKey(params)
+                    ret = opsWallet.getAddressFromPrivateKey(params)
                 }
                 catch(err) {
                     utilsWallet.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)

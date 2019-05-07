@@ -59,14 +59,20 @@ const walletBalanceHelp = `${helpBanner}` +
 
 const assetGetFeesHelp = `${helpBanner}` +
     `.agf (asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
-    `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n`
+    `\targ: --s        [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
 
 const txGetFeeHelp = `${helpBanner}` +
-    `.txgf (tx-get-fee) - gets the network fee for sending the specified asset value to a single recipient\n`.cyan.bold +
+    `.txgf (tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
     `\targ: --mpk      <master private key>  <required>  \n` +
     `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
     `\targ: --v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
 
+const txPushHelp = `${helpBanner}` +
+    `.txp (tx-push) - broadcasts the specified single-recipient transaction\n`.cyan.bold +
+    `\targ: --mpk      <master private key>  <required>  \n` +
+    `\targ: --s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
+    `\targ: --v        [number]              <required>  the amount to send, e.g. 0.01\n` +
+    `\targ: --a        [string]              <required>  the recipient address, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
 
 // dbg/utils
 
@@ -161,7 +167,7 @@ module.exports = {
         defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
         
         defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
-
+        defineWalletCmd(prompt, 'txp', txPushHelp, svrWallet.fn, 'TX-PUSH')
 
         defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)
 
@@ -223,5 +229,5 @@ function postCmd(prompt, res, help) {
         }
 
         prompt.displayPrompt()
-    }, 100) // https://github.com/nodejs/node/issues/11568
+    }, 1000) // https://github.com/nodejs/node/issues/11568 -- also, allow time for related reducer actions and their logs
 }

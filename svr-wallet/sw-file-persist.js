@@ -29,8 +29,8 @@ module.exports = {
         const e_assetsRaw = store.getState().wallet.assetsRaw
 
         // validate
-        if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
-        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
+        if (utilsWallet.isParamEmpty(n)) return Promise.resolve({ err: `Wallet name is required` })
+        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
         const fileName = `./wallet_${n.toString()}.dat`
 
         var overwrite = false
@@ -41,7 +41,7 @@ module.exports = {
         // check overwrite
         const fs = require('fs')
         const exists = fs.existsSync(fileName)
-        if (exists && !overwrite) return new Promise((resolve) => resolve({ err: `File ${fileName} already exists. Use --f to overwrite.` }))
+        if (exists && !overwrite) return Promise.resolve({ err: `File ${fileName} already exists. Use --f to overwrite.` })
 
         // exec
         return new Promise((resolve) => {
@@ -62,21 +62,21 @@ module.exports = {
         log.cmd('walletFileLoad')
 
         // validate
-        if (utilsWallet.isParamEmpty(n)) return new Promise((resolve) => resolve({ err: `Wallet name is required` }))
-        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return new Promise((resolve) => resolve({ err: `Wallet name must be alphanumeric characters only` }))
+        if (utilsWallet.isParamEmpty(n)) return Promise.resolve({ err: `Wallet name is required` })
+        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
         const fileName = `./wallet_${n.toString()}.dat`
 
         // check exists
         const fs = require('fs')
         const exists = fs.existsSync(fileName)
-        if (!exists) return new Promise((resolve) => resolve({ err: `File ${fileName} not found.` }))
+        if (!exists) return Promise.resolve({ err: `File ${fileName} not found.` })
 
         // exec
         return new Promise((resolve) => {
             fs.readFile(fileName, "utf8", function (err, data) {
                 if (err) resolve({ err })
                 else {
-                    if (!data || data.length == 0) return new Promise((resolve) => resolve({ err: `No data in file ${fileName}.` }))
+                    if (!data || data.length == 0) return Promise.resolve({ err: `No data in file ${fileName}.` })
 
                     const e_storedAssetsRaw = data.toString()
                     log.info(`Read wallet ${fileName} data OK - length=`, e_storedAssetsRaw.length)

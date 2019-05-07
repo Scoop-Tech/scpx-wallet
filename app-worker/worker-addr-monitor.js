@@ -71,7 +71,7 @@ function subAddr_Blockbook(wallet, asset) {
                 //const addr = data.address
 
                 if (self.blockbookAddrTxs.some(p => { return p === txid })) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} *** subAddr_Blockbook - new TX - ${asset.symbol} *** - ignoring server dupe send: already processed this txid! data=`, data)
+                    utilsWallet.log(`appWorker >> ${self.workerId} *** subAddr_Blockbook - new TX - ${asset.symbol} *** - ignoring: already processed this txid - data=`, data)
                 }
                 else {
                     self.blockbookAddrTxs.push(txid)
@@ -153,7 +153,7 @@ function subAddr_Insight(asset) {
                 //const addr = data.address
 
                 if (self.insightAddrTxs.some(p => { return p === txid })) {
-                    utilsWallet.warn(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring server dupe send: already processed this txid! data=`, data)
+                    utilsWallet.warn(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring: already processed this txid - data=`, data)
                 }
                 else {
                     utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - insightApi.txid=`, data.txid, { logServerConsole: true })

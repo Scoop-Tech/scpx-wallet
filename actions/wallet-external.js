@@ -334,7 +334,7 @@ module.exports = {
     //
     computeTxFee: async (p) => { 
         var { asset, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, activePubKey, h_mpk } = p
-        if (!feeData) { throw 'bad fee data' }
+        if (!feeData || !asset || !encryptedAssetsRaw || !activePubKey || !h_mpk) { throw 'Invalid parameters' }
 
         var ret = {}
 
@@ -344,14 +344,15 @@ module.exports = {
                             : useSlowest ? feeData.slow_satPerKB
                             :              feeData.fast_satPerKB
 
-            var du_satPerKB =  Number(utilsWallet.toDisplayUnit(new BigNumber(cu_satPerKB), asset))
+            var du_satPerKB = Number(utilsWallet.toDisplayUnit(new BigNumber(cu_satPerKB), asset))
             if (!sendValue) {
                 sendValue = 0
             }
             const payTo = [ { receiver: configExternal.walletExternal_config[asset.symbol].donate, value: sendValue } ]
             
-            // we need to pass some fee into createTxHex; we only care here though about the returned vsize
-            const feeParams = { txFee: { fee: (du_satPerKB / 4) } } 
+            // we need to pass some fee into createTxHex; 
+            // we only care here though about the returned tx size data
+            const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
 
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
@@ -359,15 +360,18 @@ module.exports = {
                        h_mpk: h_mpk,
             })
             if (res !== undefined) {
-                const cu_fee = new BigNumber(Math.ceil(((res.vSize / 1024) * cu_satPerKB)))  // actual tx KB size * sat/KB
-                const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset)) 
+                const cu_fee = new BigNumber(Math.ceil(((res.byteLength / 1024) * cu_satPerKB))) // tx KB size * sat/KB
+
+                const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset))
                 ret = { inputsCount: res.inputsCount,
                          utxo_vsize: res.vSize,
                       utxo_satPerKB: cu_satPerKB,
+                    utxo_byteLength: res.byteLength,
                                 fee: du_fee }
             }
             else {
-                utilsWallet.error(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
+                utilsWallet.warn(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
+                throw 'Failed to construct tx - ensure you have sufficient inputs for the specified value'
             }
         }
         else if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
@@ -385,9 +389,9 @@ module.exports = {
                                 fee: du_ethFee }
                 
             }
-            else throw(`unknown account address type`)
+            else throw(`Unknown account address type`)
         }
-        else throw(`unknown asset type`)
+        else throw(`Unknown asset type`)
 
         utilsWallet.log(`computeTxFee ${asset.symbol} ${sendValue} - ret=`, ret)
         return ret
@@ -409,8 +413,13 @@ async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
             activePubKey, h_mpk } = params
 
-    if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'receiver is required'
-    if (payTo.length != 1) throw 'send-multi is not yet supported'
+    if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
+    if (payTo.length != 1) throw 'send-many is not supported'
+    if (!asset) throw 'Invalid or missing asset'
+    if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
+    if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
+    if (!activePubKey || activePubKey.length == 0) throw 'Invalid or missing activePubKey'
+    if (!h_mpk || h_mpk.length == 0) throw 'Invalid or missing h_mpk'
 
     utilsWallet.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
     const validationMode = !sendMode
@@ -461,26 +470,20 @@ async function createTxHex(params) {
                   feeSatoshis: Math.floor(feeParams.txFee.fee * 100000000),
                         utxos, // flattened list of all utxos across all addresses
             }
-            const txSkeleton = walletUtxo.getUtxo_InputsOutputs(asset.symbol, utxoParams, sendMode)
-
-            // no utxo inputs and we're on validation pass - no exception to be thrown in this case
-            if (txSkeleton === null) { 
-                return undefined 
+            var txSkeleton
+            try {
+                txSkeleton = await walletUtxo.getUtxo_InputsOutputs(asset.symbol, utxoParams) //, true /*sendMode*/) //throwOnInsufficient
             }
-            
-            // exec mode - getUtxo_InputsOutputs may return rejected promise, e.g. insufficient funds to construct
-            if (typeof txSkeleton.then == 'function') { 
-                return txSkeleton.catch((x) => {
-                    return new Promise((resolve, reject) => { reject(x) }) 
-                })
+            catch (err) {
+                if (sendMode) return Promise.reject(err) // we're sending a tx: the error will propagate to client
+                else          return undefined           // we're estimating fees for a tx: the error will be handled internally
             }
+            if (!txSkeleton) throw 'Failed parsing tx skeleton'
 
             //console.time('ext-createTxHex-utxo-createSignTx')
                 const opsWallet = require('./wallet')
                 const network = opsWallet.getUtxoNetwork(asset.symbol)
-                var tx
-                var hex
-                var vSize
+                var tx, hex, vSize, byteLength
                 if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
                 || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
                 || asset.symbol === 'ZEC_TEST')
@@ -517,9 +520,12 @@ async function createTxHex(params) {
                     // run faster when in validation mode (not sending for real) - skip signing, return incomplete tx and estimate final vsize
                     const inc_tx = txb.buildIncomplete()
                     const inc_vs = inc_tx.virtualSize()
+                    const inc_bl = inc_tx.byteLength()
                     utilsWallet.log('inc_tx.virtualSize=', inc_vs)
+                    utilsWallet.log('inc_tx.byteLength=', inc_bl)
                     if (validationMode && skipSigningOnValidation) { // validation mode
                         vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
+                        byteLength = inc_bl + (asset.tx_perInput_byteLength * txSkeleton.inputs.length)
                         tx = inc_tx
                     }
                     else { // exec mode
@@ -555,13 +561,21 @@ async function createTxHex(params) {
                         tx = txb.build()
                         const tx_vs = tx.virtualSize()
                         vSize = tx_vs
+                        const tx_bl = tx.byteLength()
+                        byteLength = tx_bl
                         utilsWallet.log('tx.virtualSize=', tx_vs)
-
+                        utilsWallet.log('tx.byteLength=', tx_bl)
+                        
                         // dbg
                         const delta_vs = tx_vs - inc_vs
-                        const delta_perInput = delta_vs / txSkeleton.inputs.length
+                        const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
                         utilsWallet.log('dbg: delta_vs=', delta_vs)
-                        utilsWallet.log('dbg: delta_perInput=', delta_perInput)
+                        utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput)
+
+                        const delta_bl = tx_bl - inc_bl
+                        const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
+                        utilsWallet.log('dbg: delta_bl=', delta_bl)
+                        utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
 
                         hex = tx.toHex()
                         utilsWallet.log(`*** createTxHex (wallet-external UTXO bitgo-utxo) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
@@ -587,10 +601,12 @@ async function createTxHex(params) {
                     // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
                     const inc_tx = txb.buildIncomplete()
                     const inc_vs = inc_tx.virtualSize()
-
+                    const inc_bl = inc_tx.byteLength()
                     utilsWallet.log('inc_tx.virtualSize=', inc_vs)
+                    utilsWallet.log('inc_tx.byteLength=', inc_bl)
                     if (validationMode && skipSigningOnValidation) { // validation mode
                         vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
+                        byteLength = inc_bl + (asset.tx_perInput_byteLength * txSkeleton.inputs.length)
                         tx = inc_tx
                     }
                     else { // exec mode
@@ -629,13 +645,21 @@ async function createTxHex(params) {
                         tx = txb.build()
                         const tx_vs = tx.virtualSize()
                         vSize = tx_vs
-                        utilsWallet.log('tx.virtualSize=', tx_vs) //* for fee calc - weighted on segwit (minus witness data length) and = byteLength for legacy
+                        const tx_bl = tx.byteLength()
+                        byteLength = tx_bl
+                        utilsWallet.log('tx.virtualSize=', tx_vs) 
+                        utilsWallet.log('tx.byteLength=', tx_bl) 
 
                         // dbg
                         const delta_vs = tx_vs - inc_vs
-                        const delta_perInput = delta_vs / txSkeleton.inputs.length
+                        const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
                         utilsWallet.log('dbg: delta_vs=', delta_vs)
-                        utilsWallet.log('dbg: delta_perInput=', delta_perInput) // for tx_perInput_vsize
+                        utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput) 
+
+                        const delta_bl = tx_bl - inc_bl
+                        const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
+                        utilsWallet.log('dbg: delta_bl=', delta_bl)
+                        utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
                         
                         hex = tx.toHex()
                         utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
@@ -644,7 +668,19 @@ async function createTxHex(params) {
             //console.timeEnd('ext-createTxHex-utxo-createSignTx')
             
             utilsWallet.softNuke(addrPrivKeys)
-            return new Promise((resolve, reject) => { resolve({ hex, inputsCount: txSkeleton.inputs.length, vSize, cu_sendValue: cu_sendValue.toString() }) }) 
+            return new Promise((resolve, reject) => { resolve({ 
+                            hex, 
+                          vSize,
+                     byteLength,
+                    inputsCount: txSkeleton.inputs.length, 
+                    _cu_sendValue: cu_sendValue.toString(),
+                   get cu_sendValue() {
+                       return this._cu_sendValue;
+                   },
+                   set cu_sendValue(value) {
+                       this._cu_sendValue = value;
+                   },
+            }) }) 
         }
 
         case configWallet.WALLET_TYPE_ACCOUNT: {
@@ -683,7 +719,7 @@ async function createTxHex(params) {
         default:
             utilsWallet.error('Wallet type ' + asset.type + ' not supported!')
             break
-    }    
+    }
 }
 
 //
@@ -706,7 +742,7 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
             break
                 
         default:
-            throw ('Unsupported asset type')
+            throw 'Unsupported asset type'
     }
 }
 

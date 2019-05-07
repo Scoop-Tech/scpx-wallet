@@ -16,19 +16,22 @@ module.exports = {
     //   in estimate mode we don't yet know the exact fee (it will vary with the final tx vbyte size)
     //   in execute mode we have the final vbyte size, so we are passed in the exact fee
     //
-    getUtxo_InputsOutputs: (symbol, params, throwOnInsufficient = true) => {
+    getUtxo_InputsOutputs: (symbol, params) => { //}, throwOnInsufficient = true) => {
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, params=`, params)
 
         // validation
         if (!params || !params.feeSatoshis || !params.utxos) {
+            //if (throwOnInsufficient) return Promise.reject("Invalid parameters")
+            //else return null
             utilsWallet.error(`## getUtxo_InputsOutputs - invalid params`)
-            if (throwOnInsufficient) return Promise.reject("Invalid parameters")
-            else return null
+            return Promise.reject(`Invalid parameters`)
         }
         if (params.utxos.length === 0) {
-            utilsWallet.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance?`)
-            if (throwOnInsufficient) return Promise.reject("Insufficient funds")
-            else return null
+            //utilsWallet.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance`)
+            //if (throwOnInsufficient) return Promise.reject("Insufficient funds")
+            //else return null
+            utilsWallet.warn(`getUtxo_InputsOutputs - no UTXOs`)
+            return Promise.reject(`No UTXOs`)
         }
 
         // sort available utxos by descending balance
@@ -58,14 +61,16 @@ module.exports = {
             }
         }
 
-        // validate enough utxo's exist
+        // warn - but continue - if unable to construct specified total output value
         if (inputsTotalValue.lt(valueNeeded.plus(feeSatoshisAssumed))) {
-            if (throwOnInsufficient) {
-                return Promise.reject("Insufficient funds")
-            }
-            else {
-                utilsWallet.log(`getUtxo_InputsOutputs - insufficient UTXOs to construct TX: ignoring on estimate path.`)
-            }
+            // if (throwOnInsufficient) {
+            //     return Promise.reject("Insufficient funds")
+            // }
+            // else {
+            //     utilsWallet.log(`getUtxo_InputsOutputs - insufficient UTXOs to construct TX: ignoring on estimate path.`)
+            // }
+            utilsWallet.warn(`getUtxo_InputsOutputs - insufficient UTXOs for specified TX value`)
+            //return Promise.reject(`Insufficient UTXOs`)
         }
 
         // format inputs and outputs
@@ -85,7 +90,7 @@ module.exports = {
         const txSkeleton = { inputs, outputs }
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, txSkeleton=`, txSkeleton)
 
-        return txSkeleton
+        return Promise.resolve(txSkeleton)
     },
 
     pushRawTransaction_Utxo: (wallet, asset, txhex, callback) => {
