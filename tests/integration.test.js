@@ -190,7 +190,7 @@ describe('travis', function () {
         })
 
         it('can import and remove private keys', async () => {
-            expect.assertions(10)
+            expect.assertions(14)
             const result = await new Promise(async (resolve, reject) => {
                 const create = await svrWalletCreate.walletNew(appWorker, appStore)
                 const mpk = create.ok.mpk
@@ -240,7 +240,6 @@ describe('travis', function () {
             expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toEqual(0)
             expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toEqual(0)
             expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toEqual(0)
-
         })
     })
 })
