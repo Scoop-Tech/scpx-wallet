@@ -78,23 +78,23 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':                walletFn = functions.walletConnect; break;
-            case 'DUMP':                   walletFn = functions.walletDump; break;
+            case 'CONNECT':           walletFn = functions.walletConnect; break;
+            case 'DUMP':              walletFn = functions.walletDump; break;
             
-            case 'ADD-ADDR':               walletFn = keys.walletAddAddress; break;
-            case 'ADD-PRIV-KEYS':          walletFn = keys.walletAddPrivKeys; break;
+            case 'ADD-ADDR':          walletFn = keys.walletAddAddress; break;
+            case 'ADD-PRIV-KEYS':     walletFn = keys.walletAddPrivKeys; break;
             case 'REMOVE-PRIV-KEYS':  walletFn = keys.walletRemoveImportAccount; break;
             
-            case 'BALANCE':                walletFn = functions.walletBalance; break;
-            case 'SAVE':                   walletFn = filePersist.walletFileSave; break;
-            case 'LOAD':                   walletFn = filePersist.walletFileLoad; break;
+            case 'BALANCE':           walletFn = functions.walletBalance; break;
+            case 'SAVE':              walletFn = filePersist.walletFileSave; break;
+            case 'LOAD':              walletFn = filePersist.walletFileLoad; break;
             
-            case 'SERVER-LOAD':            walletFn = serverPersist.walletServerLoad; break; 
-            case 'SERVER-SAVE':            walletFn = serverPersist.walletServerSave; break; 
+            case 'SERVER-LOAD':       walletFn = serverPersist.walletServerLoad; break; 
+            case 'SERVER-SAVE':       walletFn = serverPersist.walletServerSave; break; 
             
-            case 'ASSET-GET-FEES':         walletFn = asset.getNetworkFees; break;
-            case 'TX-GET-FEE':             walletFn = tx.txGetFee; break;
-            case 'TX-PUSH':                walletFn = tx.txPush; break;
+            case 'ASSET-GET-FEES':    walletFn = asset.getNetworkFees; break;
+            case 'TX-GET-FEE':        walletFn = tx.txGetFee; break;
+            case 'TX-PUSH':           walletFn = tx.txPush; break;
 
             default: return Promise.resolve({ err: 'Invalid wallet function' })
         }

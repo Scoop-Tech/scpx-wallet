@@ -331,7 +331,7 @@ const walletsMeta = {
         type: WALLET_TYPE_ACCOUNT,
         addressType: ADDRESS_TYPE_ETH,
         symbol: 'ETH_TEST',
-        displayName: 'ET#*',
+        displayName: 'ETH#',
         desc: 'Ropsten',
         displaySymbol: 'ETH#',
         imageUrl: 'img/asset-icon/eth_test2.png',
@@ -689,8 +689,13 @@ module.exports = {
     , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                             // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
     , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000                         // static gasLimit for ERC20 token transfers, if not specified on the asset's config
 
+    // privkey regexs
+    , REGEX_WIF_UTXO_MAINNETS: /[5KLTX][1-9A-HJ-NP-Za-km-z]{50,52}/g     // utxo - ltc, btc, zec, dash, vtc, qtum, dgb, bchabc
+    , REGEX_WIF_UTXO_TESTNETS: /[c][1-9A-HJ-NP-Za-km-z]{50,52}/g         
+    , REGEX_ETH: /[0-9A-Fa-f]{64}/g                                      // eth -- 64 hex chars, any
+
     // functional sockets - geth & blockbook
-    , VOLATILE_SOCKETS_REINIT_SECS: 10                                   // volatile sockets - reinit timer (seconds)
+    , VOLATILE_SOCKETS_REINIT_SECS: 20                                   // volatile sockets - reinit timer (seconds)
 
     // cli 
     , CLI_SAVE_LOADED_WALLET_KEY: process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions

@@ -35,8 +35,8 @@ const walletAddAddrHelp = `${helpBanner}` +
     `\targ: --mpk         <master private key>  <required>  \n` +
     `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
 
-const walletAddPrivKeysHelp = `${helpBanner}` +
-    `.wapk (wallet-add-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
+const walletImportPrivKeysHelp = `${helpBanner}` +
+    `.wipk (wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
     `\targ: --mpk         <master private key>  <required>  \n` +
     `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
     `\targ: --privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
@@ -170,14 +170,13 @@ module.exports = {
         defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.fn, 'SERVER-LOAD')
         defineWalletCmd(prompt, 'wss', walletServerSaveHelp, svrWallet.fn, 'SERVER-SAVE')
 
-
         defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.fn, 'CONNECT')
 
         defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.fn, 'DUMP')
         defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.fn, 'BALANCE')
 
         defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
-        defineWalletCmd(prompt, 'wapk', walletAddPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
+        defineWalletCmd(prompt, 'wipk', walletImportPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
         defineWalletCmd(prompt, 'wrpk', walletRemovePrivKeysHelp, svrWallet.fn, 'REMOVE-PRIV-KEYS')
 
         defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')

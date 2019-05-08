@@ -5,6 +5,7 @@ const _ = require('lodash')
 const configWallet = require('../config/wallet')
 const configExternal  = require('../config/wallet-external')
 const opsWallet = require('../actions/wallet')
+const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 const log = require('../cli-log')

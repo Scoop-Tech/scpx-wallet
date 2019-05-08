@@ -66,13 +66,11 @@ module.exports = {
         if (utilsWallet.isParamEmpty(privKeys)) return Promise.resolve({ err: `Private key list is required` })
         const privKeyList = privKeys.split(',')
         if (!privKeyList || privKeyList.length == 0) return Promise.resolve({ err: `Invalid private key list - use comma separation` })
-        var regex
-        if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
-            regex = /[0-9A-Fa-f]{64}/g // eth: 64 hex chars
-        }
-        else {
-            regex = /[5KLTX][1-9A-HJ-NP-Za-km-z]{50,52}/g // utxo: WIF - ltc, btc, zec, dash, vtc, qtum, dgb, bchabc
-        }
+        var regex = asset.addressType === configWallet.ADDRESS_TYPE_ETH 
+            ? configWallet.REGEX_ETH
+            : asset.symbol.includes('_TEST')
+                ? configWallet.REGEX_WIF_UTXO_TESTNETS
+                : configWallet.REGEX_WIF_UTXO_MAINNETS
         for (var i=0 ; i < privKeyList.length ; i++) {
             if (!privKeyList[i].match(regex)) { 
                 return Promise.resolve({ err: `Invalid private key "${privKeyList[i]}"` }) 

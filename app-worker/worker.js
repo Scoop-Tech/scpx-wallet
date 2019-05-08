@@ -308,7 +308,7 @@ function handler(e) {
             const addrs = data.addrs
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
             //debugger
-            if (data.asset.symbol === 'ETH' || utilsWallet.isERC20(data.asset.symbol)) {
+            if (data.asset.symbol === 'ETH' || data.asset.symbol === 'ETH_TEST' || utilsWallet.isERC20(data.asset.symbol)) {
                 
                 const ops = data.addrs.map(addr => { return workerAccount.getAddressBalance_Account(data.asset.symbol, addr, false) })
                 Promise.all(ops)
