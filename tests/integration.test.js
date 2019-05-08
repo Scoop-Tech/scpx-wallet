@@ -22,7 +22,7 @@ const opsWallet = require('../actions/wallet')
 const serverTestWallet = { mpk: 'PW5JF9k3njzJ3F7fYgPTAKcHg1uDXoKonXhHpfDs4Sw2fJcwgHxVT', email: 'testnets@scoop.tech' }
 
 beforeAll(async () => {
-    global.loadedWalletKeys = {}
+    global.loadedWallet = {}
     global.loadedServerWallet = {}
 
     console.log('process.env.NODE_ENV:', process.env.NODE_ENV)

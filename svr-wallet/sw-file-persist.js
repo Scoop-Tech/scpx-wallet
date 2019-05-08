@@ -23,7 +23,7 @@ const log = require('../cli-log')
 module.exports = {
 
     walletFileSave: (appWorker, store, p) => {
-        var { n, f } = p
+        var { mpk, n, f } = p
         log.cmd('walletFileSave')
 
         const e_assetsRaw = store.getState().wallet.assetsRaw
@@ -50,8 +50,10 @@ module.exports = {
                 if (err) resolve({ err })
                 else {
                     log.warn(`the MPK used to generate this wallet will be required to load it from file.`)
-                    utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
-                    resolve({ ok: fileName })
+
+                    global.global.loadedWallet.dirty = false
+                    utilsWallet.setTitle()
+                    resolve({ ok: { fileName, mpk } })
                 }
             })
         })
@@ -85,6 +87,7 @@ module.exports = {
                     .then(walletInit => {
                         if (walletInit.err) resolve(walletInit)
                         if (walletInit.ok) {
+                            global.global.loadedWallet.dirty = false
                             utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
                         }
                         resolve({ ok: { fileName, walletInit } })

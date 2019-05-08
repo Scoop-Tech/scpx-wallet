@@ -1,12 +1,10 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
-const Keygen = require('eosjs-keygen').Keygen
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const configExternal  = require('../config/wallet-external')
 const opsWallet = require('../actions/wallet')
-const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 const log = require('../cli-log')
@@ -162,41 +160,6 @@ module.exports = {
     
         return new Promise((resolve) => {
             resolve({ ok: allPathKeyAddrs })
-        })
-    },
-
-    // adds a sub-asset receive address
-    walletAddAddress: async (appWorker, store, p) => {
-        var { mpk, apk, s } = p
-        log.cmd('walletAddAddress')
-        
-        // validate
-        const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
-        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
-
-        const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-
-        // exec
-        return opsWallet.generateNewAddress({
-                    store: store,
-             activePubKey: apk,
-                    h_mpk: h_mpk,
-                assetName: asset.name,
-          userAccountName: undefined, // no EOS persistence for server wallets - not required
-                  e_email: undefined, // no EOS persistence for server wallets - not required
-          eosActiveWallet: undefined, // todo
-        })
-        .then(async (walletAddAddr) => {
-
-            // (re)connect addr monitors
-            const walletConnect = await module.exports.walletConnect(appWorker, store, {})
-
-            return Promise.resolve({ ok: { walletAddAddr, walletConnect } })
-        })
-        .catch(err => {
-            return Promise.resolve({ err })
         })
     },
 

@@ -72,6 +72,12 @@ else {
     if (cli.saveHistory) log.info(`cli.saveHistory:`, cli.saveHistory)
     console.log()
 
+    // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
+    global.loadedWallet = {}
+
+    // loaded server wallet accountName & email are cached here (always)
+    global.loadedServerWallet = {}
+
     utilsWallet.setTitle('')
 
     // handlers - unhandlded exceptions, and process exit
@@ -92,12 +98,6 @@ else {
 
     // setup workers
     svrWorkers.workers_init(appStore).then(async () => {
-
-        // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
-        global.loadedWalletKeys = {}
-
-        // loaded server wallet accountName & email are cached here (always)
-        global.loadedServerWallet = {}
 
         // wallet context
         const walletContext = {

@@ -66,6 +66,8 @@ if (configWallet.WALLET_ENV === "SERVER") {
     })
 }
 
+var lastConsoleTitle = ''
+
 module.exports = {
     
     //
@@ -332,7 +334,13 @@ module.exports = {
         }
     },
     setTitle: (s) => {
-        require('console-title')(`sw-cli - ${s}`)
+        if (!s) {
+            require('console-title')(`sw-cli - ${lastConsoleTitle}${loadedWallet.dirty ? ' ** UNSAVED **' : ''}`)
+        }
+        else {
+            require('console-title')(`sw-cli - ${s}${global.loadedWallet.dirty ? ' ** UNSAVED **' : ''}`)
+            lastConsoleTitle = s
+        }
     },
 
     //

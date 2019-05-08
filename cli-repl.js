@@ -2,6 +2,7 @@
 
 const repl = require('repl')
 const colors = require('colors')
+const parseSentence = require('minimist-string')
 
 const appStore = require('./store').store
 const utilsWallet = require('./utils')
@@ -13,49 +14,62 @@ const svrWalletCreate = require('./svr-wallet/sw-create')
 const helpBanner = ' HELP '.bgCyan.white.bold + ' '
 
 const walletNewHelp = `${helpBanner}` +
-    `.wn (wallet-new) - creates and persists in-memory a new wallet with new random seed values\n`.cyan.bold
+    `.wn (wallet-new) -   creates and persists in-memory a new wallet with new random seed values\n`.cyan.bold
 
 const walletInitHelp = `${helpBanner}` +
     `.wi (wallet-init) - recreates a wallet from supplied seed values\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
+    `\targ: --mpk         <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
 
 const walletConnectHelp = `${helpBanner}` +
     `.wc (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
 
 const walletDumpHelp = `${helpBanner}` +
     `.wd (wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --s        [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
-    `\targ: --txs      [bool]                [optional]  dump address transactions (default: false)\n` +
-    `\targ: --privkeys [bool]                [optional]  dump private keys (default: false)\n`
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --s           [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
+    `\targ: --txs         [bool]                [optional]  dump address transactions (default: false)\n` +
+    `\targ: --privkeys    [bool]                [optional]  dump private keys (default: false)\n`
 
 const walletAddAddrHelp = `${helpBanner}` +
     `.waa (wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --s        [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
+
+const walletAddPrivKeysHelp = `${helpBanner}` +
+    `.wapk (wallet-add-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\targ: --privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
+
+const walletRemovePrivKeysHelp = `${helpBanner}` +
+    `.wrpk (wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\targ: --accountName [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `.ws (wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
-    `\targ: --n        [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
-    `\targ: --f        [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --n           [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
+    `\targ: --f           [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
 
 const walletLoadHelp = `${helpBanner}` +
     `.wl (wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --n        [string]              <required>  the name of the wallet to load\n`
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --n           [string]              <required>  the name of the wallet to load\n`
 
 const walletServerLoadHelp = `${helpBanner}` +
     `.wsl (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --e        [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
+    `\targ: --mpk         <master private key>  <required>  \n` +
+    `\targ: --e           [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
 
 const walletServerSaveHelp = `${helpBanner}` +
     `.wss (wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n`
+    `\targ: --mpk         <master private key>  <required>  \n`
 
 const walletBalanceHelp = `${helpBanner}` +
     `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
-    `\targ: --s        [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
+    `\targ: --s           [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
 
 const assetGetFeesHelp = `${helpBanner}` +
     `.agf (asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
@@ -135,7 +149,8 @@ module.exports = {
                 help,
                 action: function (args) {
                     prompt.clearBufferedCommand()
-                    var argv = require('minimist')(args.split(' '))
+                    //var argv = require('minimist')(args.split(' '))
+                    const argv = parseSentence(args)
                     if (argv.help) postCmd(prompt, null, help)
                     else {
                         //console.group()
@@ -162,7 +177,8 @@ module.exports = {
         defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.fn, 'BALANCE')
 
         defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
-        // TODO: add/remove imported accounts
+        defineWalletCmd(prompt, 'wapk', walletAddPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
+        defineWalletCmd(prompt, 'wrpk', walletRemovePrivKeysHelp, svrWallet.fn, 'REMOVE-PRIV-KEYS')
 
         defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
         
@@ -224,7 +240,7 @@ function postCmd(prompt, res, help) {
             log.success(`${JSON.stringify(res.ok, null, 2)}`)
         }
 
-        if (global.loadedWalletKeys && global.loadedWalletKeys.mpk) {
+        if (global.loadedWallet && global.loadedWallet.keys && global.loadedWallet.keys.mpk) {
             log.warn('DEV MODE - wallet MPK is being cached in-memory (CLI_SAVE_LOADED_WALLET_KEY == true)')
         }
 

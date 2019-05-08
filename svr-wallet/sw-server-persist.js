@@ -48,12 +48,12 @@ module.exports = {
         // post
         return apiDataContract.updateAssetsJsonApi(accountName, opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk), e_email)
         .then(res => {
-            if (!res) {
-                return Promise.resolve({ err: `DSC API: invalid or missing response data` })
-            }             
-            if (!res.res === "ok") { 
-                return Promise.resolve({ err: `DSC API: update failed` })
-            }
+            if (!res) return Promise.resolve({ err: `DSC API: invalid or missing response data` })
+            if (!res.res === "ok") return Promise.resolve({ err: `DSC API: update failed` })
+
+            global.global.loadedWallet.dirty = false
+            utilsWallet.setTitle()
+
             return { ok: { res } }
         })
         .finally(() => {
@@ -108,6 +108,7 @@ module.exports = {
             const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
             if (walletInit.err) resolve(walletInit)
             if (walletInit.ok) {
+                global.global.loadedWallet.dirty = false
                 utilsWallet.setTitle(`SERVER WALLET - ${email} / ${accountName}`)
                 global.loadedServerWallet = { accountName, email }
             }

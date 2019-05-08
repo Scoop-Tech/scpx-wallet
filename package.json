@@ -113,7 +113,7 @@
         "json-stringify-safe": "^5.0.1",
         "localforage": "^1.7.3",
         "lodash": "^4.17.11",
-        "minimist": "^1.2.0",
+        "minimist-string": "^1.0.2",
         "node-tail": "0.0.4",
         "nvm": "0.0.4",
         "p-limit": "^2.2.0",

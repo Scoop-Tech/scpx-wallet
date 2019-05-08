@@ -68,22 +68,15 @@ module.exports = {
             }
             
             if (configWallet.CLI_SAVE_LOADED_WALLET_KEY === true) {
-                global.loadedWalletKeys = { mpk }
+                global.loadedWallet.keys = { mpk }
             }
 
-            utilsWallet.setTitle(`*UNSAVED WALLET* apk - ${apk}`)
+            utilsWallet.setTitle(`${apk}`)
 
             // (re)connect addr monitors
             const walletConnect = await functions.walletConnect(appWorker, store, {})
 
-            return { ok: { 
-                        // generateWalletsResult: generateWalletsResult.map(p => { return {
-                        //        symbol: p.symbol,
-                        //     addresses: p.addresses.map(p2 => p2.addr).join(', ')
-                        // }} ),
-                        mpk, apk, h_mpk,
-                        walletConnect,
-                   }}
+            return { ok: { mpk, apk, h_mpk, walletConnect }}
         })
         .catch(err => {
             return { err: err.message || err.toString() }

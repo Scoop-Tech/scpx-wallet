@@ -2,17 +2,8 @@
 
 const Keygen = require('eosjs-keygen').Keygen
 
-const BigNumber = require('bignumber.js')
-const MD5 = require('crypto-js').MD5
-const _ = require('lodash')
-
-const { Worker, isMainThread, parentPort } = require('worker_threads')
-
-const configWallet = require('../config/wallet')
-const opsWallet = require('../actions/wallet')
-const utilsWallet = require('../utils')
-
 const functions = require('./sw-functions')
+const keys = require('./sw-keys')
 const filePersist = require('./sw-file-persist')
 const serverPersist = require('./sw-server-persist')
 const asset = require('./sw-asset')
@@ -33,7 +24,8 @@ module.exports = {
         if (!appWorker) throw 'No app worker'
 
         const mpkRequired =
-            (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'LOAD' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
+            (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'ADD-PRIV-KEYS' || fn === 'REMOVE-PRIV-KEYS'
+          || fn === 'LOAD' || fn === 'SAVE' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH')
         
         const loadedWalletRequired =
@@ -71,8 +63,8 @@ module.exports = {
         if (mpkRequired) {
             if (p !== null) {
                 var { mpk } = p
-                if (global.loadedWalletKeys.mpk && !mpk) { 
-                    mpk = global.loadedWalletKeys.mpk
+                if (global.loadedWallet.keys && global.loadedWallet.keys.mpk && !mpk) { 
+                    mpk = global.loadedWallet.keys.mpk
                 }
                 const invalidMpk = await validateMpk(mpk)
                 if (invalidMpk.err) return invalidMpk
@@ -86,19 +78,23 @@ module.exports = {
         // route
         var walletFn
         switch (fn) {
-            case 'CONNECT':        walletFn = functions.walletConnect; break;
-            case 'DUMP':           walletFn = functions.walletDump; break;
-            case 'ADD-ADDR':       walletFn = functions.walletAddAddress; break;
-            case 'BALANCE':        walletFn = functions.walletBalance; break;
-            case 'SAVE':           walletFn = filePersist.walletFileSave; break;
-            case 'LOAD':           walletFn = filePersist.walletFileLoad; break;
+            case 'CONNECT':                walletFn = functions.walletConnect; break;
+            case 'DUMP':                   walletFn = functions.walletDump; break;
             
-            case 'SERVER-LOAD':    walletFn = serverPersist.walletServerLoad; break; 
-            case 'SERVER-SAVE':    walletFn = serverPersist.walletServerSave; break; 
+            case 'ADD-ADDR':               walletFn = keys.walletAddAddress; break;
+            case 'ADD-PRIV-KEYS':          walletFn = keys.walletAddPrivKeys; break;
+            case 'REMOVE-PRIV-KEYS':  walletFn = keys.walletRemoveImportAccount; break;
             
-            case 'ASSET-GET-FEES': walletFn = asset.getNetworkFees; break;
-            case 'TX-GET-FEE':     walletFn = tx.txGetFee; break;
-            case 'TX-PUSH':        walletFn = tx.txPush; break;
+            case 'BALANCE':                walletFn = functions.walletBalance; break;
+            case 'SAVE':                   walletFn = filePersist.walletFileSave; break;
+            case 'LOAD':                   walletFn = filePersist.walletFileLoad; break;
+            
+            case 'SERVER-LOAD':            walletFn = serverPersist.walletServerLoad; break; 
+            case 'SERVER-SAVE':            walletFn = serverPersist.walletServerSave; break; 
+            
+            case 'ASSET-GET-FEES':         walletFn = asset.getNetworkFees; break;
+            case 'TX-GET-FEE':             walletFn = tx.txGetFee; break;
+            case 'TX-PUSH':                walletFn = tx.txPush; break;
 
             default: return Promise.resolve({ err: 'Invalid wallet function' })
         }
@@ -109,7 +105,6 @@ module.exports = {
 function validateMpk(mpk) {
     if (!mpk) return Promise.resolve({ err: 'MPK is required' })
     if (mpk.length < 53) return Promise.resolve({ err: 'MPK too short (53 chars min)' })
-    var apk = undefined
     try {
         return Keygen.generateMasterKeys(mpk).then(keys => {
             return Promise.resolve({ ok: true })

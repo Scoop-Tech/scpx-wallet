@@ -102,177 +102,7 @@ module.exports = {
     },
 
     //
-    // imports external privkeys into a new import account
-    //
-    importPrivKeys: async (p) => { 
-        if (configWallet.WALLET_ENV === "SERVER") throw 'Not yet supported on server'
-
-        const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, addrKeyPairs,
-                activePubKey, e_email, h_mpk } = p
-        if (!store) { throw 'importPrivKeys - invalid store' }
-        if (!h_mpk) { throw 'importPrivKeys - invalid h_mpk' }
-        if (!addrKeyPairs) { throw 'importPrivKeys - no addr/key pairs supplied' }
-        if (!userAccountName) { throw 'importPrivKeys - not logged in' }
-        if (!e_rawAssets || e_rawAssets == '') { throw 'importPrivKeys - no wallet data' }
-        const displayableAssets = wallet.assets
-
-        // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
-        var rawAssets = JSON.parse(pt_rawAssets)
-
-        // get asset 
-        const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'importPrivKeys - invalid asset' }
-        const meta = configWallet.walletsMeta[assetName.toLowerCase()]
-        const genSymbol = meta.symbol
-
-        // make new HD account for import
-        const existingImports = genAsset.importCount || 0 //genAsset.accounts.length - 1 // first account is default Scoop addresses
-        const importAccount = { // new import account
-            name: `Import #${existingImports+1} ${meta.displayName}`,
-            privKeys: []
-        }
-        genAsset.accounts.push(importAccount)
-        const accountNdx = existingImports + 1 // imported accounts start at our HD index 1 (scoop default is 0)
-        genAsset.importCount = accountNdx
-
-        // map raw suplied priv keys to our internal format; note -- there is no "real" HD path for imported keys (they're not derived keys)
-        // we use custom path prefix 'i' for imported to denote this
-        const privKeys = []
-        for (var i=0 ; i < addrKeyPairs.length ; i++) {
-            const privKey = addrKeyPairs[i].privKey
-            var chainNdx = 0 // bip44: 0=external chain, 1=internal chain (change addresses)
-            privKeys.push({ privKey, path: `i/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}` })
-        }
-
-        // add new priv keys
-        privKeys.forEach(privKey => {
-            importAccount.privKeys.push(privKey)
-        })
-
-        // update local persisted raw assets
-        var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
-        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
-
-        // add to displayable asset addresses - this fails inside .then() below; no idea why
-        const newDisplayableAssets = _.cloneDeep(displayableAssets)
-        const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
-        for (var i=0 ; i < addrKeyPairs.length ; i++) {
-            const addr = addrKeyPairs[i].addr
-            var newDisplayableAddr = newWalletAddressFromPrivKey( {
-                  assetName: assetName.toLowerCase(),
-                accountName: importAccount.name,
-                        key: privKeys.find(p => p.privKey == addrKeyPairs[i].privKey),
-            eosActiveWallet: eosActiveWallet,
-                  knownAddr: addr,
-                     symbol: newDisplayableAsset.symbol
-            })
-            if (newDisplayableAddr.addr === null) {
-                utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
-                return { err: "Invalid Private Key" }
-            }
-            newDisplayableAsset.addresses.push(newDisplayableAddr)
-        }
-        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
-
-        // raw assets: post encrypted
-        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
-        .then((res) => {
-            rawAssetsJsonUpdated = null
-
-            if (configWallet.WALLET_ENV === "BROWSER") {
-
-                // update addr monitors
-                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-                // refresh asset balance
-                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
-            }
-            
-            // ret ok
-            utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
-            return { importedAddrCount: privKeys.length, accountName: importAccount.name }
-        })
-        .catch(err => {
-            utilsWallet.error(`## Wallet - importPrivKeys -- FAIL posting, err=`, err)
-            utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
-            return { err: err.toString() }
-        })
-    },
-
-    //
-    // removes imported account(s)
-    //
-    removeImportedAccounts: async (p) => {
-        if (configWallet.WALLET_ENV === "SERVER") throw 'Not yet supported on server'
-
-        const { store, userAccountName, e_rawAssets, eosActiveWallet, assetName, wallet, removeAccounts, 
-                activePubKey, e_email, h_mpk } = p
-        if (!store) { throw 'removeImportedAccounts - invalid store' }
-        if (!h_mpk) { throw 'removeImportedAccounts - invalid h_mpk' }
-        if (!removeAccounts) { throw 'removeImportedAccounts - no remove accounts supplied' }
-        if (!userAccountName) { throw 'removeImportedAccounts - not logged in' }
-        if (!e_rawAssets || e_rawAssets == '') { throw 'removeImportedAccounts - no wallet data' }
-        const displayableAssets = wallet.assets
-
-        // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
-        var rawAssets = JSON.parse(pt_rawAssets)
-
-        // get asset 
-        const genAsset = rawAssets[assetName.toLowerCase()]
-        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'removeImportedAccounts - no asset' }
-        const meta = configWallet.walletsMeta[assetName.toLowerCase()]
-        const genSymbol = meta.symbol
-
-        // raw assets: remove specified accounts & addresses
-        const removedAccountCount = genAsset.accounts.filter(p => removeAccounts.some(p2 => p2 === p.name) === true).length
-        genAsset.accounts = genAsset.accounts.filter(p => removeAccounts.some(p2 => p2 === p.name) === false)
-        genAsset.addresses = genAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === false)
-
-        // raw assets: update local persisted copy
-        var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
-        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
-
-        // displayableAssets: remove specified accounts & addresses
-        const newDisplayableAssets = _.cloneDeep(displayableAssets)
-        const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
-        const removedAddrCount = newDisplayableAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === true).length
-        newDisplayableAsset.addresses = newDisplayableAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === false)
-        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
-
-        // raw assets: post encrypted
-        return apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
-        .then(() => {
-
-            rawAssetsJsonUpdated = null
-
-            if (configWallet.WALLET_ENV === "BROWSER") {
-
-                // update addr monitors
-                window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-                // refresh asset balance
-                window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
-            }
-
-            // ret ok
-            utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
-            return { removedAddrCount, removedAccountCount }
-        })
-        .catch(err => {
-            utilsWallet.error(`## Wallet - removeImportedAccounts -- FAIL posting, err=`, err)
-            utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
-            return { err: err.toString() }
-        })
-    },
-
-    //
-    // generates new address (in the primary scoop account)
+    // generates a new address (in the primary scoop account)
     //
     generateNewAddress: async (p) => {
         const { store, activePubKey, h_mpk, assetName, // required - browser & server
@@ -284,12 +114,15 @@ module.exports = {
         if (!activePubKey) throw 'activePubKey is required'
         if (!store) throw 'store is required'
         if (!h_mpk) throw 'h_mpk is required'
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            if (!userAccountName) throw 'userAccountName is required'
+            if (!e_email) throw 'e_email is required'
+        }
 
         const storeState = store.getState()
         if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw 'Invalid store state'
         const wallet = storeState.wallet
         const e_rawAssets = storeState.wallet.assetsRaw
-        
         const displayableAssets = wallet.assets
 
         utilsWallet.logMajor('green','white', `generateNewAddress...`, null, { logServerConsole: true })
@@ -334,13 +167,12 @@ module.exports = {
             var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
             const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
+            rawAssetsJsonUpdated = null
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
                 await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
             }
-        
-            rawAssetsJsonUpdated = null
 
             // add new displayable asset address object
             const newDisplayableAssets = _.cloneDeep(displayableAssets)
@@ -382,8 +214,208 @@ module.exports = {
         } else {
             // ret fail
             utilsWallet.softNuke(rawAssets); pt_rawAssets = null
-            return { err: 'PrivKey-gen failed', newAddr: undefined }
+            return { err: 'Failed to generate private key', newAddr: undefined }
         }
+    },
+
+    //
+    // imports external privkeys into a new import account
+    //
+    importPrivKeys: async (p) => { 
+
+        var { store, activePubKey, h_mpk, assetName, addrKeyPairs,  // required - browser & server
+              userAccountName, e_email,                             // required - browser 
+              eosActiveWallet } = p
+
+        // validation
+        if (!store) throw 'store is required'
+        if (!activePubKey) throw 'activePubKey is required'
+        if (!assetName) throw 'assetName is required'
+        if (!h_mpk) throw 'h_mpk is required'        
+        if (!addrKeyPairs || addrKeyPairs.length == 0) throw 'addrKeyPairs required'
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            if (!userAccountName) throw 'userAccountName is required'
+            if (!e_email) throw 'e_email is required'
+        }
+
+        const storeState = store.getState()
+        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw 'Invalid store state'
+        const wallet = storeState.wallet
+        const e_rawAssets = storeState.wallet.assetsRaw
+        const displayableAssets = wallet.assets
+
+        utilsWallet.logMajor('green','white', `importPrivKeys...`, null, { logServerConsole: true })
+
+        // decrypt raw assets
+        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
+        var rawAssets = JSON.parse(pt_rawAssets)
+
+        // get asset 
+        const genAsset = rawAssets[assetName.toLowerCase()]
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'Invalid asset' }
+        const meta = configWallet.walletsMeta[assetName.toLowerCase()]
+        const genSymbol = meta.symbol
+
+        // remove already imported 
+        var existingPrivKeys = []
+        genAsset.accounts.forEach(account => {
+            existingPrivKeys = existingPrivKeys.concat(account.privKeys)
+        })
+        addrKeyPairs = addrKeyPairs.filter(toImport => !existingPrivKeys.some(existing => existing.privKey === toImport.privKey))
+        if (addrKeyPairs.length == 0) {
+            utilsWallet.warn(`All supplied keys already imported`, null, { logServerConsole: true })
+            return { importedAddrCount: 0  }
+        }
+
+        // make new HD account for import
+        const existingImports = genAsset.importCount || 0 //genAsset.accounts.length - 1 // first account is default Scoop addresses
+        const importAccount = { // new import account
+            imported: true,
+            name: `Import #${existingImports+1} ${meta.displayName}`,
+            privKeys: []
+        }
+        genAsset.accounts.push(importAccount)
+        const accountNdx = existingImports + 1 // imported accounts start at our HD index 1 (scoop default is 0)
+        genAsset.importCount = accountNdx
+
+        // map raw suplied priv keys to our internal format; note -- there is no "real" HD path for imported keys (they're not derived keys)
+        // we use custom path prefix 'i' for imported to denote this
+        const privKeys = []
+        for (var i=0 ; i < addrKeyPairs.length ; i++) {
+            const privKey = addrKeyPairs[i].privKey
+            var chainNdx = 0 // bip44: 0=external chain, 1=internal chain (change addresses)
+            privKeys.push({ privKey, path: `i/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}` })
+        }
+
+        // add new priv keys
+        privKeys.forEach(privKey => {
+            importAccount.privKeys.push(privKey)
+        })
+
+        // update local persisted raw assets
+        var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
+        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
+        rawAssetsJsonUpdated = null
+
+        // add to displayable asset addresses - this fails inside .then() below; no idea why
+        const newDisplayableAssets = _.cloneDeep(displayableAssets)
+        const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
+        for (var i=0 ; i < addrKeyPairs.length ; i++) {
+            const addr = addrKeyPairs[i].addr
+            var newDisplayableAddr = newWalletAddressFromPrivKey( {
+                  assetName: assetName.toLowerCase(),
+                accountName: importAccount.name,
+                        key: privKeys.find(p => p.privKey == addrKeyPairs[i].privKey),
+            eosActiveWallet: eosActiveWallet,
+                  knownAddr: addr,
+                     symbol: newDisplayableAsset.symbol
+            })
+            if (newDisplayableAddr.addr === null) {
+                utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
+                return { err: "Invalid private key" }
+            }
+            newDisplayableAsset.addresses.push(newDisplayableAddr)
+        }
+        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
+        
+        if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
+            // raw assets: post encrypted
+            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
+
+            // update addr monitors
+            window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+
+            // refresh asset balance
+            window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+        }
+        
+        // ret ok
+        utilsWallet.logMajor('green','white', `importPrivKeys - complete`, addrKeyPairs.length, { logServerConsole: true })
+        utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
+        return { importedAddrCount: privKeys.length, accountName: importAccount.name }
+    },
+
+    //
+    // removes imported account(s)
+    //
+    removeImportedAccounts: async (p) => {
+        var { store, activePubKey, h_mpk, assetName, removeAccounts,  // required - browser & server
+              userAccountName, e_email,                               // required - browser 
+              eosActiveWallet } = p
+
+        // validation
+        if (!store) throw 'store is required'
+        if (!activePubKey) throw 'activePubKey is required'
+        if (!assetName) throw 'assetName is required'
+        if (!h_mpk) throw 'h_mpk is required'        
+        if (!removeAccounts || removeAccounts.length == 0) throw 'removeAccounts required'
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            if (!userAccountName) throw 'userAccountName is required'
+            if (!e_email) throw 'e_email is required'
+        }
+
+        const storeState = store.getState()
+        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw 'Invalid store state'
+        const wallet = storeState.wallet
+        const e_rawAssets = storeState.wallet.assetsRaw
+        const displayableAssets = wallet.assets
+
+        utilsWallet.logMajor('green','white', `removeImportedAccounts...`, removeAccounts, { logServerConsole: true })
+
+        // decrypt raw assets
+        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
+        var rawAssets = JSON.parse(pt_rawAssets)
+
+        // get asset 
+        const genAsset = rawAssets[assetName.toLowerCase()]
+        if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) { throw 'Invalid asset' }
+        const meta = configWallet.walletsMeta[assetName.toLowerCase()]
+        const genSymbol = meta.symbol
+
+        // remove internal scoop accounts - we only remove externally imported accounts
+        const importedAccountNames = genAsset.accounts.filter(p => p.imported == true).map(p => p.name)
+        removeAccounts = removeAccounts.filter(p => importedAccountNames.some(p2 => p2 === p))
+        if (removeAccounts == 0) {
+            utilsWallet.warn(`No import accounts to remove`, null, { logServerConsole: true })
+            return { removedAddrCount: 0, removedAccountCount: 0  }
+        }
+
+        // raw assets: remove specified accounts & addresses
+        const removedAccountCount = genAsset.accounts.filter(p => removeAccounts.some(p2 => p2 === p.name) === true).length
+        genAsset.accounts = genAsset.accounts.filter(p => removeAccounts.some(p2 => p2 === p.name) === false)
+        genAsset.addresses = genAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === false)
+
+        // raw assets: update local persisted copy
+        var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
+        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
+        rawAssetsJsonUpdated = null
+
+        // displayableAssets: remove specified accounts & addresses
+        const newDisplayableAssets = _.cloneDeep(displayableAssets)
+        const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
+        const removedAddrCount = newDisplayableAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === true).length
+        newDisplayableAsset.addresses = newDisplayableAsset.addresses.filter(p => removeAccounts.some(p2 => p2 === p.accountName) === false)
+        store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
+
+        if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
+            // raw assets: post encrypted
+            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
+
+            // update addr monitors
+            window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+
+            // refresh asset balance
+            window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+        }
+
+        // ret ok
+        utilsWallet.logMajor('green','white', `removeImportedAccounts - complete`, removedAddrCount, { logServerConsole: true })
+        utilsWallet.softNuke(rawAssets); utilsWallet.softNuke(genAsset); pt_rawAssets = null
+        return { removedAddrCount, removedAccountCount }
     },
 
     //
@@ -936,7 +968,7 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
         }
     }
     catch (err) { 
-        utilsWallet.error(`getUtxoTypeAddressFromWif (${wif}) - FAIL: ${err.message}`, err)
+        utilsWallet.error(`getUtxoTypeAddressFromWif - FAIL: ${err.message}`, err)
         return null
     }
 }
