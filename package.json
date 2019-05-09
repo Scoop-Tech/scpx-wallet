@@ -72,15 +72,11 @@
         "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false",
         "jestver": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --version",
-        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --verbose --coverage --env=node"
+        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --runInBand --forceExit --verbose --coverage --env=node"
     },
     "jest": {
         "coverageDirectory": "./coverage/",
-        "collectCoverage": true,
-        "collectCoverageFrom": [
-            "**/*.{js,jsx}",
-            "!**/node_modules/**"
-        ]
+        "collectCoverage": true
     },
     "engines": {
         "node": ">=10.14.1",

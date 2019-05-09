@@ -6,8 +6,6 @@
 [![Build Status](https://travis-ci.com/Scoop-Tech/scpx-wallet.svg?branch=master)](https://travis-ci.com/Scoop-Tech/scpx-wallet)
 [![codecov](https://codecov.io/gh/Scoop-Tech/scpx-wallet/branch/master/graph/badge.svg)](https://codecov.io/gh/Scoop-Tech/scpx-wallet)
 ![GitHub top language](https://img.shields.io/github/languages/top/Scoop-Tech/scpx-wallet.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Scoop-Tech/scpx-wallet.svg)
-![GitHub repo size](https://img.shields.io/github/repo-size/Scoop-Tech/scpx-wallet.svg)
 
 Release Candidate 3
 
