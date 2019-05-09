@@ -1,10 +1,13 @@
 # Scoop Core Wallet 
 
+[![NPM](https://nodei.co/npm/scpx-wallet.png)](https://nodei.co/npm/scpx-wallet/)
+[![npm version](https://badge.fury.io/js/scpx-wallet.svg)](https://badge.fury.io/js/scpx-wallet)
 [![Build Status](https://travis-ci.com/Scoop-Tech/scpx-wallet.svg?branch=master)](https://travis-ci.com/Scoop-Tech/scpx-wallet)
 [![codecov](https://codecov.io/gh/Scoop-Tech/scpx-wallet/branch/master/graph/badge.svg)](https://codecov.io/gh/Scoop-Tech/scpx-wallet)
 
 ![GitHub top language](https://img.shields.io/github/languages/top/Scoop-Tech/scpx-wallet.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Scoop-Tech/scpx-wallet.svg)
+![GitHub repo size](https://img.shields.io/github/repo-size/Scoop-Tech/scpx-wallet.svg)
 
 Release Candidate 3
 
@@ -17,9 +20,13 @@ The architectural components of Scoop are (collectively, **"SCPX"**) as follows:
   * **SCPX-WALLET** - Core Wallet (this repo) - node.js and browser-compatible core wallet functions (layer 1 encryption)
   * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (layer 0 encryption)
  
-For maintenance of user accounts and settings, Scoop user accounts are persisted by the SCPX [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a private instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
+For maintenance of user accounts and settings, Scoop user accounts are persisted by a [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) on a public instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet).
 
 Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet layer, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for full details on SCPX's security and encryption model.
+
+## CLI Overview ...
+
+TODO: video, list of commands, etc.
 
 This repo contains the open-source Core Wallet with integrated JS REPL command line interface. The Core Wallet is decoupled from the Data Storage Contract and instead uses local ```wallet_xxx.dat``` encrypted files for persistence.
 
