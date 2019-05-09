@@ -4,17 +4,17 @@
 
 Nothing too rigid: just start reading the code and you'll get the hang of it. In general, readability and conciseness is strongly prefered over verbosity. Some few minor religious points:
 
-Indent using four spaces!
-Spaces after list items and method parameters ([1, 2, 3], not [1,2,3]), around operators (x += 1, not x+=1), and around hash arrows.
-Comment with thought, chose names very carefully.
-Consistency is king.
+  * Indent using four spaces!
+  * Spaces after list items and method parameters ([1, 2, 3], not [1,2,3]), around operators (x += 1, not x+=1), and around hash arrows.
+  * Comment with thought, chose names very carefully.
+  * Consistency is king.
 
-There's currently no linting or enforced coding style, but that might change. Very open to suggestions on best practics and improvements.
+There's currently no linting or enforced coding style, but that might change: open to suggestions on best practics and improvements.
 
 ## Known Issues / FIXMEs
 
-Global namespace usage could definitely be improved: the current setup works, but doesn't feel great.
-TypeScript (?!)
+  * Global namespace usage could definitely be improved: the current setup works, but doesn't feel great.
+  * TypeScript (?!)
 
 ## Submitting a Patch
 

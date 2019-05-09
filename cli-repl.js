@@ -14,79 +14,79 @@ const svrWalletCreate = require('./svr-wallet/sw-create')
 const helpBanner = ' HELP '.bgCyan.white.bold + ' '
 
 const walletNewHelp = `${helpBanner}` +
-    `.wn (wallet-new) -   creates and persists in-memory a new wallet with new random seed values\n`.cyan.bold
+    `(wallet-new) - creates and persists in-memory a new wallet with new random seed values\n`.cyan.bold
 
 const walletInitHelp = `${helpBanner}` +
-    `.wi (wallet-init) - recreates a wallet from supplied seed values\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
+    `(wallet-init) - recreates a wallet from supplied seed values\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
 
 const walletConnectHelp = `${helpBanner}` +
-    `.wc (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
+    `(wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
 
 const walletDumpHelp = `${helpBanner}` +
-    `.wd (wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --s           [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
-    `\targ: --txs         [bool]                [optional]  dump address transactions (default: false)\n` +
-    `\targ: --privkeys    [bool]                [optional]  dump private keys (default: false)\n`
+    `(wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--s           [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
+    `\t--txs         [bool]                [optional]  dump address transactions (default: false)\n` +
+    `\t--privkeys    [bool]                [optional]  dump private keys (default: false)\n`
 
 const walletAddAddrHelp = `${helpBanner}` +
-    `.waa (wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
+    `(wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
 
 const walletImportPrivKeysHelp = `${helpBanner}` +
-    `.wipk (wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\targ: --privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
+    `(wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\t--privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
 
 const walletRemovePrivKeysHelp = `${helpBanner}` +
-    `.wrpk (wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\targ: --accountName [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
+    `(wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\t--accountName [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
 
 const walletSaveHelp = `${helpBanner}` +
-    `.ws (wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --n           [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
-    `\targ: --f           [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
+    `(wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--n           [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
+    `\t--f           [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
 
 const walletLoadHelp = `${helpBanner}` +
-    `.wl (wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --n           [string]              <required>  the name of the wallet to load\n`
+    `(wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--n           [string]              <required>  the name of the wallet to load\n`
 
 const walletServerLoadHelp = `${helpBanner}` +
-    `.wsl (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n` +
-    `\targ: --e           [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
+    `(wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n` +
+    `\t--e           [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
 
 const walletServerSaveHelp = `${helpBanner}` +
-    `.wss (wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract\n`.cyan.bold +
-    `\targ: --mpk         <master private key>  <required>  \n`
+    `(wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract\n`.cyan.bold +
+    `\t--mpk         <master private key>  <required>  \n`
 
 const walletBalanceHelp = `${helpBanner}` +
-    `.wb (wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
-    `\targ: --s           [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
+    `(wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
+    `\t--s           [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
 
 const assetGetFeesHelp = `${helpBanner}` +
-    `.agf (asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
-    `\targ: --s        [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
+    `(asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
+    `\t--s        [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
 
 const txGetFeeHelp = `${helpBanner}` +
-    `.txgf (tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
-    `\targ: --v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
+    `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
+    `\t--mpk      <master private key>  <required>  \n` +
+    `\t--s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
+    `\t--v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
 
 const txPushHelp = `${helpBanner}` +
-    `.txp (tx-push) - broadcasts the specified single-recipient transaction\n`.cyan.bold +
-    `\targ: --mpk      <master private key>  <required>  \n` +
-    `\targ: --s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
-    `\targ: --v        [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\targ: --a        [string]              <required>  the recipient address, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
+    `(tx-push) - broadcasts the specified single-recipient transaction\n`.cyan.bold +
+    `\t--mpk      <master private key>  <required>  \n` +
+    `\t--s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
+    `\t--v        [number]              <required>  the amount to send, e.g. 0.01\n` +
+    `\t--a        [string]              <required>  the recipient address, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
 
 // dbg/utils
 
@@ -95,8 +95,8 @@ const txPushHelp = `${helpBanner}` +
 
 const logTailHelp = `${helpBanner}` +
     `.lt (log-tail) - tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
-    `\targ: --n        [int]                 [optional]  number of lines to tail (default: 100)\n` +
-    `\targ: --debug    [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false)\n`
+    `\t--n        [int]                 [optional]  number of lines to tail (default: 100)\n` +
+    `\t--debug    [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false)\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-scren) - clears the console screen \n`.cyan.bold

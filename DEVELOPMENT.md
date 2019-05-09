@@ -1,29 +1,45 @@
-# Development
+# Development Guide
 
-## Dependencies: Architecture 
+## Architecture 
 
-  * https://github.com/trezor/blockbook - primary 3PBP interface: preferred, due to pure websocket interface
-  * https://github.com/EOSIO/eos - used as the backing store for web client accounts: not required by Core Wallet
-  * https://github.com/bitpay/insight-api - secondary/deprecated 3PBP interface: no assets are currently using this: code is retained as a fallback
+  * https://github.com/trezor/blockbook - primary 3PBP interface: preferred, due to pure websocket interface.
+  * https://github.com/bitpay/insight-api - secondary 3PBP interface: BTC_TEST uses this codepath, and is retained as fallback interface for additional assets.
+  * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
 ## Building from Source
+
+The tested and recommended build environment is node 10.15.3 and npm 6.9.0. ```--experimental-worker``` configuration is required: this is set by the npm scripts, but you can also set it in your environment, e.g. Powershell: ```$env:NODE_OPTIONS = "--experimental-worker"``` (or your OS equivalent), or see ```./nodemon.json```.
 
   * ```npm install -g node-gyp```
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
-  * ```npm install -g --production windows-build-tools@4.0.0``` (Windows) https://github.com/felixrieseberg/windows-build-tools/issues/152
-  * ```npm config set msvs_version 2015``` (Windows)
+  * ```npm install -g --production windows-build-tools@4.0.0``` - Windows: see also [here](https://github.com/felixrieseberg/windows-build-tools/issues/152)
+  * ```npm config set msvs_version 2015``` - Windows
   * ```npm install```
-  * ```npm start``` or ```nodemon```
 
-The tested target build environment is node 10.15.3 and npm 6.9.0.
+## Running Core Wallet CLI
 
-NOTE: ```./nodemon.json``` configuration ```--experimental-worker``` is required at runtime. This is set by the npm scripts, but you can also set it in your environment, e.g. ```$env:NODE_OPTIONS = "--experimental-worker"```, or your OS equivalent.
+  * ```npm run dev``` - runs with dev flags (saves CLI history to file, caches MPK in memory, activates test assets)
+  * ```npm start`` - runs with prod flags
 
 ## Running Tests
 
   * ```npm run test``` to run the the CI test suite.
   * ```npm run test -- -t "receive address"``` - to run individual tests, filtered by it() description.
+
+The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
+
+  * **BTC_TEST** ```mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y``` (BTC Testnet3)
+    * https://testnet-faucet.mempool.co/  
+    * https://tbtc.bitaps.com/   
+    * http://bitcoinfaucet.uo1.net/send.php/
+
+  * **ZEC_TEST** ```tmH76MkVHc1ZDyWvdY3RDnZzzmXoFpFtXt9``` (ZEC Testnet)
+    * https://faucet.testnet.z.cash/
+    * https://zcashfaucet.info/
+    
+  * **ETH_TEST** ```0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20``` (ETH Ropsten)
+    * https://faucet.metamask.io/  
 
 Core wallet functions are demonstrated as integration tests, many of which interact over HTTPS with 3rd Party Blockchain Providers (3PBPs) and/or the Scoop [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos). Pull requests are welcome, as are contributions for more fine-grained unit tests.
 
@@ -40,20 +56,6 @@ Core wallet functions are demonstrated as integration tests, many of which inter
   * [Connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST](./tests/integration.test.js)
   * [Connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST](./tests/integration.test.js)
   
-The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
-
-  * BTC_TEST ```mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y`` (BTC Testnet3)
-    * https://testnet-faucet.mempool.co/  
-    * https://tbtc.bitaps.com/   
-    * http://bitcoinfaucet.uo1.net/send.php/
-
-  * ZEC_TEST ```tmH76MkVHc1ZDyWvdY3RDnZzzmXoFpFtXt9``` (ZEC Testnet)
-    * https://faucet.testnet.z.cash/
-    * https://zcashfaucet.info/
-    
-  * ETH_TEST ```0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20``` (ETH Ropsten)
-    * https://faucet.metamask.io/  
-
 ## Contributing
 
 Please see the [Contribution Guide](./CONTRIBUTING.md) for more info.
