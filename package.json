@@ -1,7 +1,7 @@
 {
     "name": "scpx-wallet",
-    "version": "0.3.7",
-    "description": "Scoop Core: multi-asset, multi-platform cryptocurrency wallet",
+    "version": "0.3.8",
+    "description": "Scoop Wallet: multi-asset, multi-platform crypto wallet",
     "keywords": [
         "crypto wallet",
         "crypto",
@@ -72,7 +72,7 @@
         "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false",
         "jestver": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --version",
-        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --verbose --coverage --env=node"
+        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --verbose --coverage --env=node"
     },
     "jest": {
         "coverageDirectory": "./coverage/",
