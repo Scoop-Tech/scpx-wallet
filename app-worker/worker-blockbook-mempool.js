@@ -148,7 +148,6 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
     const sendToSelf = 
         tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
     && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
-    console.log('sendToSelf=', sendToSelf)
 
     if (weAreSender) {
 

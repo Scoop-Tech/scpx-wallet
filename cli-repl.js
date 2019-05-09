@@ -144,47 +144,49 @@ module.exports = {
         delete prompt.commands.exit
         prompt.commands.help.help += '\n'
 
-        const defineWalletCmd = (prompt, name, help, fn, walletFnName) => {
-            prompt.defineCommand(name, {
-                help,
-                action: function (args) {
-                    prompt.clearBufferedCommand()
-                    //var argv = require('minimist')(args.split(' '))
-                    const argv = parseSentence(args)
-                    if (argv.help) postCmd(prompt, null, help)
-                    else {
-                        //console.group()
-                        fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
-                            .then(res => postCmd(prompt, res, help))
-                        //.finally(() => console.groupEnd())
+        const defineWalletCmd = (prompt, names, help, fn, walletFnName) => {
+            names.forEach(name => {
+                prompt.defineCommand(name, {
+                    help,
+                    action: function (args) {
+                        prompt.clearBufferedCommand()
+                        //var argv = require('minimist')(args.split(' '))
+                        const argv = parseSentence(args)
+                        if (argv.help) postCmd(prompt, null, help)
+                        else {
+                            //console.group()
+                            fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
+                                .then(res => postCmd(prompt, res, help))
+                            //.finally(() => console.groupEnd())
+                        }
                     }
-                }
+                })
             })
         }
 
-        defineWalletCmd(prompt, 'wn', walletNewHelp, svrWalletCreate.walletNew)
-        defineWalletCmd(prompt, 'wi', walletInitHelp, svrWalletCreate.walletInit)
+        defineWalletCmd(prompt, ['wn', 'wallet-new'], walletNewHelp, svrWalletCreate.walletNew)
+        defineWalletCmd(prompt, ['wi', 'wallet-init'], walletInitHelp, svrWalletCreate.walletInit)
 
-        defineWalletCmd(prompt, 'wl', walletLoadHelp, svrWallet.fn, 'LOAD')
-        defineWalletCmd(prompt, 'ws', walletSaveHelp, svrWallet.fn, 'SAVE')
-        defineWalletCmd(prompt, 'wsl', walletServerLoadHelp, svrWallet.fn, 'SERVER-LOAD')
-        defineWalletCmd(prompt, 'wss', walletServerSaveHelp, svrWallet.fn, 'SERVER-SAVE')
+        defineWalletCmd(prompt, ['wl', 'wallet-load'], walletLoadHelp, svrWallet.fn, 'LOAD')
+        defineWalletCmd(prompt, ['ws', 'wallet-save'], walletSaveHelp, svrWallet.fn, 'SAVE')
+        defineWalletCmd(prompt, ['wsl', 'wallet-server-load'], walletServerLoadHelp, svrWallet.fn, 'SERVER-LOAD')
+        defineWalletCmd(prompt, ['wss', 'wallet-server-save'], walletServerSaveHelp, svrWallet.fn, 'SERVER-SAVE')
 
-        defineWalletCmd(prompt, 'wc', walletConnectHelp, svrWallet.fn, 'CONNECT')
+        defineWalletCmd(prompt, ['wc', 'wallet-connect'], walletConnectHelp, svrWallet.fn, 'CONNECT')
 
-        defineWalletCmd(prompt, 'wd', walletDumpHelp, svrWallet.fn, 'DUMP')
-        defineWalletCmd(prompt, 'wb', walletBalanceHelp, svrWallet.fn, 'BALANCE')
+        defineWalletCmd(prompt, ['wd', 'wallet-dump'], walletDumpHelp, svrWallet.fn, 'DUMP')
+        defineWalletCmd(prompt, ['wb', 'wallet-balance'], walletBalanceHelp, svrWallet.fn, 'BALANCE')
 
-        defineWalletCmd(prompt, 'waa', walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
-        defineWalletCmd(prompt, 'wipk', walletImportPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
-        defineWalletCmd(prompt, 'wrpk', walletRemovePrivKeysHelp, svrWallet.fn, 'REMOVE-PRIV-KEYS')
+        defineWalletCmd(prompt, ['waa', 'wallet-add-address'], walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
+        defineWalletCmd(prompt, ['wipk', 'wallet-import-priv-keys'], walletImportPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
+        defineWalletCmd(prompt, ['wrpk', 'wallet-remove-priv-keys'], walletRemovePrivKeysHelp, svrWallet.fn, 'REMOVE-PRIV-KEYS')
 
-        defineWalletCmd(prompt, 'agf', assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
+        defineWalletCmd(prompt, ['agf', 'asset-get-fees'], assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
         
-        defineWalletCmd(prompt, 'txgf', txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
-        defineWalletCmd(prompt, 'txp', txPushHelp, svrWallet.fn, 'TX-PUSH')
+        defineWalletCmd(prompt, ['txgf', 'tx-get-fee'], txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
+        defineWalletCmd(prompt, ['txp', 'tx-push'], txPushHelp, svrWallet.fn, 'TX-PUSH')
 
-        defineWalletCmd(prompt, 'lt', logTailHelp, log.logTail)
+        defineWalletCmd(prompt, ['lt', 'log-tail'], logTailHelp, log.logTail)
 
 
         // clear, tx db cache 
@@ -208,13 +210,13 @@ module.exports = {
         // })
 
         // cls, clear console screen
-        defineWalletCmd(prompt, 'cls', clsHelp, async () => {
+        defineWalletCmd(prompt, ['cls'], clsHelp, async () => {
             require('clear')()
             return { ok: true }
         })
 
         // exit, clear console screen
-        defineWalletCmd(prompt, 'exit', exitHelp, async () => {
+        defineWalletCmd(prompt, ['exit'], exitHelp, async () => {
             process.exit(0)
         })
 
@@ -240,7 +242,7 @@ function postCmd(prompt, res, help) {
         }
 
         if (global.loadedWallet && global.loadedWallet.keys && global.loadedWallet.keys.mpk) {
-            log.warn('DEV MODE - wallet MPK is being cached in-memory (CLI_SAVE_LOADED_WALLET_KEY == true)')
+            log.warn(`DEV MODE - wallet MPK is being cached in-memory: ${global.loadedWallet.keys.mpk}`)
         }
 
         prompt.displayPrompt()
