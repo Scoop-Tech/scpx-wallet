@@ -20,6 +20,7 @@ if (workerThreads) { // server
 else { // browser
     onmessage = handler
 }
+
 self.window = self // for utilsWallet.getMainThreadGlobalScope in web worker context
 
 // error handlers

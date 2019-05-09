@@ -13,12 +13,10 @@ const svrWallet = require('../svr-wallet/sw-wallet')
 const walletExternal = require('../actions/wallet-external')
 const opsWallet = require('../actions/wallet')
 
-//
-// "npm run coverage" -- to run all tests, including e2e testnet transactions
-// these will consume testnet coins from the following test account! Please help keep it topped up.
-// after successful coverage run, you can upload to codecov.com using:
-//   "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
-//
+// todo: https://github.com/Scoop-Tech/scpx-wallet/issues/22
+// note: for manual coverage upload:  "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
+
+// testnet account - please help keep it topped up!
 const serverTestWallet = {
         mpk: 'PW5JF9k3njzJ3F7fYgPTAKcHg1uDXoKonXhHpfDs4Sw2fJcwgHxVT',
       email: 'testnets@scoop.tech',
@@ -191,6 +189,7 @@ describe('travis', function () {
 
         it('can import and remove private keys', async () => {
             expect.assertions(14)
+
             const result = await new Promise(async (resolve, reject) => {
                 const create = await svrWalletCreate.walletNew(appWorker, appStore)
                 const mpk = create.ok.mpk

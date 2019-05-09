@@ -71,12 +71,16 @@
         "help": "node --experimental-worker ./sw-cli.js --help ",
         "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true ",
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false",
-        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --verbose --coverage --env=node -t travis",
-        "coverage": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --forceExit --runInBand --verbose --coverage --env=node"
+        "jestver": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --version",
+        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --verbose --coverage --env=node"
     },
     "jest": {
         "coverageDirectory": "./coverage/",
-        "collectCoverage": true
+        "collectCoverage": true,
+        "collectCoverageFrom": [
+            "**/*.{js,jsx}",
+            "!**/node_modules/**"
+        ]
     },
     "engines": {
         "node": ">=10.14.1",
@@ -139,7 +143,7 @@
     },
     "devDependencies": {
         "codecov": "^3.3.0",
-        "jest": "20.0.4",
+        "jest": "21.2.1",
         "nodemon": "^1.19.0"
     }
 }

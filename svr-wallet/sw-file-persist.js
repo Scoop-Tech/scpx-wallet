@@ -51,7 +51,7 @@ module.exports = {
                 else {
                     log.warn(`the MPK used to generate this wallet will be required to load it from file.`)
 
-                    global.global.loadedWallet.dirty = false
+                    global.loadedWallet.dirty = false
                     utilsWallet.setTitle()
                     resolve({ ok: { fileName, mpk } })
                 }
@@ -87,7 +87,7 @@ module.exports = {
                     .then(walletInit => {
                         if (walletInit.err) resolve(walletInit)
                         if (walletInit.ok) {
-                            global.global.loadedWallet.dirty = false
+                            global.loadedWallet.dirty = false
                             utilsWallet.setTitle(`FILE WALLET - ${fileName}`)
                         }
                         resolve({ ok: { fileName, walletInit } })

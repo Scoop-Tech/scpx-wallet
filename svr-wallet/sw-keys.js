@@ -41,7 +41,7 @@ module.exports = {
 
             const walletConnect = await functions.walletConnect(appWorker, store, {})
 
-            global.global.loadedWallet.dirty = true
+            global.loadedWallet.dirty = true
             utilsWallet.setTitle()
             return Promise.resolve({ ok: { walletAddAddr, walletConnect } })
         })
@@ -91,7 +91,7 @@ module.exports = {
 
             var walletConnect
             if (importPrivKeys.importedAddrCount > 0) {
-                global.global.loadedWallet.dirty = true
+                global.loadedWallet.dirty = true
                 walletConnect = await functions.walletConnect(appWorker, store, {})
             }
 
