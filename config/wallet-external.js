@@ -247,7 +247,7 @@ module.exports = {
             //     balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=balance&address=${address}` }
             // }
         },
-        ETH_TEST: { // ropsten
+        ETH_TEST: { // ropsten  https://faucet.metamask.io/  
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
             txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
