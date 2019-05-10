@@ -343,7 +343,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                     const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
                     dedicatedWeb3[web3Key] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[wsSymbol].url)) 
 
-                    console.log('>> created dedicatedWeb3: OK.') 
+                    utilsWallet.debug('>> created dedicatedWeb3: OK.') 
                 }
                 if (dedicatedWeb3[web3Key].currentProvider.connection.readyState != 1) {
                     dedicatedWeb3[web3Key].currentProvider.on("connect", data => { 

@@ -19,19 +19,28 @@ module.exports = {
 
     // creates and broadcasts the specified tx
     txPush: async (appWorker, store, p) => {
-        var { mpk, apk, s, v, a } = p
+        var { mpk, apk, s, v, t, f } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // validate
         const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, s, v)
         if (err) return Promise.resolve({ err })
-        if (utilsWallet.isParamEmpty(a)) return Promise.resolve({ err: `Receiver address is required` })
-        const receiverAddr = a
+        if (utilsWallet.isParamEmpty(t)) return Promise.resolve({ err: `To address is required` })
+        const toAddr = t
+        var fromAddr
+        var sendFromAddrNdx = -1 // utxo: use all available address indexes
+        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) {
+            if (utilsWallet.isParamEmpty(f)) return Promise.resolve({ err: `From address is required` })
+            fromAddr = f
+            const assetFromAddrNdx = asset.addresses.findIndex(p => p.addr === fromAddr)
+            if (assetFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
+            sendFromAddrNdx = assetFromAddrNdx
+        }
 
         const addrIsValid = opsWallet.validateAssetAddress({ 
                  testSymbol: asset.symbol,
             testAddressType: asset.addressType,
-               validateAddr: receiverAddr
+               validateAddr: toAddr
         })
         if (!addrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} address` })
 
@@ -41,15 +50,15 @@ module.exports = {
 
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
-        const payTo = [{ receiver: receiverAddr, value: du_sendValue }]
+        const payTo = [{ receiver: toAddr, value: du_sendValue }]
         return new Promise((resolve) => {
-            walletExternal.createAndPushTx( { 
+            walletExternal.createAndPushTx( {
                             store: store,
                             payTo: payTo,
                            wallet: wallet,
                             asset: asset,
                         feeParams: feeParams,
-                  sendFromAddrNdx: -1, // utxo: use all available address indexes
+                  sendFromAddrNdx,
                      activePubKey: apk,
                             h_mpk: h_mpk,
             }, (res, err) => {
@@ -57,7 +66,13 @@ module.exports = {
                     resolve({ err })
                 }
                 else {
-                    resolve({ ok: { txid: res.tx.txid, txGetFee } })
+                    setTimeout(() => {
+                        appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } })
+                    }, 3000)
+
+                    setTimeout(() => {
+                        resolve({ ok: { txid: res.tx.txid, txGetFee } })    
+                    }, 1000)
                 }
             })
         })

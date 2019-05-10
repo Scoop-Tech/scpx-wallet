@@ -290,7 +290,11 @@ describe('testnets', function () {
 
             // push tx
             const txPush = await svrWallet.fn(appWorker, appStore,
-                { mpk, s: testSymbol, v: sendValue, a: asset.addresses[receiveAddrNdx].addr }, 'TX-PUSH')
+                { mpk, s: testSymbol,
+                       v: sendValue,
+                       t: asset.addresses[receiveAddrNdx].addr }, 
+                'TX-PUSH')
+
             const txid = txPush.ok.txid
            
             resolve({ serverLoad, txFee, txid })

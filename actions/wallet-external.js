@@ -144,7 +144,7 @@ module.exports = {
             })
         })
         .catch(err => {
-            utilsWallet.error(`### createAndPushTx (wallet-external) createTxHex FAILED - ${asset.symbol} payTo,err=`, payTo, err)
+            utilsWallet.error(`### createAndPushTx (wallet-external) createTxHex FAILED - ${asset.symbol} err=`, err)
             try {
                 let message = err.response.data.errors[0].error
                 callback(null, message)

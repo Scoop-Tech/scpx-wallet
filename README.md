@@ -7,6 +7,8 @@
 [![codecov](https://codecov.io/gh/Scoop-Tech/scpx-wallet/branch/master/graph/badge.svg)](https://codecov.io/gh/Scoop-Tech/scpx-wallet)
 ![GitHub top language](https://img.shields.io/github/languages/top/Scoop-Tech/scpx-wallet.svg)
 
+[![](http://img.youtube.com/vi/Z6z-IfCea3c/0.jpg)](http://www.youtube.com/watch?v=Z6z-IfCea3c "Core Wallet - CLI push-tx demo")
+
 Release Candidate 3
 
 Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
@@ -27,73 +29,7 @@ Scoop uses three levels of data encryption: one round of encryption in browser s
   * ```npm i --g scpx-wallet```
   * ```sw-cli```
 
-Use ```.help``` for CLI command help. Key CLI commands:
-
-```
-.agf     HELP  (asset-get-fees) - fetches recommended network fee rates from oracles
-        --s        [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"
-
-.lt      HELP  .lt (log-tail) - tails (doesn't follow) the last n lines of the debug log
-        --n        [int]                 [optional]  number of lines to tail (default: 100)
-        --debug    [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false)
-
-.txgf    HELP  (tx-get-fee) - gets the network fee for the specified single-recipient transaction
-        --mpk      <master private key>  <required>
-        --s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"
-        --v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01
-
-.txp     HELP  (tx-push) - broadcasts the specified single-recipient transaction
-        --mpk      <master private key>  <required>
-        --s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"
-        --v        [number]              <required>  the amount to send, e.g. 0.01
-        --a        [string]              <required>  the recipient address, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"
-
-.waa     HELP  (wallet-add-address) - adds a receive address to the loaded wallet for the specified asset
-        --mpk         <master private key>  <required>
-        --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"
-
-.wb      HELP  (wallet-balance) - shows aub-asset balances in the loaded wallet
-        --s           [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"
-
-.wc      HELP  (wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet
-
-.wd      HELP  (wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet
-        --mpk         <master private key>  <required>
-        --s           [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"
-        --txs         [bool]                [optional]  dump address transactions (default: false)
-        --privkeys    [bool]                [optional]  dump private keys (default: false)
-
-.wi      HELP  (wallet-init) - recreates a wallet from supplied seed values
-        --mpk         <master private key>  <required>  entropy for keygen and redux store (L1) encryption
-
-.wipk    HELP  (wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet
-        --mpk         <master private key>  <required>
-        --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"
-        --privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"
-
-.wl      HELP  (wallet-load) - loads a previously saved wallet from file
-        --mpk         <master private key>  <required>
-        --n           [string]              <required>  the name of the wallet to load
-
-.wn      HELP  (wallet-new) - creates and persists in-memory a new wallet with new random seed values
-
-.wrpk    HELP  (wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet
-        --mpk         <master private key>  <required>
-        --s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"
-        --accountName [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"
-
-.ws      HELP  (wallet-save) - saves the loaded wallet in encrypted form to file
-        --mpk         <master private key>  <required>
-        --n           [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name
-        --f           [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)
-
-.wsl     HELP  (wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract
-        --mpk         <master private key>  <required>
-        --e           [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"
-
-.wss     HELP  (wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract
-        --mpk         <master private key>  <required>
-```
+Use ```.help``` for CLI command help. 
 
 ## Features
 

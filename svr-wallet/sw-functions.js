@@ -125,31 +125,35 @@ module.exports = {
                         privKey: privKey.privKey,
                     }
                     const meta = configWallet.walletsMeta[assetName]
-    
-                    // get corresponding addr, lookup by HD path
-                    const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
-                    const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
-    
-                    pathKeyAddr.symbol = meta.symbol
-                    pathKeyAddr.accountName = walletAddr.accountName
-                    pathKeyAddr.addr = _.cloneDeep(walletAddr)
-                    pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
 
-                    if (!dumpTxs) {
-                        delete pathKeyAddr.addr.txs
-                        delete pathKeyAddr.addr.utxos
-                    }
-                    else {
-                        pathKeyAddr.addr.txs.forEach(tx => {
-                            tx.txExplorerPath = configExternal.walletExternal_config[meta.symbol].txExplorerPath(tx.txid)
-                        })
-                    }
-
-                    if (!dumpPrivKeys) {
-                        delete pathKeyAddr.addr.privKey
-                    }
-                    
                     if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {
+    
+                        // get corresponding addr, lookup by HD path
+                        const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
+                        const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
+        
+                        pathKeyAddr.symbol = meta.symbol
+                        pathKeyAddr.accountName = walletAddr.accountName
+                        pathKeyAddr.addr = _.cloneDeep(walletAddr)
+                        pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
+
+                        pathKeyAddr.addr.txCountConfirmed = pathKeyAddr.addr.txs.filter(p => p.block_no > 0).length
+                        pathKeyAddr.addr.txCountUnconfirmed = pathKeyAddr.addr.txs.filter(p => !(p.block_no > 0)).length
+                        pathKeyAddr.addr.utxoCount = pathKeyAddr.addr.utxos.length
+                        if (!dumpTxs) {
+                            delete pathKeyAddr.addr.txs
+                            delete pathKeyAddr.addr.utxos
+                        }
+                        else {
+                            pathKeyAddr.addr.txs.forEach(tx => {
+                                tx.txExplorerPath = configExternal.walletExternal_config[meta.symbol].txExplorerPath(tx.txid)
+                            })
+                        }
+
+                        if (!dumpPrivKeys) {
+                            delete pathKeyAddr.addr.privKey
+                        }
+                        
                         allPathKeyAddrs.push(pathKeyAddr)
                     }
                 })

@@ -2,7 +2,9 @@
 
 const repl = require('repl')
 const colors = require('colors')
-const parseSentence = require('minimist-string')
+//const parseSentence = require('minimist-string')
+const stringParseArgs = require('./ext/minimist-string-opt')
+
 
 const appStore = require('./store').store
 const utilsWallet = require('./utils')
@@ -86,7 +88,8 @@ const txPushHelp = `${helpBanner}` +
     `\t--mpk      <master private key>  <required>  \n` +
     `\t--s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
     `\t--v        [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\t--a        [string]              <required>  the recipient address, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
+    `\t--f        [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
+    `\t--t        [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
 
 // dbg/utils
 
@@ -151,7 +154,7 @@ module.exports = {
                     action: function (args) {
                         prompt.clearBufferedCommand()
                         //var argv = require('minimist')(args.split(' '))
-                        const argv = parseSentence(args)
+                        const argv = stringParseArgs(args, { string: ['t', 'f'] })
                         if (argv.help) postCmd(prompt, null, help)
                         else {
                             //console.group()
