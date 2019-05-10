@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/Scoop-Tech/scpx-wallet/branch/master/graph/badge.svg)](https://codecov.io/gh/Scoop-Tech/scpx-wallet)
 ![GitHub top language](https://img.shields.io/github/languages/top/Scoop-Tech/scpx-wallet.svg)
 
-[![Core Wallet - CLI push-tx demo](https://img.youtube.com/vi/Z6z-IfCea3c/0.jpg)](https://www.youtube.com/watch?v=Z6z-IfCea3c "Core Wallet - CLI push-tx demo")
+[![Core Wallet - CLI demo](http://img.youtube.com/vi/KvB2Bzebs-M/0.jpg)](http://www.youtube.com/watch?v=KvB2Bzebs-M "Core Wallet - CLI demo")
 
 Release Candidate 3
 
