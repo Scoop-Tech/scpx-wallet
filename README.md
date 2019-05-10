@@ -11,9 +11,9 @@
 
 Release Candidate 3
 
-Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](./ROADMAP.md)).
+Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below).
 
-The architectural components of Scoop are (collectively, "SCPX") as follows:
+The architectural components of Scoop are as follows:
 
   * **SCPX-WALLET** - Core Wallet (this repo) - node.js and browser-compatible core wallet functions (layer 1 encryption)
   * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (layer 0 encryption)
@@ -29,7 +29,7 @@ Scoop uses three levels of data encryption: one round of encryption in browser s
   * ```npm i --g scpx-wallet```
   * ```sw-cli```
 
-Use ```.help``` for CLI command help. 
+Type ```.help``` in the CLI for a full list of commands.
 
 ## Features
 
@@ -52,6 +52,7 @@ Use ```.help``` for CLI command help.
   * **Cloud Login**: (Wallet Web Client) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
 
 ## Roadmap
+
   * [CryptoMail](https://github.com/Scoop-Tech/scpx-wallet/issues/19)
 
   * [Fiat In](https://github.com/Scoop-Tech/scpx-wallet/issues/15)
@@ -69,6 +70,12 @@ Use ```.help``` for CLI command help.
   * Fiat Out - make fiat purchases backed by crypto assets, with a pre-paid card either physical or NFC-virtual.
 
   * Derivative Products - asset transfers for diversification or deriviate products backed by Scoop Contracts, e.g. crypto options, crypto CFDs, algo trading.
+
+Major roadmap items are tracked [here](https://github.com/Scoop-Tech/scpx-wallet/labels/major%20feature).
+
+## Help Wanted
+
+Scoop Wallet is self-funded and community driven. If you can [help](https://github.com/Scoop-Tech/scpx-wallet/labels/help%20wanted) in any of these areas, please reach out to us.
 
 ## Development
 
