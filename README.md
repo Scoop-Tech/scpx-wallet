@@ -33,15 +33,15 @@ Type ```.help``` in the CLI for a full list of commands.
 
 ## Features
 
-  * **Multi Platform**: all external blockchain operations are 100% client-side JS, and are accessible on phones, desktops and servers. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/3) for planned enhancement.
+  * **Multi Platform**: all blockchain operations are 100% local JS, and are accessible on phones, desktops and servers.
 
   * **Multi Asset**: UTXO and account-type (including ERC20) assets are supported - currently: BTC legacy, BTC Segwit, Litecoin, Ethereum, ZCash, Dash, Vertcoin, Qtum, DigiByte, BTC and ETH testnets, and ERC20s: Binance Token, TrueUSD, Bancor, 0x, BAT, OmiseGo, Status Network Token, Gifto, Huobi Token, USD Tether and EUR Tether. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/10) for planned enhancement.
 
-  * **Anonomyous**: with respect to personally-identifiable data, only a one-way irreversible hash of a user's registered email address is persisted. This is by default a fully anonymous randomally generated email address: supplying of a valid or personally-identifiable email is optional. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/11) for planned enhancement.
+  * **Anonomyous**: only a one-way irreversible hash of a user's (optionally) personally-identifiable data (registered email address) is persisted. This is by default a fully anonymous randomally generated email address: supplying of a valid or personally-identifiable email is optional. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/11) for planned enhancement.
     
-  * **Cryptographically Secure & Deterministic**: data encryption (both at rest in the client and in transit between the server and the data store) are applied. Only a hash of an account's master private key (MPK) can decrypt that account's sub-asset private keys. The MPK or its hash never leave the browser. Sub-asset private keys can be derived from a known MPK into a new account. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/2) for planned enhancement.
+  * **Cryptographically Secure & Deterministic**: data encryption (both at rest in the client and in transit between the server and the data store) are applied. Only a hash of an account's master private key (MPK) can decrypt that account's sub-asset private keys. The MPK or its hash never leave the browser or server. Sub-asset private keys can be derived from a known MPK into a new account. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/2) for planned enhancement.
 
-  * **Decentralised & Store Agnostic**: wallets can be held in-memory, in file, or in the Scoop [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos): DSC user data is held in an EOS data table running on a block producing public sidechain. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/1) for planned enhancement.
+  * **Decentralised & Store Agnostic**: wallets can be held in-memory, encrypted in file, or double-encrypted in the Scoop [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos): DSC user data is held in an EOS data table running on a block producing public sidechain. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/1) for planned enhancement.
 
   * **Key Import**: sub-asset private keys can be imported in bulk from native wallets (e.g. [`dumpprivkey`](https://bitcoincore.org/en/doc/0.16.0/rpc/wallet/dumpprivkey/)) or other sources. Funds are not moved in the process and imported keys are subject to the same multi-layer encryption as native Scoop keys. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/6) for planned enhancement.
 
@@ -49,7 +49,7 @@ Type ```.help``` in the CLI for a full list of commands.
 
   * **Runtime Secure**: (Web Wallet) Content Security Policy (CSP) restricts script execution to verified sources (resistant to XSS) and (in High Security) mode the the hash is not persisted to browser storage (resistant to extension content script injection). See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/5) for planned enhancement.
 
-  * **Cloud Login**: (Web Wallet) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
+  * **Cloud Login**: (Web Wallet) optionally persis t(and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
 
 ## Roadmap
 
