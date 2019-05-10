@@ -1,4 +1,5 @@
 # Scoop Core Wallet 
+Release Candidate 4
 
 [![NPM](https://nodei.co/npm/scpx-wallet.png)](https://nodei.co/npm/scpx-wallet/)
 
@@ -9,7 +10,6 @@
 
 [![Core Wallet - CLI demo](http://img.youtube.com/vi/KvB2Bzebs-M/0.jpg)](http://www.youtube.com/watch?v=KvB2Bzebs-M "Core Wallet - CLI demo")
 
-Release Candidate 3
 
 Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below).
 
@@ -22,7 +22,7 @@ The architectural components of Scoop are as follows:
   
 For maintenance of user accounts and settings, Scoop Web Client user accounts are persisted by a [Data Storage Contract (DSC)](https://github.com/Scoop-Tech/scpx-eos) on a public instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet). Core Wallets can be persisted to file, in-memory or through the DSC.
 
-Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/sec.md) for full details on the security and encryption model.
+Scoop uses three levels of data encryption: one round of encryption in browser storage, another round in the commn Core Wallet, and a third round of encryption in the API layer. See [Scoop Security](https://github.com/Scoop-Tech/scpx-svr/blob/master/SEC.md) for details on the security and encryption model.
 
 ## Running the Core Wallet CLI
 

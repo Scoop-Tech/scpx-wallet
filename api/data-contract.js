@@ -6,8 +6,8 @@ const configWallet = require('../config/wallet')
 
 module.exports = {
 
-    login_v2Api: (emailHash, encryptedEmail) => {
-        const req = { emailHash, email: encryptedEmail }
+    login_v2Api: (h_email, e_email) => {
+        const req = { h_email, e_email }
         utilsWallet.log(`POST login_v2...`)
         return API.post(`login_v2`, req)
         .then(res => {
@@ -16,8 +16,8 @@ module.exports = {
         })
     },
 
-    createAccountApi: (email, hashedEmail, publicKeys) => {
-        const req = { email: email, emailHash: hashedEmail, publicKeys: publicKeys }
+    createAccountApi: (h_email, e_email, publicKeys) => {
+        const req = { e_email, h_email, publicKeys: publicKeys }
 
         utilsWallet.log('POST account...')
         return API.post(`account`, req)
@@ -36,8 +36,8 @@ module.exports = {
         })
     },
 
-    updateAssetsJsonApi: (accountName, encryptedAssetsJSONRaw, encryptedEmail) => { 
-        const req = { accountName, assetsJSONRaw: encryptedAssetsJSONRaw, email: encryptedEmail }
+    updateAssetsJsonApi: (owner, encryptedAssetsJSONRaw, e_email) => { 
+        const req = { owner, assetsJSONRaw: encryptedAssetsJSONRaw, e_email }
 
         utilsWallet.log(`POST assets...`)
         return API.post(`assets`, req)

@@ -87,7 +87,7 @@ module.exports = {
         // login 
         return apiDataContract.login_v2Api(h_email, e_email)
         .then(async (res) => {
-            if (!res || !res.owner || res.owner.length == 0 || !res.encryptedEmail || res.encryptedEmail.length == 0) { 
+            if (!res || !res.owner || res.owner.length == 0 || !res.e_email || res.e_email.length == 0) { 
                 return Promise.resolve({ err: `DSC API: invalid or missing response data` })
             }
             if (!res.res === "ok") {
@@ -96,7 +96,7 @@ module.exports = {
             if (!keyAccounts.account_names.includes(res.owner)) {
                 return Promise.resolve({ err: `DSC API: user mismatch (1)` })
             }
-            const pt_email = utilsWallet.aesDecryption(apk, h_mpk, res.encryptedEmail)
+            const pt_email = utilsWallet.aesDecryption(apk, h_mpk, res.e_email)
             if (pt_email !== email) { // (server has already validated this on login_v2)
                 return Promise.resolve({ err: `DSC API: user mismatch (2)` })
             }
