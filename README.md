@@ -16,8 +16,8 @@ Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44]
 The architectural components of Scoop are as follows:
 
   * **SCPX-WALLET** - Core Wallet (this repo) - node.js and browser-compatible core wallet functions (layer 1 encryption)
-  * **SCPX-APP** - [Wallet Web Client](https://x.scoop.tech) (layer 0 encryption)
-  * **SCPX-SVR** - [Web Server](https://github.com/Scoop-Tech/scpx-svr) API (layer 2 encryption)
+  * **SCPX-APP** - [Web Wallet](https://x.scoop.tech) (layer 0 encryption)
+  * **SCPX-SVR** - [API Server](https://github.com/Scoop-Tech/scpx-svr) API (layer 2 encryption)
   * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
   
 For maintenance of user accounts and settings, Scoop Web Client user accounts are persisted by a [Data Storage Contract (DSC)](https://github.com/Scoop-Tech/scpx-eos) on a public instance of the EOS blockchain (see: https://github.com/EOSIO/eos/issues/4173 - re. philosophical differences of opinion re. EOS mainnet). Core Wallets can be persisted to file, in-memory or through the DSC.
@@ -45,11 +45,11 @@ Type ```.help``` in the CLI for a full list of commands.
 
   * **Key Import**: sub-asset private keys can be imported in bulk from native wallets (e.g. [`dumpprivkey`](https://bitcoincore.org/en/doc/0.16.0/rpc/wallet/dumpprivkey/)) or other sources. Funds are not moved in the process and imported keys are subject to the same multi-layer encryption as native Scoop keys. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/6) for planned enhancement.
 
-  * **Asset Conversion**: (Wallet Web Client) currently implemented with Changelly. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/8) for planned enhancement.
+  * **Asset Conversion**: (Web Wallet) currently implemented with Changelly. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/8) for planned enhancement.
 
-  * **Runtime Secure**: (Wallet Web Client) Content Security Policy (CSP) restricts script execution to verified sources (resistant to XSS) and (in High Security) mode the the hash is not persisted to browser storage (resistant to extension content script injection). See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/5) for planned enhancement.
+  * **Runtime Secure**: (Web Wallet) Content Security Policy (CSP) restricts script execution to verified sources (resistant to XSS) and (in High Security) mode the the hash is not persisted to browser storage (resistant to extension content script injection). See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/5) for planned enhancement.
 
-  * **Cloud Login**: (Wallet Web Client) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
+  * **Cloud Login**: (Web Wallet) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
 
 ## Roadmap
 
