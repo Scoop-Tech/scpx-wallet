@@ -75,7 +75,7 @@ else {
     // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
     global.loadedWallet = {}
 
-    // loaded server wallet accountName & email are cached here (always)
+    // loaded server wallet owner & email are cached here (always)
     global.loadedServerWallet = {}
 
     utilsWallet.setTitle('')

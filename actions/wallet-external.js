@@ -116,7 +116,7 @@ module.exports = {
 
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
-        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, activePubKey, h_mpk } = p
+        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, apk, h_mpk } = p
 
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
@@ -126,7 +126,7 @@ module.exports = {
                   feeParams,
                    sendMode: true,
             sendFromAddrNdx,
-               activePubKey: activePubKey,
+               apk: apk,
                       h_mpk: h_mpk,
         })
         .then(res => {
@@ -333,8 +333,8 @@ module.exports = {
     // Compute tx fee, for supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, activePubKey, h_mpk } = p
-        if (!feeData || !asset || !encryptedAssetsRaw || !activePubKey || !h_mpk) { throw 'Invalid parameters' }
+        var { asset, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, apk, h_mpk } = p
+        if (!feeData || !asset || !encryptedAssetsRaw || !apk || !h_mpk) { throw 'Invalid parameters' }
 
         var ret = {}
 
@@ -356,7 +356,7 @@ module.exports = {
 
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
-                activePubKey: activePubKey, 
+                apk: apk, 
                        h_mpk: h_mpk,
             })
             if (res !== undefined) {
@@ -411,14 +411,14 @@ module.exports = {
 //
 async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
-            activePubKey, h_mpk } = params
+            apk, h_mpk } = params
 
     if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
     if (payTo.length != 1) throw 'send-many is not supported'
     if (!asset) throw 'Invalid or missing asset'
     if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
-    if (!activePubKey || activePubKey.length == 0) throw 'Invalid or missing activePubKey'
+    if (!apk || apk.length == 0) throw 'Invalid or missing apk'
     if (!h_mpk || h_mpk.length == 0) throw 'Invalid or missing h_mpk'
 
     utilsWallet.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
@@ -430,7 +430,7 @@ async function createTxHex(params) {
     asset.addresses.forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
 
     // get private keys
-    var pt_AssetsJson = utilsWallet.aesDecryption(activePubKey, h_mpk, encryptedAssetsRaw)
+    var pt_AssetsJson = utilsWallet.aesDecryption(apk, h_mpk, encryptedAssetsRaw)
     if (!pt_AssetsJson || pt_AssetsJson === '') throw('Failed decrypting assets')
 
     var pt_assetsObj = JSON.parse(pt_AssetsJson)

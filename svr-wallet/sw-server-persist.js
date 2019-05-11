@@ -33,8 +33,8 @@ module.exports = {
         log.param('apk', apk)
        
         // validate
-        const { accountName, email } = global.loadedServerWallet
-        if (!accountName || !email) return Promise.resolve({ err: `No server wallet currently loaded` })
+        const { owner, email } = global.loadedServerWallet
+        if (!owner || !email) return Promise.resolve({ err: `No server wallet currently loaded` })
         const h_mpk = utilsWallet.pbkdf2(apk, keys.masterPrivateKey)
         const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
         const wallet = store.getState().wallet
@@ -46,7 +46,7 @@ module.exports = {
         var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
 
         // post
-        return apiDataContract.updateAssetsJsonApi(accountName, opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi(owner, opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk), e_email)
         .then(res => {
             if (!res) return Promise.resolve({ err: `DSC API: invalid or missing response data` })
             if (!res.res === "ok") return Promise.resolve({ err: `DSC API: update failed` })
@@ -104,15 +104,15 @@ module.exports = {
                 return Promise.resolve({ err: `DSC API: no assets data returned` })
             }
 
-            const accountName = res.owner
+            const owner = res.owner
             const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
             if (walletInit.err) resolve(walletInit)
             if (walletInit.ok) {
                 global.loadedWallet.dirty = false
-                utilsWallet.setTitle(`SERVER WALLET - ${email} / ${accountName}`)
-                global.loadedServerWallet = { accountName, email }
+                utilsWallet.setTitle(`SERVER WALLET - ${email} / ${owner}`)
+                global.loadedServerWallet = { owner, email }
             }
-            return { ok: { accountName, email, walletInit } }
+            return { ok: { owner, email, walletInit } }
         })
         .catch(err => {
             if (err.response && err.response.statusText) {

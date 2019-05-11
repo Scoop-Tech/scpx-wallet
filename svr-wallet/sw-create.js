@@ -53,7 +53,7 @@ module.exports = {
         // exec
         return opsWallet.generateWallets({
                     store: store,
-             activePubKey: apk,
+             apk: apk,
                     h_mpk: h_mpk,
           userAccountName: undefined,         // no default DSC persistence for server wallets - not required
                   e_email: undefined,         // "

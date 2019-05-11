@@ -59,7 +59,7 @@ module.exports = {
                             asset: asset,
                         feeParams: feeParams,
                   sendFromAddrNdx,
-                     activePubKey: apk,
+                     apk: apk,
                             h_mpk: h_mpk,
             }, (res, err) => {
                 if (err) { 
@@ -96,7 +96,7 @@ module.exports = {
                     sendValue: du_sendValue,
            encryptedAssetsRaw: wallet.assetsRaw, 
                    useFastest: false, useSlowest: false, //...
-                 activePubKey: apk,
+                 apk: apk,
                         h_mpk,
             })
 

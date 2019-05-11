@@ -31,7 +31,7 @@ module.exports = {
         // exec
         return opsWallet.generateNewAddress({
                     store: store,
-             activePubKey: apk,
+             apk: apk,
                     h_mpk: h_mpk,
                 assetName: asset.name,
         })
@@ -80,7 +80,7 @@ module.exports = {
         // exec
         return opsWallet.importPrivKeys({
                     store: store,
-             activePubKey: apk,
+             apk: apk,
                     h_mpk: h_mpk,
                 assetName: asset.name,
              addrKeyPairs: privKeyList.map(p => { return { privKey: p }}),
@@ -123,7 +123,7 @@ module.exports = {
         // exec
         return opsWallet.removeImportedAccounts({
                     store: store,
-             activePubKey: apk,
+                      apk: apk,
                     h_mpk: h_mpk,
                 assetName: asset.name,
            removeAccounts: [accountName],

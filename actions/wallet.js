@@ -105,13 +105,13 @@ module.exports = {
     // generates a new address (in the primary scoop account)
     //
     generateNewAddress: async (p) => {
-        const { store, activePubKey, h_mpk, assetName, // required - browser & server
+        const { store, apk, h_mpk, assetName, // required - browser & server
                 userAccountName, e_email,              // required - browser 
                 eosActiveWallet } = p
 
         // validation
         if (!store) throw 'store is required'
-        if (!activePubKey) throw 'activePubKey is required'
+        if (!apk) throw 'apk is required'
         if (!store) throw 'store is required'
         if (!h_mpk) throw 'h_mpk is required'
         if (configWallet.WALLET_ENV === "BROWSER") {
@@ -128,7 +128,7 @@ module.exports = {
         utilsWallet.logMajor('green','white', `generateNewAddress...`, null, { logServerConsole: true })
 
         // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
+        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
         var rawAssets = JSON.parse(pt_rawAssets)
 
         // get asset and account to generate into
@@ -165,13 +165,13 @@ module.exports = {
             genAccount.privKeys.push(newPrivKey)
             
             var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-            const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+            const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
             rawAssetsJsonUpdated = null
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
+                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
             }
 
             // add new displayable asset address object
@@ -223,13 +223,13 @@ module.exports = {
     //
     importPrivKeys: async (p) => { 
 
-        var { store, activePubKey, h_mpk, assetName, addrKeyPairs,  // required - browser & server
+        var { store, apk, h_mpk, assetName, addrKeyPairs,  // required - browser & server
               userAccountName, e_email,                             // required - browser 
               eosActiveWallet } = p
 
         // validation
         if (!store) throw 'store is required'
-        if (!activePubKey) throw 'activePubKey is required'
+        if (!apk) throw 'apk is required'
         if (!assetName) throw 'assetName is required'
         if (!h_mpk) throw 'h_mpk is required'        
         if (!addrKeyPairs || addrKeyPairs.length == 0) throw 'addrKeyPairs required'
@@ -247,7 +247,7 @@ module.exports = {
         utilsWallet.logMajor('green','white', `importPrivKeys...`, null, { logServerConsole: true })
 
         // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
+        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
         var rawAssets = JSON.parse(pt_rawAssets)
 
         // get asset 
@@ -294,7 +294,7 @@ module.exports = {
 
         // update local persisted raw assets
         var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+        const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
         rawAssetsJsonUpdated = null
 
@@ -321,7 +321,7 @@ module.exports = {
         
         if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
             // raw assets: post encrypted
-            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
+            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
 
             // update addr monitors
             window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
@@ -341,13 +341,13 @@ module.exports = {
     // removes imported account(s)
     //
     removeImportedAccounts: async (p) => {
-        var { store, activePubKey, h_mpk, assetName, removeAccounts,  // required - browser & server
+        var { store, apk, h_mpk, assetName, removeAccounts,  // required - browser & server
               userAccountName, e_email,                               // required - browser 
               eosActiveWallet } = p
 
         // validation
         if (!store) throw 'store is required'
-        if (!activePubKey) throw 'activePubKey is required'
+        if (!apk) throw 'apk is required'
         if (!assetName) throw 'assetName is required'
         if (!h_mpk) throw 'h_mpk is required'        
         if (!removeAccounts || removeAccounts.length == 0) throw 'removeAccounts required'
@@ -365,7 +365,7 @@ module.exports = {
         utilsWallet.logMajor('green','white', `removeImportedAccounts...`, removeAccounts, { logServerConsole: true })
 
         // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_rawAssets)
+        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
         var rawAssets = JSON.parse(pt_rawAssets)
 
         // get asset 
@@ -389,7 +389,7 @@ module.exports = {
 
         // raw assets: update local persisted copy
         var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-        const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+        const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
         store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
         rawAssetsJsonUpdated = null
 
@@ -402,7 +402,7 @@ module.exports = {
 
         if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
             // raw assets: post encrypted
-            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, activePubKey, h_mpk), e_email)
+            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
 
             // update addr monitors
             window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
@@ -432,7 +432,7 @@ module.exports = {
     //
     generateWallets: async (p) => {
         const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
-                activePubKey, e_email, h_mpk } = p
+                apk, e_email, h_mpk } = p
         if (!store) { throw 'Invalid store' }
         if (!h_mpk) { throw 'Invalid h_mpk' }
 
@@ -440,7 +440,7 @@ module.exports = {
         var pt_storedRawAssets
         var currentAssets
         if (e_storedAssetsRaw !== undefined && e_storedAssetsRaw !== null && e_storedAssetsRaw !== '') {
-            pt_storedRawAssets = utilsWallet.aesDecryption(activePubKey, h_mpk, e_storedAssetsRaw)
+            pt_storedRawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_storedAssetsRaw)
             if (!pt_storedRawAssets || pt_storedRawAssets.length === 0) {
                 return null // decrypt failed
             }
@@ -538,7 +538,7 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(currentAssets, activePubKey, h_mpk), e_email)
+                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(currentAssets, apk, h_mpk), e_email)
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
@@ -552,7 +552,7 @@ module.exports = {
 
             // persist assets encrypted local - unpruned raw assets (private keys, with derived address data)
             var rawAssetsJsonUpdated = JSON.stringify(currentAssets, null, 4) 
-            const e_rawAssetsUpdated = utilsWallet.aesEncryption(activePubKey, h_mpk, rawAssetsJsonUpdated)
+            const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
             rawAssetsJsonUpdated = null
 
@@ -573,7 +573,7 @@ module.exports = {
         return displayableAssets
     },
     
-    encryptPrunedAssets: (currentAssets, activePubKey, h_mpk) => {
+    encryptPrunedAssets: (currentAssets, apk, h_mpk) => {
         // prune
         var currentAssetsKeysOnly = {} 
         Object.keys(currentAssets).map(assetName => {
@@ -585,7 +585,7 @@ module.exports = {
         var pt_assetsJsonPruned = JSON.stringify(currentAssetsKeysOnly, null, 1)
 
         // encrypt
-        const e_assetsRawPruned = utilsWallet.aesEncryption(activePubKey, h_mpk, pt_assetsJsonPruned)
+        const e_assetsRawPruned = utilsWallet.aesEncryption(apk, h_mpk, pt_assetsJsonPruned)
 
         utilsWallet.softNuke(currentAssetsKeysOnly)
         utilsWallet.softNuke(pt_assetsJsonPruned)
