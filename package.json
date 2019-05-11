@@ -64,7 +64,7 @@
         "type": "git",
         "url": "https://github.com/Scoop-Tech/scpx-wallet"
     },
-    "homepage": "https://x.scoop.tech",
+    "homepage": "https://scoop.tech",
     "bugs": "https://github.com/Scoop-Tech/scpx-wallet/issues",
     "main": "sw-cli.js",
     "scripts": {

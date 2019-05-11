@@ -15,7 +15,7 @@ Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44]
 The architectural components of Scoop are as follows:
 
   * **SCPX-WALLET** - Core Wallet (this repo) - node.js and browser-compatible core wallet functions (layer 1 encryption)
-  * **SCPX-APP** - [Web Wallet](https://x.scoop.tech)
+  * **SCPX-APP** - [Web Wallet](https://scoop.tech)
   * **SCPX-SVR** - [API Server](https://github.com/Scoop-Tech/scpx-svr) API
   * **SCPX-EOS** - [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos)
   
