@@ -25,7 +25,7 @@ The tested and recommended build environment is node 10.15.3 and npm 6.9.0. ```-
 ## Running Tests
 
   * ```npm run test``` to run the the CI test suite.
-  * ```npm run test -- -t "receive address"``` - to run individual tests, filtered by it() description.
+  * ```npm run test -- -t "BTC_TEST"``` - to run individual tests, filtered by ```it()``` description.
 
 The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
 
