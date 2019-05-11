@@ -254,11 +254,11 @@ describe('testnets', function () {
         await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
     })
 
-    // it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
-    //     const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
-    //     await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
-    //     await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
-    // })    
+    it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
+        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, e: serverTestWallet.email }, 'SERVER-LOAD')
+        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+        await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
+    })    
 
     async function sendTestnetTx(store, serverLoad, testSymbol) {
         expect.assertions(8)
@@ -292,6 +292,7 @@ describe('testnets', function () {
             const txPush = await svrWallet.fn(appWorker, appStore,
                 { mpk, s: testSymbol,
                        v: sendValue,
+                       f: asset.addresses[sendAddrNdx].addr,
                        t: asset.addresses[receiveAddrNdx].addr }, 
                 'TX-PUSH')
 
