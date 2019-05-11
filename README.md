@@ -10,7 +10,6 @@ Release Candidate 4
 
 [![Core Wallet - CLI demo](http://img.youtube.com/vi/KvB2Bzebs-M/0.jpg)](http://www.youtube.com/watch?v=KvB2Bzebs-M "Core Wallet - CLI demo")
 
-
 Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below).
 
 The architectural components of Scoop are as follows:
