@@ -1,7 +1,7 @@
 {
     "name": "scpx-wallet",
-    "version": "0.4.3",
-    "description": "Scoop Wallet: multi-asset, multi-platform crypto wallet",
+    "version": "0.4.4",
+    "description": "Scoop Core Wallet: multi-asset, cross-platform and open-source crypto wallet",
     "keywords": [
         "crypto wallet",
         "crypto",
