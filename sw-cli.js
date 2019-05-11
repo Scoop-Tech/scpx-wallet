@@ -10,6 +10,7 @@ const { store: appStore, persistor: appPersistor  } = require('./store')
 const utilsWallet = require('./utils')
 
 const cliRepl = require('./cli-repl')
+const rpc = require('./sw-rpc')
 
 const svrWorkers = require('./svr-workers')
 const svrCreate = require('./svr-wallet/sw-create')
@@ -39,20 +40,22 @@ cli
 .option('-f, --loadFile <string>', 'load the specified file wallet: passed to wallet-load (.wl)') 
 .option('-f, --loadServer <string>', 'load the specified Data Storage Contract wallet: passed to wallet-server-load (.wsl)') 
 .option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)')
+.option('-r, --rpc <port>', 'enable RPC server on specified port')
+.option('-c, --rpctest <bool>', 'run rpctest')
 .option('--about', 'about this software')
 .parse(process.argv)
 if (cli.about) {
     // about
     fs.readFile('./LICENSE.md', 'utf8', (err1, license) => {
         if (err1) throw(`Failed to read license file: ${err1}`)
-        utilsWallet.logMajor('green','white', ` This software is licensed (${npmPackage.license}) to you under the following terms. \n`, null, { logServerConsole: true })
+        utilsWallet.logMajor('green','white', ` This software is licensed (${npmPackage.license}) to you under the following terms. `, null, { logServerConsole: true })
         console.group()
         console.log(license.gray)
         console.groupEnd()
 
         fs.readFile('./COMPONENTS', 'UCS-2', (err2, components) => {
             if (err2) throw(`Failed to read license file: ${err2}`)
-            utilsWallet.logMajor('green','white', ` The following components and licenses are used by this software. See ./node_modules for their terms. \n`, null, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', ` The following components and licenses are used by this software. See ./node_modules for their terms. `, null, { logServerConsole: true })
             console.group()
             console.log(components.gray)
             console.groupEnd()
@@ -70,6 +73,9 @@ else {
     if (cli.loadFile)         log.info(`cli.loadFile:`, cli.loadFile)
     if (cli.loadServer)       log.info(`cli.loadServer:`, cli.loadServer)
     if (cli.saveHistory)      log.info(`cli.saveHistory:`, cli.saveHistory)
+    if (cli.rpc)              log.info(`cli.rpc:`, cli.rpc)
+    if (cli.rpctest)          log.info(`cli.rpctest:`, cli.rpctest)
+    
     console.log()
 
     // loaded wallet (server and file) apk and mpk are cached here (if CLI_SAVE_LOADED_WALLET_KEY is set)
@@ -106,12 +112,7 @@ else {
                config: { wallet: configWallet, external: configWalletExternal, },
         }
 
-        // launch repl
-        console.log()
-        log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
-        const prompt = cliRepl.repl_init(walletContext, cli.saveHistory)
-
-        // init or load from cmdline, if specified
+        // process cmdline 
         if (cli.mpk) { 
             const validationErrors = await svrWallet.validateMpk(cli.mpk)
             if (validationErrors && validationErrors.err) {
@@ -139,5 +140,29 @@ else {
                 }
             }
         }
+
+        if (cli.rpc) {
+            if (cli.rpc >= 1024 && cli.rpc <= 65535) {
+                rpc.rpc_init(cli.rpc)
+            }
+            else {
+                log.err(`Invalid RPC port ${cli.rpc} - specify a port between 1024 and 65535`)
+            }
+        }
+
+        if (cli.rpctest) {
+            const jayson = require('jayson')
+            console.log('rpcTestClient: init...')
+            const client = jayson.client.http({ port: 4000 })
+            client.request('exec', ['dom', {a: 42, b: 'asd'} ], function(err, response) {
+                if(err) throw err
+                console.log(`rpcTestClient: exec response - ${response.result}`)
+            })
+        }
+
+        // launch repl
+        console.log()
+        log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
+        const prompt = cliRepl.repl_init(walletContext, cli.saveHistory)
     })
 }
