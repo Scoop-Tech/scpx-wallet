@@ -36,12 +36,15 @@ console.log()
 
 cli
 .version('0.3.0', '-v, -V, -ver, --version')
-.option('-m, --mpk <string>', 'Master Private Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
-.option('-f, --loadFile <string>', 'load the specified file wallet: passed to wallet-load (.wl)') 
-.option('-f, --loadServer <string>', 'load the specified Data Storage Contract wallet: passed to wallet-server-load (.wsl)') 
-.option('-h, --saveHistory <bool>', 'persist CLI history to file (default: false)')
-.option('-r, --rpc <port>', 'enable RPC server on specified port')
-.option('-c, --rpctest <bool>', 'run rpctest')
+.option('--mpk <string>', 'Master Private Key: passed to wallet-load (.wl) if --load is also specified, or to wallet-init (.wi) otherwise') 
+.option('--loadFile <string>', 'load the specified file wallet: passed to wallet-load (.wl)') 
+.option('--loadServer <string>', 'load the specified Data Storage Contract wallet: passed to wallet-server-load (.wsl)') 
+.option('--saveHistory <bool>', 'persist CLI history to file (default: false)')
+.option('--rpc <bool>', 'enable RPC server')
+.option('--rpcPort <int>', 'RPC port')
+.option('--rpcUser <string>', 'RPC username')
+.option('--rpcPass <string>', 'RPC password')
+//.option('-c, --rpctest <bool>', 'run rpctest')
 .option('--about', 'about this software')
 .parse(process.argv)
 if (cli.about) {
@@ -74,7 +77,10 @@ else {
     if (cli.loadServer)       log.info(`cli.loadServer:`, cli.loadServer)
     if (cli.saveHistory)      log.info(`cli.saveHistory:`, cli.saveHistory)
     if (cli.rpc)              log.info(`cli.rpc:`, cli.rpc)
-    if (cli.rpctest)          log.info(`cli.rpctest:`, cli.rpctest)
+    if (cli.rpcPort)          log.info(`cli.rpcPort:`, cli.rpcPort)
+    if (cli.rpcUser)          log.info(`cli.rpcUser:`, cli.rpcUser)
+    if (cli.rpcPass)          log.info(`cli.rpcPass:`, cli.rpcPass)
+    //if (cli.rpctest)          log.info(`cli.rpctest:`, cli.rpctest)
     
     console.log()
 
@@ -90,20 +96,24 @@ else {
     if (!configWallet.IS_DEV) {
         process.on('unhandledRejection', (reason, promise) => {
             utilsWallet.error(`## unhandledRejection (CLI) ${reason}`, promise, { logServerConsole: true})
-            svrWorkers.workers_terminate()
+            svrWorkers.terminate()()
             process.exit(1)
         })
         process.on('uncaughtException', (err, origin) => {
             utilsWallet.error(`## uncaughtException (CLI) ${err.toString()}`, origin, { logServerConsole: true})
-            svrWorkers.workers_terminate()
+            svrWorkers.terminate()()
             process.exit(1)
         })
     }
-    process.on('exit', () => svrWorkers.workers_terminate())
-    process.on('SIGINT', () => svrWorkers.workers_terminate())
+    process.on('exit', () => cleanup())
+    process.on('SIGINT', () => cleanup())
+    function cleanup() {
+        svrWorkers.terminate()
+        rpc.terminate()
+    }
 
     // setup workers
-    svrWorkers.workers_init(appStore).then(async () => {
+    svrWorkers.init(appStore).then(async () => {
 
         // wallet context
         const walletContext = {
@@ -112,7 +122,7 @@ else {
                config: { wallet: configWallet, external: configWalletExternal, },
         }
 
-        // process cmdline 
+        // process CLI load cmdline
         if (cli.mpk) { 
             const validationErrors = await svrWallet.validateMpk(cli.mpk)
             if (validationErrors && validationErrors.err) {
@@ -141,28 +151,23 @@ else {
             }
         }
 
+        // process RPC cmdline
         if (cli.rpc) {
-            if (cli.rpc >= 1024 && cli.rpc <= 65535) {
-                rpc.rpc_init(cli.rpc)
-            }
-            else {
-                log.err(`Invalid RPC port ${cli.rpc} - specify a port between 1024 and 65535`)
-            }
+            rpc.init(cli.rpcPort, cli.rpcUser, cli.rpcPass)
         }
-
-        if (cli.rpctest) {
-            const jayson = require('jayson')
-            console.log('rpcTestClient: init...')
-            const client = jayson.client.http({ port: 4000 })
-            client.request('exec', ['dom', {a: 42, b: 'asd'} ], function(err, response) {
-                if(err) throw err
-                console.log(`rpcTestClient: exec response - ${response.result}`)
-            })
-        }
+        // if (cli.rpctest) {
+        //     const jayson = require('jayson')
+        //     console.log('rpcTestClient: init...')
+        //     const client = jayson.client.http({ port: 4000 })
+        //     client.request('exec', ['dom', {a: 42, b: 'asd'} ], function(err, response) {
+        //         if(err) throw err
+        //         console.log(`rpcTestClient: exec response - ${response.result}`)
+        //     })
+        // }
 
         // launch repl
         console.log()
         log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
-        const prompt = cliRepl.repl_init(walletContext, cli.saveHistory)
+        const prompt = cliRepl.init(walletContext, cli.saveHistory)
     })
 }

@@ -19,19 +19,19 @@ module.exports = {
 
     // creates and broadcasts the specified tx
     txPush: async (appWorker, store, p) => {
-        var { mpk, apk, s, v, t, f } = p
+        var { mpk, apk, symbol, value, to, from } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // validate
-        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, s, v)
+        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
-        if (utilsWallet.isParamEmpty(t)) return Promise.resolve({ err: `To address is required` })
-        const toAddr = t
+        if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
+        const toAddr = to
         var fromAddr
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
         if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) {
-            if (utilsWallet.isParamEmpty(f)) return Promise.resolve({ err: `From address is required` })
-            fromAddr = f
+            if (utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is required` })
+            fromAddr = from
             const assetFromAddrNdx = asset.addresses.findIndex(p => p.addr === fromAddr)
             if (assetFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
             sendFromAddrNdx = assetFromAddrNdx
@@ -59,7 +59,7 @@ module.exports = {
                             asset: asset,
                         feeParams: feeParams,
                   sendFromAddrNdx,
-                     apk: apk,
+                              apk: apk,
                             h_mpk: h_mpk,
             }, (res, err) => {
                 if (err) { 
@@ -80,11 +80,11 @@ module.exports = {
 
     // gets network fee for the specified tx
     txGetFee: async (appWorker, store, p) => {
-        var { mpk, apk, s, v } = p
+        var { mpk, apk, symbol, value } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // validate
-        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, s, v)
+        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
 
         // get tx fee
@@ -96,7 +96,7 @@ module.exports = {
                     sendValue: du_sendValue,
            encryptedAssetsRaw: wallet.assetsRaw, 
                    useFastest: false, useSlowest: false, //...
-                 apk: apk,
+                          apk: apk,
                         h_mpk,
             })
 
@@ -108,15 +108,15 @@ module.exports = {
     }
 }
 
-function validateSymbolValue(store, s, v) {
+function validateSymbolValue(store, symbol, value) {
     const wallet = store.getState().wallet
-    if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
-    const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-    if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
+    if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
+    const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+    if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
-    if (utilsWallet.isParamEmpty(v)) return Promise.resolve({ err: `Asset value is required` })
-    if (isNaN(v)) return Promise.resolve({ err: `Invalid asset value` })
-    const du_sendValue = Number(v)
+    if (utilsWallet.isParamEmpty(value)) return Promise.resolve({ err: `Asset value is required` })
+    if (isNaN(value)) return Promise.resolve({ err: `Invalid asset value` })
+    const du_sendValue = Number(value)
     if (du_sendValue < 0) return Promise.resolve({ err: `Asset value cannot be negative` })
 
     return Promise.resolve({ asset, wallet, du_sendValue })

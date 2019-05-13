@@ -85,24 +85,24 @@ module.exports = {
 
     // dumps current wallet asset data
     walletDump: (appWorker, store, p) => {
-        var { mpk, apk, s, txs, privkeys } = p
+        var { mpk, apk, symbol, txs, keys } = p
         log.cmd('walletDump')
 
         // extract filter symbol, if any
         var filterSymbol
-        if (s && s.length > 0) {
-            filterSymbol = s
+        if (symbol && symbol.length > 0) {
+            filterSymbol = symbol
         }
 
         // dump tx's, if specified
         var dumpTxs = false
         if (utilsWallet.isParamTrue(txs)) {
-            dumpTxs = true
+            dumpTxs = true  
         }
 
         // dump privkeys, if specified
         var dumpPrivKeys = false
-        if (utilsWallet.isParamTrue(privkeys)) {
+        if (utilsWallet.isParamTrue(keys)) {
             dumpPrivKeys = true
         }
         
@@ -151,7 +151,7 @@ module.exports = {
                         }
 
                         if (!dumpPrivKeys) {
-                            delete pathKeyAddr.addr.privKey
+                            pathKeyAddr.privKey = undefined
                         }
                         
                         allPathKeyAddrs.push(pathKeyAddr)
@@ -170,18 +170,18 @@ module.exports = {
 
     // displays combined balances (for all addresses) 
     walletBalance: (appWorker, store, p) => {
-        var { s } = p
+        var { symbol } = p
         log.cmd('walletBalance')
 
         // validate
         const wallet = store.getState().wallet
-        if (!utilsWallet.isParamEmpty(s)) { 
-            const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-            if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
+        if (!utilsWallet.isParamEmpty(symbol)) { 
+            const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+            if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
         }
 
         const balances = wallet.assets
-            .filter(p => utilsWallet.isParamEmpty(s) || p.symbol.toLowerCase() === s.toLowerCase())
+            .filter(p => utilsWallet.isParamEmpty(symbol) || p.symbol.toLowerCase() === symbol.toLowerCase())
             .map(asset => {
             const bal = walletExternal.get_combinedBalance(asset)
             return {

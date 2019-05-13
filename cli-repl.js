@@ -5,13 +5,14 @@ const colors = require('colors')
 //const parseSentence = require('minimist-string')
 const stringParseArgs = require('./ext/minimist-string-opt')
 
-
 const appStore = require('./store').store
 const utilsWallet = require('./utils')
-const log = require('./cli-log')
 const svrWorkers = require('./svr-workers')
 const svrWallet = require('./svr-wallet/sw-wallet')
 const svrWalletCreate = require('./svr-wallet/sw-create')
+
+const log = require('./cli-log')
+const rpc = require('./sw-rpc')
 
 const helpBanner = ' HELP '.bgCyan.white.bold + ' '
 
@@ -20,96 +21,99 @@ const walletNewHelp = `${helpBanner}` +
 
 const walletInitHelp = `${helpBanner}` +
     `(wallet-init) - recreates a wallet from supplied seed values\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
+    `\t--mpk          <master private key>  <required>  entropy for keygen and redux store (L1) encryption\n`
 
 const walletConnectHelp = `${helpBanner}` +
     `(wallet-connect) - connects to 3PBPs and populates tx and balance data for the loaded wallet\n`.cyan.bold
 
 const walletDumpHelp = `${helpBanner}` +
     `(wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--s           [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
-    `\t--txs         [bool]                [optional]  dump address transactions (default: false)\n` +
-    `\t--privkeys    [bool]                [optional]  dump private keys (default: false)\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
+    `\t--txs          [bool]                [optional]  dump address transactions (default: false)\n` +
+    `\t--keys         [bool]                [optional]  dump private keys (default: false)\n`
 
 const walletAddAddrHelp = `${helpBanner}` +
     `(wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
 
 const walletImportPrivKeysHelp = `${helpBanner}` +
     `(wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\t--privKeys    [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\t--privKeys     [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
 
 const walletRemovePrivKeysHelp = `${helpBanner}` +
     `(wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--s           [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\t--accountName [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\t--accountName  [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `(wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--n           [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
-    `\t--f           [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--name (--n)   [string]              <required>  a name for the saved wallet; the wallet can subsequently be loaded by this name\n` +
+    `\t--force        [bool]                [optional]  overwrite (without warning) any existing file with the same name (default: false)\n`
 
 const walletLoadHelp = `${helpBanner}` +
     `(wallet-load) - loads a previously saved wallet from file\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--n           [string]              <required>  the name of the wallet to load\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--name (--n)   [string]              <required>  the name of the wallet to load\n`
 
 const walletServerLoadHelp = `${helpBanner}` +
     `(wallet-server-load) - loads a previously saved wallet from the Scoop Data Storage Contract\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n` +
-    `\t--e           [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--email (--e)  [string]              <required>  the pseudo-email of the wallet in the Scoop Data Storage Contract, e.g. "x+7dgy0soek3gvn@scoop.tech"\n`
 
 const walletServerSaveHelp = `${helpBanner}` +
     `(wallet-server-save) - saves a previously loaded server wallet back to the Scoop Data Storage Contract\n`.cyan.bold +
-    `\t--mpk         <master private key>  <required>  \n`
+    `\t--mpk          <master private key>  <required>  \n`
 
 const walletBalanceHelp = `${helpBanner}` +
     `(wallet-balance) - shows aub-asset balances in the loaded wallet\n`.cyan.bold +
-    `\t--s           [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
+    `\t--symbol (--s) [string]              <required>  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n`
 
 const assetGetFeesHelp = `${helpBanner}` +
     `(asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
-    `\t--s        [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
+    `\t--symbol (--s) [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
 
 const txGetFeeHelp = `${helpBanner}` +
     `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
-    `\t--mpk      <master private key>  <required>  \n` +
-    `\t--s        [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
-    `\t--v        [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              <required>  the asset to use for the fee estimate, e.g. "ETH" or "BTC"\n` +
+    `\t--value (--v)  [number]              <required>  the send value to use for the fee estimate, e.g. 0.01\n`
 
 const txPushHelp = `${helpBanner}` +
     `(tx-push) - broadcasts the specified single-recipient transaction\n`.cyan.bold +
-    `\t--mpk      <master private key>  <required>  \n` +
-    `\t--s        [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
-    `\t--v        [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\t--f        [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
-    `\t--t        [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
-
-// dbg/utils
-
-//const clearCacheHelp = `${helpBanner}` +
-//    `.cc (clear-tx-db-cache) - clears the TX cache file\n`.cyan.bold
-
-const logTailHelp = `${helpBanner}` +
-    `.lt (log-tail) - tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
-    `\t--n        [int]                 [optional]  number of lines to tail (default: 100)\n` +
-    `\t--debug    [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false)\n`
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--symbol (--s) [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
+    `\t--value (--v)  [number]              <required>  the amount to send, e.g. 0.01\n` +
+    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
+    `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n`
 
 const clsHelp = `${helpBanner}` +
-    `.cls (clear-scren) - clears the console screen \n`.cyan.bold
+    `.cls (clear-screen) - clears the console screen \n`.cyan.bold
 
 const exitHelp = `${helpBanner}` +
     `.exit - terminates the wallet\n`.cyan.bold
 
+// dbg/utils
+const rpcTestHelp = `${helpBanner}` + // TODO ...
+    `.rt (rpc-test) - DBG - calls sw-cli RPC server 'exec' method \n`.cyan.bold +
+    `\t--rpcPort      [number]              [optional]  RPC port (default: 4000)` +
+    `\t--cmd          [string]              [required]  exec parameter: JSON string`
+
+const logTailHelp = `${helpBanner}` +
+    `.lt (log-tail) - DBG: tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
+    `\t--lines (--l)  [int]                 [optional]  number of lines to tail (default: 100)\n` +
+    `\t--debug        [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false)\n`
+
+//const clearCacheHelp = `${helpBanner}` +
+//    `.cc (clear-tx-db-cache) - clears the TX cache file\n`.cyan.bold
 
 module.exports = {
-    repl_init: (walletContext, enableFileHistory) => {
+    init: (walletContext, enableFileHistory) => {
 
         if (utilsWallet.isParamTrue(enableFileHistory)) {
             log.warn('command history is being saved to file at ./node_history. This will include sensitive data.\n')
@@ -154,10 +158,21 @@ module.exports = {
                     action: function (args) {
                         prompt.clearBufferedCommand()
                         //var argv = require('minimist')(args.split(' '))
-                        const argv = stringParseArgs(args, { string: ['t', 'f'] })
+                        const argv = stringParseArgs(args, { 
+                            string: ['t', 'f'],
+                            alias: {
+                                n: 'name',
+                                l: 'lines',
+                                e: 'email',
+                                s: 'symbol',
+                                v: 'value',
+                                t: 'to',
+                                f: 'from',
+                            }
+                        })
                         if (argv.help) postCmd(prompt, null, help)
                         else {
-                            //console.group()
+                            //console.group()   
                             fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
                                 .then(res => postCmd(prompt, res, help))
                             //.finally(() => console.groupEnd())
@@ -189,6 +204,7 @@ module.exports = {
         defineWalletCmd(prompt, ['txgf', 'tx-get-fee'], txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
         defineWalletCmd(prompt, ['txp', 'tx-push'], txPushHelp, svrWallet.fn, 'TX-PUSH')
 
+        defineWalletCmd(prompt, ['rt', 'rpc-test'], rpcTestHelp, rpc.rpcTest)
         defineWalletCmd(prompt, ['lt', 'log-tail'], logTailHelp, log.logTail)
 
 

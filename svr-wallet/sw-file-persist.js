@@ -23,15 +23,15 @@ const log = require('../cli-log')
 module.exports = {
 
     walletFileSave: (appWorker, store, p) => {
-        var { mpk, n, f } = p
+        var { mpk, name, f } = p
         log.cmd('walletFileSave')
 
         const e_assetsRaw = store.getState().wallet.assetsRaw
 
         // validate
-        if (utilsWallet.isParamEmpty(n)) return Promise.resolve({ err: `Wallet name is required` })
-        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
-        const fileName = `./wallet_${n.toString()}.dat`
+        if (utilsWallet.isParamEmpty(name)) return Promise.resolve({ err: `Wallet name is required` })
+        if (name.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
+        const fileName = `./wallet_${name.toString()}.dat`
 
         var overwrite = false
         if (utilsWallet.isParamTrue(f)) {
@@ -60,13 +60,13 @@ module.exports = {
     },
 
     walletFileLoad: (appWorker, store, p) => {
-        var { mpk, n } = p
+        var { mpk, name } = p
         log.cmd('walletFileLoad')
 
         // validate
-        if (utilsWallet.isParamEmpty(n)) return Promise.resolve({ err: `Wallet name is required` })
-        if (n.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
-        const fileName = `./wallet_${n.toString()}.dat`
+        if (utilsWallet.isParamEmpty(name)) return Promise.resolve({ err: `Wallet name is required` })
+        if (name.toString().match(/^[a-z0-9_-]+$/i) == null) return Promise.resolve({ err: `Wallet name must be alphanumeric characters only` })
+        const fileName = `./wallet_${name.toString()}.dat`
 
         // check exists
         const fs = require('fs')

@@ -18,15 +18,15 @@ module.exports = {
     
     // adds a sub-asset receive address
     walletAddAddress: async (appWorker, store, p) => {
-        var { mpk, apk, s } = p
+        var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('walletAddAddress')
         
         // validate
         const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
-        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
+        if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
+        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         // exec
         return opsWallet.generateNewAddress({
@@ -52,15 +52,15 @@ module.exports = {
 
     // adds a sub-asset receive address
     walletAddPrivKeys: async (appWorker, store, p) => {
-        var { mpk, apk, s, privKeys } = p
+        var { mpk, apk, symbol, privKeys } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('walletAddPrivKeys')
         
         // validate
         const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
-        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
+        if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
+        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         // validate privkeys
         if (utilsWallet.isParamEmpty(privKeys)) return Promise.resolve({ err: `Private key list is required` })
@@ -80,7 +80,7 @@ module.exports = {
         // exec
         return opsWallet.importPrivKeys({
                     store: store,
-             apk: apk,
+                      apk: apk,
                     h_mpk: h_mpk,
                 assetName: asset.name,
              addrKeyPairs: privKeyList.map(p => { return { privKey: p }}),
@@ -105,15 +105,15 @@ module.exports = {
 
     // removes an imported account and associated private keys
     walletRemoveImportAccount: async (appWorker, store, p) => {
-        var { mpk, apk, s, accountName } = p
+        var { mpk, apk, symbol, accountName } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('walletRemoveImportAccount')
         
         // validate
         const wallet = store.getState().wallet
-        if (utilsWallet.isParamEmpty(s)) return Promise.resolve({ err: `Asset symbol is required` })
-        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === s.toLowerCase())
-        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${s}"` })
+        if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
+        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         if (utilsWallet.isParamEmpty(accountName)) return Promise.resolve({ err: `Account name is required` })
         if (!asset.addresses.some(addr => addr.accountName === accountName && addr.path.startsWith("i"))) { // "i" for non-BIP44 (imported) acount

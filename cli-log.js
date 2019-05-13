@@ -37,17 +37,15 @@ module.exports = {
         else   console.log(`<< ${' OK '.bgGreen.white.bold + ' '  + s.toString().cyan.bold}`)
     },
     
-    logTail: (store, p) => {
-        var { n, debug } = p
-        if (!n || !Number.isInteger(Number(n))) n = 100
-        module.exports.info(`    n: ${n} (param)`)
+    logTail: (appWorker, store, p) => {
+        var { lines, debug } = p
+        if (!lines || !Number.isInteger(Number(lines))) lines = 100
         const logDebug = utilsWallet.isParamTrue(debug)
-        module.exports.info(`debug: ${logDebug} (param)`)
     
         const readLastLines = require('read-last-lines')
         const readOp = logDebug
-            ? readLastLines.read('./debug.log', n)
-            : readLastLines.read('./info.log', n)
+            ? readLastLines.read('./debug.log', lines)
+            : readLastLines.read('./info.log', lines)
         
         return readOp.then((lines) => { 
             console.log(lines)

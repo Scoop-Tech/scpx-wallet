@@ -104,6 +104,7 @@ function handler(e) {
                     ret = opsWallet.getAddressFromPrivateKey(params)
                 }
                 catch(err) {
+                    debugger
                     utilsWallet.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)
                 }
                 

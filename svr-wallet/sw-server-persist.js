@@ -25,7 +25,7 @@ const log = require('../cli-log')
 module.exports = {
 
     walletServerSave: async (appWorker, store, p) => {
-        var { mpk, e } = p
+        var { mpk } = p
         log.cmd('walletServerSave')
         log.param('mpk', mpk)
         const keys = await Keygen.generateMasterKeys(mpk)
@@ -63,7 +63,7 @@ module.exports = {
     },
 
     walletServerLoad: async (appWorker, store, p) => {
-        var { mpk, e } = p
+        var { mpk, email } = p
         log.cmd('walletServerLoad')
         log.param('mpk', mpk)
         const keys = await Keygen.generateMasterKeys(mpk)
@@ -71,8 +71,7 @@ module.exports = {
         log.param('apk', apk)
 
         // validate
-        if (utilsWallet.isParamEmpty(e)) return Promise.resolve({ err: `Pseudo-email is required` })
-        const email = e
+        if (utilsWallet.isParamEmpty(email)) return Promise.resolve({ err: `Pseudo-email is required` })
         log.param('e', email)
         const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, configEos.scpEosConfig)
         const eos = Eos(config)

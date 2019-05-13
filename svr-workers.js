@@ -11,7 +11,7 @@ const log = require('./cli-log')
 module.exports = {
 
     // setup cpuWorkers and singleton appWorker
-    workers_init: async (store) => {
+    init: async (store) => {
         const globalScope = utilsWallet.getMainThreadGlobalScope()
 
         // create cpu workers
@@ -74,7 +74,7 @@ module.exports = {
         txdb_init()
     },
 
-    workers_terminate: () => {
+    terminate: () => {
         const globalScope = utilsWallet.getMainThreadGlobalScope()
         
         if (globalScope.volatileSockets_intId) {

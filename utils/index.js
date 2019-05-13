@@ -442,7 +442,7 @@ module.exports = {
                 const totalReqCount = input.data.totalReqCount
                 const inputParams = input.data.inputParams
 
-                if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                if (msg === 'ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}`) {
                     resolve(ret)
                     cpuWorker.removeEventListener('message', listener)
                     if (callbackProcessed) {

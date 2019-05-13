@@ -6,19 +6,43 @@ const utilsWallet = require('./utils')
 
 const log = require('./cli-log')
 
+var rpcServer
+
 module.exports = {
 
-    // setup RPC server
-    rpc_init: async (port) => {
-        const portNo = Number(port)
-        utilsWallet.logMajor('green','white', `Starting RPC server on port ${portNo}...`, null, { logServerConsole: true })
+    init: async (port, userName, password) => {
+        if (!(port >= 1024 && port <= 65535)) {
+            log.error(`Invalid RPC port ${port} - specify a port between 1024 and 65535`)
+            return false
+        }
 
-        const server = jayson.server({
+        const portNo = Number(port)
+        utilsWallet.logMajor('green','white', `... RPC init: port ${portNo} ...`, null, { logServerConsole: true })
+
+        const methods = {
             exec: function(args, callback) {
+                log.info(`RPC: exec...`, args)
                 callback(null, JSON.stringify(args))
             }
+        }
+
+        rpcServer = jayson.server(methods, {
+            collect: true, // all params in one argument
+            params: Object // params are always an object
         })
 
-        server.http().listen(port)
+        rpcServer.https().listen(port)
+    },
+
+    terminate: () => {
+        log.info(`Stopping RPC server...`)
+        rpcServer.https().close()
+    },
+
+    rpcTest: (appWorker, store, p) => {
+        console.log('rpcTest', p)
+        //...
+        
+        return Promise.resolve( { ok: true })
     }
 }
