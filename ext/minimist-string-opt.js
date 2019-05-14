@@ -19,6 +19,7 @@ module.exports = function(input, opts) {
 	var argv;
 
     /**
+     * 
      * First we need to determine if there are any quotes on the sentence, because if there aren't,
      * that's pretty fucking cool, we don't need to do anything. The problem comes when there are,
      * because just doing a simple .split(' ') won't work with the following sentence:

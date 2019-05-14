@@ -40,25 +40,25 @@ cli
 .option('--loadFile <string>', 'load the specified file wallet: passed to wallet-load (.wl)') 
 .option('--loadServer <string>', 'load the specified Data Storage Contract wallet: passed to wallet-server-load (.wsl)') 
 .option('--saveHistory <bool>', 'persist CLI history to file (default: false)')
-.option('--rpc <bool>', 'enable RPC server')
+.option('--rpc <bool>', 'enable RPC server (HTTPS)')
 .option('--rpcPort <int>', 'RPC port')
-.option('--rpcUser <string>', 'RPC username')
-.option('--rpcPass <string>', 'RPC password')
-//.option('-c, --rpctest <bool>', 'run rpctest')
+.option('--rpcUsername <string>', 'RPC Bearer Auth username')
+.option('--rpcPassword <string>', 'RPC Bearer Auth password')
+.option('--rpcRemoteHosts <string>', 'RPC allowable remote hosts (comma separated, no wildcards)')
 .option('--about', 'about this software')
 .parse(process.argv)
 if (cli.about) {
     // about
     fs.readFile('./LICENSE.md', 'utf8', (err1, license) => {
         if (err1) throw(`Failed to read license file: ${err1}`)
-        utilsWallet.logMajor('green','white', ` This software is licensed (${npmPackage.license}) to you under the following terms. `, null, { logServerConsole: true })
+        utilsWallet.logMajor('green','white', ` This software is licensed under ${npmPackage.license} to you on the following terms. `, null, { logServerConsole: true })
         console.group()
         console.log(license.gray)
         console.groupEnd()
 
         fs.readFile('./COMPONENTS', 'UCS-2', (err2, components) => {
             if (err2) throw(`Failed to read license file: ${err2}`)
-            utilsWallet.logMajor('green','white', ` The following components and licenses are used by this software. See ./node_modules for their terms. `, null, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', ` The following components used by this software under the following licenses. See ./node_modules for their license terms. `, null, { logServerConsole: true })
             console.group()
             console.log(components.gray)
             console.groupEnd()
@@ -78,9 +78,9 @@ else {
     if (cli.saveHistory)      log.info(`cli.saveHistory:`, cli.saveHistory)
     if (cli.rpc)              log.info(`cli.rpc:`, cli.rpc)
     if (cli.rpcPort)          log.info(`cli.rpcPort:`, cli.rpcPort)
-    if (cli.rpcUser)          log.info(`cli.rpcUser:`, cli.rpcUser)
-    if (cli.rpcPass)          log.info(`cli.rpcPass:`, cli.rpcPass)
-    //if (cli.rpctest)          log.info(`cli.rpctest:`, cli.rpctest)
+    if (cli.rpcUsername)      log.info(`cli.rpcUsername:`, cli.rpcUsername)
+    if (cli.rpcPassword)      log.info(`cli.rpcPassword:`, cli.rpcPassword)
+    if (cli.rpcRemoteHosts)   log.info(`cli.rpcRemoteHosts:`, cli.rpcRemoteHosts)
     
     console.log()
 
@@ -96,12 +96,12 @@ else {
     if (!configWallet.IS_DEV) {
         process.on('unhandledRejection', (reason, promise) => {
             utilsWallet.error(`## unhandledRejection (CLI) ${reason}`, promise, { logServerConsole: true})
-            svrWorkers.terminate()()
+            cleanup()
             process.exit(1)
         })
         process.on('uncaughtException', (err, origin) => {
             utilsWallet.error(`## uncaughtException (CLI) ${err.toString()}`, origin, { logServerConsole: true})
-            svrWorkers.terminate()()
+            cleanup()
             process.exit(1)
         })
     }
@@ -151,9 +151,9 @@ else {
             }
         }
 
-        // process RPC cmdline
+        // process RPC cmdline  
         if (cli.rpc) {
-            rpc.init(cli.rpcPort, cli.rpcUser, cli.rpcPass)
+            rpc.init(cli.rpcPort, cli.rpcUsername, cli.rpcPassword, cli.rpcRemoteHosts)
         }
         // if (cli.rpctest) {
         //     const jayson = require('jayson')

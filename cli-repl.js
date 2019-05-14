@@ -99,10 +99,11 @@ const exitHelp = `${helpBanner}` +
     `.exit - terminates the wallet\n`.cyan.bold
 
 // dbg/utils
-const rpcTestHelp = `${helpBanner}` + // TODO ...
-    `.rt (rpc-test) - DBG - calls sw-cli RPC server 'exec' method \n`.cyan.bold +
-    `\t--rpcPort      [number]              [optional]  RPC port (default: 4000)` +
-    `\t--cmd          [string]              [required]  exec parameter: JSON string`
+const rpcTestHelp = `${helpBanner}` +
+    `.rt (rpc-test) - DBG: calls sw-cli RPC server \n`.cyan.bold +
+    `\t--rpcPort      [number]              [required]  RPC port \n` +
+    `\t--cmd          [string]              [required]  CLI command, e.g. ".tx-push" \n` +
+    `\t--params       [string]              [required]  CLI parameters in JSON format, e.g. " { \\\"mpk\\\": \\\"...\\\", \\\"symbol\\\": \\\"...\\\", \\\"value\\\": \\\"...\\\", ... } "`
 
 const logTailHelp = `${helpBanner}` +
     `.lt (log-tail) - DBG: tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
@@ -174,7 +175,14 @@ module.exports = {
                         else {
                             //console.group()   
                             fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
-                                .then(res => postCmd(prompt, res, help))
+                                .then(res => {
+                                    if (res) {
+                                        postCmd(prompt, res, help)
+                                    }
+                                    else {
+                                        process.exit(1)
+                                    }
+                                })
                             //.finally(() => console.groupEnd())
                         }
                     }
@@ -237,7 +245,8 @@ module.exports = {
         // exit, clear console screen
         defineWalletCmd(prompt, ['exit'], exitHelp, async () => {
             process.exit(0)
-        })
+            return null
+        }) 
 
         return prompt
     },
