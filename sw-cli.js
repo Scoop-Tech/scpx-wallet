@@ -167,7 +167,7 @@ else {
 
         // launch repl
         console.log()
-        log.info('Type ".help" for available commands, ".wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
+        log.info('Type ".help" for available commands, "./wn" for a new wallet, and "w" for dbg context obj. Ctrl+C to exit.\n')
         const prompt = cliRepl.init(walletContext, cli.saveHistory)
     })
 }

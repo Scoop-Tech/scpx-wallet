@@ -40,6 +40,7 @@ module.exports = {
     logTail: (appWorker, store, p) => {
         var { lines, debug } = p
         if (!lines || !Number.isInteger(Number(lines))) lines = 100
+        lines *= 2 // some double \n somewhere somehow
         const logDebug = utilsWallet.isParamTrue(debug)
     
         const readLastLines = require('read-last-lines')

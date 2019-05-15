@@ -4,6 +4,9 @@ const jayson = require('jayson')
 
 const configWallet = require('./config/wallet')
 const utilsWallet = require('./utils')
+const appStore = require('./store').store
+
+const svrWallet = require('./svr-wallet/sw-wallet')
 
 const log = require('./cli-log')
 
@@ -19,26 +22,60 @@ module.exports = {
             return false
         }
         if (!rpcRemoteHosts || rpcRemoteHosts.length == 0) {
-            log.error(`Invalid rpcRemoteHosts: ${rpcRemoteHosts}`)
+            log.error(`Invalid rpcRemoteHosts: ${rpcRemoteHosts} - host restriction for RPC is mandatory`)
             return false
         }
-        const allowRemoteHosts = rpcRemoteHosts.split(',')
+        if (!rpcUsername || rpcUsername.length == 0) {
+            log.error(`Missing rpcUsername - username and password for RPC is mandatory`)
+            return false
+        }
+        if (!rpcPassword || rpcPassword.length == 0) {
+            log.error(`Missing rpcPassword - username and password for RPC is mandatory`)
+            return false
+        }
 
         // create server
+        const allowRemoteHosts = rpcRemoteHosts.split(',')
         const portNo = Number(rpcPort)
         utilsWallet.logMajor('green', 'white', `... RPC init: port ${portNo} ...`, null, { logServerConsole: true })
         const methods = {
-            // exec: function (args, callback) {
-            //     log.info(`RPC: exec... args=`, args)
-            //     callback(null, JSON.stringify(args))
-            // }
-            exec: authed((args, callback) => {
+            exec: authed(async (args, callback) => {
                 log.info(`RPC: exec... args=`, args)
-
-                //...
-                
-                // postback to client
-                callback(null, JSON.stringify(args))
+                const cmd = args[0]
+                const cmdParams = args[1]
+                const appWorker = utilsWallet.getAppWorker() 
+                try {
+                    // switch wallet fn.
+                    var fn
+                    switch (cmd) {
+                        case 'wallet-dump':
+                            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'DUMP')
+                            break
+                    }
+                    if (fn === undefined) {
+                        return callback({ code: -32600, message: 'Invalid request' })
+                    }
+                    else {
+                        // postback to client
+                        const res = await fn
+                        if (res) {
+                            if (res.err) {
+                                callback({ code: -1, message: res.err })
+                            }
+                            else {
+                                callback(null, res) // ok
+                            }
+                        }
+                        else {
+                            log.error(`RPC: unexpected data on cmd ${cmd}`)
+                            return callback({ code: -32603, message: 'Internal error' })
+                        }
+                    }
+                }
+                catch (err) {
+                    log.error(`RPC: internal error on authorized request`, err)
+                    return callback({ code: -32603, message: 'Internal error' })
+                }
             })
         }
         function authed(fn) {
@@ -63,21 +100,12 @@ module.exports = {
                     return fn.call(this, args.slice(1), callback) // callback, drop auth arg
                 }
                 catch (err) {
-                    log.error(`RPC: internal error`, err)
+                    log.error(`RPC: internal error on auth check`, err)
                     return callback({ code: -32603, message: 'Internal error' })
                 }
             }
         }
-        jaysonRpc = jayson.server(methods, {
-            // port: rpcPort,
-            // host: '127.0.0.1',
-            // path: '/rpc',
-            // strict: true,
-            // method: 'POST',
-            // version: 1,
-            //collect: true, // all params in one argument
-            //params: Object // params are always an object
-        })
+        jaysonRpc = jayson.server(methods)
 
         // read dev self-signed certs
         // to create a production cert, use: "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -sha256"
@@ -114,7 +142,7 @@ module.exports = {
 
         log.cmd('rpcTest')
 
-        // validate; format is for a CLI command, and its params JSON encoded, e.g.
+        // validate: format is for a CLI command, and its params JSON encoded, e.g.
         // e.g. .rt --rpcPort 4000 --cmd ".tx-push" --params "{\"mpk\": \"...\", \"symbol\": \"...\", \"value\": \"...\"}"
         if (utilsWallet.isParamEmpty(rpcPort)) return Promise.resolve({ err: `RPC port is required` })
         if (utilsWallet.isParamEmpty(cmd)) return Promise.resolve({ err: `CLI command is required` })
@@ -146,7 +174,7 @@ module.exports = {
         client.request('exec', [ auth, cmd, parsedParams], function (err, response) {
             if (err) throw err
             if (response.result) {
-                log.info(`RPC response: ${response.result}`)
+                log.info(`RPC response:`, response.result)
             }
             else if (response.error) {
                 log.error(`RPC error: ${JSON.stringify(response.error)}`)

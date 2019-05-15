@@ -45,7 +45,7 @@ module.exports = {
             // state check - wallet is loaded
             if (loadedWalletRequired) {
                 if (!wallet || !wallet.assetsRaw || !wallet.assets)  {
-                    return Promise.resolve({ err: 'No loaded wallet: create a new one with ".wn"' })
+                    return Promise.resolve({ err: 'No loaded wallet' })
                 }
             }
 
@@ -53,7 +53,7 @@ module.exports = {
             if (connectedWalletRequired) {
                 if (wallet.assets.some(p => !p.lastAssetUpdateAt)) {
                     return Promise.resolve({ err: 
-                        `Wallet is not connected to 3PBPs: connect it with ".wc"`
+                        `Wallet is not connected to 3PBPs`
                     })
                 }
             }
