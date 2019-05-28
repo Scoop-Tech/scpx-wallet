@@ -48,7 +48,7 @@ Type ```.help``` in the CLI for a full list of commands.
 
   * **Runtime Secure**: (Web Wallet) Content Security Policy (CSP) restricts script execution to verified sources (resistant to XSS) and (in High Security) mode the the hash is not persisted to browser storage (resistant to extension content script injection). See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/5) for planned enhancement.
 
-  * **Cloud Login**: (Web Wallet) optionally persis t(and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
+  * **Cloud Login**: (Web Wallet) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
 
 ## Roadmap
 
