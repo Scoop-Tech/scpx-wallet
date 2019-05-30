@@ -132,7 +132,7 @@
         "redux-thunk": "^2.1.0",
         "repl.history": "^0.1.4",
         "socket.io-client": "2.2.0",
-        "wallet-address-validator": "0.2.4",
+        "wallet-address-validator": "^0.2.4",
         "web3": "1.0.0-beta.52",
         "web3-eth-abi": "^1.0.0-beta.54",
         "winston": "^3.2.1"
