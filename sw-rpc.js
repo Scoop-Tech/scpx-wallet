@@ -159,7 +159,7 @@ module.exports = {
         // exec
         const https = require('https')
         const agent = new https.Agent({
-            host: 'localhost'
+              host: 'localhost'
             , port: rpcPort
             , path: '/'
             , rejectUnauthorized: false // a less bad (but still bad) version of: process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;

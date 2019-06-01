@@ -15,7 +15,7 @@ The tested and recommended build environment is node 10.15.3 and npm 6.9.0. ```-
   * ```cd scpx-wallet```
   * ```npm install -g --production windows-build-tools@4.0.0``` - Windows: see also [here](https://github.com/felixrieseberg/windows-build-tools/issues/152)
   * ```npm config set msvs_version 2015``` - Windows
-  * ```npm install```
+  * ```npm install``` - Windows: see also [here](https://github.com/nodejs/node-gyp/issues/671) re. node-gyp rebuild failures
 
 ## Running Core Wallet CLI
 
