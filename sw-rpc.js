@@ -45,6 +45,12 @@ module.exports = {
                 const cmdParams = args[1]
                 const appWorker = utilsWallet.getAppWorker() 
                 try {
+                    // add mpk if in dev mode
+                    if (global.loadedWallet.keys && global.loadedWallet.keys.mpk && !cmdParams.mpk) { 
+                        log.info(`CLI_SAVE_LOADED_WALLET_KEY: adding cached MPK...`)
+                        cmdParams.mpk = global.loadedWallet.keys.mpk
+                    }
+
                     // switch wallet fn.
                     var fn
                     switch (cmd) {
@@ -89,11 +95,11 @@ module.exports = {
                     // validate auth
                     var auth = args[0]
                     if (!auth || !auth.username || !auth.password) { 
-                        log.warn(`RPC: authentication absent - args=`, args)
+                        log.error(`RPC: authentication absent - args=`, args)
                         return callback({ code: -403, message: 'Access denied' })
                     }
-                    if (auth.username !== rpcUsername || auth.password !== rpcPassword) {
-                        log.warn(`RPC: invalid credentials supplied - args=`, args)
+                    if (auth.username != rpcUsername || auth.password != rpcPassword) {
+                        log.error(`RPC: invalid credentials supplied - args=`, args)
                         return callback({ code: -403, message: 'Access denied' })
                     }
 

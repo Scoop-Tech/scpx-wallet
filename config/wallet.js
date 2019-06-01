@@ -698,7 +698,7 @@ module.exports = {
     , VOLATILE_SOCKETS_REINIT_SECS: 20                                   // volatile sockets - reinit timer (seconds)
 
     // cli 
-    , CLI_SAVE_LOADED_WALLET_KEY: false //process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions
+    , CLI_SAVE_LOADED_WALLET_KEY: process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions
 
 
     // wallet config - network
