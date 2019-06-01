@@ -128,26 +128,33 @@ else {
             if (validationErrors && validationErrors.err) {
                 cliRepl.postCmd(prompt, { err: `Validation failed: ${validationErrors.err}` })
             }
+        }
+        if (cli.loadServer) {
+            if (!cli.mpk) log.error('--mpk is required for --loadServer')
             else {
-                if (cli.loadServer) {
-                    if (cli.loadFile) log.warn('Ignoring duplicate load directive: --loadFile')
-                    log.info(`Loading server wallet ${cli.loadServer}...`)
-                    svrServerPersist.walletServerLoad(utilsWallet.getAppWorker(), walletContext.store,
-                        { mpk: cli.mpk, e: cli.loadServer })
-                    .then(res => cliRepl.postCmd(prompt, res))
-                }
-                else if (cli.loadFile) {
-                    log.info(`Loading file wallet ${cli.loadFile}...`)
-                    svrFilePersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
-                        { mpk: cli.mpk, n: cli.loadFile })
-                    .then(res => cliRepl.postCmd(prompt, res))
-                }
-                else {
-                    log.info('Initializing wallet...')
-                    svrCreate.walletInit(utilsWallet.getAppWorker(), walletContext.store,
-                        { mpk: cli.mpk })
-                    .then(res => cliRepl.postCmd(prompt, res))
-                }
+                if (cli.loadFile) log.warn('Ignoring duplicate load directive: --loadFile')
+                log.info(`Loading server wallet ${cli.loadServer}...`)
+                svrServerPersist.walletServerLoad(utilsWallet.getAppWorker(), walletContext.store,
+                    { mpk: cli.mpk, e: cli.loadServer })
+                .then(res => cliRepl.postCmd(prompt, res))
+            }
+        }
+        else if (cli.loadFile) {
+            if (!cli.mpk) log.error('--mpk is required for --loadFile')
+            else {
+                log.info(`Loading file wallet ${cli.loadFile}...`)
+                svrFilePersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
+                    { mpk: cli.mpk, n: cli.loadFile })
+                .then(res => cliRepl.postCmd(prompt, res))
+            }
+        }
+        else {
+            if (cli.mpk) {
+                if (utilsWallet.isParamEmpty(cli.mpk)) log.error('--mpk is required for --loadFile')
+                log.info('Initializing wallet...')
+                svrCreate.walletInit(utilsWallet.getAppWorker(), walletContext.store,
+                    { mpk: cli.mpk })
+                .then(res => cliRepl.postCmd(prompt, res))
             }
         }
 

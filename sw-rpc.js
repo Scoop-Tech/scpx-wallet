@@ -138,15 +138,22 @@ module.exports = {
     },
 
     rpcTest: (appWorker, store, p) => {
-        var { rpcPort, cmd, params } = p
+        var { rpcPort, rpcHost, rpcUsername, rpcPassword, cmd, params } = p
 
         log.cmd('rpcTest')
 
         // validate: format is for a CLI command, and its params JSON encoded, e.g.
-        // e.g. .rt --rpcPort 4000 --cmd ".tx-push" --params "{\"mpk\": \"...\", \"symbol\": \"...\", \"value\": \"...\"}"
+        // e.g. ./rt --rpcPort 4000 --cmd ".tx-push" --params "{\"mpk\": \"...\", \"symbol\": \"...\", \"value\": \"...\"}"
         if (utilsWallet.isParamEmpty(rpcPort)) return Promise.resolve({ err: `RPC port is required` })
+
+        if (utilsWallet.isParamEmpty(rpcHost)) return Promise.resolve({ err: `RPC host is required` })
+        if (utilsWallet.isParamEmpty(rpcUsername)) return Promise.resolve({ err: `RPC username is required` })
+        if (utilsWallet.isParamEmpty(rpcPassword)) return Promise.resolve({ err: `RPC password is required` })
         if (utilsWallet.isParamEmpty(cmd)) return Promise.resolve({ err: `CLI command is required` })
         log.param('rpcPort', rpcPort)
+        log.param('rpcHost', rpcHost)
+        log.param('rpcUsername', rpcUsername)
+        log.param('rpcPassword', rpcPassword)
         var parsedParams
         try {
             parsedParams = JSON.parse(params)
@@ -154,33 +161,40 @@ module.exports = {
         catch (err) {
             return Promise.resolve({ err: `CLI command parameters must be valid JSON` })
         }
+        log.param('cmd', JSON.stringify(cmd))
         log.param('params', JSON.stringify(parsedParams))
 
         // exec
         const https = require('https')
         const agent = new https.Agent({
-              host: 'localhost'
-            , port: rpcPort
-            , path: '/'
-            , rejectUnauthorized: false // a less bad (but still bad) version of: process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+              host: rpcHost,
+              port: rpcPort,
+              path: '/',
+              rejectUnauthorized: false // a less bad (but still bad) version of: process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
         })
         const client = jayson.client.https({
-            host: 'localhost',
+            host: rpcHost,
             port: rpcPort,
             agent: agent
         })
 
-        const auth = { username: 'scp', password: '123' }
-        client.request('exec', [ auth, cmd, parsedParams], function (err, response) {
-            if (err) throw err
-            if (response.result) {
-                log.info(`RPC response:`, response.result)
-            }
-            else if (response.error) {
-                log.error(`RPC error: ${JSON.stringify(response.error)}`)
-            }
+        const auth = { username: rpcUsername, password: rpcPassword }
+        return new Promise((resolve) => {
+            client.request('exec', [ auth, cmd, parsedParams], function (err, response) {
+                if (err) {
+                    resolve({ err: err.message || err.toString() })
+                }
+                else if (response.result) {
+                    log.info(`RPC response:`, response.result)
+                    resolve({ ok: true, response })
+                }
+                else if (response.error) {
+                    log.error(`RPC error: ${JSON.stringify(response.error)}`)
+                    resolve({ ok: false, response })
+                }
+            })
         })
 
-        return Promise.resolve({ ok: true })
+        //return Promise.resolve({ ok: true })
     }
 }

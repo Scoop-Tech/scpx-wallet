@@ -102,6 +102,9 @@ const exitHelp = `${helpBanner}` +
 const rpcTestHelp = `${helpBanner}` +
     `.rt (rpc-test) - DBG: calls sw-cli RPC server \n`.cyan.bold +
     `\t--rpcPort      [number]              [required]  RPC port \n` +
+    `\t--rpcHost      [string]              [required]  RPC host \n` +
+    `\t--rpcUsername  [string]              [required]  RPC username \n` +
+    `\t--rpcPassword  [string]              [required]  RPC password \n` +
     `\t--cmd          [string]              [required]  CLI command, e.g. ".tx-push" \n` +
     `\t--params       [string]              [required]  CLI parameters in JSON format, e.g. " { \\\"mpk\\\": \\\"...\\\", \\\"symbol\\\": \\\"...\\\", \\\"value\\\": \\\"...\\\", ... } \n`
 
