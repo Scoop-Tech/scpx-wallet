@@ -135,7 +135,7 @@ else {
                 if (cli.loadFile) log.warn('Ignoring duplicate load directive: --loadFile')
                 log.info(`Loading server wallet ${cli.loadServer}...`)
                 svrServerPersist.walletServerLoad(utilsWallet.getAppWorker(), walletContext.store,
-                    { mpk: cli.mpk, e: cli.loadServer })
+                    { mpk: cli.mpk, email: cli.loadServer })
                 .then(res => cliRepl.postCmd(prompt, res))
             }
         }
@@ -144,7 +144,7 @@ else {
             else {
                 log.info(`Loading file wallet ${cli.loadFile}...`)
                 svrFilePersist.walletFileLoad(utilsWallet.getAppWorker(), walletContext.store,
-                    { mpk: cli.mpk, n: cli.loadFile })
+                    { mpk: cli.mpk, name: cli.loadFile })
                 .then(res => cliRepl.postCmd(prompt, res))
             }
         }
