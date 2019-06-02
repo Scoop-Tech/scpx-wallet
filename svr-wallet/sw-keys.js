@@ -6,6 +6,8 @@ const configWallet = require('../config/wallet')
 const opsWallet = require('../actions/wallet')
 const utilsWallet = require('../utils')
 
+const filePersist = require('./sw-file-persist')
+const serverPersist = require('./sw-server-persist')
 const functions = require('./sw-functions')
 
 const log = require('../cli-log')
@@ -18,7 +20,7 @@ module.exports = {
     
     // adds a sub-asset receive address
     walletAddAddress: async (appWorker, store, p) => {
-        var { mpk, apk, symbol } = p
+        var { mpk, apk, symbol, save } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('walletAddAddress')
         
@@ -31,7 +33,7 @@ module.exports = {
         // exec
         return opsWallet.generateNewAddress({
                     store: store,
-             apk: apk,
+                      apk: apk,
                     h_mpk: h_mpk,
                 assetName: asset.name,
         })
@@ -40,10 +42,18 @@ module.exports = {
             if (walletAddAddr.err) return Promise.resolve({ err: walletAddAddr.err })
 
             const walletConnect = await functions.walletConnect(appWorker, store, {})
+            
+            // handle save
+            var walletSave = undefined
+            if (utilsWallet.isParamTrue(save)) {
+                walletSave = await saveWallet(appWorker, store, mpk)
+            }
+            else {
+                global.loadedWallet.dirty = true
+                utilsWallet.setTitle()
+            }
 
-            global.loadedWallet.dirty = true
-            utilsWallet.setTitle()
-            return Promise.resolve({ ok: { walletAddAddr, walletConnect } })
+            return Promise.resolve({ ok: { walletAddAddr, walletConnect, walletSave } })
         })
         .catch(err => {
             return Promise.resolve({ err })
@@ -145,4 +155,18 @@ module.exports = {
             return Promise.resolve({ err })
         })
     },
+}
+
+function saveWallet(appWorker, store, mpk) {
+    var saveOp
+    if (global.loadedWallet.file && global.loadedWallet.file.name) { 
+        // save to file
+        saveOp = filePersist.walletFileSave(appWorker, store, { mpk, force: true })
+    }
+    else if (global.loadedServerWallet) {
+        // save to server
+        saveOp = serverPersist.walletServerSave(appWorker, store, { mpk })
+    }
+    else throw ('Unexpected loaded wallet state - unable to save.')
+    return saveOp
 }

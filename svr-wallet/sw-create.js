@@ -38,7 +38,7 @@ module.exports = {
         log.cmd('walletInit')
         
         // validate
-        const svrWallet = require('./sw-wallet')
+        const svrWallet = require('./sw-router')
         const invalidMpk = await svrWallet.validateMpk(mpk)
         if (invalidMpk.err) return invalidMpk
         log.param('mpk', mpk)
@@ -53,7 +53,7 @@ module.exports = {
         // exec
         return opsWallet.generateWallets({
                     store: store,
-             apk: apk,
+                      apk: apk,
                     h_mpk: h_mpk,
           userAccountName: undefined,         // no default DSC persistence for server wallets - not required
                   e_email: undefined,         // "
@@ -67,6 +67,10 @@ module.exports = {
                 return Promise.resolve({ err: `Decrypt failed - MPK is probably incorrect` })
             }
             
+            // default in-memory wallet; clear server and file wallet fields
+            global.loadedWallet.file = undefined
+            global.loadedServerWallet = {}
+
             if (configWallet.CLI_SAVE_LOADED_WALLET_KEY === true) {
                 global.loadedWallet.keys = { mpk }
             }

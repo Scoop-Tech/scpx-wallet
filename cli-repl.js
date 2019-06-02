@@ -8,7 +8,7 @@ const stringParseArgs = require('./ext/minimist-string-opt')
 const appStore = require('./store').store
 const utilsWallet = require('./utils')
 const svrWorkers = require('./svr-workers')
-const svrWallet = require('./svr-wallet/sw-wallet')
+const svrRouter = require('./svr-wallet/sw-router')
 const svrWalletCreate = require('./svr-wallet/sw-create')
 
 const log = require('./cli-log')
@@ -36,7 +36,8 @@ const walletDumpHelp = `${helpBanner}` +
 const walletAddAddrHelp = `${helpBanner}` +
     `(wallet-add-address) - adds a receive address to the loaded wallet for the specified asset\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
-    `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n`
+    `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
+    `\t--save         [boolean]             [optional]  save the wallet after adding the address (default: false)\n`
 
 const walletImportPrivKeysHelp = `${helpBanner}` +
     `(wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
@@ -196,24 +197,24 @@ module.exports = {
         defineWalletCmd(prompt, ['/wn', 'wallet-new'], walletNewHelp, svrWalletCreate.walletNew)
         defineWalletCmd(prompt, ['/wi', 'wallet-init'], walletInitHelp, svrWalletCreate.walletInit)
 
-        defineWalletCmd(prompt, ['/wl', 'wallet-load'], walletLoadHelp, svrWallet.fn, 'LOAD')
-        defineWalletCmd(prompt, ['/ws', 'wallet-save'], walletSaveHelp, svrWallet.fn, 'SAVE')
-        defineWalletCmd(prompt, ['/wsl', 'wallet-server-load'], walletServerLoadHelp, svrWallet.fn, 'SERVER-LOAD')
-        defineWalletCmd(prompt, ['/wss', 'wallet-server-save'], walletServerSaveHelp, svrWallet.fn, 'SERVER-SAVE')
+        defineWalletCmd(prompt, ['/wl', 'wallet-load'], walletLoadHelp, svrRouter.fn, 'LOAD')
+        defineWalletCmd(prompt, ['/ws', 'wallet-save'], walletSaveHelp, svrRouter.fn, 'SAVE')
+        defineWalletCmd(prompt, ['/wsl', 'wallet-server-load'], walletServerLoadHelp, svrRouter.fn, 'SERVER-LOAD')
+        defineWalletCmd(prompt, ['/wss', 'wallet-server-save'], walletServerSaveHelp, svrRouter.fn, 'SERVER-SAVE')
 
-        defineWalletCmd(prompt, ['/wc', 'wallet-connect'], walletConnectHelp, svrWallet.fn, 'CONNECT')
+        defineWalletCmd(prompt, ['/wc', 'wallet-connect'], walletConnectHelp, svrRouter.fn, 'CONNECT')
 
-        defineWalletCmd(prompt, ['/wd', 'wallet-dump'], walletDumpHelp, svrWallet.fn, 'DUMP')
-        defineWalletCmd(prompt, ['/wb', 'wallet-balance'], walletBalanceHelp, svrWallet.fn, 'BALANCE')
+        defineWalletCmd(prompt, ['/wd', 'wallet-dump'], walletDumpHelp, svrRouter.fn, 'DUMP')
+        defineWalletCmd(prompt, ['/wb', 'wallet-balance'], walletBalanceHelp, svrRouter.fn, 'BALANCE')
 
-        defineWalletCmd(prompt, ['/waa', 'wallet-add-address'], walletAddAddrHelp, svrWallet.fn, 'ADD-ADDR')
-        defineWalletCmd(prompt, ['/wipk', 'wallet-import-priv-keys'], walletImportPrivKeysHelp, svrWallet.fn, 'ADD-PRIV-KEYS')
-        defineWalletCmd(prompt, ['/wrpk', 'wallet-remove-priv-keys'], walletRemovePrivKeysHelp, svrWallet.fn, 'REMOVE-PRIV-KEYS')
+        defineWalletCmd(prompt, ['/waa', 'wallet-add-address'], walletAddAddrHelp, svrRouter.fn, 'ADD-ADDR')
+        defineWalletCmd(prompt, ['/wipk', 'wallet-import-priv-keys'], walletImportPrivKeysHelp, svrRouter.fn, 'ADD-PRIV-KEYS')
+        defineWalletCmd(prompt, ['/wrpk', 'wallet-remove-priv-keys'], walletRemovePrivKeysHelp, svrRouter.fn, 'REMOVE-PRIV-KEYS')
 
-        defineWalletCmd(prompt, ['/agf', 'asset-get-fees'], assetGetFeesHelp, svrWallet.fn, 'ASSET-GET-FEES')
+        defineWalletCmd(prompt, ['/agf', 'asset-get-fees'], assetGetFeesHelp, svrRouter.fn, 'ASSET-GET-FEES')
         
-        defineWalletCmd(prompt, ['/txgf', 'tx-get-fee'], txGetFeeHelp, svrWallet.fn, 'TX-GET-FEE')
-        defineWalletCmd(prompt, ['/txp', 'tx-push'], txPushHelp, svrWallet.fn, 'TX-PUSH')
+        defineWalletCmd(prompt, ['/txgf', 'tx-get-fee'], txGetFeeHelp, svrRouter.fn, 'TX-GET-FEE')
+        defineWalletCmd(prompt, ['/txp', 'tx-push'], txPushHelp, svrRouter.fn, 'TX-PUSH')
 
         defineWalletCmd(prompt, ['/rt', 'rpc-test'], rpcTestHelp, rpc.rpcTest)
         defineWalletCmd(prompt, ['/lt', 'log-tail'], logTailHelp, log.logTail)

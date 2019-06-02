@@ -6,7 +6,7 @@ const configWallet = require('./config/wallet')
 const utilsWallet = require('./utils')
 const appStore = require('./store').store
 
-const svrWallet = require('./svr-wallet/sw-wallet')
+const svrWallet = require('./svr-wallet/sw-router')
 
 const log = require('./cli-log')
 
@@ -57,7 +57,10 @@ module.exports = {
                         case 'wallet-dump':
                             fn = svrWallet.fn(appWorker, appStore, cmdParams, 'DUMP')
                             break
-                    }
+                        case 'wallet-add-address':
+                            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'ADD-ADDR')
+                            break
+                        }
                     if (fn === undefined) {
                         return callback({ code: -32600, message: 'Invalid request' })
                     }
@@ -191,7 +194,7 @@ module.exports = {
                     resolve({ err: err.message || err.toString() })
                 }
                 else if (response.result) {
-                    log.info(`RPC response:`, response.result)
+                    log.info(`RPC response:`, JSON.stringify(response.result, null, 2))
                     resolve({ ok: true, response })
                 }
                 else if (response.error) {

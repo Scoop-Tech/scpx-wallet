@@ -8,7 +8,7 @@ const utilsWallet = require('../utils')
 const svrWorkers = require('../svr-workers')
 const svrWalletCreate = require('../svr-wallet/sw-create')
 const svrWalletFunctions = require('../svr-wallet/sw-functions')
-const svrWallet = require('../svr-wallet/sw-wallet')
+const svrRouter = require('../svr-wallet/sw-router')
 
 const walletExternal = require('../actions/wallet-external')
 const opsWallet = require('../actions/wallet')
@@ -54,7 +54,7 @@ describe('asset', function () {
             const create = await svrWalletCreate.walletNew(appWorker, appStore)
             var wallet = appStore.getState().wallet
             const ops = wallet.assets.map(asset => { 
-                return svrWallet.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR')
+                return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR')
             })
             const results = await Promise.all(ops)
             const countOk = results.filter(p => p.ok).length
@@ -77,7 +77,7 @@ describe('asset', function () {
             const wallet = appStore.getState().wallet
             
             const ops = wallet.assets.map(asset => { 
-                return svrWallet.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
+                return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
             })
             const results = await Promise.all(ops)
             const countOk = results.filter(p => p.ok && p.ok.feeData &&
@@ -106,7 +106,7 @@ describe('wallet', function () {
         const result = await new Promise(async (resolve, reject) => {
             const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
             const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
-            const dump = await svrWallet.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, keys: true }, 'DUMP')
+            const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, keys: true }, 'DUMP')
             resolve( { init, connect, dump })
         })
         expect(result.init.ok).toBeDefined()
@@ -136,12 +136,12 @@ describe('wallet', function () {
         const result = await new Promise(async (resolve, reject) => {
             const create    = await svrWalletCreate.walletNew(appWorker, appStore)
             const mpk = create.ok.mpk
-            const addEth    = await svrWallet.fn(appWorker, appStore, { mpk, symbol: 'ETH' }, 'ADD-ADDR')
-            const addBtc    = await svrWallet.fn(appWorker, appStore, { mpk, symbol: 'BTC' }, 'ADD-ADDR')
-            const addBtcSeg = await svrWallet.fn(appWorker, appStore, { mpk, symbol: 'BTC_SEG' }, 'ADD-ADDR')
-            const addZec    = await svrWallet.fn(appWorker, appStore, { mpk, symbol: 'ZEC' }, 'ADD-ADDR')
-            const save      = await svrWallet.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'SAVE')
-            const load      = await svrWallet.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'LOAD')
+            const addEth    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH' }, 'ADD-ADDR')
+            const addBtc    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC' }, 'ADD-ADDR')
+            const addBtcSeg = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_SEG' }, 'ADD-ADDR')
+            const addZec    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC' }, 'ADD-ADDR')
+            const save      = await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'SAVE')
+            const load      = await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'LOAD')
             resolve({ create, addEth, addBtc, addBtcSeg, addZec, save, load })
         })
         expect(result.create.ok).toBeDefined()
@@ -166,8 +166,8 @@ describe('wallet', function () {
     it('can persist a wallet to and from the Data Storage Contract', async function () {
         expect.assertions(2)
         const result = await new Promise(async (resolve, reject) => {
-            const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            const serverSave = await svrWallet.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
+            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            const serverSave = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
             resolve({ serverLoad, serverSave })
         })
         expect(result.serverLoad.ok).toBeDefined()
@@ -191,29 +191,29 @@ describe('wallet', function () {
             const create = await svrWalletCreate.walletNew(appWorker, appStore)
             const mpk = create.ok.mpk
             
-            const importBtcTest = await svrWallet.fn(appWorker, appStore, 
+            const importBtcTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
 
-            const importZecTest = await svrWallet.fn(appWorker, appStore, 
+            const importZecTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
 
-            const importEthTest = await svrWallet.fn(appWorker, appStore, 
+            const importEthTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
 
             //await Promise.resolve(setTimeout(() => {}, 2000))
-            const balanceImported = await svrWallet.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
-            const removeBtcTest = await svrWallet.fn(appWorker, appStore, 
+            const removeBtcTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 BTC#' }, 'REMOVE-PRIV-KEYS')
 
-            const removeZecTest = await svrWallet.fn(appWorker, appStore, 
+            const removeZecTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
 
-            const removeEthTest = await svrWallet.fn(appWorker, appStore, 
+            const removeEthTest = await svrRouter.fn(appWorker, appStore, 
                 { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
 
             //await Promise.resolve(setTimeout(() => {}, 2000))
-            const balanceRemoved = await svrWallet.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
             resolve({ create,
                         importBtcTest, importZecTest, importEthTest, balanceImported,
@@ -243,19 +243,19 @@ describe('wallet', function () {
 describe('testnets', function () {
 
     it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
-        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
         await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
         await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
-        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
         await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
         await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
     })
 
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
-        const serverLoad = await svrWallet.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
         await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
         await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
     })
@@ -285,11 +285,11 @@ describe('testnets', function () {
             if (sendValue < 0.00001) throw 'Insufficient test currency'
 
             // get tx fee
-            const txGetFee = await svrWallet.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
+            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
             const txFee = txGetFee.ok.txFee
 
             // push tx
-            const txPush = await svrWallet.fn(appWorker, appStore,
+            const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,
                         value: sendValue,
                            to: asset.addresses[receiveAddrNdx].addr,
