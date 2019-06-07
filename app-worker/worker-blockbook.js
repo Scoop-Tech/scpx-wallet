@@ -129,11 +129,11 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
     const insightTx = {
            txid: bbTx.txid,
         version: bbTx.version,
-      blockhash: bbTx.blockhash,
-    blockheight: bbTx.blockheight == 0 ? -1 : bbTx.blockheight,
+      blockhash: (bbTx.blockhash || bbTx.blockHash),
+    blockheight: (bbTx.blockheight || bbTx.blockHeight) == 0 ? -1 : (bbTx.blockheight || bbTx.blockHeight),
   confirmations: bbTx.confirmations,
-           time: bbTx.blocktime,
-      blocktime: bbTx.blocktime,
+           time: (bbTx.blocktime || bbTx.blockTime),
+      blocktime: (bbTx.blocktime || bbTx.blockTime),
        valueOut: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.value), asset)),
         valueIn: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.valueIn), asset)),
            fees: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.fees), asset)),
@@ -165,6 +165,9 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
     //spentHeight: null,
         }
     })
+    console.log('bbTx', bbTx)
+    console.log('insightTx', insightTx)
+
     return insightTx
 }
 
@@ -205,7 +208,7 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
         dispatchActions.push({
             type: actionsWallet.SET_ASSET_BLOCK_INFO,
          payload: {  symbol,
-            receivedBlockNo: receivedBlockNo || data.bestheight,
+            receivedBlockNo: receivedBlockNo || data.bestheight || data.bestHeight,
           receivedBlockTime: receivedBlockTime || new Date().getTime() }
         })
 

@@ -93,6 +93,7 @@ const walletsMeta = {
         bip44_index: 0, // ##
         tx_perInput_vsize: 92,
         tx_perInput_byteLength: 174,
+        tradingViewSymbol: "BITFINEX:BTCUSD",
     },
     'bitcoin': {
         name: 'bitcoin',
@@ -110,7 +111,8 @@ const walletsMeta = {
         sortOrder: 1,
         bip44_index: 0, // ##
         tx_perInput_vsize: 147,
-        tx_perInput_byteLength: 147
+        tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BITFINEX:BTCUSD",
     },
     'btc(t)': {
         name: 'btc(t)',
@@ -126,6 +128,7 @@ const walletsMeta = {
         bip44_index: 1, // ##
         tx_perInput_vsize: 148,
         tx_perInput_byteLength: 148,
+        tradingViewSymbol: "BITFINEX:BTCUSD",
     },
 
     'litecoin': {
@@ -145,6 +148,7 @@ const walletsMeta = {
         bip44_index: 2, // ##
         tx_perInput_vsize: 148,
         tx_perInput_byteLength: 148,
+        tradingViewSymbol: "BINANCE:LTCBTC",
     },
     'ltc(t)': {
         name: 'ltc(t)',
@@ -161,6 +165,7 @@ const walletsMeta = {
         bip44_index: 2, // ##
         tx_perInput_vsize: 148,
         tx_perInput_byteLength: 148,
+        tradingViewSymbol: "BINANCE:LTCBTC",
     },
 
     'zcash': {
@@ -180,6 +185,7 @@ const walletsMeta = {
         bip44_index: 133, // ##
         tx_perInput_vsize: 147,
         tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BINANCE:ZECBTC",
     },
     'zcash(t)': {
         name: 'zcash(t)',
@@ -199,6 +205,7 @@ const walletsMeta = {
         bip44_index: 133, // ##
         tx_perInput_vsize: 147,
         tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BINANCE:ZECBTC",
     },
 
     'bchabc': {
@@ -220,6 +227,7 @@ const walletsMeta = {
         bip44_index: 145,
         tx_perInput_vsize: 148,
         tx_perInput_byteLength: 148,
+        tradingViewSymbol: "BINANCE:BCHABCBTC",
     },
     'dash': {
         name: 'dash',
@@ -238,6 +246,7 @@ const walletsMeta = {
         bip44_index: 5,
         tx_perInput_vsize: 147,
         tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BINANCE:DASHBTC",
     },
     'vertcoin': {
         name: 'vertcoin',
@@ -256,6 +265,7 @@ const walletsMeta = {
         bip44_index: 28,
         tx_perInput_vsize: 147,
         tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BITTREX:VTCBTC",
     },
     'qtum': {
         name: 'qtum',
@@ -273,7 +283,8 @@ const walletsMeta = {
         sortOrder: 19,
         bip44_index: 2301,
         tx_perInput_vsize: 147,
-        tx_perInput_byteLength: 147
+        tx_perInput_byteLength: 147,
+        tradingViewSymbol: "BINANCE:QTUMBTC",
     },
     'digibyte': {
         name: 'digibyte',
@@ -291,7 +302,8 @@ const walletsMeta = {
         sortOrder: 22,
         bip44_index: 20, // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         tx_perInput_vsize: 148,
-        tx_perInput_byteLength: 148
+        tx_perInput_byteLength: 148,
+        tradingViewSymbol: "BITTREX:DGBBTC",
     },
 
     // wip
@@ -309,6 +321,7 @@ const walletsMeta = {
         primaryColor: '#030033',
         sortOrder: 25,
         bip44_index: 194,
+        tradingViewSymbol: "BINANCE:EOSBTC",
     },
 
     'ethereum': {
@@ -325,6 +338,7 @@ const walletsMeta = {
         sortOrder: 3,
         bip44_index: 60, // ##
         decimals: 18,
+        tradingViewSymbol: "BINANCE:ETHBTC",
     },
     'eth(t)': {
         name: 'eth(t)',
@@ -339,6 +353,7 @@ const walletsMeta = {
         sortOrder: 999,
         bip44_index: 60, // ##
         decimals: 18,
+        tradingViewSymbol: "BINANCE:ETHBTC",
     },    
 
     // ERC20
@@ -357,6 +372,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BITTREX:TUSDBTC",
     },
     'bancor': {
         name: 'bancor',
@@ -373,6 +389,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 1,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:BNTBTC",
     },
     '0x': {
         name: '0x',
@@ -390,6 +407,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 2,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:ZRXBTC",
     },
     'bat': {
         name: 'bat',
@@ -407,6 +425,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 3,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:BATBTC",
     },
     'bnb': {
         name: 'bnb',
@@ -424,6 +443,7 @@ const walletsMeta = {
         //bip44_index: 714, //mainnet?
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:BNBBTC",
     },
 
     'omg': {
@@ -442,6 +462,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 4,
         erc20_transferGasLimit: 65000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:OMGBTC",
     },
     'gto': {
         name: 'gto',
@@ -459,6 +480,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 5,
         erc20_transferGasLimit: 120000,
         decimals: 5,
+        tradingViewSymbol: "BINANCE:GTOBTC",
     },
     'snt': {
         name: 'snt',
@@ -476,6 +498,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 6,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:SNTBTC",
     },
     'ht': {
         name: 'ht',
@@ -493,6 +516,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 7,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "HUOBI:HTBTC",
     },
     // 'ven': { // old erc20 - now on its mainnet ("vet")
     //     desc: undefined,
@@ -541,6 +565,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 8,
         erc20_transferGasLimit: 120000,
         decimals: 6,
+        tradingViewSymbol: "POLONIEX:USDTBTC",
     },
     'eurt': {
         name: 'eurt',
@@ -559,6 +584,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 9,
         erc20_transferGasLimit: 120000,
         decimals: 6,
+        tradingViewSymbol: "BITSTAMP:BTCEUR",
     },
 
     'link': {
@@ -577,6 +603,8 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 10,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:LINKBTC",
+
     },
     'zil': {
         name: 'zil',
@@ -594,6 +622,7 @@ const walletsMeta = {
         //bip44_index: 313, // mainnet?
         erc20_transferGasLimit: 120000,
         decimals: 12,
+        tradingViewSymbol: "BINANCE:ZILBTC",
     },
     'hot': {
         name: 'hot',
@@ -611,6 +640,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 11,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:HOTBTC",
     },
     'rep': {
         name: 'rep',
@@ -628,6 +658,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 12,
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BINANCE:REPBTC",
     },
     'mkr': {
         name: 'mkr',
@@ -645,6 +676,7 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 13,  
         erc20_transferGasLimit: 120000,
         decimals: 18,
+        tradingViewSymbol: "BITFINEX:MKRBTC",
     },
 
     // 'tron': {
