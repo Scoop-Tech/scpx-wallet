@@ -17,11 +17,22 @@ var LOG_CORE_TO_CONSOLE = (process.env.NODE_ENV === "test")
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {
-        const localForage = require('localforage')
-        txdb_localForage = localForage.createInstance({
-        driver: localForage.INDEXEDDB,
-          name: "scp_tx_idb",
-    })
+    var isFrame = false
+    if (typeof window !== 'undefined') {
+        isFrame = window.location.pathname.startsWith("/frames")
+    }
+    if (!isFrame) {
+        try {
+            const localForage = require('localforage')
+            txdb_localForage = localForage.createInstance({
+                  driver: localForage.INDEXEDDB,
+                    name: "scp_tx_idb",
+            })
+        }
+        catch(err) {
+            console.warn(`failed creating localForage IndexedDB instance (${window.location.pathname}): `, err)
+        }
+    }
 }
 else {
     //... node-persist setup by singleton appworker
@@ -36,9 +47,9 @@ if (configWallet.WALLET_ENV === "SERVER") {
     const { isObject } = require('lodash')
     function formatObject(param) {
         if (isObject(param)) {
-          return JSON.stringify(param)
+            return JSON.stringify(param)
         }
-        return param;
+        return param
       }
     const all = format((info) => {
         const splat = info[SPLAT] || []
