@@ -11,18 +11,18 @@ module.exports = {
         'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         //'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                 subBlocks: true  },
         
-        'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
-        //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+        //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
+        'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
         
+        //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false  },
+        'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false  },
+        
+        'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false  },
         //'LTC'     : { url: 'wss://scp-ltc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
-        'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false  }, // ****
     
+        'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false  },
         //'ZEC'     : { url: 'wss://scp-zec1.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
-        'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false  }, // ****
 
-        //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: true  },
-        'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false  }, // ****
-        
         'DASH'    : { url: 'wss://insight.dash.org',                                         subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
         'VTC'     : { url: 'wss://insight.vertcoin.org',                                     subBlocks: false }, // BB v3 -- (insight only needed for lights)

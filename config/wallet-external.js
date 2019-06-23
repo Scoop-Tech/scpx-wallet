@@ -4,12 +4,16 @@
 // utxo v2 - insight api rest (absolete, but backup for non-BB supported types - now only using websockets/insight WS interfaces for Insight)
 //
 const serverBaseApi = 'https://scpx-svr.azurewebsites.net' 
-const btcInsightApi = 'https://scp-btc2.southeastasia.cloudapp.azure.com:4001/insight-api/'
-//const btcInsightApi = 'https://insight.bitpay.com/api/'   // api/tx lags substantially, also quite possibly /utxo also -- not usable
+
+//const btcInsightApi = 'https://scp-btc2.southeastasia.cloudapp.azure.com:4001/insight-api/'
+const btcInsightApi = 'https://insight.bitpay.com/api/'   // ??? api/tx lags substantially, also quite possibly /utxo also -- not usable?
+
 const ltcInsightApi = 'https://insight.litecore.io/api/'
 //const ltcInsightApi = 'https://scp-ltc2.southeastasia.cloudapp.azure.com:4001/insight-lite-api/'
+
 const zecInsightApi = 'https://zcashnetwork.info/api/'
 //const zecInsightApi = 'https://scp-zec1.southeastasia.cloudapp.azure.com:4001/insight-api-zcash/' // hard to find usable and maintained insight forks
+
 const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
 
 const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
