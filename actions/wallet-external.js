@@ -291,6 +291,8 @@ module.exports = {
             }
         }
 
+        // TODO -- should also be rounding ERC20 dust values - observed (sometimes) - "1e-20" or similar on send all erc20
+
         // utxo balance
         /*if (asset.type === configWallet.WALLET_TYPE_UTXO) {
             // BB v3
@@ -514,7 +516,7 @@ async function createTxHex(params) {
                             }
                         }
 
-                        txb.addOutput(outputAddress, Number(output.value))
+                        txb.addOutput(outputAddress, Number(Number(output.value).toFixed(0)))
                     })
                     
                     // run faster when in validation mode (not sending for real) - skip signing, return incomplete tx and estimate final vsize
@@ -595,7 +597,7 @@ async function createTxHex(params) {
                     txb.setVersion(1)
                     txSkeleton.outputs.forEach(output => {
                         utilsWallet.log(output)
-                        txb.addOutput(output.address, Number(output.value))
+                        txb.addOutput(output.address, Number(Number(output.value).toFixed(0)))
                     })
 
                     // validation mode - compute base vSize for skeleton tx (with fixed two outputs)

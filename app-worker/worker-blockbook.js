@@ -129,11 +129,11 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
     const insightTx = {
            txid: bbTx.txid,
         version: bbTx.version,
-      blockhash: (bbTx.blockhash || bbTx.blockHash),
-    blockheight: (bbTx.blockheight || bbTx.blockHeight) == 0 ? -1 : (bbTx.blockheight || bbTx.blockHeight),
+      blockhash: (bbTx.blockhash !== undefined ? bbTx.blockhash : bbTx.blockHash !== undefined ? bbTx.blockHash : undefined),
+    blockheight: (bbTx.blockheight == 0 || bbTx.blockHeight == 0) ? -1 : (bbTx.blockheight != undefined ? bbTx.blockheight : bbTx.blockHeight !== undefined ? bbTx.blockHeight : undefined),
   confirmations: bbTx.confirmations,
-           time: (bbTx.blocktime || bbTx.blockTime),
-      blocktime: (bbTx.blocktime || bbTx.blockTime),
+           time: (bbTx.blocktime !== undefined ? bbTx.blocktime : bbTx.blockTime !== undefined ? bbTx.blockTime : undefined),
+      blocktime: (bbTx.blocktime !== undefined ? bbTx.blocktime : bbTx.blockTime !== undefined ? bbTx.blockTime : undefined),
        valueOut: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.value), asset)),
         valueIn: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.valueIn), asset)),
            fees: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.fees), asset)),
@@ -165,8 +165,8 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
     //spentHeight: null,
         }
     })
-    console.log('bbTx', bbTx)
-    console.log('insightTx', insightTx)
+    //console.log('bbTx', bbTx)
+    //console.log('insightTx', insightTx)
 
     return insightTx
 }
@@ -384,12 +384,21 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
                 cachedTx.fromCache = true
                 utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
+
+                if (tx.txid === '81bdc84261bb4eea19c13a2c959ab42d29a8d27cc3ed2db527996725fc99fb7a') {
+                    debugger
+                }
+
                 resolve(cachedTx) // return from cache
             }
             else {
                 isosocket_send_Blockbook(asset.symbol, 'getTransaction', { txid: tx.txid }, (bbTx) => {
 
                     if (bbTx) {
+
+                        // if (tx.txid === '81bdc84261bb4eea19c13a2c959ab42d29a8d27cc3ed2db527996725fc99fb7a') {
+                        //     debugger
+                        // }
 
                         const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
                         
