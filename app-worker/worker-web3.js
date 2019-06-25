@@ -189,7 +189,7 @@ module.exports = {
         const cu_sendValue = params.value
         utilsWallet.log('erc20 - wei=', params.value)
 
-        params.value = web3.utils.toHex(params.value)
+        params.value = web3.utils.toHex(new BigNumber(params.value))
 
         utilsWallet.log('erc20 - params.gasLimit=', params.gasLimit)
         utilsWallet.log('erc20 - params.gasPrice=', params.gasPrice)
