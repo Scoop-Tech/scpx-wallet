@@ -124,6 +124,7 @@ module.exports = {
             '5~CCCAGG~REP~USD',     
             '5~CCCAGG~MKR~USD',     
             '5~CCCAGG~BCH~USD',
+            '5~CCCAGG~NEXO~USD',
         ]
     },
 

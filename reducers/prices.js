@@ -16,6 +16,8 @@ const {
             OMG_PRICE_UPDATE, GTO_PRICE_UPDATE, SNT_PRICE_UPDATE, HT_PRICE_UPDATE, //VEN_PRICE_UPDATE, BTM_PRICE_UPDATE, 
             USDT_PRICE_UPDATE, EURT_PRICE_UPDATE,
             LINK_PRICE_UPDATE, ZIL_PRICE_UPDATE, HOT_PRICE_UPDATE, REP_PRICE_UPDATE, MKR_PRICE_UPDATE, 
+
+            NEXO_PRICE_UPDATE,
  
     EOS_PRICE_UPDATE, 
 
@@ -134,6 +136,9 @@ const handlers = {
     },
     [MKR_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, MKR: action.payload.price} }
+    },
+    [NEXO_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, NEXO: action.payload.price} }
     },
     
     // eos

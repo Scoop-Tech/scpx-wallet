@@ -248,7 +248,7 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
     if (erc20 !== undefined) { // ERC20
         inboundSymbol = erc20.symbol
 
-        const decodedData = decoder.decodeData(txData.input)
+        const decodedData = decoder.decodeData(tx.input)
 
         const erc20Asset = wallet.assets.find(p => { return p.symbol === inboundSymbol })
 
@@ -266,12 +266,12 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
             if (decodedData) {
                 if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
 
+                    const param_to = '0x' + decodedData.inputs[0] 
+                    const tokenValue = decodedData.inputs[1] 
+
                     const sendToSelf =
                        ownAddresses.some(ownAddr => ownAddr.toLowerCase() === param_to.toLowerCase())
                     && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())
-
-                    const param_to = '0x' + decodedData.inputs[0] 
-                    const tokenValue = decodedData.inputs[1] 
 
                     const du_value = utilsWallet.toDisplayUnit(new BigNumber(tokenValue), erc20Asset)
                     

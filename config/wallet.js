@@ -678,6 +678,24 @@ const walletsMeta = {
         decimals: 18,
         tradingViewSymbol: "BITFINEX:MKRBTC",
     },
+    'nexo': {
+        name: 'nexo',
+        desc: undefined,
+        web: 'https://nexo.io/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'NEXO',
+        displayName: 'Nexo',
+        displaySymbol: 'NEXO',
+        imageUrl: 'img/asset-icon/nexo.png',
+        primaryColor: '#95B54D',
+        sortOrder: 55,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 14,  
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "HITBTC:NEXOBTC",
+    },
 
     // 'tron': {
     //     type: WALLET_TYPE_ACCOUNT,
@@ -781,6 +799,7 @@ module.exports = {
             'usdt', 'eurt',
 
             'mkr', 'rep', 'hot', 'zil', 'link',
+            'nexo',
 
             // todo 
             //'tgbp' (new)

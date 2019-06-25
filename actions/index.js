@@ -44,6 +44,9 @@ module.exports = {
     HOT_PRICE_UPDATE: "HOT_PRICE_UPDATE",
     REP_PRICE_UPDATE: "REP_PRICE_UPDATE",
     MKR_PRICE_UPDATE: "MKR_PRICE_UPDATE",
+    
+    NEXO_PRICE_UPDATE: "NEXO_PRICE_UPDATE",
+    
     getPriceUpdateDispatchType: (symbol) => { return symbol.toUpperCase()+'_PRICE_UPDATE' },
 
     FIAT_RATES_UPDATE: "FIAT_RATES_UPDATE"

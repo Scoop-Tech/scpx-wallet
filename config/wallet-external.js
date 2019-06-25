@@ -46,6 +46,8 @@ const erc20Contracts = {
     HOT:  '0x6c6EE5e31d828De241282B9606C8e98Ea48526E2',
     REP:  '0x1985365e9f78359a9B6AD760e32412f4a445E862',
     MKR:  '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
+
+    NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 }
 
 
@@ -383,6 +385,13 @@ module.exports = {
         MKR: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.MKR,
+            explorerPath: (address) => erc20_AddrExplorer(address),
+            txExplorerPath: (txid) => eth_TxExplorer(txid),
+            httpProvider: ethHttpProvider,
+        },
+        NEXO: {
+            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+            contractAddress: erc20Contracts.NEXO,
             explorerPath: (address) => erc20_AddrExplorer(address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
