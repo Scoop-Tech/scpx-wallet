@@ -43,6 +43,7 @@ self.blockbookIsoSockets_messageID = []
 self.blockbookIsoSockets_pendingMessages = []
 self.blockbookIsoSockets_subscriptions = []
 self.blockbookIsoSockets_subId_NewBlock = []
+self.blockbookIsoSockets_keepAliveIntervalID = []
 
 self.insightAddrTxs = []    // server sending >1 new tx notification - processed inbound tx list; disregard if tx is already in this list (one list for all assets, probably fine!)
 self.blockbookAddrTxs = []  // "

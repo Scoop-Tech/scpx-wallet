@@ -28,6 +28,7 @@ module.exports = {
     },
 
     // called for initial block-sync state - distinct from new blocks
+    // also -- called for keep-alives of the WS connections (for direct trezor node connections)
     getSyncInfo_Blockbook_v3: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) => {
         return getSyncInfo_Blockbook_v3(symbol, receivedBlockNo, receivedBlockTime)
     },
@@ -270,9 +271,17 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
                     socket.onopen = () => {
                         utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
                         try {
-                            //self.blockbookIsoSockets_messageID[x] = 0
-                            //self.blockbookIsoSockets_pendingMessages[x] = {}
-                            //self.blockbookIsoSockets_subscriptions[x] = {}
+
+                            // setup (exactly once) a keep-alive timer; needed for direct Trezor WS connections to stop server idle drops
+                            if (self.blockbookIsoSockets_keepAliveIntervalID[x] === undefined) {
+                                self.blockbookIsoSockets_keepAliveIntervalID[x] = 
+                                    setInterval(() => {
+                                        isosocket_send_Blockbook(x, 'getInfo', {}, (data) => {
+                                            //utilsWallet.log(`keep-alive isoWS ${x} getInfo`, data)
+                                        })
+                                       // note: rate limiting of WS requests by trezor
+                                    }, 1000 * 30)
+                            }
 
                             if (configWS.blockbook_ws_config[x].subBlocks === true) {
                                 // subscribe new block from BB -- note, no new TX subscription in BB 
@@ -316,7 +325,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
     
                         utilsWallet.warn(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose...`)
                         self.blockbookIsoSockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
-                        try { //...
+                        try {
+                            // reconnect - this supplements volatileSockets_ReInit() for faster reconnection
+                            isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
                         }
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose callback, err=`, err) }
                     }

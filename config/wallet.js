@@ -114,7 +114,7 @@ const walletsMeta = {
         tx_perInput_byteLength: 147,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(t)': {
+    'btc(t)': { // insight api - legacy
         name: 'btc(t)',
         type: WALLET_TYPE_UTXO,
         addressType: ADDRESS_TYPE_BTC,

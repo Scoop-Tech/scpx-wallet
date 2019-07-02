@@ -43,34 +43,51 @@ module.exports = {
     // used for "bitcoind/addresstxid" sub, block sub, mempool tx queries and for BB v3 (tx detail, tx addr history, and pushes)
     //
     blockbook_ws_config: {
-        'BTC_SEG' : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',           subBlocks: true  },
+        'BTC_SEG' : { url: 'wss://btc1.trezor.io',                                             subBlocks: true  },
+      //'BTC_SEG' : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',           subBlocks: true  },
       //'BTC_SEG' : { url: 'wss://btc1.trezor.io',                                             subBlocks: true  },
 
-        'ETH'     : { url: 'wss://scp-bb-eth01.southeastasia.cloudapp.azure.com:8888',         subBlocks: false },
+        'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
+      //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
+
+        'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
+      //'ZEC'      : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:10000',           subBlocks: true },
+      //'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+        
+        'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
+      //'LTC'      : { url: 'wss://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+
+        'ETH'     : { url: 'wss://eth1.trezor.io',                                             subBlocks: false },
+      //'ETH'     : { url: 'wss://scp-bb-eth01.southeastasia.cloudapp.azure.com:8888',         subBlocks: false },
       //'ETH'     : { url: 'wss://eth1.trezor.io',                                             subBlocks: false },
 
-        'DASH'     : { url: 'wss://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
+        'DASH'    : { url: 'wss://dash1.trezor.io',                                            subBlocks: true },
+      //'DASH'    : { url: 'wss://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
       //'DASH'    : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10133',           subBlocks: true },
-      //'DASH'    : { url: 'wss://dash1.trezor.io',                                            subBlocks: true },
 
-        'VTC'      : { url: 'wss://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+        'VTC'      : { url: 'wss://vtc1.trezor.io',                                            subBlocks: true },
+      //'VTC'      : { url: 'wss://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
-        'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
+        'DGB'      : { url: 'wss://dgb1.trezor.io',                                            subBlocks: true },
+      //'DGB'      : { url: 'wss://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
-        'DGB'      : { url: 'wss://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+        'BCHABC'   : { url: 'wss://bch1.trezor.io',                                            subBlocks: true },
+      //'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
-        'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-      //'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-        
-        'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
 
-        'LTC'      : { url: 'wss://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+        // ### -- no public BB nodes: self-hosted on scp-dm-0
+        'QTUM'     : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29188',           subBlocks: true },
+      //'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
 
-        'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
+        'ZEC_TEST' : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29132',           subBlocks: true },
+      //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
 
+        'ETH_TEST' : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29136',           subBlocks: true },
+      //'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
+
+
+        // (not used) -- issues with addr formats/creation iirc
         'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
-        'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
-        'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
     },
 
     //
@@ -78,7 +95,9 @@ module.exports = {
     //
     geth_ws_config: {
         'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
-        'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
+      
+      //'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
+        'ETH_TEST': { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
     },
 
     //
