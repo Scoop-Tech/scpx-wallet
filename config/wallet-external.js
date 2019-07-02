@@ -16,7 +16,8 @@ const zecInsightApi = 'https://zcashnetwork.info/api/'
 
 const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
 
-const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
+const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
+//const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
 //const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 
 //
