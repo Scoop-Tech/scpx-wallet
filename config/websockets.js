@@ -3,7 +3,8 @@ module.exports = {
         
     //
     // insight-api WS 
-    // used for "inv" (new tx & block) subs and for "bitcoind/addresstxid" (tx for addr) sub
+    // used for "inv" (new tx & block) subs and for "bitcoind/addresstxid" (tx for addr) sub, i.e. just for twinkling lights on the footer
+    //
     // note: for BB v3 assets (see worker-blockbook), we don't need to subscribe to insight blocks (we use BB's subscribeNewBlock socket method instead)
     // note also: that insight doesn't support segwit mempool tx's at all - so BB v3 is a strong requirement for btc_seg
     //
@@ -51,7 +52,7 @@ module.exports = {
       //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
 
         'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-      //'ZEC'      : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:10000',           subBlocks: true },
+      //'ZEC'      : { url: 'wss://node0.scoop.tech:10000',           subBlocks: true },
       //'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
         
         'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
@@ -76,28 +77,30 @@ module.exports = {
 
 
         // ### -- no public BB nodes: self-hosted on scp-dm-0
-        'QTUM'     : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29188',           subBlocks: true },
+        'QTUM'     : { url: 'wss://node0.scoop.tech:29188',                                    subBlocks: true },
       //'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
 
-        'ZEC_TEST' : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29132',           subBlocks: true },
+        'ZEC_TEST' : { url: 'wss://node0.scoop.tech:29132',                                    subBlocks: true },
       //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
 
-        'ETH_TEST' : { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:29136',           subBlocks: true },
+        'ETH_TEST' : { url: 'wss://node0.scoop.tech:29136',                                    subBlocks: true },
       //'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
 
 
-        // (not used) -- issues with addr formats/creation iirc
-        'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
+      // (not used) -- issues with addr formats/creation iirc
+      //'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
     },
 
     //
     // ETH -- web3 WS providers, supporting pendingTransactions
     //
     geth_ws_config: {
-        'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
+        // ## TODO -- node0 geth -- no newPendingTransactions on main-rpc.linkpool.io ...
+        'ETH'     : { url: 'wss://main-rpc.linkpool.io/ws',                             subBlocks: true  }, 
+      //'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
       
+        'ETH_TEST': { url: 'wss://node0.scoop.tech:9546',                               subBlocks: true  },
       //'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
-        'ETH_TEST': { url: 'wss://scp-dm-0.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
     },
 
     //

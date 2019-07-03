@@ -116,6 +116,7 @@ const walletsMeta = {
     },
     'btc(t)': { // insight api - legacy
         name: 'btc(t)',
+        use_Insightv2: true,
         type: WALLET_TYPE_UTXO,
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_TEST',

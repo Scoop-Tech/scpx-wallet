@@ -6,25 +6,27 @@
 const serverBaseApi = 'https://scpx-svr.azurewebsites.net' 
 
 //const btcInsightApi = 'https://scp-btc2.southeastasia.cloudapp.azure.com:4001/insight-api/'
-const btcInsightApi = 'https://insight.bitpay.com/api/'   // ??? api/tx lags substantially, also quite possibly /utxo also -- not usable?
+//const btcInsightApi = 'https://insight.bitpay.com/api/'   // ??? api/tx lags substantially, also quite possibly /utxo also -- not usable?
 
-const ltcInsightApi = 'https://insight.litecore.io/api/'
+//const ltcInsightApi = 'https://insight.litecore.io/api/'
 //const ltcInsightApi = 'https://scp-ltc2.southeastasia.cloudapp.azure.com:4001/insight-lite-api/'
 
-const zecInsightApi = 'https://zcashnetwork.info/api/'
+//const zecInsightApi = 'https://zcashnetwork.info/api/'
 //const zecInsightApi = 'https://scp-zec1.southeastasia.cloudapp.azure.com:4001/insight-api-zcash/' // hard to find usable and maintained insight forks
 
-const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
+//const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
 
 const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
+
 //const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
 //const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 
 //
 // eth
 // 
-const ethHttpProvider = 'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' // geth
-const ethTestHttpProvider = 'https://scp-dm-0.southeastasia.cloudapp.azure.com:9545' // 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545' // 'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297',
+const ethHttpProvider = 'https://main-rpc.linkpool.io' // 'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' // geth
+
+const ethTestHttpProvider = 'https://node0.scoop.tech:9545' // 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545' // 'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297',
 
 const erc20Contracts = { 
     TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
@@ -68,39 +70,39 @@ function eth_TxExplorer(tx) {
 
 module.exports = {
 
-    // utxo v2
+    // utxo v2- insight api legacy - kept alive only for btc_test
     serverBaseApi
-    ,btcInsightApi
-    ,ltcInsightApi
-    ,zecInsightApi
+    //,btcInsightApi
+    //,ltcInsightApi
+    //,zecInsightApi
+    //,bchabcInsightApi
     ,btcTestInsightApi
-    ,bchabcInsightApi
 
     // eth
     ,erc20Contracts
     ,ethHttpProvider
 
-
     //
-    // utxo/BB v3 - pure blockbook (only need an insight server for lights)
+    // utxo/BB v3 - pure blockbook
+    // using proxy with CORS to external trezor nodes for https, and direct trezor node for sockets
     //
-    ,zecBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10000/api/' //'https://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888/api/' //'https://zec1.trezor.io/api/'
+    ,zecBlockbookApi: 'https://node0.scoop.tech:10000/api/' //'https://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888/api/' //'https://zec1.trezor.io/api/'
 
-    ,ltcBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10001/api/' //'https://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888/api/' //'https://ltc1.trezor.io/api/'
+    ,ltcBlockbookApi: 'https://node0.scoop.tech:10001/api/' //'https://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888/api/' //'https://ltc1.trezor.io/api/'
 
-    ,btcBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10002/api/' //'https://scp-btcsw.southeastasia.cloudapp.azure.com:10130/api/' //,btcBlockbookApi: 'https://btc1.trezor.io/api/'
+    ,btcBlockbookApi: 'https://node0.scoop.tech:10002/api/' //'https://scp-btcsw.southeastasia.cloudapp.azure.com:10130/api/' //,btcBlockbookApi: 'https://btc1.trezor.io/api/'
 
-    ,dashBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10004/api/' //'https://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888/api/' // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
+    ,dashBlockbookApi: 'https://node0.scoop.tech:10004/api/' //'https://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888/api/' // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
 
-    ,vtcBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10005/api/' //'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
+    ,vtcBlockbookApi: 'https://node0.scoop.tech:10005/api/' //'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
 
-    ,dgbBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10006/api/' //'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
+    ,dgbBlockbookApi: 'https://node0.scoop.tech:10006/api/' //'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
 
-    ,bchabcBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
+    ,bchabcBlockbookApi: 'https://node0.scoop.tech:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
 
-    ,qtumBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
+    ,qtumBlockbookApi: 'https://node0.scoop.tech:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
 
-    ,zecTestBlockbookApi: 'https://scp-dm-0.southeastasia.cloudapp.azure.com:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
+    ,zecTestBlockbookApi: 'https://node0.scoop.tech:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
 
     // NOT USED
     ,ltcTestBlockbookApi: '' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
@@ -114,7 +116,7 @@ module.exports = {
     ,dashFeeOracle_BlockCypher: `https://api.blockcypher.com/v1/dash/main`
 
     ,vtcFeeOracle_Blockbook: `https://vtc1.trezor.io/api/v2/estimatefee/1` //`https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
-    ,qtumFeeOracle_Blockbook: `https://scp-dm-0.southeastasia.cloudapp.azure.com:29188/api/v2/estimatefee/1` // `https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
+    ,qtumFeeOracle_Blockbook: `https://node0.scoop.tech:29188/api/v2/estimatefee/1` // `https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,dgbFeeOracle_Blockbook: 'https://dgb1.trezor.io/api/v2/estimatefee/1' //`https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,bchabcFeeOracle_Blockbook: 'https://bch1.trezor.io/api/v2/estimatefee/1' //`https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     
@@ -185,6 +187,7 @@ module.exports = {
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
             api: { // insight-api -- active/fallback
+                baseUrl: () => { return btcTestInsightApi },
                 sync: () => { return btcTestInsightApi + 'sync' },
                 block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
                 v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
