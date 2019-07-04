@@ -396,20 +396,12 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 cachedTx.fromCache = true
                 utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
 
-                if (tx.txid === '81bdc84261bb4eea19c13a2c959ab42d29a8d27cc3ed2db527996725fc99fb7a') {
-                    debugger
-                }
-
                 resolve(cachedTx) // return from cache
             }
             else {
                 isosocket_send_Blockbook(asset.symbol, 'getTransaction', { txid: tx.txid }, (bbTx) => {
 
                     if (bbTx) {
-
-                        // if (tx.txid === '81bdc84261bb4eea19c13a2c959ab42d29a8d27cc3ed2db527996725fc99fb7a') {
-                        //     debugger
-                        // }
 
                         const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
                         
