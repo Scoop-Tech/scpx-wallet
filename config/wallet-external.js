@@ -22,11 +22,14 @@ const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 //const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 
 //
-// eth
+// eth - geth
 // 
-const ethHttpProvider = 'https://main-rpc.linkpool.io' // 'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' // geth
+const ethHttpProvider = //'https://main-rpc.linkpool.io'
+                        'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' 
 
-const ethTestHttpProvider = 'https://node0.scoop.tech:9545' // 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545' // 'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297',
+const ethTestHttpProvider = 'https://node0.scoop.tech:9545'
+                          //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545'
+                          //'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297'
 
 const erc20Contracts = { 
     TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
@@ -53,8 +56,6 @@ const erc20Contracts = {
 
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 }
-
-
 
 function eth_AddrExplorer(address) { 
     //return `https://blockscout.com/eth/mainnet/address/${address}` 

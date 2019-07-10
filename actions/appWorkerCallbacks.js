@@ -88,7 +88,7 @@ module.exports = {
                                             utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: {
                                                 type: 'success',
                                             headline: `${asset.displaySymbol}: Confirmed TX`,
-                                                info: `${asset.displayName} mined ${utilsWallet.EMOJI_HAPPY_KITTY}`,
+                                                info: `${asset.displayName} mined ${/*utilsWallet.EMOJI_HAPPY_KITTY*/utilsWallet.EMOJI_TICK}`,
                                                 txid: enrichTx.txid
                                             }})
                                         }

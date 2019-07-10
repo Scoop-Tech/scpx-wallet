@@ -206,7 +206,7 @@ module.exports = {
     // mpk hash
     pbkdf2: (salt, data) => {
         const iterations = 246
-        return CryptoJS.PBKDF2(data, salt, { keySize: 256 / 32, iterations: iterations }).toString()
+        return CryptoJS.PBKDF2(data, salt, { keySize: 256 / 32, iterations }).toString()
     },
 
     // sha256 hex str
@@ -376,7 +376,9 @@ module.exports = {
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (err) {
                 if (OPT_BETA_TESTER != 'false') {
-                    Sentry.captureException(err)
+                    if (Sentry) {
+                        Sentry.captureException(err)
+                    }
                 }
             }
         }
@@ -466,7 +468,9 @@ module.exports = {
         })
     },
 
-    EMOJI_HAPPY_KITTY: '😸',
+    //EMOJI_HAPPY_KITTY: '😸',
+    EMOJI_TICK: '✔️',
+    EMOJI_CROSS: '❌️'
 }
 
 const getKeyAndIV = (saltStr, passphrase) => {
