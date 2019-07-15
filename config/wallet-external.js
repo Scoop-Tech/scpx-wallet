@@ -105,6 +105,8 @@ module.exports = {
 
     ,zecTestBlockbookApi: 'https://node0.scoop.tech:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
 
+    ,rvnTestBlockbookApi: 'https://node0.scoop.tech:10008/api/'
+
     // NOT USED
     ,ltcTestBlockbookApi: '' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
 
@@ -116,11 +118,13 @@ module.exports = {
     ,ltcFeeOracle_BlockCypher: `https://api.blockcypher.com/v1/ltc/main`
     ,dashFeeOracle_BlockCypher: `https://api.blockcypher.com/v1/dash/main`
 
-    ,vtcFeeOracle_Blockbook: `https://vtc1.trezor.io/api/v2/estimatefee/1` //`https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     ,qtumFeeOracle_Blockbook: `https://node0.scoop.tech:29188/api/v2/estimatefee/1` // `https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
-    ,dgbFeeOracle_Blockbook: 'https://dgb1.trezor.io/api/v2/estimatefee/1' //`https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
-    ,bchabcFeeOracle_Blockbook: 'https://bch1.trezor.io/api/v2/estimatefee/1' //`https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
+    ,vtcFeeOracle_Blockbook: `https://node0.scoop.tech:10005/api/v2/estimatefee/1` //`https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
+    ,dgbFeeOracle_Blockbook: 'https://node0.scoop.tech:10006/api/v2/estimatefee/1' //`https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
+    ,bchabcFeeOracle_Blockbook: 'https://node0.scoop.tech:10007/api/v2/estimatefee/1' //`https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/v2/estimatefee/1`
     
+    ,rvnFeeOracle_Blockbook: 'https://blockbook.ravencoin.org/api/v2/estimatefee/1'
+
     // NOT USED
     ,ltcTestFeeOracle_Blockbook: '' //`https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api/v2/estimatefee/1`
 
@@ -128,7 +132,7 @@ module.exports = {
     
         BTC: {
             donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x',
-            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+            explorerPath: (address) => { return     'https://www.blockchain.com/en/btc/address/' + address },
             txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
             api: {
                 utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
@@ -235,6 +239,15 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
             api: {
                 utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
+            }
+        },
+
+        RVN: {
+            donate: 'RG7VkPniBt9K3nqhSucTxM6x8o1xsoEGHW', 
+            explorerPath: (address) => { return 'https://ravencoin.network/address/' + address },
+            txExplorerPath: (txid) => { return 'https://ravencoin.network/tx/' + txid },
+            api: {
+                utxo: (address) => { return `${rvnBlockbookApi}v1/utxo/${address}` },
             }
         },
 

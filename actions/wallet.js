@@ -3,7 +3,7 @@
 const Buffer = require('buffer').Buffer
 const _ = require('lodash')
 const pLimit = require('p-limit')
-const WAValidator = require('wallet-address-validator').validate
+const WAValidator = require('scp-address-validator').validate
 const bitgoUtxoLib = require('bitgo-utxo-lib')
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bip32 = require('bip32')
@@ -693,13 +693,14 @@ module.exports = {
 
         const isValid = WAValidator(validateAddr, testAddressType, testSymbol.includes('TEST') ? 'testnet' : 'prod')
 
-        if (testSymbol === 'VTC') { // WAValidator doesnt' recognize VTC 3-addresses
-            if (!isValid) {
-                if (validateAddr.startsWith('3') && validateAddr.length == 34) { // gross hack -- need to do this properly
-                    return true
-                }
-            }
-        }
+        // fixed in scp-address-validator
+        // if (testSymbol === 'VTC') { // WAValidator doesnt' recognize VTC 3-addresses
+        //     if (!isValid) {
+        //         if (validateAddr.startsWith('3') && validateAddr.length == 34) { // gross hack -- need to do this properly
+        //             return true
+        //         }
+        //     }
+        // }
 
         return isValid
     }
@@ -726,6 +727,8 @@ function generateWalletAccount(p) {
         case 'qtum':     defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'QTUM' }); break;
         case 'digibyte': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'DGB' }); break;
         case 'bchabc':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BCHABC' }); break;
+
+        case 'raven':    defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'RVN' }); break;
 
         case 'ethereum': defaultPrivKeys = generateEthereumWallet({ entropySeed: h_mpk, addrNdx: 0, genCount: configWallet.WALLET_DEFAULT_ADDRESSES }); break
 
@@ -858,6 +861,8 @@ function getUtxoNetwork(symbol) {
             ret.versions.bip32 = { public: 0x0488B21E, private: 0x0488ADE4 }
             var ret_js = ret.toBitcoinJS()
             return ret_js
+
+        case "RVN":      return coininfo('RVN').toBitcoinJS()
 
         default:
             return undefined

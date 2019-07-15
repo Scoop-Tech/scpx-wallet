@@ -24,6 +24,8 @@ const ADDRESS_TYPE_QTUM = 'QTUM'
 const ADDRESS_TYPE_DGB = 'DGB'
 const ADDRESS_TYPE_BCHABC = 'BCH'
 
+const ADDRESS_TYPE_RVN = 'RVN'
+
 // static - price sources
 const PRICE_SOURCE_CRYPTOCOMPARE = 'CC'   // primary
 const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - todo: move to WS (no CORS) interface, make bitfinex WS primary
@@ -222,7 +224,7 @@ const walletsMeta = {
         displayName: 'BCash ABC',
         desc: 'Bitcoin Cash ABC',
         displaySymbol: 'BCHABC',
-        imageUrl: 'img/asset-icon/bchabc.png',
+        imageUrl: 'img/asset-icon/bchabc2.png',
         primaryColor: '#380E09',
         sortOrder: 11,
         bip44_index: 145,
@@ -301,10 +303,30 @@ const walletsMeta = {
         imageUrl: 'img/asset-icon/dgb.png',
         primaryColor: '#4F2109',
         sortOrder: 22,
-        bip44_index: 20, // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        bip44_index: 20, 
         tx_perInput_vsize: 148,
         tx_perInput_byteLength: 148,
         tradingViewSymbol: "BITTREX:DGBBTC",
+    },
+
+    'raven': {
+        name: 'raven',
+        use_BBv3: true,
+        web: 'https://ravencoin.org/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_UTXO,
+        addressType: ADDRESS_TYPE_RVN,
+        symbol: 'RVN',
+        displayName: 'Ravencoin',
+        desc: undefined,
+        displaySymbol: 'RVN',
+        imageUrl: 'img/asset-icon/rvn.png',
+        primaryColor: '#E7B35B',
+        sortOrder: 23,
+        bip44_index: 175, // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        tx_perInput_vsize: 92, // ?
+        tx_perInput_byteLength: 174, // ?
+        tradingViewSymbol: "BINANCE:RVNBTC",
     },
 
     // wip
@@ -789,16 +811,13 @@ module.exports = {
         var ret = [
             'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'zcash',
             'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
+            'raven',
 
             'bnb', 'trueusd', 'bancor', '0x', 'bat',
-
             'omg', 'snt', 'gto', 'ht',
-
             //'btm', // on mainnet, erc20 deprecated
             //'ven', // on mainnet, erc20 deprecated
-
             'usdt', 'eurt',
-
             'mkr', 'rep', 'hot', 'zil', 'link',
             'nexo',
 

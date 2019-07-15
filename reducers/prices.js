@@ -10,13 +10,14 @@ const {
     QTUM_PRICE_UPDATE,
     DGB_PRICE_UPDATE,
     BCH_PRICE_UPDATE,
+    
+    RVN_PRICE_UPDATE,
 
     ETH_PRICE_UPDATE, 
             ZRX_PRICE_UPDATE, TUSD_PRICE_UPDATE, BNT_PRICE_UPDATE, BAT_PRICE_UPDATE, BNB_PRICE_UPDATE,
             OMG_PRICE_UPDATE, GTO_PRICE_UPDATE, SNT_PRICE_UPDATE, HT_PRICE_UPDATE, //VEN_PRICE_UPDATE, BTM_PRICE_UPDATE, 
             USDT_PRICE_UPDATE, EURT_PRICE_UPDATE,
             LINK_PRICE_UPDATE, ZIL_PRICE_UPDATE, HOT_PRICE_UPDATE, REP_PRICE_UPDATE, MKR_PRICE_UPDATE, 
-
             NEXO_PRICE_UPDATE,
  
     EOS_PRICE_UPDATE, 
@@ -72,6 +73,9 @@ const handlers = {
     },
     [BCH_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BCHABC: action.payload.price } }
+    },
+    [RVN_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, RVN: action.payload.price } }
     },
     
     // eth

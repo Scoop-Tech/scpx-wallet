@@ -64,7 +64,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             method: 'getAddressTxids',
             params: [
                 [pollAddress], 
-                { start: height + 100, 
+                { start: height + 100, // uncapped -- all TX's (!)
                     end: 0,
        queryMempoolOnly: false } 
             ]
@@ -73,7 +73,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             if (data && data.result) {
 
                 //
-                // to support erc20's we habe to cap *after* filtering out eth tx's
+                // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
                 // i.e. here we must get everything
                 //

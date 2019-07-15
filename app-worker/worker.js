@@ -387,6 +387,7 @@ function handler(e) {
             // when called from worker-pushtx, we can augment BB's mempool (which lags) with known spent txid's
             const spentTxIds = _.uniq(utxo_mempool_spentTxIds.concat(utxo_known_spentTxIds))
 
+            // query each address
             var allDispatchActions = []
             const refreshOps = asset.addresses.map(a => {
                 return new Promise((resolve, reject) => {
@@ -408,6 +409,7 @@ function handler(e) {
             })})
             Promise.all(refreshOps)
             .then((res) => {
+                // dispatch reducer all addresses one batch 
                 if (allDispatchActions.length > 0) {
                     utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - ${asset.symbol} - allDispatchActions.length=${allDispatchActions.length}`)
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)

@@ -488,7 +488,8 @@ async function createTxHex(params) {
                 var tx, hex, vSize, byteLength
                 if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
                 || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
-                || asset.symbol === 'ZEC_TEST')
+                || asset.symbol === 'ZEC_TEST'
+                || asset.symbol === 'RVN')
                 {
                     //
                     // UTXO - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )

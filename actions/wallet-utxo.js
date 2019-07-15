@@ -255,6 +255,18 @@ module.exports = {
                 }
             })
         }
+        else if (symbol === 'RVN') {
+            return axios.get(configExternal.rvnFeeOracle_Blockbook)
+            .then(res => {
+                if (res && res.data && res.data.result) {
+                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+                    ret.fastest_satPerKB = satPerByte.toString()
+                    ret.fast_satPerKB =  satPerByte.toString()
+                    ret.slow_satPerKB = satPerByte.toString()
+                    return ret
+                }
+            })
+        }
         else if (symbol === 'LTC_TEST') {
             return axios.get(configExternal.ltcTestFeeOracle_Blockbook)
             .then(res => {

@@ -34,6 +34,8 @@ module.exports = {
 
         'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
+        'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
+
         'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false }, // BB v3 -- (insight only needed for lights)
         
         'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
@@ -52,7 +54,7 @@ module.exports = {
       //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
 
         'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-      //'ZEC'      : { url: 'wss://node0.scoop.tech:10000',           subBlocks: true },
+      //'ZEC'      : { url: 'wss://node0.scoop.tech:10000',                                    subBlocks: true },
       //'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
         
         'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
@@ -75,6 +77,7 @@ module.exports = {
         'BCHABC'   : { url: 'wss://bch1.trezor.io',                                            subBlocks: true },
       //'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
 
+        'RVN'      : { url: 'wss://blockbook.ravencoin.org',                                   subBlocks: true },
 
         // ### -- no public BB nodes: self-hosted on scp-dm-0
         'QTUM'     : { url: 'wss://node0.scoop.tech:29188',                                    subBlocks: true },
@@ -147,6 +150,8 @@ module.exports = {
             '5~CCCAGG~MKR~USD',     
             '5~CCCAGG~BCH~USD',
             '5~CCCAGG~NEXO~USD',
+            
+            '5~CCCAGG~RVN~USD',
         ]
     },
 
