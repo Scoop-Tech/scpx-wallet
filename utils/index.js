@@ -8,6 +8,8 @@ var stringify = require('json-stringify-safe')
 const colors = require('colors')
 const chalk = require('chalk')
 
+const moment = require('moment')
+
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
@@ -241,102 +243,107 @@ module.exports = {
     //     getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE = v // ## workers have different global scope to main thread
     // },
     logMajor: (bg, fg, s, p, opts) => { // level: info
+        if (!s) return
+        const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
-            if (!s) return
             fileLogger.log('info', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
-                    if (!p)  console.log('' + s.toString().bgRed.white.bold)
-                    else     console.log('' + s.toString().bgRed.white.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgRed.white.bold)
+                    else     console.log(`${ts} ` + s.toString().bgRed.white.bold, stringify(p))
                 }
                 else if (bg === 'green') {
-                    if (!p)  console.log('' + s.toString().bgGreen.white.bold)
-                    else     console.log('' + s.toString().bgGreen.white.bold,stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgGreen.white.bold)
+                    else     console.log(`${ts} ` + s.toString().bgGreen.white.bold,stringify(p))
                 }
                 else if (bg === 'blue') {
-                    if (!p)  console.log('' + s.toString().bgBlue.white.bold)
-                    else     console.log('' + s.toString().bgBlue.white.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgBlue.white.bold)
+                    else     console.log(`${ts} ` + s.toString().bgBlue.white.bold, stringify(p))
                 }            
                 else if (bg === 'cyan') {
-                    if (!p)  console.log('' + s.toString().bgCyan.white.bold)
-                    else     console.log('' + s.toString().bgCyan.white.bold ,stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgCyan.white.bold)
+                    else     console.log(`${ts} ` + s.toString().bgCyan.white.bold ,stringify(p))
                 }
                 else if (bg === 'yellow') { // # powershell colorblind
-                    if (!p)  console.log('' + s.toString().bgYellow.black.bold)
-                    else     console.log('' + s.toString().bgYellow.black.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgYellow.black.bold)
+                    else     console.log(`${ts} ` + s.toString().bgYellow.black.bold, stringify(p))
                 }
                 else if (bg === 'magenta') { // # powershell colorblind
-                    if (!p)  console.log('' + s.toString().bgMagenta.white.bold)
-                    else     console.log('' + s.toString().bgMagenta.white.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgMagenta.white.bold)
+                    else     console.log(`${ts} ` + s.toString().bgMagenta.white.bold, stringify(p))
                 }
                 else if (bg === 'white') { 
-                    if (!p)  console.log('' + s.toString().bgWhite.black.bold)
-                    else     console.log('' + s.toString().bgWhite.black.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgWhite.black.bold)
+                    else     console.log(`${ts} ` + s.toString().bgWhite.black.bold, stringify(p))
                 }
                 else if (bg === 'gray') { 
-                    if (!p)  console.log('' + s.toString().bgWhite.gray.bold)
-                    else     console.log('' + s.toString().bgWhite.gray.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgWhite.gray.bold)
+                    else     console.log(`${ts} ` + s.toString().bgWhite.gray.bold, stringify(p))
                 }
                 else {
-                    if (!p)  console.log('' + s.toString().bgWhite.black.bold)
-                    else     console.log('' + s.toString().bgWhite.black.bold, stringify(p))
+                    if (!p)  console.log(`${ts} ` + s.toString().bgWhite.black.bold)
+                    else     console.log(`${ts} ` + s.toString().bgWhite.black.bold, stringify(p))
                 }
             }
         }
         else {
-            if (p) console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`, p)
-            else   console.log(`%c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`)
+            if (p) console.log(ts + ` %c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`, p)
+            else   console.log(ts + ` %c${s}`, `background: ${bg}; color: ${fg}; font-weight: 600; font-size: 14px;`)
         }
     },
     log: (s, p, opts) => { // level: info
         if (!s) return
+        const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-LOG] ' + s.toString().white.bold, stringify(p))
-                else   console.log('[SW-LOG] ' + s.toString().white.bold) 
+                if (p) console.log(ts + ' [SW-LOG] ' + s.toString().white.bold, stringify(p))
+                else   console.log(ts + ' [SW-LOG] ' + s.toString().white.bold) 
             }
         }
         else {
-            if (p) console.log(`[SW-LOG] ${s}`, p)
-            else   console.log(`[SW-LOG] ${s}`)
+            if (p) console.log(ts + ` [SW-LOG] ${s}`, p)
+            else   console.log(ts + ` [SW-LOG] ${s}`)
         }
     },
     error: (s, p, opts) => { // level: error
         if (!s) return
+        const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
             //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-ERR] ' + s.toString().red.bold, stringify(p))
-                else   console.log('[SW-ERR] ' + s.toString().red.bold)
+                if (p) console.log(ts + ' [SW-ERR] ' + s.toString().red.bold, stringify(p))
+                else   console.log(ts + ' [SW-ERR] ' + s.toString().red.bold)
             //}
         }
         else {
-            if (p) console.error('[SW-ERR]' + s, p)
-            else   console.error('[SW-ERR]' + s)
+            if (p) console.error(ts + ' [SW-ERR]' + s, p)
+            else   console.error(ts + ' [SW-ERR]' + s)
         }
     },
     warn: (s, p, opts) => { // level: warn 
         if (!s) return
+        const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.log('[SW-WRN] ' + s.toString().yellow.bold, stringify(p))
-                else   console.log('[SW-WRN] ' + s.toString().yellow.bold)  
+                if (p) console.log(ts + ' [SW-WRN] ' + s.toString().yellow.bold, stringify(p))
+                else   console.log(ts + ' [SW-WRN] ' + s.toString().yellow.bold)  
             }
         }
         else {
-            if (p) console.warn('[SW-WRN]' + s, p)
-            else   console.warn('[SW-WRN]' + s)
+            if (p) console.warn(ts + ' [SW-WRN]' + s, p)
+            else   console.warn(ts + ' [SW-WRN]' + s)
         }
     },
-    debug: (s, p, opts) => { 
+    debug: (s, p, opts) => { // level: verbose 
         if (!s) return
+        const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
             if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
-                if (p) console.debug('[sw-dbg] ' + s.toString().gray, stringify(p))
-                else   console.debug('[sw-dbg] ' + s.toString().gray)
+                if (p) console.debug(ts + ' [sw-dbg] ' + s.toString().gray, stringify(p))
+                else   console.debug(ts + ' [sw-dbg] ' + s.toString().gray)
             }
         }
         else {

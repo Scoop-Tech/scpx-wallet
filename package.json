@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.4.11", 
+    "version": "0.4.11",
     "description": "Scoop Core Wallet: multi-asset, cross-platform and open-source crypto wallet",
     "keywords": [
         "crypto wallet",
@@ -116,6 +116,7 @@
         "json-stringify-safe": "^5.0.1",
         "localforage": "^1.7.3",
         "lodash": "^4.17.11",
+        "moment": "^2.24.0",
         "minimist-string": "^1.0.2",
         "node-tail": "0.0.4",
         "nvm": "0.0.4",
@@ -133,8 +134,8 @@
         "repl.history": "^0.1.4",
         "socket.io-client": "2.2.0",
         "wallet-address-validator": "^0.2.4",
-        "web3": "1.0.0-beta.52",
-        "web3-eth-abi": "^1.0.0-beta.54",
+        "web3": "1.0.0-beta.55",
+        "web3-eth-abi": "^1.0.0-beta.55",
         "winston": "^3.2.1"
     },
     "bin": {

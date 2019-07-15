@@ -35,8 +35,8 @@ module.exports = {
 
     // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
     // considered VOLATILE -- no built-in reconnect
-    isosocket_Setup_Blockbook: (networkConnected, networkStatusChanged) => {
-        return isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
+    isosocket_Setup_Blockbook: (networkConnected, networkStatusChanged, loaderWorker) => {
+        return isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker)
     },
 
     isosocket_send_Blockbook: (x, method, params, callback) => {
@@ -232,8 +232,7 @@ function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedB
 
 // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
 // considered VOLATILE -- no built-in reconnect
-function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
-    //var setupCount = 0
+function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker) {
     const setupSymbols = []
     utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
@@ -283,40 +282,42 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged) {
                                     }, 1000 * 30)
                             }
 
-                            if (configWS.blockbook_ws_config[x].subBlocks === true) {
-                                // subscribe new block from BB -- note, no new TX subscription in BB 
-                                const method = 'subscribeNewBlock'
-                                const params = {}
-                                if (self.blockbookIsoSockets_subId_NewBlock[x]) {
-                                    delete self.blockbookIsoSockets_subscriptions[x][self.blockbookIsoSockets_subId_NewBlock[x]]
-                                    self.blockbookIsoSockets_subId_NewBlock[x] = ""
-                                }
-                                self.blockbookIsoSockets_subId_NewBlock[x] = isosocket_sub_Blockbook(x, method, params, function (result) {
-                                    if (!configWallet.DISABLE_BLOCK_UPDATES)  {
+                            if (!loaderWorker) {
+                                if (configWS.blockbook_ws_config[x].subBlocks === true) {
+                                    // subscribe new block from BB -- note, no new TX subscription in BB 
+                                    const method = 'subscribeNewBlock'
+                                    const params = {}
+                                    if (self.blockbookIsoSockets_subId_NewBlock[x]) {
+                                        delete self.blockbookIsoSockets_subscriptions[x][self.blockbookIsoSockets_subId_NewBlock[x]]
+                                        self.blockbookIsoSockets_subId_NewBlock[x] = ""
+                                    }
+                                    self.blockbookIsoSockets_subId_NewBlock[x] = isosocket_sub_Blockbook(x, method, params, function (result) {
+                                        if (!configWallet.DISABLE_BLOCK_UPDATES)  {
 
-                                        if (result) {
-                                            if (result.subscribed === true) {
-                                                utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
-                                            }
-                                            else {
-                                                const receivedBlockNo = result.height
-                                                utilsWallet.logMajor('cyan','black', `appWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`)
+                                            if (result) {
+                                                if (result.subscribed === true) {
+                                                    utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
+                                                }
+                                                else {
+                                                    const receivedBlockNo = result.height
+                                                    utilsWallet.logMajor('cyan','black', `appWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`)
 
-                                                // save blockheight & time on asset
+                                                    // save blockheight & time on asset
 
-                                                self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
-                                                                  data: { dispatchActions: [{ 
-                                                                        type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                     payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
-                                                })
+                                                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
+                                                                    data: { dispatchActions: [{ 
+                                                                            type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                        payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                    })
 
-                                                // requery balance check for asset on new block - updates confirmed counts
-                                                self.postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                                  data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
+                                                    // requery balance check for asset on new block - updates confirmed counts
+                                                    self.postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
+                                                                    data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
+                                                }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                                }
                             }
                         }
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect, err=`, err) }
@@ -413,7 +414,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                         mappedTx.addedToCacheAt = new Date()
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
                             resolve(mappedTx)
                         })

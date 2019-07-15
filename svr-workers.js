@@ -32,30 +32,44 @@ module.exports = {
 
         // create app worker
         if (globalScope.appWorker === undefined) {
-            globalScope.appWorker = new Worker(`${__dirname}/app-worker/worker.js`)
+
+            function createAppWorker() {
+                const appWorker = new Worker(`${__dirname}/app-worker/worker.js`)
             
-            globalScope.appWorker.setMaxListeners(30) 
-            globalScope.appWorker.removeEventListener = globalScope.appWorker.removeListener 
-            globalScope.appWorker.addEventListener = globalScope.appWorker.on
+                appWorker.setMaxListeners(30) 
+                appWorker.removeEventListener = appWorker.removeListener 
+                appWorker.addEventListener = appWorker.on
+    
+                appWorker.on('message', event => {
+                    appWorkerCallbacks.appWorkerHandler(store, event) // handle common core app worker callbacks
+    
+                    const postback = event.data
+                    const msg = event.msg
+                    const status = event.status
+                    if (postback && msg === 'NOTIFY_USER') {
+                        utilsWallet.logMajor('green', 'white',
+                            `${postback.type ? postback.type.toUpperCase() : ''}: ` + 
+                            `${postback.headline ? postback.headline : ''} ` + 
+                            `${postback.info ? postback.info : ''} ` + 
+                            `${postback.desc1 ? postback.desc1 : ''} ` + 
+                            `${postback.desc2 ? postback.desc2 : ''} ` + 
+                            `${postback.txid ? ('txid: ' + postback.txid) : ''}`,
+                            null, { logServerConsole: true })
+                    }
+                })
 
-            globalScope.appWorker.on('message', event => {
-                
-                appWorkerCallbacks.appWorkerHandler(store, event) // handle common core app worker callbacks
+                return appWorker
+            }
 
-                const postback = event.data
-                const msg = event.msg
-                const status = event.status
-                if (postback && msg === 'NOTIFY_USER') {
-                    utilsWallet.logMajor('green', 'white',
-                        `${postback.type ? postback.type.toUpperCase() : ''}: ` + 
-                        `${postback.headline ? postback.headline : ''} ` + 
-                        `${postback.info ? postback.info : ''} ` + 
-                        `${postback.desc1 ? postback.desc1 : ''} ` + 
-                        `${postback.desc2 ? postback.desc2 : ''} ` + 
-                        `${postback.txid ? ('txid: ' + postback.txid) : ''}`,
-                        null, { logServerConsole: true })
-                }
-            })
+            // main app worker
+            globalScope.appWorker = createAppWorker()
+
+            // test - create appworkers for loading concurrently
+            // globalScope.loaderWorkers = []
+            // globalScope.loaderWorkers.push(createAppWorker())
+            // globalScope.loaderWorkers.push(createAppWorker())
+            // globalScope.loaderWorkers.push(createAppWorker())
+            // globalScope.loaderWorkers.push(createAppWorker())
 
             await txdb_init()
         }

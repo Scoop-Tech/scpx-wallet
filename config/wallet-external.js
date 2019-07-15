@@ -16,9 +16,9 @@ const serverBaseApi = 'https://scpx-svr.azurewebsites.net'
 
 //const bchabcInsightApi = 'https://blockdozer.com/insight-api/'
 
-const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
-
-//const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
+// TODO: setup node0 btc_test insight instance (or BB front-end, heard it's API-compatible with insight-api?)
+const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
+//const btcTestInsightApi = 'https://node0.scoop.tech:7545/api/' //'https://test-insight.bitpay.com/api/' --> gives 429's
 //const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
 
 //

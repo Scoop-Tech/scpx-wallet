@@ -36,19 +36,37 @@ module.exports = {
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
     utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
-
+    
     // ETH v2
     const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
-    const height = await self.ws_web3[wsSymbol].eth.getBlockNumber()
+
+    const Web3 = require('web3')
+    if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
+        self.ws_web3[wsSymbol] = undefined 
+    }
+    const web3 = self.ws_web3[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[wsSymbol].httpProvider))
+
+    var height
+    try {
+        // ## web3 not throwing when geth is offline - awaits forever
+        // (related to intermittent load issues - almost always caused by geth issues)
+        height = await web3.eth.getBlockNumber()
+    }
+    catch(ex) { 
+        utilsWallet.error(`## failed to get block height: ${asset.symbol} (${pollAddress})`)
+        callback(null)
+        return
+    }
+
     const balData = await getAddressBalance_Account(asset.symbol, pollAddress) // balance - using web3
     try {
         bbSocket.send({ // ETH tx's
             method: 'getAddressTxids',
             params: [
                 [pollAddress], 
-                { start: height + 100, //20000000
+                { start: height + 100, 
                     end: 0,
-                    queryMempoolOnly: false } 
+       queryMempoolOnly: false } 
             ]
         },
         (data) => {
@@ -63,8 +81,6 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 var txids = data.result
 
                 // ## this does not work at all, now that we aren't capping the initial fetch
-                // instead, we do the filtering of disatpchTxs after the enriching
-                const assetAddress = asset.addresses.find(p => p.addr == pollAddress)
                 // filter: new tx's, or known tx's that aren't yet enriched, or unconfirmed tx's
                 // const new_txs = txids.filter(p => // only new tx that have
                 //     // NO existing asset tx that is...
@@ -72,6 +88,8 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 //         && p2.isMinimal == false // and enriched
                 //         && p2.block_no != -1) // and confirmed
                 // )
+                // instead, we do the filtering of dispatchTxs after the enriching:
+                const assetAddress = asset.addresses.find(p => p.addr == pollAddress)
 
                 //
                 // queue enrich tx actions (will either take from the cache, or fetch, prune & populate the cache)
@@ -93,10 +111,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
 
                     const res = {
                         balance: balData.bal, 
-                        unconfirmedBalance: "0",
-                        txs: [],
-                        totalTxCount, // see below - tmp value
-                        cappedTxs: txids.length < totalTxCount // see below - tmp value
+             unconfirmedBalance: "0",
+                            txs: [],
+                   totalTxCount, // see below - tmp value
+                      cappedTxs: txids.length < totalTxCount // see below - tmp value
                     }
                     
                     // await all done, then callback (for asset store update)
@@ -136,7 +154,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 if (dispatchTxs_Top_toUpdate.length > 0) {
                                     const dispatchAction = {
                                         type: actionsWallet.WCORE_SET_ENRICHED_TXS,
-                                        payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res } 
+                                     payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res } 
                                     }
                                     allDispatchActions.push(dispatchAction)
                                 }
@@ -144,6 +162,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                             callback(res)
                         })
                         .catch((err) => {
+                            debugger
                             closeDedicatedWeb3Socket(asset, pollAddress)
                             utilsWallet.error(`## getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichOps.all FAIL, err=`, err)
                         })
@@ -156,11 +175,13 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 //}) // dedicatedWeb3.currentProvider.on("connect" 
             }
             else {
+                debugger
                 callback(null)
             }
         })
     }
     catch(err) {
+        debugger
         utilsWallet.error(`### getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - err=`, err)
         callback(null)
     }
@@ -198,6 +219,11 @@ function getETHAddressBalance_api(symbol, address) {
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
+
+            if (self.ws_web3[symbol] && self.ws_web3[symbol].currentProvider.connection.readyState != 1) {
+                self.ws_web3[symbol] = undefined 
+            }
+
             const web3 = self.ws_web3[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             web3.eth.getBalance(address)
             .then(balWei => {
@@ -240,10 +266,15 @@ function getERC20AddressBalance_api(symbol, address) {
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
+
+            if (self.ws_web3['ETH'] && self.ws_web3['ETH'].currentProvider.connection.readyState != 1) {
+                self.ws_web3['ETH'] = undefined 
+            }
+            
             const web3 = self.ws_web3['ETH'] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             const tknAddress = (address).substring(2)
             const contractData = ('0x70a08231000000000000000000000000' // balanceOf
-                                + tknAddress)                        // (address)
+                                + tknAddress)                          // (address)
             const contractAddress = configExternal.walletExternal_config[symbol].contractAddress
             web3.eth.call({
                 to: contractAddress,
@@ -307,7 +338,7 @@ function closeDedicatedWeb3Socket(asset, pollAddress) {
 }
 
 function enrichTx(wallet, asset, tx, pollAddress) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => { 
         const symbol = asset.symbol
 
         // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's
@@ -320,7 +351,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         // try cache first
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
-            if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
+            if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed cached tx's
 
                 // if we are updating for erc20 asset, filter out eth or other erc20 assets
                 if (utilsWallet.isERC20(asset) && cachedTx.erc20 !== asset.symbol) {
@@ -334,7 +365,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                     resolve(cachedTx) 
                 }
             }
-            else {
+            else { // not in cache, or unconfirmed in cache: query
                 const web3Key = (asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
 
                 if (dedicatedWeb3[web3Key] === undefined) {
@@ -356,6 +387,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             }
         })
         .catch((err) => {
+            debugger
             utilsWallet.logErr(err)
             utilsWallet.error('## enrichTx - error=', err)
             resolve(null)
@@ -467,7 +499,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         //utilsWallet.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.debug(`** enrichTx - ${symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
 
                             if (utilsWallet.isERC20(asset) && mappedTx.erc20 !== asset.symbol) {
@@ -479,32 +511,38 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                             }
                         })
                         .catch((err) => {
+                            debugger
                             utilsWallet.logErr(err)
                             utilsWallet.error('## enrichTx - error writing cache=', err)
                             resolve(null)
                         })
                     }
                     else {
+                        debugger
                         utilsWallet.error(`enrichTx - no block data from web3`)
                         resolve(null)
                     }
                 }) // getBlock
                 .catch(err => {
+                    debugger
                     utilsWallet.error(`## getBlock FAIL 1 - tx.txid=${tx.txid}, err=`, err)
                     resolve(null)
                 })
             }) // getTransactionReceipt
             .catch(err => {
+                debugger
                 utilsWallet.error(`## getTransactionReceipt FAIL 1 - tx.txid=${tx.txid}, err=`, err)
                 resolve(null)
             })
         }
         else {
+            debugger
             utilsWallet.error(`enrichTx - no tx data from web3`)
             resolve(null)
         }
     }) // getTransaction
     .catch(err => {
+        debugger
         utilsWallet.error(`## getTransaction FAIL 1 - tx.txid=${tx.txid}, err=`, err)
         resolve(null)
     })

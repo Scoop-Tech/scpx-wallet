@@ -35,9 +35,11 @@ module.exports = {
         const wallet = storeState.wallet
         if (!wallet || !wallet.assets) throw 'No wallet supplied'
         
+        console.time('loadAllAssets')
         utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
         const appWorker = utilsWallet.getAppWorker()
+        //const globalScope = utilsWallet.getMainThreadGlobalScope()
 
         return new Promise((resolve) => {
 
@@ -45,6 +47,7 @@ module.exports = {
             const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
             ethAssets.forEach(ethAsset => {
                 appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
+                //globalScope.loaderWorkers[0].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
             })
 
             // then fetch all others, except erc20s
@@ -52,11 +55,13 @@ module.exports = {
             var otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
             otherAssets.forEach(otherAsset => {
                 appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
+                //globalScope.loaderWorkers[1].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
             })
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
                 appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+                //globalScope.loaderWorkers[2].postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
             // wait for eth fetch to finish
@@ -72,6 +77,7 @@ module.exports = {
                         erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
                         erc20Assets.forEach(erc20Asset => {
                             appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
+                            //globalScope.loaderWorkers[3].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
                         })
                         clearInterval(eth_intId)
 
@@ -88,6 +94,7 @@ module.exports = {
                                     // done
                                     clearInterval(allRemaining_intId)
                                     utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
+                                    console.timeEnd('loadAllAssets')
                                     resolve()
                                 }
                                 else {

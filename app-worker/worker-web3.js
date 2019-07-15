@@ -27,7 +27,7 @@ module.exports = {
             setupCount += (function (x) {
 
                 if (self.ws_web3[x] === undefined) {
-                    utilsWallet.debug(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider ${x} SETUP...`, null, { logServerConsole: true })
+                    utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider ${x} SETUP...`, null, { logServerConsole: true })
                     
                     try {   
         

@@ -124,18 +124,17 @@ function handler(e) {
 
         case 'INIT_INSIGHT_SOCKETIO':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
-            workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged)
+            workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
             break
-
         case 'INIT_GETH_ISOSOCKETS':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
-            var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged)
+            var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker)
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE - (re)connected=`, setupCount, { logServerConsole: true })
             }
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
-            const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
+            const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker)
             utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
@@ -180,7 +179,6 @@ function handler(e) {
                 }, 888)
             }
             break
-        
         case 'INIT_WEB3_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             var setupCount = workerWeb3.web3_SetupSocketProvider()
@@ -188,6 +186,7 @@ function handler(e) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
             }
             break
+
         case 'GET_ETH_TX_FEE_WEB3':
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
             workerWeb3.estimateGasInEther(data.asset, data.params).then(result => {
@@ -376,7 +375,8 @@ function handler(e) {
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
 
-            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            console.time(`refreshAssetFull_${asset.symbol}`)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket
@@ -391,7 +391,14 @@ function handler(e) {
             const refreshOps = asset.addresses.map(a => {
                 return new Promise((resolve, reject) => {
                     const addrNdx = asset.addresses.findIndex(p => p.addr === a.addr)
+
+                    // ### d+10 eth this is *failing* (intermittent geth WS issue?) but callback always resolves
+                    // so, lastAssetUpdateAt is being set, and loadAllAssets sees eth as "done"
+                    //  1 - need to detect failure state here
+                    //  2 - need a new flag "allAddressesLoaded" only set on happy path
+                    //...
                     workerExternal.getAddressFull_External({ wallet, asset, addrNdx, bbSocket, utxo_mempool_spentTxIds: spentTxIds, },
+
                         (dispatchActions) => {
                             if (dispatchActions.length > 0) {
                                 allDispatchActions = [...allDispatchActions, ...dispatchActions]
@@ -405,6 +412,8 @@ function handler(e) {
                     utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - ${asset.symbol} - allDispatchActions.length=${allDispatchActions.length}`)
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
+
+                    console.timeEnd(`refreshAssetFull_${asset.symbol}`)
                 }
             })
         })
@@ -413,7 +422,7 @@ function handler(e) {
     function refreshAssetBalance(asset, wallet) {
 
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
-            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket

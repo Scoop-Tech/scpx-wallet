@@ -17,7 +17,7 @@ const utilsWallet = require('../utils')
 module.exports = {
 
     // insight tx and block subscriptions (diagnostics and balance polling, respectively)
-    socketio_Setup_Insight: (networkConnected, networkStatusChanged) => {
+    socketio_Setup_Insight: (networkConnected, networkStatusChanged, loaderWorker) => {
         utilsWallet.debug('appWorker >> ${self.workerId} insight_Setup...')
 
         for (var assetSymbol in configWS.insightApi_ws_config) {
@@ -58,25 +58,31 @@ module.exports = {
                         socket.on('connect', () => {
                             utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect...`)
                             try {
-                                networkConnected(x, true)
-                                networkStatusChanged(x)
-                                socket.emit('subscribe', 'inv') // subscribe new tx and new blocks
+                                if (!loaderWorker) {
+                                    networkConnected(x, true)
+                                    networkStatusChanged(x)
+                                    socket.emit('subscribe', 'inv') // subscribe new tx and new blocks
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect(1), err=`, err) }
                         })
                         socket.on('connect_failed', function () {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed`)
                             try {
-                                networkConnected(x, false)
-                                networkStatusChanged(x)
+                                if (!loaderWorker) {
+                                    networkConnected(x, false)
+                                    networkStatusChanged(x)
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed, err=`, err) }
                         })
                         socket.on('connect_error', function (socketErr) {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, socketErr=`, socketErr.message)
                             try {
-                                networkConnected(x, false)
-                                networkStatusChanged(x)
+                                if (!loaderWorker) {
+                                    networkConnected(x, false)
+                                    networkStatusChanged(x)
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, err=`, err) }
                         })
@@ -84,25 +90,31 @@ module.exports = {
                         socket.on('disconnect', function () {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - disconnect`)
                             try {
-                                networkConnected(x, false)
-                                networkStatusChanged(x)
+                                if (!loaderWorker) {
+                                    networkConnected(x, false)
+                                    networkStatusChanged(x)
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - disconnect, err=`, err) }
                         })
                         socket.on('reconnect', () => {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - reconnect...`)
                             try {
-                                networkConnected(x, true)
-                                networkStatusChanged(x)
-                                socket.emit('subscribe', 'inv')
+                                if (!loaderWorker) {
+                                    networkConnected(x, true)
+                                    networkStatusChanged(x)
+                                    socket.emit('subscribe', 'inv')
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - reconnect, err=`, err) }
                         })
                         socket.on('reconnect_failed', function () {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - reconnect_failed`)
                             try {
-                                networkConnected(x, false)
-                                networkStatusChanged(x)
+                                if (!loaderWorker) {
+                                    networkConnected(x, false)
+                                    networkStatusChanged(x)
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - reconnect_failed, err=`, err) }
                         })
@@ -110,64 +122,67 @@ module.exports = {
                         socket.on('error', function (socketErr) {
                             utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - error, socketErr=`, socketErr)
                             try {
-                                networkConnected(x, false)
-                                networkStatusChanged(x)
+                                if (!loaderWorker) {
+                                    networkConnected(x, false)
+                                    networkStatusChanged(x)
+                                }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - error, err=`, err) }
                         })
 
-
                         //                                
                         // subscriptions - new tx's and new blocks
                         //
-                        socket.on('tx', (tx) => {
+                        if (!loaderWorker) {
+                            socket.on('tx', (tx) => {
 
-                            //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
+                                //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
 
-                            // calc TPS - not using
-                            // if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
-                            // self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
-                            // const tps = self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000)
+                                // calc TPS - not using
+                                // if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
+                                // self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
+                                // const tps = self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000)
 
-                            // throttle these to max n per sec
-                            const sinceLastTx = new Date().getTime() - self.lastTx[x]
-                            if (isNaN(sinceLastTx) || sinceLastTx > 500) {
-                                self.lastTx[x] = new Date().getTime()
-                                networkStatusChanged(x, tx.txid)
-                            }
-                        })
-                        socket.on('block', (blockHash) => {
-                            if (configWallet.DISABLE_BLOCK_UPDATES) return
-                            
-                            if (configWS.insightApi_ws_config[x].subBlocks === false) {
-                                utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
-                            }
-                            else {
-                                try {
-
-                                    // requery balance check for asset on new block
-                                    self.postMessage({ 
-                                         msg: 'REQUEST_STATE', status: 'REQ',
-                                        data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
-
-                                    // get reeived block height & time
-                                    axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-                                    axios.get(configExternal.walletExternal_config[x].api.block(blockHash))
-                                    .then((resBlockData) => {
-                                        if (resBlockData && resBlockData.data) {
-                                            const receivedBlockNo = resBlockData.data.height
-                                            const receivedBlockTime = new Date(resBlockData.data.time * 1000)
-                                
-                                            utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime}`)
-                                
-                                            // get node sync status
-                                            getSyncInfo_Insight(x, receivedBlockNo, receivedBlockTime)
-                                        }
-                                    })
+                                // throttle these to max n per sec
+                                const sinceLastTx = new Date().getTime() - self.lastTx[x]
+                                if (isNaN(sinceLastTx) || sinceLastTx > 500) {
+                                    self.lastTx[x] = new Date().getTime()
+                                    networkStatusChanged(x, tx.txid)
                                 }
-                                catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT BLOCK ${x}, err=`, err) }
-                            }
-                        })
+                            })
+                            socket.on('block', (blockHash) => {
+                                if (configWallet.DISABLE_BLOCK_UPDATES) return
+                                
+                                if (configWS.insightApi_ws_config[x].subBlocks === false) {
+                                    utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
+                                }
+                                else {
+                                    try {
+
+                                        // requery balance check for asset on new block
+                                        self.postMessage({ 
+                                            msg: 'REQUEST_STATE', status: 'REQ',
+                                            data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
+
+                                        // get reeived block height & time
+                                        axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+                                        axios.get(configExternal.walletExternal_config[x].api.block(blockHash))
+                                        .then((resBlockData) => {
+                                            if (resBlockData && resBlockData.data) {
+                                                const receivedBlockNo = resBlockData.data.height
+                                                const receivedBlockTime = new Date(resBlockData.data.time * 1000)
+                                    
+                                                utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} INSIGHT BLOCK ${x} ${receivedBlockNo} ${receivedBlockTime}`)
+                                    
+                                                // get node sync status
+                                                getSyncInfo_Insight(x, receivedBlockNo, receivedBlockTime)
+                                            }
+                                        })
+                                    }
+                                    catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT BLOCK ${x}, err=`, err) }
+                                }
+                            })
+                        }
                     }
                 }
                 catch(err) {
