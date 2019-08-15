@@ -24,12 +24,15 @@ const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:400
 //
 // eth - geth
 // 
-const ethHttpProvider = //'https://main-rpc.linkpool.io'
-                        'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' 
+const ethHttpProvider = 
+    'https://node0.scoop.tech:10545'
+    //'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' 
+    //'https://main-rpc.linkpool.io'
 
-const ethTestHttpProvider = 'https://node0.scoop.tech:9545'
-                          //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545'
-                          //'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297'
+const ethTestHttpProvider = 
+    'https://node0.scoop.tech:9545'
+    //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545'
+    //'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297'
 
 const erc20Contracts = { 
     TUSD: '0x0000000000085d4780b73119b644ae5ecd22b376',
@@ -101,11 +104,11 @@ module.exports = {
 
     ,bchabcBlockbookApi: 'https://node0.scoop.tech:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
 
+    ,rvnTestBlockbookApi: 'https://node0.scoop.tech:10008/api/'
+
     ,qtumBlockbookApi: 'https://node0.scoop.tech:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
 
     ,zecTestBlockbookApi: 'https://node0.scoop.tech:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
-
-    ,rvnTestBlockbookApi: 'https://node0.scoop.tech:10008/api/'
 
     // NOT USED
     ,ltcTestBlockbookApi: '' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
