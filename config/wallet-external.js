@@ -25,12 +25,14 @@ const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:400
 // eth - geth
 // 
 const ethHttpProvider = 
-    'https://node0.scoop.tech:10545'
+      'https://ac-dev0.net:10545'
+    //'https://node0.scoop.tech:10545'
     //'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' 
     //'https://main-rpc.linkpool.io'
 
 const ethTestHttpProvider = 
-    'https://node0.scoop.tech:9545'
+      'https://ac-dev0.net:9545'
+    //'https://node0.scoop.tech:9545'
     //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545'
     //'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297'
 

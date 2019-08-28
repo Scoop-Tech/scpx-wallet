@@ -86,7 +86,8 @@ module.exports = {
         'ZEC_TEST' : { url: 'wss://node0.scoop.tech:29132',                                    subBlocks: true },
       //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
 
-        'ETH_TEST' : { url: 'wss://node0.scoop.tech:29136',                                    subBlocks: true },
+        'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
+      //'ETH_TEST' : { url: 'wss://node0.scoop.tech:29136',                                    subBlocks: true },
       //'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
 
 
@@ -98,12 +99,13 @@ module.exports = {
     // ETH -- web3 WS providers, supporting pendingTransactions
     //
     geth_ws_config: {
-        // ### TODO -- node0 geth -- no newPendingTransactions on main-rpc.linkpool.io ...
-        'ETH'     : { url: 'wss://node0.scoop.tech:10546',                              subBlocks: true  },
+        'ETH'     : { url: 'wss://ac-dev0.net:10546',                                   subBlocks: true  },
+      //'ETH'     : { url: 'wss://node0.scoop.tech:10546',                              subBlocks: true  },
       //'ETH'     : { url: 'wss://main-rpc.linkpool.io/ws',                             subBlocks: true  }, // ## no newPendingTransactions
       //'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
       
-        'ETH_TEST': { url: 'wss://node0.scoop.tech:9546',                               subBlocks: true  },
+        'ETH_TEST': { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true  },
+      //'ETH_TEST': { url: 'wss://node0.scoop.tech:9546',                               subBlocks: true  },
       //'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
     },
 
