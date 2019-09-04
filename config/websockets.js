@@ -80,10 +80,10 @@ module.exports = {
         'RVN'      : { url: 'wss://blockbook.ravencoin.org',                                   subBlocks: true },
 
         // ### -- no public BB nodes: self-hosted on scp-dm-0
-        'QTUM'     : { url: 'wss://node0.scoop.tech:29188',                                    subBlocks: true },
+        'QTUM'     : { url: 'wss://ac-dev0.net:29188',                                    subBlocks: true },
       //'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
 
-        'ZEC_TEST' : { url: 'wss://node0.scoop.tech:29132',                                    subBlocks: true },
+        'ZEC_TEST' : { url: 'wss://ac-dev0.net:29132',                                    subBlocks: true },
       //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
 
         'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
