@@ -126,11 +126,6 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         Promise.all(enrichOps)
                         .then((enrichedTxs) => {
 
-                            // ## really (really!) should be able to do this here, and really should be doing this here:
-                            //closeDedicatedWeb3Socket(asset, pollAddress)
-                            // but it's causing enrichTx to fail - as if the enrichOps promises are somehow all resolving early (?), or some other race weirdness; not understood
-                            // as it is, without this cleanup, we leave dangling sockets, but we at least avoid guaranteed failures
-
                             // remove any pure eth tx's that were filtered out for an erc20 asset
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
 
@@ -170,13 +165,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                             callback(res)
                         })
                         .catch((err) => {
-                            debugger
-                            closeDedicatedWeb3Socket(asset, pollAddress)
                             utilsWallet.error(`## getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichOps.all FAIL, err=`, err)
                         })
                     }
                     else {
-                        //closeDedicatedWeb3Socket(asset, pollAddress)
                         callback(res)
                     }
 
@@ -197,7 +189,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
 
 // cleanup 
 async function getAddressFull_Cleanup(wallet, asset, address) {
-    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} ${address}`)
+    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} ${address}...`)
     closeDedicatedWeb3Socket(asset, address)
 }
 

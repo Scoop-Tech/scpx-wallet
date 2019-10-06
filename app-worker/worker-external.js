@@ -34,7 +34,9 @@ function getAddressFull_Cleanup(p) {
             break // NOP
 
         case configWallet.WALLET_TYPE_ACCOUNT:
-            workerAccount.getAddressFull_Cleanup(wallet, asset, asset.addresses[addrNdx].addr)
+            if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST' || utilsWallet.isERC20(asset)) {
+                workerAccount.getAddressFull_Cleanup(wallet, asset, asset.addresses[addrNdx].addr)
+            }
             break
     }
 }
