@@ -20,6 +20,23 @@ module.exports = {
     getAddressBalance_External: (p, callback) => {
         return getAddressBalance_External(p, callback)
     },
+
+    getAddressFull_Cleanup: (p) => {
+        return getAddressFull_Cleanup(p)
+    }
+}
+
+function getAddressFull_Cleanup(p) {
+    const { wallet, asset, addrNdx } = p
+    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} addrNdx=${addrNdx}...`)
+    switch (asset.type) {
+        case configWallet.WALLET_TYPE_UTXO:
+            break // NOP
+
+        case configWallet.WALLET_TYPE_ACCOUNT:
+            workerAccount.getAddressFull_Cleanup(wallet, asset, asset.addresses[addrNdx].addr)
+            break
+    }
 }
 
 function getAddressFull_External(p, callback) { // todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice

@@ -25,6 +25,10 @@ module.exports = {
     getAddressBalance_Account: (symbol, address) => {
         return getAddressBalance_Account(symbol, address)
     },
+
+    getAddressFull_Cleanup: (wallet, asset, address) => {
+        return getAddressFull_Cleanup(asset.symbol, address)
+    }
 }
 
 //
@@ -122,7 +126,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         Promise.all(enrichOps)
                         .then((enrichedTxs) => {
 
-                            closeDedicatedWeb3Socket(asset, pollAddress)
+                            // ## really (really!) should be able to do this here, and really should be doing this here:
+                            //closeDedicatedWeb3Socket(asset, pollAddress)
+                            // but it's causing enrichTx to fail - as if the enrichOps promises are somehow all resolving early (?), or some other race weirdness; not understood
+                            // as it is, without this cleanup, we leave dangling sockets, but we at least avoid guaranteed failures
 
                             // remove any pure eth tx's that were filtered out for an erc20 asset
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
@@ -159,6 +166,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                     allDispatchActions.push(dispatchAction)
                                 }
                             }
+
                             callback(res)
                         })
                         .catch((err) => {
@@ -187,141 +195,13 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     }
 }
 
-//
-// get balance
-//
-async function getAddressBalance_Account(symbol, address) {
-    utilsWallet.debug(`getAddressBalance (ACCOUNT) (${address})...`)
-
-    switch (symbol) {
-        case 'EOS': // todo
-            return { bal: "0", symbol, address }
-
-        case 'ETH':
-        case 'ETH_TEST':    
-            const wei = await getETHAddressBalance_api(symbol, address)
-            if (configWallet.ETH_COALESCE_DUST_TO_ZERO && wei > 0 && wei <= configWallet.ETH_DUST_WEI) {
-                utilsWallet.log(`getAddressBalance_Account - rounding dust (balance) wei for ${symbol} (${wei})`)
-                return { bal: "0", symbol, address }
-            }
-            return { bal: wei, symbol, address }
-
-        default:
-            const erc20_balance = await getERC20AddressBalance_api(symbol, address) 
-            return { bal: erc20_balance, symbol, address }
-    }
+// cleanup 
+async function getAddressFull_Cleanup(wallet, asset, address) {
+    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} ${address}`)
+    closeDedicatedWeb3Socket(asset, address)
 }
 
-function getETHAddressBalance_api(symbol, address) {
-
-    if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
-        utilsWallet.debug(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
-
-        return new Promise((resolve, reject) => {
-            const Web3 = require('web3')
-
-            if (self.ws_web3[symbol] && self.ws_web3[symbol].currentProvider.connection.readyState != 1) {
-                self.ws_web3[symbol] = undefined 
-            }
-
-            const web3 = self.ws_web3[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
-            web3.eth.getBalance(address)
-            .then(balWei => {
-                resolve(balWei.toString())
-            })
-            .catch((err) => {
-                utilsWallet.warn(`### getETHAddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
-                reject(err)
-            })
-        })
-    }
-    else {
-        utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
-
-        return new Promise((resolve, reject) => {
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
-                .then(res => {
-                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
-                        var balWei = res.data.result
-                        utilsWallet.log(`*** getETHAddressBalance_api (using api) ${symbol} (${address}), balWei=`, balWei)
-                        resolve(balWei.toString())
-                    } else {
-                        const err = `### getETHAddressBalance_api (using api) ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
-                        utilsWallet.warn(err)
-                        reject(err)
-                    }
-                })
-                .catch((err) => {
-                    utilsWallet.warn(`### getETHAddressBalance_api (using api) ${symbol} (${address}) FAIL - err=`, err)
-                    reject(err)
-                })
-        })
-    }
-}
-
-function getERC20AddressBalance_api(symbol, address) {
-    if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
-        utilsWallet.debug(`*** getERC20AddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
-
-        return new Promise((resolve, reject) => {
-            const Web3 = require('web3')
-
-            if (self.ws_web3['ETH'] && self.ws_web3['ETH'].currentProvider.connection.readyState != 1) {
-                self.ws_web3['ETH'] = undefined 
-            }
-            
-            const web3 = self.ws_web3['ETH'] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
-            const tknAddress = (address).substring(2)
-            const contractData = ('0x70a08231000000000000000000000000' // balanceOf
-                                + tknAddress)                          // (address)
-            const contractAddress = configExternal.walletExternal_config[symbol].contractAddress
-            web3.eth.call({
-                to: contractAddress,
-                data: contractData
-            },
-            web3.eth.defaultBlock,
-                (err, result) => {
-                    if (result) {
-                        const tokens = web3.utils.toBN(result)
-                        resolve(tokens.toString())
-                    }
-                    else {
-                        utilsWallet.warn(`### getERC20AddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
-                        reject(err)
-                    }
-                });
-        })
-    }
-    else {
-        utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
-
-        return new Promise((resolve, reject) => {
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
-                .then(res => {
-                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
-                        var balWei = res.data.result
-
-                        resolve(balWei.toString())
-                    } else {
-                        const err = `### getERC20AddressBalance_api ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
-                        utilsWallet.warn(err)
-                        reject(err)
-                    }
-                })
-                .catch((err) => {
-                    utilsWallet.warn(`### getERC20AddressBalance_api ${symbol} (${address}) FAIL - err=`, err)
-                    reject(err)
-                })
-        })
-    }
-}
-
-//
 // tx processing, w/ dedicated web3 instance 
-//
-
 var dedicatedWeb3 = []
 function closeDedicatedWeb3Socket(asset, pollAddress) {
     try {
@@ -329,7 +209,7 @@ function closeDedicatedWeb3Socket(asset, pollAddress) {
         if (dedicatedWeb3[web3Key]) {
             dedicatedWeb3[web3Key].currentProvider.connection.close()
             dedicatedWeb3[web3Key] = undefined
-            utilsWallet.debug(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - closed dedicated socket OK`)
+            utilsWallet.log(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - closed dedicated socket OK`)
         }
     }
     catch(err) {
@@ -370,10 +250,8 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
                 if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
-
                     const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
                     dedicatedWeb3[web3Key] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[wsSymbol].url)) 
-
                     utilsWallet.debug('>> created dedicatedWeb3: OK.') 
                 }
                 if (dedicatedWeb3[web3Key].currentProvider.connection.readyState != 1) {
@@ -547,6 +425,138 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
         resolve(null)
     })
 }
+
+//
+// get balance
+//
+async function getAddressBalance_Account(symbol, address) {
+    utilsWallet.debug(`getAddressBalance (ACCOUNT) (${address})...`)
+
+    switch (symbol) {
+        case 'EOS': // todo
+            return { bal: "0", symbol, address }
+
+        case 'ETH':
+        case 'ETH_TEST':    
+            const wei = await getETHAddressBalance_api(symbol, address)
+            if (configWallet.ETH_COALESCE_DUST_TO_ZERO && wei > 0 && wei <= configWallet.ETH_DUST_WEI) {
+                utilsWallet.log(`getAddressBalance_Account - rounding dust (balance) wei for ${symbol} (${wei})`)
+                return { bal: "0", symbol, address }
+            }
+            return { bal: wei, symbol, address }
+
+        default:
+            const erc20_balance = await getERC20AddressBalance_api(symbol, address) 
+            return { bal: erc20_balance, symbol, address }
+    }
+}
+
+function getETHAddressBalance_api(symbol, address) {
+
+    if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
+        utilsWallet.debug(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
+
+        return new Promise((resolve, reject) => {
+            const Web3 = require('web3')
+
+            if (self.ws_web3[symbol] && self.ws_web3[symbol].currentProvider.connection.readyState != 1) {
+                self.ws_web3[symbol] = undefined 
+            }
+
+            const web3 = self.ws_web3[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            web3.eth.getBalance(address)
+            .then(balWei => {
+                resolve(balWei.toString())
+            })
+            .catch((err) => {
+                utilsWallet.warn(`### getETHAddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
+                reject(err)
+            })
+        })
+    }
+    else {
+        utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+
+        return new Promise((resolve, reject) => {
+            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
+                .then(res => {
+                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
+                        var balWei = res.data.result
+                        utilsWallet.log(`*** getETHAddressBalance_api (using api) ${symbol} (${address}), balWei=`, balWei)
+                        resolve(balWei.toString())
+                    } else {
+                        const err = `### getETHAddressBalance_api (using api) ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
+                        utilsWallet.warn(err)
+                        reject(err)
+                    }
+                })
+                .catch((err) => {
+                    utilsWallet.warn(`### getETHAddressBalance_api (using api) ${symbol} (${address}) FAIL - err=`, err)
+                    reject(err)
+                })
+        })
+    }
+}
+
+function getERC20AddressBalance_api(symbol, address) {
+    if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
+        utilsWallet.debug(`*** getERC20AddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
+
+        return new Promise((resolve, reject) => {
+            const Web3 = require('web3')
+
+            if (self.ws_web3['ETH'] && self.ws_web3['ETH'].currentProvider.connection.readyState != 1) {
+                self.ws_web3['ETH'] = undefined 
+            }
+            
+            const web3 = self.ws_web3['ETH'] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const tknAddress = (address).substring(2)
+            const contractData = ('0x70a08231000000000000000000000000' // balanceOf
+                                + tknAddress)                          // (address)
+            const contractAddress = configExternal.walletExternal_config[symbol].contractAddress
+            web3.eth.call({
+                to: contractAddress,
+                data: contractData
+            },
+            web3.eth.defaultBlock,
+                (err, result) => {
+                    if (result) {
+                        const tokens = web3.utils.toBN(result)
+                        resolve(tokens.toString())
+                    }
+                    else {
+                        utilsWallet.warn(`### getERC20AddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
+                        reject(err)
+                    }
+                });
+        })
+    }
+    else {
+        utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+
+        return new Promise((resolve, reject) => {
+            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
+                .then(res => {
+                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
+                        var balWei = res.data.result
+
+                        resolve(balWei.toString())
+                    } else {
+                        const err = `### getERC20AddressBalance_api ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
+                        utilsWallet.warn(err)
+                        reject(err)
+                    }
+                })
+                .catch((err) => {
+                    utilsWallet.warn(`### getERC20AddressBalance_api ${symbol} (${address}) FAIL - err=`, err)
+                    reject(err)
+                })
+        })
+    }
+}
+
 
 
 // export function getERC20AddressBalance_web3(symbol, address) {

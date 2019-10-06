@@ -409,6 +409,11 @@ function handler(e) {
             })})
             Promise.all(refreshOps)
             .then((res) => {
+                // web3 eth cleanup -- needed for ETH dedicatedWeb3 cleanup
+                for (var addrNdx=0 ; addrNdx < asset.addresses.length ; addrNdx++) {
+                    workerExternal.getAddressFull_Cleanup({ wallet, asset, addrNdx })
+                }
+
                 // dispatch reducer all addresses one batch 
                 if (allDispatchActions.length > 0) {
                     utilsWallet.log(`appWorker >> ${self.workerId} - refreshAssetFull - ${asset.symbol} - allDispatchActions.length=${allDispatchActions.length}`)

@@ -60,7 +60,7 @@ module.exports = {
                                     networkStatusChanged(x)
 
                                     // subscribe new tx
-                                    socket.send(`{"method":"eth_subscribe","params":["newPendingTransactions",{}],"id":1,"jsonrpc":"2.0"}`)
+                                    socket.send(`{"method":"eth_subscribe","params":["newPendingTransactions"],"id":1,"jsonrpc":"2.0"}`)
 
                                     // subscribe new blocks
                                     if (configWS.geth_ws_config[x].subBlocks === true) {

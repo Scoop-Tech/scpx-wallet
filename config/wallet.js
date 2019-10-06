@@ -32,10 +32,10 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTCTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_LTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ZECTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ETHTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_BTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ZECTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ETHTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_LTCTEST = false
 
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
