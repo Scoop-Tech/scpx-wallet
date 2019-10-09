@@ -1,7 +1,7 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 const axios = require('axios')
-const axiosRetry = require('axios-retry')
+//const axiosRetry = require('axios-retry')
 const BigNumber = require('bignumber.js')
 const EthTx = require('ethereumjs-tx')
 
@@ -96,7 +96,7 @@ module.exports = {
         })
         .then(gasprice_Web3 => {
             ret.gasprice_Web3 = parseFloat(gasprice_Web3)
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
             return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
         })
         .then(res => {

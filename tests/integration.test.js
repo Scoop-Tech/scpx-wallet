@@ -13,6 +13,9 @@ const svrRouter = require('../svr-wallet/sw-router')
 const walletExternal = require('../actions/wallet-external')
 const opsWallet = require('../actions/wallet')
 
+const configWallet = require('../config/wallet')
+
+
 // todo: https://github.com/Scoop-Tech/scpx-wallet/issues/22
 // note: for manual coverage upload:  "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
 
@@ -185,57 +188,68 @@ describe('wallet', function () {
     })
 
     it('can import and remove private keys', async () => {
-        expect.assertions(14)
+        var expectAssertions = 2
+        if (configWallet.WALLET_INCLUDE_BTCTEST) expectAssertions += 4
+        if (configWallet.WALLET_INCLUDE_ZECTEST) expectAssertions += 4
+        if (configWallet.WALLET_INCLUDE_ETHTEST) expectAssertions += 4
+        expect.assertions(expectAssertions)
 
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appWorker, appStore)
             const mpk = create.ok.mpk
             
-            const importBtcTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
+            const importBtcTest = !configWallet.WALLET_INCLUDE_BTCTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
 
-            const importZecTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
+            const importZecTest = !configWallet.WALLET_INCLUDE_ZECTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
 
-            const importEthTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
+            const importEthTest = !configWallet.WALLET_INCLUDE_ETHTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
 
             //await Promise.resolve(setTimeout(() => {}, 2000))
             const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
-            const removeBtcTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 BTC#' }, 'REMOVE-PRIV-KEYS')
+            const removeBtcTest = !configWallet.WALLET_INCLUDE_BTCTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 BTC#' }, 'REMOVE-PRIV-KEYS')
 
-            const removeZecTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
+            const removeZecTest = !configWallet.WALLET_INCLUDE_ZECTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
 
-            const removeEthTest = await svrRouter.fn(appWorker, appStore, 
-                { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
+            const removeEthTest = !configWallet.WALLET_INCLUDE_ETHTEST ? undefined :
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
 
             //await Promise.resolve(setTimeout(() => {}, 2000))
             const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
             resolve({ create,
-                        importBtcTest, importZecTest, importEthTest, balanceImported,
-                        removeBtcTest, removeZecTest, removeEthTest, balanceRemoved })
+                      importBtcTest, importZecTest, importEthTest, balanceImported,
+                      removeBtcTest, removeZecTest, removeEthTest, balanceRemoved })
         })
 
         expect(result.create.ok).toBeDefined()
         expect(result.create.ok.walletConnect.ok).toBeDefined()
-        
-        expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-        expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-        expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-        expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
-        expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
-        expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
 
-        expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-        expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-        expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-        expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toEqual(0)
-        expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toEqual(0)
-        expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toEqual(0)
+        if (configWallet.WALLET_INCLUDE_BTCTEST) {
+            expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+            expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
+            expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toEqual(0)
+        }
+
+        if (configWallet.WALLET_INCLUDE_ZECTEST) {
+            expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+            expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
+            expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toEqual(0)
+        }
+
+        if (configWallet.WALLET_INCLUDE_ETHTEST) {
+            expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+            expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
+            expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toEqual(0)
+        }
     })
 })
 
@@ -243,21 +257,27 @@ describe('wallet', function () {
 describe('testnets', function () {
 
     it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
-        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
-        await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
+        if (configWallet.WALLET_INCLUDE_BTCTEST) {
+            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
+            await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
+        }
     })
 
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
-        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
-        await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
+        if (configWallet.WALLET_INCLUDE_ZECTEST) {
+            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+            await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
+        }
     })
 
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
-        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-        await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
-        await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
+        if (configWallet.WALLET_INCLUDE_ETHTEST) {
+            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+            await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
+        }
     })
 
     async function sendTestnetTx(store, serverLoad, testSymbol) {

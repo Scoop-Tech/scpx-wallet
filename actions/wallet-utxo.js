@@ -2,7 +2,7 @@
 
 const BigNumber = require('bignumber.js')
 const axios = require('axios')
-const axiosRetry = require('axios-retry')
+//const axiosRetry = require('axios-retry')
 
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
@@ -156,7 +156,7 @@ module.exports = {
 
     estimateFees_Utxo: (symbol) => {
         utilsWallet.log(`fees - estimateFees_Utxo ${symbol}...`)
-        axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+        //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
 
         var ret = {} // { fastest_satPerKB, fast_satPerKB, slow_satPerKB } // from oracle(s)
 
