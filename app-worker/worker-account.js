@@ -470,7 +470,7 @@ function getETHAddressBalance_api(symbol, address) {
         utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
             axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
                 .then(res => {
                     if (res && res.status === 200 && res.data && res.data.message === "OK") {
@@ -528,7 +528,7 @@ function getERC20AddressBalance_api(symbol, address) {
         utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
-            axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
             axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
                 .then(res => {
                     if (res && res.status === 200 && res.data && res.data.message === "OK") {

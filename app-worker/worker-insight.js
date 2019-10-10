@@ -2,7 +2,7 @@
 
 const io  = require('socket.io-client')
 const axios = require('axios')
-const axiosRetry = require('axios-retry')
+//const axiosRetry = require('axios-retry')
 const BigNumber = require('bignumber.js')
 
 const configWS = require('../config/websockets')
@@ -167,7 +167,7 @@ module.exports = {
                                             data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })
 
                                         // get reeived block height & time
-                                        axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+                                        //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
                                         axios.get(configExternal.walletExternal_config[x].api.block(blockHash))
                                         .then((resBlockData) => {
                                             if (resBlockData && resBlockData.data) {
@@ -204,7 +204,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             
             const axiosLongtimeout = axios.create({ timeout: 5000 } )
-            axiosRetry(axiosLongtimeout, configWallet.AXIOS_RETRY_3PBP)
+            //axiosRetry(axiosLongtimeout, configWallet.AXIOS_RETRY_3PBP)
             axiosLongtimeout.get(configExternal.walletExternal_config[symbol].api.v2_addrBal(address) + '&dt=' + new Date().getTime())
             
             .then(res => {
@@ -236,7 +236,7 @@ module.exports = {
         const symbol = asset.symbol
         utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol}...`)
 
-        axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+        //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
         const from = 0
         const to = (configWallet.WALLET_MAX_TX_HISTORY || 888) - 1
         return Promise.all([
@@ -370,7 +370,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 resolve(cachedTx) // return from cache
             }
             else {
-                axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+                //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
                 axios.get(configExternal.walletExternal_config[asset.symbol].api.v2_tx(tx.txid))
                 .then((txData) => {
                     if (txData && txData.data) {

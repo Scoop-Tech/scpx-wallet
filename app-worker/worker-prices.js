@@ -2,7 +2,7 @@
 
 const io = require('socket.io-client')
 const axios = require('axios')
-const axiosRetry = require('axios-retry')
+//const axiosRetry = require('axios-retry')
 
 const configWS = require('../config/websockets')
 const configWallet = require('../config/wallet')
@@ -29,7 +29,7 @@ module.exports = {
         symbols_cc = [...new Set(symbols_cc)]
         const csv_symbols_cc = symbols_cc.join()
         
-        axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+        //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
         axios.get(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${csv_symbols_cc}&tsyms=USD`)
         .then((resCryptocompare) => {
             if (resCryptocompare && resCryptocompare.data) {

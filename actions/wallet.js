@@ -35,7 +35,7 @@ module.exports = {
         const wallet = storeState.wallet
         if (!wallet || !wallet.assets) throw 'No wallet supplied'
         
-        console.time('loadAllAssets')
+        //console.time('loadAllAssets')
         utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
         const appWorker = utilsWallet.getAppWorker()
@@ -94,7 +94,7 @@ module.exports = {
                                     // done
                                     clearInterval(allRemaining_intId)
                                     utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
-                                    console.timeEnd('loadAllAssets')
+                                    //console.timeEnd('loadAllAssets')
                                     resolve()
                                 }
                                 else {

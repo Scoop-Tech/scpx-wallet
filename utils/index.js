@@ -14,7 +14,7 @@ const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
 // dbg - log core wallet to console (interferes with repl prompt)
-var LOG_CORE_TO_CONSOLE = (process.env.NODE_ENV === "test")
+var LOG_CORE_TO_CONSOLE = false //(process.env.NODE_ENV === "test")
 
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 

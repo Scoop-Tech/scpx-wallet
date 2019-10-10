@@ -773,14 +773,6 @@ module.exports = {
     // cli 
     , CLI_SAVE_LOADED_WALLET_KEY: process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions
 
-
-    // wallet config - network
-    , AXIOS_RETRY_3PBP: {
-        retries: 8,
-        retryDelay: require('axios-retry').exponentialDelay,
-        retryCondition: (res) => { return true }
-    }
-
     // wallet test params
     //,TEST_PAD_TXS:100                                                  // pad TX list -- testing LS/SS limits
     //,TEST_LARGE_BALANCE:123.12345678                                   // mock balances
@@ -854,9 +846,17 @@ module.exports = {
     // network (API)
     , API_DOMAIN
     , API_URL
-    , AXIOS_RETRY_API: {
-        retries: 2,
-        retryDelay: () => { return 200 }, // ms
-        retryCondition: (res) => { return true }
-    }
+    // "axios-retry": "^3.1.2",
+    // axios-retry is *very* flaky indeed: https://github.com/softonic/axios-retry/issues/59
+    // this config does *not* do 4 retries...
+    // , AXIOS_RETRY_API: { 
+    //     retries: 4,
+    //     retryDelay: () => { return 200 }, // ms
+    //     //retryCondition: (res) => { return true } // if this is included, it retries without limit
+    // }
+    // , AXIOS_RETRY_3PBP: {
+    //     retries: 8,
+    //     retryDelay: require('axios-retry').exponentialDelay,
+    //     retryCondition: (res) => { return true }
+    // }    
 }
