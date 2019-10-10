@@ -64,7 +64,8 @@ Please see the [Contribution Guide](./CONTRIBUTING.md) for more info.
 
 Visual Studio Code is recommended. An example ./vscode/launch.json is: 
 
-```{
+```
+{
     "version": "0.2.0",
     "configurations": [
         {
