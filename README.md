@@ -9,6 +9,7 @@ Release Candidate 4
 ![GitHub top language](https://img.shields.io/github/languages/top/Scoop-Tech/scpx-wallet.svg)
 
 [![Core Wallet - CLI demo](http://img.youtube.com/vi/KvB2Bzebs-M/0.jpg)](http://www.youtube.com/watch?v=KvB2Bzebs-M "Core Wallet - CLI demo")
+[![Web Wallet - QR & FaceID demo](https://i.ytimg.com/vi/HLX9oyYlafI/hqdefault.jpg)](https://www.youtube.com/watch?v=HLX9oyYlafI "Web Wallet - QR demo")
 
 Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below).
 
