@@ -34,7 +34,7 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 // config - dbg/test
 const WALLET_INCLUDE_BTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ZECTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ETHTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ETHTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_LTCTEST = false
 
 const DISABLE_BLOCK_UPDATES = false
