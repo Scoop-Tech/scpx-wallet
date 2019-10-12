@@ -26,8 +26,8 @@ Scoop uses three levels of data encryption: one round of encryption in browser s
 ## Core Wallet - CLI Demo
 [![Core Wallet - CLI demo](http://img.youtube.com/vi/KvB2Bzebs-M/0.jpg)](http://www.youtube.com/watch?v=KvB2Bzebs-M "Core Wallet - CLI demo") 
 
-## Web Wallet - QR Demo
-[![Web Wallet - QR & FaceID demo](https://i.ytimg.com/vi/HLX9oyYlafI/hqdefault.jpg)](https://www.youtube.com/watch?v=HLX9oyYlafI "Web Wallet - QR demo")
+## Web Wallet - QR & Face ID demo
+[![Web Wallet - QR & Face ID demo](https://i.ytimg.com/vi/HLX9oyYlafI/hqdefault.jpg)](https://www.youtube.com/watch?v=HLX9oyYlafI "Web Wallet - QR & Face ID demo")
 
 ## Running the Core Wallet CLI
 
