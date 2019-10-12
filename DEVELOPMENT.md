@@ -39,6 +39,7 @@ The test script executes full integration tests that transact on testnets - thes
     * https://zcashfaucet.info/
     
   * **ETH_TEST** ```0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20``` (ETH Ropsten)
+    * https://faucet.ropsten.be/ ```wget https://faucet.ropsten.be/donate/0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20```
     * https://faucet.metamask.io/  
 
 Core wallet functions are demonstrated as integration tests, many of which interact over HTTPS with 3rd Party Blockchain Providers (3PBPs) and/or the Scoop [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos). Pull requests are welcome, as are contributions for more fine-grained unit tests.
