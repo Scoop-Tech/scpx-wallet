@@ -376,7 +376,7 @@ function handler(e) {
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
 
             utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
-            console.time(`refreshAssetFull_${asset.symbol}`)
+            //console.time(`refreshAssetFull_${asset.symbol}`)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket
@@ -420,7 +420,7 @@ function handler(e) {
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
 
-                    console.timeEnd(`refreshAssetFull_${asset.symbol}`)
+                    //console.timeEnd(`refreshAssetFull_${asset.symbol}`)
                 }
             })
         })
