@@ -113,7 +113,7 @@ module.exports = {
     //
     generateNewAddress: async (p) => {
         const { store, apk, h_mpk, assetName, // required - browser & server
-                userAccountName, e_email,              // required - browser 
+                userAccountName, e_email,     // required - browser 
                 eosActiveWallet } = p
 
         // validation
@@ -430,7 +430,7 @@ module.exports = {
     //
     // supplied e_storedAssetsRaw can originate from Data Storage Contract (DSC) (server and browser) or
     // from raw file store (server only);
-    // /
+    // 
     // if supplied, DSC data is decrypted, and any newly added asset types are merged with the DSC data to
     // preserve any previosuly imported accounts or added addresses
     //
@@ -494,7 +494,7 @@ module.exports = {
 
             // create top-level addresses - w/ cpuWorkers
             // perf -- a flattened list of ops across all assets/accounts/keys
-            // thottled-promise pattern, dispatch op to oen of n cpuWorkers
+            // thottled-promise pattern, dispatch op to 1 of n cpuWorkers
             var opParams = []
             var reqId = 0
             Object.keys(currentAssets).forEach(function(assetName) {
@@ -743,10 +743,12 @@ function generateWalletAccount(p) {
             }
 
         default:
+            // erc20's and eth_test
             if (configWallet.walletsMeta[genType].addressType === configWallet.ADDRESS_TYPE_ETH) {
-                defaultPrivKeys = assets['ethereum'].accounts !== undefined
-                    ? assets['ethereum'].accounts[0].privKeys.slice()
-                    : [{ privKey: assets['ethereum'].wif }]
+                defaultPrivKeys = 
+                    //assets['ethereum'].accounts !== undefined ?
+                        assets['ethereum'].accounts[0].privKeys.slice()
+                    //: [{ privKey: assets['ethereum'].wif }] // ###### race? - old path?
             }
             break
     }
@@ -804,7 +806,7 @@ function newWalletAddressFromPrivKey(p) {
     var addr = !knownAddr ? getAddressFromPrivateKey(
                     { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }
                 )
-            : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
+              : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
 
     return {
         symbol,

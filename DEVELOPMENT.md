@@ -1,6 +1,6 @@
 # Development Guide
 
-## Architecture 
+## Architecture
 
   * https://github.com/trezor/blockbook - primary 3PBP interface: preferred, due to pure websocket interface.
   * https://github.com/bitpay/insight-api - secondary 3PBP interface: BTC_TEST uses this codepath, and is retained as fallback interface for additional assets.
@@ -20,7 +20,7 @@ The tested and recommended build environment is node 10.15.3 and npm 6.9.0. ```-
 ## Running Core Wallet CLI
 
   * ```npm run dev``` - runs with dev flags (saves CLI history to file, caches MPK in memory, activates test assets)
-  * ```npm start`` - runs with prod flags
+  * ```npm start``` - runs with prod flags
 
 ## Running Tests
 
