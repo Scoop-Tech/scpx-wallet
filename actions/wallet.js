@@ -349,7 +349,7 @@ module.exports = {
     //
     removeImportedAccounts: async (p) => {
         var { store, apk, h_mpk, assetName, removeAccounts,  // required - browser & server
-              userAccountName, e_email,                               // required - browser 
+              userAccountName, e_email,                      // required - browser 
               eosActiveWallet } = p
 
         // validation
@@ -453,9 +453,9 @@ module.exports = {
             }
             currentAssets = JSON.parse(pt_storedRawAssets)
             
-            //delete currentAssets["btc(t)"] // fix bad data - tmp
-
+            utilsWallet.logMajor('green','white', 'GENERATING (GOT SERVER ASSETS)...')
         } else {
+            utilsWallet.logMajor('green','white', 'GENERATING (NEW)...')
             currentAssets = {} // generate new
         }
 
@@ -470,7 +470,10 @@ module.exports = {
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
         if (needToGenerate.length > 0) {
 
-            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} ASSET TYPE(s)...`, null, { logServerConsole: true })
+            
+            // DBG: ETH_T testnets dropping second address...
+            console.log(JSON.stringify(currentAssets['eth(t)'], null, 2))
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
@@ -712,7 +715,15 @@ module.exports = {
 //
 function generateWalletAccount(p) {
     const { assets, genType, h_mpk, eosActiveWallet } = p
-    utilsWallet.log(`generateWalletAccount - genType=`, genType, { logServerConsole: true })
+    
+    var asset = assets[genType]
+    if (asset !== undefined) {
+        utilsWallet.log(`generateWalletAccount - genType=${genType} EXISTING asset.accounts[0].privKeys.length=${assets[genType].accounts[0].privKeys.length}`, null, { logServerConsole: true })
+    }
+    else {
+        utilsWallet.log(`generateWalletAccount - genType=${genType} NEW DEFAULT ASSET`, null, { logServerConsole: true })
+    }
+
     var defaultPrivKeys
 
     switch (genType) {
@@ -754,8 +765,7 @@ function generateWalletAccount(p) {
     }
 
     if (defaultPrivKeys !== undefined) { // save only the wifs/privkeys
-
-        var asset = assets[genType]
+        
         if (asset === undefined) {
             // no existing server data: first-time creation
             asset = { accounts: [] }    
@@ -766,7 +776,7 @@ function generateWalletAccount(p) {
             asset.accounts[0].privKeys = defaultPrivKeys.slice() // new asset default address indexes
             assets[genType] = asset
         } else {
-            // we are "merging" (actually, replacing) existing server data in the default account's default address indexes;
+            // we are "merging" (actually, replacing/overwriting) existing server data in the default account's default address indexes;
             // this isn't strictly necessary, as the server already has recorded and sent us the default indexes, but in the interests
             // of being strictly deterministic:
             for (var ndx=0 ; ndx < defaultPrivKeys.length ; ndx++) {
