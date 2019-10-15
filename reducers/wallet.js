@@ -12,7 +12,7 @@ const {
 
 const utilsWallet = require('../utils')
 
-const initialState = {}
+export const initialState = {}
 
 function SetAddressFull_ReconcileLocalTxs(state, action) {
     const { symbol, newAddr, newAddresses, updateAt } = action.payload
