@@ -44,7 +44,8 @@ const SOCKET_DISABLE_PRICES = false
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
 
 // wallet api
-const API_DOMAIN = `https://scpx-svr.scoop.tech/`
+//const API_DOMAIN =`http://localhost:3030/`
+const API_DOMAIN = `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 
 //
