@@ -78,7 +78,10 @@
     },
     "jest": {
         "coverageDirectory": "./coverage/",
-        "collectCoverage": true
+        "collectCoverage": true,
+        "transformIgnorePatterns": [
+            "*"
+        ]
     },
     "engines": {
         "node": ">=10.14.1",

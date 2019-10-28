@@ -5,3 +5,7 @@ node_js:
   - "10"
 script:
   - npm run test
+before_install:
+  - pip install --user codecov
+after_success:
+  - codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967
