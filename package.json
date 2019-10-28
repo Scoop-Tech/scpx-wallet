@@ -115,6 +115,8 @@
         "json-stringify-safe": "^5.0.1",
         "localforage": "^1.7.3",
         "lodash": "^4.17.15",
+        "lodash-es": "^4.17.15",
+        "mem": "^5.1.1",
         "minimist-string": "^1.0.2",
         "moment": "^2.24.0",
         "node-tail": "0.0.4",
