@@ -13,6 +13,7 @@ module.exports = {
             }
         },
     
+        // standard API
         getCurrenciesFull: 'getCurrenciesFull',
         getMinAmount: 'getMinAmount',
         getEstReceiveAmount: 'getExchangeAmount',
@@ -20,7 +21,10 @@ module.exports = {
         getStatus: 'getStatus',
         getTransactions: 'getTransactions',
     
-        getFixRate: 'getFixRate',
-        createFixTransaction: 'createFixTransaction',
+        // fixed rate API
+        getFixRate: 'getFixRate',                       // v1
+        getPairsParams: 'getPairsParams',               // new v2
+        getFixRateForAmount: 'getFixRateForAmount',     // new v2
+        createFixTransaction: 'createFixTransaction',   // v1 / v2
     }
 }
