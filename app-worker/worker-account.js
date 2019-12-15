@@ -42,7 +42,9 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
     
     // ETH v2
-    const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
+    const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                   : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
+                   : asset.symbol
 
     const Web3 = require('web3')
     if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
@@ -242,7 +244,11 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
                 if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
-                    const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
+                    
+                    const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                                   : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
+                                   : asset.symbol
+
                     dedicatedWeb3[web3Key] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[wsSymbol].url)) 
                     utilsWallet.debug('>> created dedicatedWeb3: OK.') 
                 }
@@ -269,7 +275,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     const symbol = asset.symbol
                     
     // get tx
-    utilsWallet.debug(`enrichTx - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
+    utilsWallet.debug(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
 
     //self.gethSockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
 
@@ -497,12 +503,19 @@ function getERC20AddressBalance_api(symbol, address) {
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
+            
+            const wsSymbol = symbol === 'CCC_TEST' ? 'ETH_TEST' // TODO: should have a proper flag on meta ("isErc20_TestNet")
+                           : 'ETH'
 
-            if (self.ws_web3['ETH'] && self.ws_web3['ETH'].currentProvider.connection.readyState != 1) {
-                self.ws_web3['ETH'] = undefined 
+            // if (symbol === 'CCC_TEST') {
+            //     debugger
+            // }
+
+            if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
+                self.ws_web3[wsSymbol] = undefined 
             }
             
-            const web3 = self.ws_web3['ETH'] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const web3 = self.ws_web3[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             const tknAddress = (address).substring(2)
             const contractData = ('0x70a08231000000000000000000000000' // balanceOf
                                 + tknAddress)                          // (address)

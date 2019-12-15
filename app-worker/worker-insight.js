@@ -21,9 +21,9 @@ module.exports = {
         utilsWallet.debug('appWorker >> ${self.workerId} insight_Setup...')
 
         for (var assetSymbol in configWS.insightApi_ws_config) {
-            if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTCTEST) continue
-            if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZECTEST) continue
-            if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTCTEST) continue
+            if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST) continue
+            if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST) continue
+            if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST) continue
 
             (function (x) {
                 try {

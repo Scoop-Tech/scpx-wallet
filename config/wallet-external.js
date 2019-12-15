@@ -60,6 +60,9 @@ const erc20Contracts = {
     MKR:  '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
 
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
+
+    CCC_TEST: '0x6Bce3c1c74Df7aBB7b995db2617d1Dfe74df9510',
+    
 }
 
 function eth_AddrExplorer(address) { 
@@ -293,6 +296,20 @@ module.exports = {
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
+        // TUSD_TEST: {
+        //     donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+        //     explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
+        //     txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+        //     httpProvider: ethTestHttpProvider,
+        // },
+        CCC_TEST: {
+            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            contractAddress: erc20Contracts.CCC_TEST,
+            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
+            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            httpProvider: ethTestHttpProvider,
+        },
+
         BNT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.BNT,

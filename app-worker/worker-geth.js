@@ -19,7 +19,7 @@ module.exports = {
         utilsWallet.debug(`appWorker >> ${self.workerId} geth_Setup...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
-            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
+            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST) continue
 
             setupCount +=
                 (function (x) {

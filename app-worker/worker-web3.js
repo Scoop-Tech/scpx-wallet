@@ -22,7 +22,7 @@ module.exports = {
         utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
-            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
+            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST) continue
 
             setupCount += (function (x) {
 
@@ -74,7 +74,9 @@ module.exports = {
         if (!params || !params.from || !params.to || !params.value) throw('Invalid fee parameters')
         var ret = {}
 
-        const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH' : asset.symbol
+        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
+                       : asset.symbol
 
         if (!utilsWallet.isERC20(asset)) {
             params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
@@ -122,7 +124,10 @@ module.exports = {
         }
         utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, params=`, params)
 
-        const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH' : asset.symbol
+        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
+                       : asset.symbol
+
         const web3 = self.ws_web3[wsSymbol]
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
@@ -172,7 +177,10 @@ module.exports = {
 
         utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
     
-        const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH' : asset.symbol
+        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
+                       : asset.symbol
+
         const web3 = self.ws_web3[wsSymbol]
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
@@ -222,7 +230,10 @@ module.exports = {
 
         utilsWallet.log(`*** pushRawTransaction_Account ${symbol}, txHex=`, txHex)
 
-        const wsSymbol = asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH' : asset.symbol
+        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
+                       : asset.symbol        
+                       
         const web3 = self.ws_web3[wsSymbol]
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))

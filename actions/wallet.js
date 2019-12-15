@@ -755,6 +755,10 @@ function generateWalletAccount(p) {
 
         default:
             // erc20's and eth_test
+            const meta = configWallet.walletsMeta[genType];
+            if (meta == undefined) {
+                console.warn('## missing meta for ' + genType, configWallet.walletsMeta)
+            }
             if (configWallet.walletsMeta[genType].addressType === configWallet.ADDRESS_TYPE_ETH) {
                 defaultPrivKeys = 
                     //assets['ethereum'].accounts !== undefined ?

@@ -38,6 +38,8 @@ const initialState = {
              OMG: 0, GTO: 0, SNT: 0,  HT: 0, //VEN: 0, BTM: 0,
             USDT: 0, EURT: 0,
             LINK: 0, ZIL: 0, HOT: 0, REP: 0, MKR: 0,
+
+        CCC_TEST: 10, // ##...
     }
 }
 
@@ -85,7 +87,7 @@ const handlers = {
 
     // erc20
     [TUSD_PRICE_UPDATE]: (state, action) => {
-        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, TUSD: action.payload.price } }
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, TUSD: action.payload.price, /*TUSD_TEST: action.payload.price*/ } }
     },
     [BNT_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BNT: action.payload.price } }

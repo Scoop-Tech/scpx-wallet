@@ -237,10 +237,10 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
     utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
-        if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETHTEST) continue
-        if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTCTEST) continue
-        if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZECTEST) continue
-        if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTCTEST) continue
+        if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST) continue
+        if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST) continue
+        if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST) continue
+        if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST) continue
 
         setupSymbols.push(
             (function (x) {

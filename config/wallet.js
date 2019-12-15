@@ -32,10 +32,12 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTCTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ZECTEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ETHTEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_LTCTEST = false
+const WALLET_INCLUDE_BTC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ZEC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_ETH_TEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_LTC_TEST = false
+const WALLET_INCLUDE_TUSD_TEST = false; //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_AIRCARBON_TEST = true;
 
 const DISABLE_BLOCK_UPDATES = false
 const SOCKET_DISABLE_PRICES = false
@@ -370,7 +372,7 @@ const walletsMeta = {
         addressType: ADDRESS_TYPE_ETH,
         symbol: 'ETH_TEST',
         displayName: 'ETH#',
-        desc: 'Ropsten',
+        desc: 'Ropsten Testnet',
         displaySymbol: 'ETH#',
         imageUrl: 'img/asset-icon/eth_test2.png',
         primaryColor: '#6e7bc4',
@@ -397,6 +399,40 @@ const walletsMeta = {
         erc20_transferGasLimit: 120000,
         decimals: 18,
         tradingViewSymbol: "BITTREX:TUSDBTC",
+    },
+    // 'trueusd(t)': {
+    //     name: 'trueusd(t)',
+    //     web: 'https://trusttoken.com/',
+    //     type: WALLET_TYPE_ACCOUNT,
+    //     addressType: ADDRESS_TYPE_ETH,
+    //     symbol: 'TUSD_TEST',
+    //     displayName: 'TrueUSD#',
+    //     desc: 'Ropsten Testnet',
+    //     displaySymbol: 'TUSD#',
+    //     imageUrl: 'img/asset-icon/tusd_test.png',
+    //     primaryColor: '#6eaffa',
+    //     sortOrder: 555,
+    //     //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+    //     erc20_transferGasLimit: 120000,
+    //     decimals: 18,
+    //     tradingViewSymbol: "BITTREX:TUSDBTC",
+    // },
+    'aircarbon(t)': {
+        name: 'aircarbon(t)',
+        web: 'https://aircarbon.co/',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'CCC_TEST',
+        displayName: 'AirCarbon#',
+        desc: 'Ropsten Testnet',
+        displaySymbol: 'CCC#',
+        imageUrl: 'img/asset-icon/aircarbon_test.png',
+        primaryColor: '#6eaffa',
+        sortOrder: 444,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+        erc20_transferGasLimit: 5000000,
+        decimals: 0,
+        tradingViewSymbol: "BITTREX:TUSDBTC", // ##...
     },
     'bancor': {
         name: 'bancor',
@@ -741,10 +777,10 @@ module.exports = {
     , WALLET_ENV
 
     // wallet config - core
-    , WALLET_INCLUDE_ETHTEST
-    , WALLET_INCLUDE_BTCTEST
-    , WALLET_INCLUDE_LTCTEST
-    , WALLET_INCLUDE_ZECTEST
+    , WALLET_INCLUDE_ETH_TEST
+    , WALLET_INCLUDE_BTC_TEST
+    , WALLET_INCLUDE_LTC_TEST
+    , WALLET_INCLUDE_ZEC_TEST
     , DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
@@ -818,16 +854,22 @@ module.exports = {
             //'tgbp' (new)
         ]
 
-        if (WALLET_INCLUDE_ETHTEST) {
+        if (WALLET_INCLUDE_ETH_TEST) {
             ret.push('eth(t)')
         }
-        if (WALLET_INCLUDE_BTCTEST) {
+        // if (WALLET_INCLUDE_TUSD_TEST) {
+        //     ret.push('trueusd(t)')
+        // }
+        if (WALLET_INCLUDE_AIRCARBON_TEST) {
+            ret.push('aircarbon(t)')
+        }
+        if (WALLET_INCLUDE_BTC_TEST) {
             ret.push('btc(t)')
         }
-        if (WALLET_INCLUDE_LTCTEST) {
+        if (WALLET_INCLUDE_LTC_TEST) {
             ret.push('ltc(t)')
         }
-        if (WALLET_INCLUDE_ZECTEST) {
+        if (WALLET_INCLUDE_ZEC_TEST) {
             ret.push('zcash(t)')
         }
         return ret
