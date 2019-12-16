@@ -361,7 +361,7 @@ module.exports = {
 
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
-                apk: apk, 
+                         apk: apk, 
                        h_mpk: h_mpk,
             })
             if (res !== undefined) {
@@ -392,7 +392,6 @@ module.exports = {
                        eth_gasLimit: feeData.gasLimit,
                        eth_gasPrice: gasPriceToUse,
                                 fee: du_ethFee }
-                
             }
             else throw(`Unknown account address type`)
         }

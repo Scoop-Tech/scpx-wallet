@@ -45,7 +45,9 @@ module.exports = {
                         // push local eth fee tx for an erc20 push
                         if (res && res.erc20_ethFeeTx) {
                             store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                                          payload: { symbol: 'ETH', tx: res.erc20_ethFeeTx } })
+                                          payload: { symbol: asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH',
+                                                         tx: res.erc20_ethFeeTx }
+                            })
                         }
                     }
                 }

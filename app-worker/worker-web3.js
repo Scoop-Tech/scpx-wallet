@@ -74,7 +74,7 @@ module.exports = {
         if (!params || !params.from || !params.to || !params.value) throw('Invalid fee parameters')
         var ret = {}
 
-        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                        : asset.symbol
 
@@ -82,6 +82,7 @@ module.exports = {
             params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
         }
 
+        // ## ?? "Uncaught TypeError: Cannot read property 'eth' of undefined"
         return self.ws_web3[wsSymbol].eth.estimateGas(params)  // tx gas limit estimate
         .then(gasLimit => {
             // use estimate if not erc20, otherwise use a reasonable static max gas value
@@ -124,7 +125,7 @@ module.exports = {
         }
         utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, params=`, params)
 
-        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
@@ -177,7 +178,7 @@ module.exports = {
 
         utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
     
-        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
@@ -230,10 +231,10 @@ module.exports = {
 
         utilsWallet.log(`*** pushRawTransaction_Account ${symbol}, txHex=`, txHex)
 
-        const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol        
-                       
+
         const web3 = self.ws_web3[wsSymbol]
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))

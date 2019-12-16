@@ -42,7 +42,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
     
     // ETH v2
-    const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+    const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                    : asset.symbol
 
@@ -199,7 +199,7 @@ async function getAddressFull_Cleanup(wallet, asset, address) {
 var dedicatedWeb3 = []
 function closeDedicatedWeb3Socket(asset, pollAddress) {
     try {
-        const web3Key = (asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
+        const web3Key = (asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
         if (dedicatedWeb3[web3Key]) {
             dedicatedWeb3[web3Key].currentProvider.connection.close()
             dedicatedWeb3[web3Key] = undefined
@@ -240,12 +240,12 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 }
             }
             else { // not in cache, or unconfirmed in cache: query
-                const web3Key = (asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
+                const web3Key = (asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
 
                 if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
                     
-                    const wsSymbol = asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                    const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
                                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                                    : asset.symbol
 
@@ -503,9 +503,9 @@ function getERC20AddressBalance_api(symbol, address) {
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
-            
-            const wsSymbol = symbol === 'CCC_TEST' ? 'ETH_TEST' // TODO: should have a proper flag on meta ("isErc20_TestNet")
-                           : 'ETH'
+
+            const meta = configWallet.getMetaBySymbol(symbol)
+            const wsSymbol = meta.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'
 
             // if (symbol === 'CCC_TEST') {
             //     debugger

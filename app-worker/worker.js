@@ -573,10 +573,10 @@ function handler(e) {
 
 self.get_BlockbookSocketIo = function(asset) { 
     const socketToUse = 
-          asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+          asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
         : utilsWallet.isERC20(asset) ? 'ETH'
         : asset.symbol
-        
+
     var socket = self.blockbookSocketIos[socketToUse]
 
     if (socket === undefined) {
