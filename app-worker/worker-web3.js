@@ -74,7 +74,7 @@ module.exports = {
         if (!params || !params.from || !params.to || !params.value) throw('Invalid fee parameters')
         var ret = {}
 
-        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                        : asset.symbol
 
@@ -103,10 +103,11 @@ module.exports = {
             return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
         })
         .then(res => {
+            // 2x on this oracle: not convinced by its values!
             if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000))) // gwei -> wei
-                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000)))
-                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000)))
+                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000 * 2))) // gwei -> wei
+                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000 * 2)))
+                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000 * 2)))
 
             } else { // fallback to web3
                 utilsWallet.warn(`### fees - estimateGasInEther ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
@@ -125,7 +126,7 @@ module.exports = {
         }
         utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, params=`, params)
 
-        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' 
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
@@ -178,7 +179,7 @@ module.exports = {
 
         utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
     
-        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' 
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
@@ -186,7 +187,8 @@ module.exports = {
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
-        utilsWallet.log('erc20 - params.value=', params.value.toString())
+        utilsWallet.log('erc20 - params.value=', params.value);
+        utilsWallet.log('erc20 - params.value.toString()=', params.value.toString())
 
         const assetMeta = configWallet.getMetaBySymbol(asset.symbol)
         params.value = utilsWallet.toCalculationUnit(params.value.toString(), {
@@ -198,7 +200,8 @@ module.exports = {
         const cu_sendValue = params.value
         utilsWallet.log('erc20 - wei=', params.value)
 
-        params.value = web3.utils.toHex(new BigNumber(params.value))
+        params.value = web3.utils.toHex(params.value) //web3.utils.toHex(new BigNumber(params.value))
+        utilsWallet.log('erc20 - params.value(toHex)=', params.value.toString())
 
         utilsWallet.log('erc20 - params.gasLimit=', params.gasLimit)
         utilsWallet.log('erc20 - params.gasPrice=', params.gasPrice)
@@ -207,6 +210,9 @@ module.exports = {
         const contractAddress = configExternal.walletExternal_config[asset.symbol].contractAddress
         const contract = new web3.eth.Contract(minContractABI, contractAddress, { from: params.from })
         
+        // working txhex - localhost 0x1 hex value
+        // "0xf8aa45850430e23400834c4b40946bce3c1c74df7abb7b995db2617d1dfe74df951080b844a9059cbb0000000000000000000000008443b1edf203f96d1a5ec98301cfebc4d3cf2b2000000000000000000000000000000000000000000000000000000000000000011ba0b8b19a0f9a0140afac2bc7d8d307f07a1a2e05450c0789600f3984a375cb3d8da027392fa2d987d73ca60c1b67897abf887460d9142c63ba1906a9f8e7e8829c43"
+
         return web3.eth.getTransactionCount(params.from, 'pending')
         .then((nextNonce) => {
             const rawTX = {
@@ -231,7 +237,7 @@ module.exports = {
 
         utilsWallet.log(`*** pushRawTransaction_Account ${symbol}, txHex=`, txHex)
 
-        const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+        const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol        
 

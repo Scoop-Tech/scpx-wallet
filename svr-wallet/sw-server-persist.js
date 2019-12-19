@@ -46,7 +46,12 @@ module.exports = {
         var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
 
         // post
-        return apiDataContract.updateAssetsJsonApi(owner, opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk), e_email)
+        return apiDataContract.updateAssetsJsonApi({ 
+            owner, 
+            encryptedAssetsJSONRaw: opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk),
+            e_email,
+            showNotification: false
+        })
         .then(res => {
             if (!res) return Promise.resolve({ err: `DSC API: invalid or missing response data` })
             if (!res.res === "ok") return Promise.resolve({ err: `DSC API: update failed` })

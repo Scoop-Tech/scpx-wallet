@@ -36,7 +36,7 @@ module.exports = {
         })
     },
 
-    updateAssetsJsonApi: (owner, encryptedAssetsJSONRaw, e_email) => { 
+    updateAssetsJsonApi: ({ owner, encryptedAssetsJSONRaw, e_email, showNotification }) => { 
         const req = { owner, assetsJSONRaw: encryptedAssetsJSONRaw, e_email }
 
         utilsWallet.log(`POST assets...`)
@@ -45,8 +45,10 @@ module.exports = {
             utilsWallet.log(`assets POST - ok`)
 
             if (res && res.data) {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER',
-                data: { type: 'success', headline: 'Saved Wallet', info: 'Updated Scoop chain', txid: res.data.txid } })
+                if (showNotification) {
+                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER',
+                        data: { type: 'success', headline: 'Saved Wallet', info: 'Updated Scoop chain', txid: res.data.txid } })
+                }
                 return res.data
             }
         })

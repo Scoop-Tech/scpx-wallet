@@ -274,8 +274,19 @@ describe('testnets', function () {
 
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ETH_TEST) {
-            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            var serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+
+            // ## ETH_TEST on DSR-saved testnets@scoop.tech is sometimes dropping second address...
+            // no idea why (no repro in wallet front end)... suspected: some side-effect of automated tests?
+            var wallet = appStore.getState().wallet
+            var asset = wallet.assets.find(p => p.symbol === 'ETH_TEST')
+            if (asset.addresses.length < 2) { // hack: add second addr & reload
+                await svrRouter.fn(appWorker, appStore, { symbol: 'ETH_TEST', mpk: serverTestWallet.mpk }, 'ADD-ADDR')
+                wallet = appStore.getState().wallet
+                asset = wallet.assets.find(p => p.symbol === 'ETH_TEST')
+            }
+
             await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
         }
     })
@@ -295,7 +306,7 @@ describe('testnets', function () {
             // validate test asset state
             const bal = walletExternal.get_combinedBalance(asset)
             if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
-            if (asset.addresses.length < 2) throw 'Invalid test asset address setup'
+            if (asset.addresses.length < 2)throw 'Invalid test asset address setup'
 
             // send testnet tx from the higher balance address to the lower
             const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1

@@ -104,9 +104,6 @@ module.exports = {
             newAddr.lastAddrFetchAt = new Date()
 
             utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - ACCEPTING STATE UPDATE: newTx=${newTx} balanceChanged=${balanceChanged}`) 
-            // if (asset.symbol === 'CCC_TEST') {
-            //     debugger
-            // }
 
             const dispatchAction = { type: actionsWallet.WCORE_SET_ADDRESS_FULL, payload: { updateAt: new Date(), symbol: asset.symbol, newAddr} }
             return dispatchAction
@@ -129,7 +126,7 @@ module.exports = {
                   feeParams,
                    sendMode: true,
             sendFromAddrNdx,
-               apk: apk,
+                        apk: apk,
                       h_mpk: h_mpk,
         })
         .then(res => {

@@ -38,11 +38,11 @@ module.exports = {
 //  (b) if we use blockbook, we have exactly the same model as utxo's -- i.e. cached IndexedDB and keyed on txid: faster, more reliable and less bandwidth
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
-    utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
+    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
     
     // ETH v2
-    const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+    const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                    : asset.symbol
 
@@ -217,7 +217,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
         // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's
         // wallet owner is part of cache key because of relative fields: tx.sendToSelf and tx.isIncoming 
-        const cacheKey = `${asset.symbol === 'ETH_TEST' ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
+        const cacheKey = `${asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
         //utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
@@ -245,7 +245,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
                     
-                    const wsSymbol = asset.isErc20_Ropsten ? 'ETH_TEST' //asset.symbol === 'CCC_TEST' ? 'ETH_TEST'
+                    const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                                    : asset.symbol
 
@@ -506,10 +506,6 @@ function getERC20AddressBalance_api(symbol, address) {
 
             const meta = configWallet.getMetaBySymbol(symbol)
             const wsSymbol = meta.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'
-
-            // if (symbol === 'CCC_TEST') {
-            //     debugger
-            // }
 
             if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
                 self.ws_web3[wsSymbol] = undefined 

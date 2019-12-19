@@ -178,7 +178,11 @@ module.exports = {
 
             // post to server
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
+                await apiDataContract.updateAssetsJsonApi(
+                    { owner: userAccountName, 
+     encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
+                    e_email: e_email,
+           showNotification: true })
             }
 
             // add new displayable asset address object
@@ -328,7 +332,11 @@ module.exports = {
         
         if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
             // raw assets: post encrypted
-            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
+            await apiDataContract.updateAssetsJsonApi(
+                { owner: userAccountName, 
+ encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
+                e_email: e_email,
+       showNotification: true })
 
             // update addr monitors
             window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
@@ -409,7 +417,11 @@ module.exports = {
 
         if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
             // raw assets: post encrypted
-            await apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), e_email)
+            await apiDataContract.updateAssetsJsonApi(
+                { owner: userAccountName, 
+ encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
+                e_email: e_email,
+       showNotification: true })
 
             // update addr monitors
             window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
@@ -548,7 +560,12 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                apiDataContract.updateAssetsJsonApi(userAccountName, module.exports.encryptPrunedAssets(currentAssets, apk, h_mpk), e_email)
+                await apiDataContract.updateAssetsJsonApi(
+                    { owner: userAccountName, 
+     encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(currentAssets, apk, h_mpk), 
+                    e_email: e_email,
+           showNotification: false })
+           
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"
