@@ -207,7 +207,7 @@ describe('wallet', function () {
             const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
 
-            //await Promise.resolve(setTimeout(() => {}, 2000))
+            await Promise.resolve(setTimeout(() => {}, 2000))
             const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
             const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
