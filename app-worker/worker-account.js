@@ -70,15 +70,19 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             method: 'getAddressTxids',
             params: [
                 [pollAddress], 
-                { start: height + 100, // uncapped -- all TX's (!)
-                    end: 0,
-       queryMempoolOnly: false } 
+                { start: height + 100, 
+                    end: height - 1000000, // ~173 days
+                    // UPDATE: DEC 2019 -- we really *should* be doing this (end: 0), but it seems to be causing sometimes very, *VERY* slow
+                    //         processing; as if BB was struggling to find the older TX's; no wait time observed on the server when this was happening
+                    //         symptoms match exactly the "waiting for eth to load..." bug
+                    //end: 0, // uncapped -- all TX's (!)
+       queryMempoolOnly: false }
             ]
         },
         (data) => {
             if (data && data.result) {
+                console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
 
-                //
                 // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
                 // i.e. here we must get everything
@@ -164,6 +168,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 }
                             }
 
+                            console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 1`)
                             callback(res)
                         })
                         .catch((err) => {
@@ -171,6 +176,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         })
                     }
                     else {
+                        console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 2`)
                         callback(res)
                     }
 
@@ -289,7 +295,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     const symbol = asset.symbol
 
     if (!web3) {
-        console.warn('getTxDetails_web3 - null web3!')
+        utilsWallet.warn('getTxDetails_web3 - null web3!')
         resolve(null)
         return
     }
@@ -320,11 +326,10 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
                         const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === txData.to.toLowerCase() })
                         const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
-                    
+
                         // map tx (eth or erc20)
                         var mappedTx
                         if (erc20 !== undefined) { // ERC20 TX
-
                             const decodedData = decoder.decodeData(txData.input)
                             if (decodedData) {
                                 if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
@@ -391,8 +396,20 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                 txFailedReverted
                             }
                         }
-
                         //utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
+
+                        //
+                        // UPDATE: the situation below is happening when one of our addresses is receiving (e.g. an airdrop) an unsupported ERC20;
+                        //         the ETH TX path above is triggered (we don't decode the erc20 data.to field),
+                        //         and the result is an unknown receiver (the unsupported erc20 contract addr, from the ETH TX path above)
+                        //
+                        const weAreSenderOrReceiver = weAreSender || ownAddresses.some(ownAddr => ownAddr.toLowerCase() === mappedTx.account_to.toLowerCase())
+                        if (!weAreSenderOrReceiver) {
+                            // here, makes sense to drop the TX: we aren't going to display it anywhere
+                            //utilsWallet.warn(`getTxDetails_web3 - ${symbol} ignoring spurious tx ${tx.txid} [cacheKey=${cacheKey}] (neither sender not receier), txData.to=${txData.to} txData.from=${txData.from} ownAddresses=`, ownAddresses)
+                            resolve(null)
+                            return
+                        }
 
                         // add to cache
                         mappedTx.addedToCacheAt = new Date().getTime()

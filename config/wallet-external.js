@@ -61,8 +61,7 @@ const erc20Contracts = {
 
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 
-    CCC_TEST: '0xe222aBB273F1C32bD353522A1b8899189552548d',
-    
+    CCC_TEST: '0x00908425d40318287102A4cA6497eF13dbD3dD81', // v0.91
 }
 
 function eth_AddrExplorer(address) { 

@@ -433,12 +433,10 @@ const walletsMeta = {
         primaryColor: '#6eaffa',
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
-        
         erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.0, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
-        
+        erc20_gasEstimateMultiplier: 1.1, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
         decimals: 0,
-        tradingViewSymbol: "BITTREX:TUSDBTC", // ##...
+        tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
     'bancor': {
         name: 'bancor',
