@@ -66,7 +66,7 @@ module.exports = {
         return setupCount
     },
 
-    estimateGasTx: (asset, params) => { 
+    estimateGasTx: (asset, params) => {
         
         const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'

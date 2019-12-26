@@ -64,16 +64,26 @@ module.exports = {
                 //globalScope.loaderWorkers[2].postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
-            // wait for eth fetch to finish
+            // wait for eth fetch to finish (and for eth_test fetch )to finish
             const eth_intId = setInterval(() => {
                 storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
+                    var ethDone = false, ethTestDone = false
+                    
                     const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
-                    if (ethAsset.lastAssetUpdateAt === undefined) {
+                    ethDone = ethAsset.lastAssetUpdateAt !== undefined
+                    if (!ethDone) {
                         utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
                     }
-                    else {
-                        // now fetch erc20s - they will use cached eth tx's
+
+                    const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
+                    ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
+                    if (!ethTestDone) {
+                        utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
+                    }
+
+                    // now fetch erc20s - they will use cached eth tx's
+                    if (ethDone && ethTestDone) {
                         erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
                         erc20Assets.forEach(erc20Asset => {
                             appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })

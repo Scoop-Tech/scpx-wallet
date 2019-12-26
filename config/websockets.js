@@ -109,9 +109,6 @@ module.exports = {
         'ETH_TEST': { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true  },
       //'ETH_TEST': { url: 'wss://node0.scoop.tech:9546',                               subBlocks: true  },
       //'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
-      
-     //'TUSD_TEST': { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true  },
-       'CCC_TEST' : { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true },
     },
 
     //

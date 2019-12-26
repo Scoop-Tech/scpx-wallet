@@ -216,6 +216,10 @@ function enrichTx(wallet, asset, tx, pollAddress) {
     return new Promise((resolve, reject) => { 
         const symbol = asset.symbol
 
+        // if (tx.txid == '0xcd6eacb44be82483f3292c7338aa049c0a1daf34f179394969c5d1da9debfa84') {
+        //     debugger
+        // }
+
         // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's
         // wallet owner is part of cache key because of relative fields: tx.sendToSelf and tx.isIncoming 
         const cacheKey = `${asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
@@ -226,6 +230,11 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         // try cache first
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
+
+            // if (tx.txid == '0xcd6eacb44be82483f3292c7338aa049c0a1daf34f179394969c5d1da9debfa84') {
+            //     debugger
+            // }
+
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed cached tx's
 
                 // if we are updating for erc20 asset, filter out eth or other erc20 assets
@@ -350,6 +359,10 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                                 : 0,
                                             txFailedReverted
                                         }
+
+                                        // if (tx.txid == '0x1d1f7b566d2a1bce0b0be65e71a9906023b49b77b7e70d4807e8c27fa0119173') {
+                                        //     console.log('tmp mappedTx', mappedTx)
+                                        // }
                                     }
                                 }
                             }

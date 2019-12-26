@@ -388,13 +388,13 @@ module.exports = {
                 var gasLimitToUse = feeData.gasLimit // default estimate
                 if (asset.erc20_gasEstimateMultiplier) {
                     const dummyTxParams = {
-                            // ### sol: erc20 - we should support erc20 send to self!
                             from: asset.addresses[0].addr, //configExternal.walletExternal_config[asset.symbol].donate, 
                               to: configExternal.walletExternal_config[asset.symbol].donate,
                            value: sendValue,
                         gasLimit: feeData.gasLimit,
                         gasPrice: gasPriceToUse,
                     }
+                    utilsWallet.log(`dummyTxParams`, dummyTxParams)
                     const dummyTxHex = await walletAccount.createTxHex_Account({ asset, params: dummyTxParams, privateKey: undefined })
                     if (dummyTxHex && dummyTxHex.txParams) {
                         const gasTxEstimate = await walletAccount.estimateTxGas_Account({ asset, params: dummyTxHex.txParams })
