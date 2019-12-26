@@ -377,16 +377,47 @@ module.exports = {
             }
         }
         else if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
+
             if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
 
                 var gasPriceToUse = useFastest ? feeData.gasprice_fastest 
                                   : useSlowest ? feeData.gasprice_safeLow 
                                   :              feeData.gasprice_fast 
 
-                // gasPrice (our choice) * gasLimit (variable per tx)
-                var du_ethFee = new BigNumber(feeData.gasLimit).dividedBy(1000000000).multipliedBy(new BigNumber(gasPriceToUse)).dividedBy(1000000000).toString()
+                // estimateGas
+                var gasLimitToUse = feeData.gasLimit // default estimate
+                if (asset.erc20_gasEstimateMultiplier) {
+                    const dummyTxParams = {
+                            // ### sol: erc20 - we should support erc20 send to self!
+                            from: asset.addresses[0].addr, //configExternal.walletExternal_config[asset.symbol].donate, 
+                              to: configExternal.walletExternal_config[asset.symbol].donate,
+                           value: sendValue,
+                        gasLimit: feeData.gasLimit,
+                        gasPrice: gasPriceToUse,
+                    }
+                    const dummyTxHex = await walletAccount.createTxHex_Account({ asset, params: dummyTxParams, privateKey: undefined })
+                    if (dummyTxHex && dummyTxHex.txParams) {
+                        const gasTxEstimate = await walletAccount.estimateTxGas_Account({ asset, params: dummyTxHex.txParams })
+                        utilsWallet.log(`gasEstimate`, gasTxEstimate)
+                        utilsWallet.log(`asset`, asset)
+                        utilsWallet.log(`asset.erc20_gasEstimateMultiplier`, asset.erc20_gasEstimateMultiplier)
+                        if (gasTxEstimate && gasTxEstimate > 0) {
+                            gasLimitToUse = Math.ceil(gasTxEstimate * asset.erc20_gasEstimateMultiplier) // actual web3 estimate
+                            utilsWallet.log(`estimatedGas`, gasLimitToUse)
+                        }
+                    }
+                    else utilsWallet.warn(`failed to get tx params`)
+                }
+
+                // ret
+                var du_ethFee = 
+                    new BigNumber(gasLimitToUse) //new BigNumber(feeData.gasLimit)
+                    .dividedBy(1000000000)
+                    .multipliedBy(new BigNumber(gasPriceToUse))
+                    .dividedBy(1000000000)
+                    .toString()
                 ret = { inputsCount: 1,
-                       eth_gasLimit: feeData.gasLimit,
+                       eth_gasLimit: gasLimitToUse, //feeData.gasLimit,
                        eth_gasPrice: gasPriceToUse,
                                 fee: du_ethFee }
             }
@@ -675,7 +706,7 @@ async function createTxHex(params) {
                           vSize,
                      byteLength,
                     inputsCount: txSkeleton.inputs.length, 
-                    _cu_sendValue: cu_sendValue.toString(),
+                  _cu_sendValue: cu_sendValue.toString(),
                    get cu_sendValue() {
                        return this._cu_sendValue;
                    },
@@ -686,9 +717,7 @@ async function createTxHex(params) {
         }
 
         case configWallet.WALLET_TYPE_ACCOUNT: {
-            // ethereum only support 1-1 transaction
-            // but overall design of this function can support 1-n
-            // todo - transmogrify into n TXs
+
             const receiver = payTo[0].receiver
             const value = payTo[0].value
 
@@ -711,11 +740,15 @@ async function createTxHex(params) {
             }
         
             const walletAccount = require('./wallet-account')
-            const txHexAndValue = await walletAccount.createTxHex_Account(asset, txParams, wif)
-            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex.length, hex=`, txHexAndValue.txhex.length, txHexAndValue.hex)
-            
+            const txHexAndValue = await walletAccount.createTxHex_Account({ asset, params: txParams, privateKey: wif })
+            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, txParams=`, txParams)
+            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex=`, txHexAndValue.hex)
+
             utilsWallet.softNuke(addrPrivKeys)
-            return new Promise((resolve, reject) => { resolve( { hex: txHexAndValue.txhex, cu_sendValue: txHexAndValue.cu_sendValue.toString() } ) })
+            return new Promise((resolve, reject) => { 
+                resolve( { hex: txHexAndValue.txhex, 
+                  cu_sendValue: txHexAndValue.cu_sendValue.toString() }
+                )})
         }
 
         default:

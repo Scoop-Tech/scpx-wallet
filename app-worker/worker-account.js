@@ -27,7 +27,7 @@ module.exports = {
     },
 
     getAddressFull_Cleanup: (wallet, asset, address) => {
-        return getAddressFull_Cleanup(asset.symbol, address)
+        return getAddressFull_Cleanup(wallet, asset, address)
     }
 }
 
@@ -38,7 +38,7 @@ module.exports = {
 //  (b) if we use blockbook, we have exactly the same model as utxo's -- i.e. cached IndexedDB and keyed on txid: faster, more reliable and less bandwidth
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
-    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
+    utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
     
     // ETH v2
@@ -191,24 +191,25 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
 
 // cleanup 
 async function getAddressFull_Cleanup(wallet, asset, address) {
-    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} ${address}...`)
+    utilsWallet.debug(`getAddressFull_Cleanup(account) - ${asset.symbol} ${address}...`)
     closeDedicatedWeb3Socket(asset, address)
 }
 
 // tx processing, w/ dedicated web3 instance 
 var dedicatedWeb3 = []
 function closeDedicatedWeb3Socket(asset, pollAddress) {
-    try {
-        const web3Key = (asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
-        if (dedicatedWeb3[web3Key]) {
-            dedicatedWeb3[web3Key].currentProvider.connection.close()
-            dedicatedWeb3[web3Key] = undefined
-            utilsWallet.log(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - closed dedicated socket OK`)
-        }
-    }
-    catch(err) {
-        utilsWallet.warn(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - FAIL closing web3 dedicated socket, err=`, err)
-    }
+    // ### buggy - causes race condition on getTxDetails_web3() usage below
+    // try {
+    //     const web3Key = (asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
+    //     if (dedicatedWeb3[web3Key]) {
+    //         dedicatedWeb3[web3Key] = undefined
+    //         dedicatedWeb3[web3Key].currentProvider.connection.close()
+    //         utilsWallet.log(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - closed dedicated socket OK`)
+    //     }
+    // }
+    // catch(err) {
+    //     utilsWallet.warn(`closeDedicatedWeb3Socket ${asset.symbol} ${web3Key} - FAIL closing web3 dedicated socket, err=`, err)
+    // }
 }
 
 function enrichTx(wallet, asset, tx, pollAddress) {
@@ -253,7 +254,11 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                     utilsWallet.debug('>> created dedicatedWeb3: OK.') 
                 }
                 if (dedicatedWeb3[web3Key].currentProvider.connection.readyState != 1) {
-                    dedicatedWeb3[web3Key].currentProvider.on("connect", data => { 
+                    dedicatedWeb3[web3Key].currentProvider.on("connect", function() { 
+                        // ### buggy - race condition on closeDedicatedWeb3Socket()
+                        // if (!dedicatedWeb3[web3Key]) {
+                        //     debugger
+                        // }
                         getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses)
                     })
                 }
@@ -273,7 +278,13 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
 function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddresses) {
     const symbol = asset.symbol
-                    
+
+    if (!web3) {
+        console.warn('getTxDetails_web3 - null web3!')
+        resolve(null)
+        return
+    }
+
     // get tx
     utilsWallet.debug(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
 

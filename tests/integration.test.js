@@ -19,6 +19,21 @@ const configWallet = require('../config/wallet')
 // todo: https://github.com/Scoop-Tech/scpx-wallet/issues/22
 // note: for manual coverage upload:  "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
 
+// "bip39": "^2.5.0",
+// "buffer": "^5.2.1",
+// "cashaddrjs": "^0.3.3",
+// "lodash-es": "^4.17.15",
+// "mem": "^5.1.1",
+// "minimist-string": "^1.0.2",
+// "node-tail": "0.0.4",
+// "nvm": "0.0.4",
+// "prompt-sync": "^4.1.6",
+// "readline-sync": "^1.4.9",
+// "redux-persist-node-storage": "^2.0.0",
+// "redux-persist-transform-compress-encrypt": "^1.0.2",
+// "redux-persist-transform-filter": "0.0.18",
+// "web3-eth-abi": "^1.0.0-beta.55",
+
 // testnet account - please help keep it topped up!
 const serverTestWallet = {
         mpk: 'PW5JF9k3njzJ3F7fYgPTAKcHg1uDXoKonXhHpfDs4Sw2fJcwgHxVT',

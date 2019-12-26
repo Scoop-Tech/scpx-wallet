@@ -61,7 +61,7 @@ const erc20Contracts = {
 
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 
-    CCC_TEST: '0x6Bce3c1c74Df7aBB7b995db2617d1Dfe74df9510',
+    CCC_TEST: '0xe222aBB273F1C32bD353522A1b8899189552548d',
     
 }
 

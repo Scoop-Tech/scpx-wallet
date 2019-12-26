@@ -189,11 +189,20 @@ function handler(e) {
 
         case 'GET_ETH_TX_FEE_WEB3':
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
-            workerWeb3.estimateGasInEther(data.asset, data.params).then(result => {
+            workerWeb3.getGasPrices(data.asset, data.params).then(result => {
                 utilsWallet.log('GET_ETH_TX_FEE_WEB3_DONE: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
             })
             break
+
+        case 'GET_ETH_ESTIMATE_TX_GAS':
+            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_ESTIMATE_TX_GAS...`)
+            workerWeb3.estimateGasTx(data.asset, data.params).then(result => {
+                utilsWallet.log('GET_ETH_ESTIMATE_TX_GAS_DONE: posting back', result)
+                self.postMessage({ msg: 'GET_ETH_ESTIMATE_TX_GAS_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
+            })
+            break
+
         case 'GET_ETH_TX_HEX_WEB3':
             utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
             workerWeb3.createTxHex_Eth(data.asset, data.params, data.privateKey).then(result => {
@@ -375,7 +384,7 @@ function handler(e) {
     function refreshAssetFull(asset, wallet, utxo_known_spentTxIds) {
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
 
-            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetFull ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
             //console.time(`refreshAssetFull_${asset.symbol}`)
 
             // get BB scoket, for account types (needed for ETH v2)
@@ -429,7 +438,7 @@ function handler(e) {
     function refreshAssetBalance(asset, wallet) {
 
         workerAddressMempool.mempool_get_BB_txs(asset, wallet, (utxo_mempool_spentTxIds) => {
-            utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+            utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol} - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
             // get BB scoket, for account types (needed for ETH v2)
             var bbSocket
@@ -453,7 +462,7 @@ function handler(e) {
             Promise.all(refreshOps)
             .then((res) => {
                 if (allDispatchActions.length > 0) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
+                    utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
                 }
@@ -566,7 +575,7 @@ function handler(e) {
         self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, txid } })
     }
     function networkConnected(symbol, connected) {
-        utilsWallet.log(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)
+        utilsWallet.debug(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)
         self.postMessage({ msg: 'NETWORK_CONNECTED_CHANGE', status: 'ok', data: { symbol, connected } }) 
     }
 }

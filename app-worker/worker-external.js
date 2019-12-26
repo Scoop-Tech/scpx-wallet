@@ -28,7 +28,7 @@ module.exports = {
 
 function getAddressFull_Cleanup(p) {
     const { wallet, asset, addrNdx } = p
-    utilsWallet.log(`getAddressFull_Cleanup - ${asset.symbol} addrNdx=${addrNdx}...`)
+    utilsWallet.debug(`getAddressFull_Cleanup(ext) - ${asset.symbol} addrNdx=${addrNdx}...`)
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
             break // NOP

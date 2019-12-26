@@ -8,22 +8,29 @@
 
 ## Building from Source
 
-The tested and recommended build environment is node 10.15.3 and npm 6.9.0. ```--experimental-worker``` configuration is required: this is set by the npm scripts, but you can also set it in your environment, e.g. Powershell: ```$env:NODE_OPTIONS = "--experimental-worker"``` (or your OS equivalent), or see ```./nodemon.json```.
+The tested and recommended build environment is node 10.15.3 and npm 6.9.0.
 
+## --experimental-worker
+```--experimental-worker``` configuration IS REQUIRED: this is set by the npm scripts fpr Windows, but you can also set it in your environment, e.g.
+Powershell: ```$env:NODE_OPTIONS = "--experimental-worker"```
+OSX: ```export NODE_OPTIONS=--experimental-worker``` (or see: ```./nodemon.json```)
+
+## Setup
+ > All:
   * ```npm install -g node-gyp```
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
-  * ```npm install -g --production windows-build-tools@4.0.0``` - Windows: see also [here](https://github.com/felixrieseberg/windows-build-tools/issues/152)
-  * ```npm config set msvs_version 2015``` - Windows
+ > Windows:
+  * ```npm install -g --production windows-build-tools@4.0.0``` - see also [here](https://github.com/felixrieseberg/windows-build-tools/issues/152)
+  * ```npm config set msvs_version 2015```
+ > All:
   * ```npm install``` - Windows: see also [here](https://github.com/nodejs/node-gyp/issues/671) re. node-gyp rebuild failures
 
 ## Running Core Wallet CLI
-
   * ```npm run dev``` - runs with dev flags (saves CLI history to file, caches MPK in memory, activates test assets)
   * ```npm start``` - runs with prod flags
 
 ## Running Tests
-
   * ```npm run test``` to run the the CI test suite.
   * ```npm run test -- -t "BTC_TEST"``` - to run individual tests, filtered by ```it()``` description.
 

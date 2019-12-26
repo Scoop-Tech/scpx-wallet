@@ -66,11 +66,20 @@ module.exports = {
         return setupCount
     },
 
+    estimateGasTx: (asset, params) => { 
+        
+        const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
+                       : asset.symbol
+
+        return self.ws_web3[wsSymbol].eth.estimateGas(params)
+    },
+
     // returns  { gasLimit, gasprice_Web3,                              // from web3
     //            gasprice_safeLow, gasprice_fast, gasprice_fastest     // from oracle(s)
     //          }
-    estimateGasInEther: (asset, params) => { 
-        utilsWallet.debug(`fees - estimateGasInEther ${asset.symbol}, params=`, params)
+    getGasPrices: (asset, params) => { 
+        utilsWallet.log(`fees - getGasPrices ${asset.symbol}, params=`, params)
         if (!params || !params.from || !params.to || !params.value) throw('Invalid fee parameters')
         var ret = {}
 
@@ -103,14 +112,13 @@ module.exports = {
             return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
         })
         .then(res => {
-            // 2x on this oracle: not convinced by its values!
             if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000 * 2))) // gwei -> wei
-                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000 * 2)))
-                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000 * 2)))
+                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000 * 1))) // gwei -> wei
+                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000 * 1)))
+                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000 * 1)))
 
             } else { // fallback to web3
-                utilsWallet.warn(`### fees - estimateGasInEther ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
+                utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
                 ret.gasprice_fast = ret.gasprice_Web3
                 ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
                 ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
@@ -120,10 +128,31 @@ module.exports = {
     },
 
     createTxHex_Eth: async (asset, params, privateKey) => {
-        if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
+        if (!params) {
             debugger
             throw 'Invalid or missing parameters'
         }
+        if (!params.gasLimit) {
+            debugger
+            throw 'Invalid or missing parameters'
+        }
+        if (!params.gasPrice) {
+            debugger
+            throw 'Invalid or missing parameters'
+        }
+        if (params.value === undefined) {
+            debugger
+            throw 'Invalid or missing parameters'
+        }
+        if (!params.from) {
+            debugger
+            throw 'Invalid or missing parameters'
+        }
+        if (!params.to) {
+            debugger
+            throw 'Invalid or missing parameters'
+        }
+
         utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, params=`, params)
 
         const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' 
@@ -145,9 +174,9 @@ module.exports = {
         }
         wei_sendValue = wei_sendValue.toString()
 
-        utilsWallet.debug('*** eth txhex - params.value=', params.value.toString())
-        utilsWallet.debug('*** eth txhex - params.gasLimit=', params.gasLimit)
-        utilsWallet.debug('*** eth txhex - params.gasPrice=', params.gasPrice)
+        utilsWallet.log('createTxHex_Eth - params.value=', params.value.toString())
+        utilsWallet.log('createTxHex_Eth - params.gasLimit=', params.gasLimit)
+        utilsWallet.log('createTxHex_Eth - params.gasPrice=', params.gasPrice)
 
         // repackage params for web3
         params.value = web3.utils.toHex(wei_sendValue)
@@ -158,11 +187,15 @@ module.exports = {
         //try {
             params.nonce = nextNonce
             const tx = new EthTx(params)
+            if (!privateKey)
+                return { txParams: params }
+
             tx.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
 
-            utilsWallet.log(`*** createTxHex_Eth ${asset.symbol}, nextNonce=${nextNonce}, tx=`, tx)
+            utilsWallet.log(`createTxHex_Eth - ${asset.symbol}, nextNonce=${nextNonce}, tx=`, tx)
 
-            return { txhex: '0x' + tx.serialize().toString('hex'), cu_sendValue: wei_sendValue }
+            return { txhex: '0x' + tx.serialize().toString('hex'),
+              cu_sendValue: wei_sendValue }
         //}
         // catch (err) {
         //     utilsWallet.error(`### createTxHex_Eth ${asset.symbol} TX sign FAIL, error=`, err)
@@ -173,8 +206,6 @@ module.exports = {
 
     createTxHex_erc20: (asset, params, privateKey) => {
         if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
-            debugger
-            throw 'Invalid or missing parameters'
         }
 
         utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
@@ -187,35 +218,32 @@ module.exports = {
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
-        utilsWallet.log('erc20 - params.value=', params.value);
-        utilsWallet.log('erc20 - params.value.toString()=', params.value.toString())
+        utilsWallet.log('createTxHex_erc20 - params.value=', params.value);
+        utilsWallet.log('createTxHex_erc20 - params.value.toString()=', params.value.toString())
 
         const assetMeta = configWallet.getMetaBySymbol(asset.symbol)
         params.value = utilsWallet.toCalculationUnit(params.value.toString(), {
                 type: configWallet.WALLET_TYPE_ACCOUNT,
          addressType: configWallet.ADDRESS_TYPE_ETH,
             decimals: assetMeta.decimals
-        }).toString() 
+        }) //.toString() 
 
         const cu_sendValue = params.value
-        utilsWallet.log('erc20 - wei=', params.value)
+        utilsWallet.log('createTxHex_erc20 - wei=', params.value)
 
         params.value = web3.utils.toHex(params.value) //web3.utils.toHex(new BigNumber(params.value))
-        utilsWallet.log('erc20 - params.value(toHex)=', params.value.toString())
+        utilsWallet.log('createTxHex_erc20 - params.value(toHex)=', params.value)
 
-        utilsWallet.log('erc20 - params.gasLimit=', params.gasLimit)
-        utilsWallet.log('erc20 - params.gasPrice=', params.gasPrice)
+        utilsWallet.log('createTxHex_erc20 - params.gasLimit=', params.gasLimit)
+        utilsWallet.log('createTxHex_erc20 - params.gasPrice=', params.gasPrice)
 
         const minContractABI = erc20ABI.abi
         const contractAddress = configExternal.walletExternal_config[asset.symbol].contractAddress
         const contract = new web3.eth.Contract(minContractABI, contractAddress, { from: params.from })
         
-        // working txhex - localhost 0x1 hex value
-        // "0xf8aa45850430e23400834c4b40946bce3c1c74df7abb7b995db2617d1dfe74df951080b844a9059cbb0000000000000000000000008443b1edf203f96d1a5ec98301cfebc4d3cf2b2000000000000000000000000000000000000000000000000000000000000000011ba0b8b19a0f9a0140afac2bc7d8d307f07a1a2e05450c0789600f3984a375cb3d8da027392fa2d987d73ca60c1b67897abf887460d9142c63ba1906a9f8e7e8829c43"
-
         return web3.eth.getTransactionCount(params.from, 'pending')
         .then((nextNonce) => {
-            const rawTX = {
+            const txParams = {
                     from: params.from,
                    nonce: web3.utils.toHex(nextNonce),
                 gasLimit: web3.utils.toHex(params.gasLimit),
@@ -224,10 +252,14 @@ module.exports = {
                    value: "0x0",
                     data: contract.methods.transfer(params.to, params.value).encodeABI()
             }
-            const transaction = new EthTx(rawTX)
+            if (!privateKey)
+                return { txParams: txParams }
+
+            const transaction = new EthTx(txParams)
             transaction.sign(Buffer.from(privateKey.replace('0x', ''), 'hex'))
 
-            return { txhex: '0x' + transaction.serialize().toString('hex'), cu_sendValue: cu_sendValue }
+            return { txhex: '0x' + transaction.serialize().toString('hex'), 
+              cu_sendValue: cu_sendValue }
         })
     },
 
