@@ -461,7 +461,7 @@ module.exports = {
     //
     generateWallets: async (p) => {
         const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
-                apk, e_email, h_mpk } = p
+                apk, e_email, h_mpk, email } = p
         if (!store) { throw 'Invalid store' }
         if (!h_mpk) { throw 'Invalid h_mpk' }
 
@@ -487,6 +487,13 @@ module.exports = {
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
+
+        if (email !== 'testnets@scoop.tech') {
+            if (!email.includes("aircarbon.co")) { 
+                console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
+                needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
+            }
+        }
 
         // (re)generate wallets
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
@@ -777,8 +784,9 @@ function generateWalletAccount(p) {
             //utilsWallet.log(`eos=`, eosActiveWallet)
             if (eosActiveWallet) {
                 const meta = configWallet.getMetaBySymbol('EOS')
-                defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }]; break
+                defaultPrivKeys = [{ privKey: eosActiveWallet.wif, path: `m/44'/${meta.bip44_index}'/0'/0/0` }];
             }
+            break
 
         default:
             // erc20's and eth_test

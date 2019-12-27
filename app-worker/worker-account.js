@@ -317,7 +317,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                 const txFailedReverted = txReceipt !== null && txReceipt !== undefined && !(txReceipt.status == '0x1' || txReceipt.status == 1)
 
                 // get block (for timestamp)
-                web3.eth.getBlock(Number(txData.blockNumber))
+                web3.eth.getBlock(txData.blockNumber) //Number(txData.blockNumber))
                 .then((blockData) => {
                     if (blockData) {
                         const blockTimestamp = blockData.timestamp
@@ -338,9 +338,11 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
 
                                     const bn_tokenValue = new BigNumber(tokenValue)
                                     const assetErc20 = wallet.assets.find(p => p.symbol === erc20.symbol )
-                                    const du_value = utilsWallet.toDisplayUnit(bn_tokenValue, assetErc20)
+                                    const du_value = assetErc20 
+                                        ? utilsWallet.toDisplayUnit(bn_tokenValue, assetErc20) 
+                                        : undefined
                                     
-                                    if (tokenValue) {
+                                    if (tokenValue !== undefined && du_value !== undefined) {
                                         const sendToSelf = 
                                                ownAddresses.some(ownAddr => ownAddr.toLowerCase() === param_to.toLowerCase())
                                             && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
@@ -398,15 +400,17 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         }
                         //utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
-                        //
-                        // UPDATE: the situation below is happening when one of our addresses is receiving (e.g. an airdrop) an unsupported ERC20;
-                        //         the ETH TX path above is triggered (we don't decode the erc20 data.to field),
-                        //         and the result is an unknown receiver (the unsupported erc20 contract addr, from the ETH TX path above)
-                        //
+                        // we can  fail to produce a mappedTx if we are excluding one specific erc20 in generateWallets() fn.
+                        if (!mappedTx) {
+                            resolve(null)
+                            return
+                        }
+
+                        // this condition is happening when one of our addresses is receiving (e.g. an airdrop) an unsupported ERC20;
+                        // the ETH TX path above is triggered (we don't decode the erc20 data.to field),
+                        // and the result is an unknown receiver (the unsupported erc20 contract addr, from the ETH TX path above)
                         const weAreSenderOrReceiver = weAreSender || ownAddresses.some(ownAddr => ownAddr.toLowerCase() === mappedTx.account_to.toLowerCase())
-                        if (!weAreSenderOrReceiver) {
-                            // here, makes sense to drop the TX: we aren't going to display it anywhere
-                            //utilsWallet.warn(`getTxDetails_web3 - ${symbol} ignoring spurious tx ${tx.txid} [cacheKey=${cacheKey}] (neither sender not receier), txData.to=${txData.to} txData.from=${txData.from} ownAddresses=`, ownAddresses)
+                        if (weAreSenderOrReceiver === false) {
                             resolve(null)
                             return
                         }
