@@ -69,7 +69,7 @@ module.exports = {
         const delta_bal_conf   = new BigNumber(res.balance).minus(new BigNumber(asset.addresses[addrNdx].balance))
         const delta_bal_unconf = new BigNumber(res.unconfirmedBalance).minus(new BigNumber(asset.addresses[addrNdx].unconfirmedBalance))
         
-        const min_accept_delta = asset.addressType === configWallet.ADDRESS_TYPE_ETH ? configWallet.ETH_DUST_WEI * 2 : configWallet.UTXO_DUST_SAT
+        const min_accept_delta = asset.addressType === configWallet.ADDRESS_TYPE_ETH ? 1 : configWallet.UTXO_DUST_SAT
 
         if (
             // initial load or testing - accept

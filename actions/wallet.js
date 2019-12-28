@@ -493,6 +493,10 @@ module.exports = {
                 console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
                 needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
             }
+            if (!email.includes("singdax.co")) { 
+                console.warn('temp/dbg - skipping singdax(t) for non SD email account')
+                needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
+            }
         }
 
         // (re)generate wallets

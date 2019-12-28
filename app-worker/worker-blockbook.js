@@ -303,16 +303,52 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                     utilsWallet.logMajor('cyan','black', `appWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`)
 
                                                     // save blockheight & time on asset
-
                                                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
-                                                                    data: { dispatchActions: [{ 
+                                                                      data: { dispatchActions: [{ 
                                                                             type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                        payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                                         payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
                                                     })
 
                                                     // requery balance check for asset on new block - updates confirmed counts
                                                     self.postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
-                                                                    data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
+                                                                      data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' } })                                            
+ 
+                                                    //
+                                                    // NOTE: this *duplicates* functionality in worker-geth;
+                                                    //       we aren't getting up-to-date data from BB getAddressTxids when we trigger from worker-geth
+                                                    //       (it's an edge case: seems to only trigger when receiving two same/identical TX's in a short period)
+                                                    //
+
+                                                    // eth - same for all erc20s
+                                                    if (x === 'ETH' || x === 'ETH_TEST') {
+                                                        const erc20_symbols = Object.keys(configExternal.erc20Contracts)
+                                                        erc20_symbols.forEach(erc20_symbol => {
+
+                                                            const meta = configWallet.getMetaBySymbol(erc20_symbol)
+                                                            console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
+                                                            if ((x === 'ETH'      && !meta.isErc20_Ropsten)
+                                                             || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
+
+                                                                self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
+                                                                    data: { dispatchActions: [{ 
+                                                                       type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                    payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                                })
+
+                                                                //
+                                                                // todo? (perf - but probably rapidly diminishing returns here)
+                                                                //  change REQUEST_STATE to accept [] of asset for update in 
+                                                                //  a single batch via ASSET_REFRESH_NEW_BLOCK -> refreshAssetFull/refreshAssetBalance
+                                                                //   (the latter two fn's would return [] of dispatchActions and caller (worker.js) would 
+                                                                //    send one batch of actions to update eth+[erc20's] in one hit)
+                                                                //
+                                                                self.postMessage({ 
+                                                                    msg: 'REQUEST_STATE', status: 'REQ',
+                                                                    data: { stateItem: 'ASSET', stateKey: erc20_symbol, context: 'ASSET_REFRESH_NEW_BLOCK' } 
+                                                                })
+                                                            }
+                                                        })
+                                                    }
                                                 }
                                             }
                                         }

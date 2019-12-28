@@ -159,13 +159,15 @@ module.exports = {
                                                                 data: { stateItem: 'ASSET', stateKey: x, context: 'ASSET_REFRESH_NEW_BLOCK' }
                                                             })
                                                             
-                                                            // eth mainnet - same for all erc20s
-                                                            if (x === 'ETH') {
+                                                            // eth - same for all erc20s
+                                                            if (x === 'ETH' || x === 'ETH_TEST') {
                                                                 const erc20_symbols = Object.keys(configExternal.erc20Contracts)
                                                                 erc20_symbols.forEach(erc20_symbol => {
 
                                                                     const meta = configWallet.getMetaBySymbol(erc20_symbol)
-                                                                    if (!meta.isErc20_Ropsten) {
+                                                                    console.log(`GETH ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
+                                                                    if ((x === 'ETH'      && !meta.isErc20_Ropsten)
+                                                                     || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 
                                                                         dispatchActions.push({
                                                                             type: actionsWallet.SET_ASSET_BLOCK_INFO,

@@ -80,9 +80,10 @@ module.exports = {
 
                             enrichTxOp.payload.addrTxs.forEach(addrTx => {
                                 addrTx.txs.forEach(enrichTx => {
+                                    console.log(`REQUEST_DISPATCH_BATCH: WCORE_SET_ENRICHED_TXS_MULTI / enrichTx=`, enrichTx)
                                     if (assetTxs.some(p => p.txid === enrichTx.txid && p.block_no == -1 && enrichTx.block_no != -1)) {
-                                        if (asset.symbol === 'ETH' && enrichTx.erc20 !== undefined) {
-                                            ; // eth erc20 tx: nop - ignore the eth tx, just notify on for the erc20
+                                        if ((asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') && enrichTx.erc20 !== undefined) {
+                                            ; // eth erc20 tx: nop - ignore the eth tx, just notify for the erc20
                                         }
                                         else {
                                             utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: {

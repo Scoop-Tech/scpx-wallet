@@ -91,7 +91,9 @@ module.exports = {
       //'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
 
      //'TUSD_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
-       'CCC_TEST'  : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
+      
+      //'CCC_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
+     //'SD1A_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
 
       // (not used) -- issues with addr formats/creation iirc
       //'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
@@ -99,6 +101,8 @@ module.exports = {
 
     //
     // ETH -- web3 WS providers, supporting pendingTransactions
+    // UPDATE: DEC 2019 -- keeping subBlocks for worker-geth; it's duplicated in worker-blockbook::isosocket_Setup_Blockbook()
+    //                     but seems required somehow (low value TUSD tx's aren't getting confirmed without it)
     //
     geth_ws_config: {
         'ETH'     : { url: 'wss://ac-dev0.net:10546',                                   subBlocks: true  },

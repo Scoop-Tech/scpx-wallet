@@ -40,6 +40,7 @@ const initialState = {
             LINK: 0, ZIL: 0, HOT: 0, REP: 0, MKR: 0,
 
         CCC_TEST: (10 / 1000), // ##.. TODO
+       SD1A_TEST: 100
     }
 }
 

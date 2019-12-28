@@ -70,18 +70,20 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             method: 'getAddressTxids',
             params: [
                 [pollAddress], 
-                { start: height + 100, 
-                    end: height - 1000000, // ~173 days
+
+                { start: height,// + 100, 
+                    end: height - 100000, // ~17 days
                     // UPDATE: DEC 2019 -- we really *should* be doing this (end: 0), but it seems to be causing sometimes very, *VERY* slow
                     //         processing; as if BB was struggling to find the older TX's; no wait time observed on the server when this was happening
                     //         symptoms match exactly the "waiting for eth to load..." bug
                     //end: 0, // uncapped -- all TX's (!)
        queryMempoolOnly: false }
+
             ]
         },
         (data) => {
             if (data && data.result) {
-                console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
+                console.log(`data for ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
 
                 // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)

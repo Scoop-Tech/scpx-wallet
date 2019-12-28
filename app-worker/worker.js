@@ -260,7 +260,7 @@ function handler(e) {
                     refreshAssetFull(asset, wallet) 
                 }
                 else if (context === 'ASSET_REFRESH_NEW_BLOCK') { // caller is new block subscriber
-                    
+
                     const pendingInitialLoad = wallet.assets.filter(p => p.lastAssetUpdateAt === undefined)
                     if (pendingInitialLoad.length > 0) {
                         utilsWallet.warn(`appWorker >> ${self.workerId} - ASSET_REFRESH_NEW_BLOCK - ${asset.symbol} - not all assets yet loaded: ignoring - pendingInitialLoad=`, pendingInitialLoad.map(p => p.symbol).join(', '))
@@ -269,12 +269,13 @@ function handler(e) {
                         // if we have pending tx's, we want to do a full update, otherwise a lightweight balance update is sufficient
                         const unconfirmed_txs = walletExternal.getAll_unconfirmed_txs(asset)
                         const local_txs = walletExternal.getAll_local_txs(asset)
+
                         if (unconfirmed_txs.length > 0 || local_txs.length > 0) {
-                            //utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' got pending txs -- doing full update...')
+                            utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' got pending txs -- doing full update...')
                             refreshAssetFull(asset, wallet)
                         }
                         else {
-                            //utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' no pending txs -- doing light update (balance refresh)...')
+                            utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' no pending txs -- doing light update (balance refresh)...')
                             refreshAssetBalance(asset, wallet)
                         }
                     }

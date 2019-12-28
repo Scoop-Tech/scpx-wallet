@@ -62,6 +62,7 @@ const erc20Contracts = {
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 
     CCC_TEST: '0x00908425d40318287102A4cA6497eF13dbD3dD81', // v0.91
+    SD1A_TEST: '0xdb28C28d78514fB612d312E80BA8759C757BF92E', // v0.91
 }
 
 function eth_AddrExplorer(address) { 
@@ -304,6 +305,13 @@ module.exports = {
         CCC_TEST: {
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             contractAddress: erc20Contracts.CCC_TEST,
+            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
+            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            httpProvider: ethTestHttpProvider,
+        },
+        SD1A_TEST: {
+            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            contractAddress: erc20Contracts.SD1A_TEST,
             explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
             txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
             httpProvider: ethTestHttpProvider,

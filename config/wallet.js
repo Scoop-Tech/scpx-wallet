@@ -38,7 +38,9 @@ const WALLET_INCLUDE_LTC_TEST = false
 
 const WALLET_INCLUDE_TUSD_TEST = false
 const WALLET_INCLUDE_AIRCARBON_TEST = true
+const WALLET_INCLUDE_SINGDAX_TEST = true
 const WALLET_INCLUDE_ETH_TEST = WALLET_INCLUDE_AIRCARBON_TEST || 
+                                WALLET_INCLUDE_SINGDAX_TEST || 
                                 (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 
 const DISABLE_BLOCK_UPDATES = false
@@ -430,6 +432,25 @@ const walletsMeta = {
         desc: 'Ropsten Testnet',
         displaySymbol: 'CCC#',
         imageUrl: 'img/asset-icon/aircarbon_test2.png',
+        primaryColor: '#6eaffa',
+        sortOrder: 444,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+        erc20_transferGasLimit: 5000000,
+        erc20_gasEstimateMultiplier: 1.1, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        decimals: 0,
+        tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
+    },
+    'singdax(t)': {
+        isErc20_Ropsten: true,
+        name: 'singdax(t)',
+        web: 'https://singdax.co/',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'SD1A_TEST',
+        displayName: 'SingDax 1A#',
+        desc: 'Ropsten Testnet',
+        displaySymbol: 'SD1A#',
+        imageUrl: 'img/asset-icon/SD3.png',
         primaryColor: '#6eaffa',
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
@@ -866,6 +887,9 @@ module.exports = {
         // }
         if (WALLET_INCLUDE_AIRCARBON_TEST) {
             ret.push('aircarbon(t)')
+        }
+        if (WALLET_INCLUDE_SINGDAX_TEST) {
+            ret.push('singdax(t)')
         }
         if (WALLET_INCLUDE_BTC_TEST) {
             ret.push('btc(t)')

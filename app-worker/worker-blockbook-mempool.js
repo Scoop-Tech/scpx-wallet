@@ -245,6 +245,8 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
 
     var inboundSymbol
     const ownAddresses = asset.addresses.map(p => p.addr)
+
+    utilsWallet.log('mempool_process_BB_EthTx: erc20=', erc20)
     if (erc20 !== undefined) { // ERC20
         inboundSymbol = erc20.symbol
 
