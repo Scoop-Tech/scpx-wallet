@@ -150,7 +150,6 @@ module.exports = {
 
         // get asset and account to generate into
         const genAsset = rawAssets[assetName.toLowerCase()]
-        debugger
         if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw 'Invalid assetName'
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol

@@ -322,7 +322,7 @@ describe('testnets', function () {
             // validate test asset state
             const bal = walletExternal.get_combinedBalance(asset)
             if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
-            if (asset.addresses.length < 2)throw 'Invalid test asset address setup'
+            if (asset.addresses.length < 2) throw 'Invalid test asset address setup'
 
             // send testnet tx from the higher balance address to the lower
             const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1
