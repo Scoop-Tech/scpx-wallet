@@ -489,18 +489,21 @@ module.exports = {
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
 
-        if (email !== 'testnets@scoop.tech') {
-            if (!email.includes("aircarbon.co")) { 
-                console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
-                needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
-            }
-            if (!email.includes("singdax.co")) { 
-                console.warn('temp/dbg - skipping singdax(t) for non SD email account')
-                needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
-            }
-            if (!email.includes("ayondo.com")) { 
-                console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
-                needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
+        // temp/hack - conditional load of asset types, by email type
+        if (email !== undefined) {
+            if (email !== 'testnets@scoop.tech') {
+                if (!email.includes("aircarbon.co")) { 
+                    console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
+                    needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
+                }
+                if (!email.includes("singdax.co")) { 
+                    console.warn('temp/dbg - skipping singdax(t) for non SD email account')
+                    needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
+                }
+                if (!email.includes("ayondo.com")) { 
+                    console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
+                    needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
+                }
             }
         }
 
