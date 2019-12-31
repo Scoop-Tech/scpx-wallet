@@ -39,8 +39,10 @@ const WALLET_INCLUDE_LTC_TEST = false
 const WALLET_INCLUDE_TUSD_TEST = false
 const WALLET_INCLUDE_AIRCARBON_TEST = true
 const WALLET_INCLUDE_SINGDAX_TEST = true
+const WALLET_INCLUDE_AYONDO_TEST = true
 const WALLET_INCLUDE_ETH_TEST = WALLET_INCLUDE_AIRCARBON_TEST || 
                                 WALLET_INCLUDE_SINGDAX_TEST || 
+                                WALLET_INCLUDE_AYONDO_TEST || 
                                 (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 
 const DISABLE_BLOCK_UPDATES = false
@@ -436,7 +438,7 @@ const walletsMeta = {
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.1, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
@@ -455,7 +457,26 @@ const walletsMeta = {
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.1, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        decimals: 0,
+        tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
+    },
+    'ayondo(t)': {
+        isErc20_Ropsten: true,
+        name: 'ayondo(t)',
+        web: 'https://ayondo.com/',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'AY1A_TEST',
+        displayName: 'ayondo 1A#',
+        desc: 'Ropsten Testnet',
+        displaySymbol: 'AY1A#',
+        imageUrl: 'img/asset-icon/AY1.png',
+        primaryColor: '#6eaffa',
+        sortOrder: 444,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+        erc20_transferGasLimit: 5000000,
+        erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
@@ -891,6 +912,10 @@ module.exports = {
         if (WALLET_INCLUDE_SINGDAX_TEST) {
             ret.push('singdax(t)')
         }
+        if (WALLET_INCLUDE_AYONDO_TEST) {
+            ret.push('ayondo(t)')
+        }
+
         if (WALLET_INCLUDE_BTC_TEST) {
             ret.push('btc(t)')
         }

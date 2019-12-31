@@ -150,6 +150,7 @@ module.exports = {
 
         // get asset and account to generate into
         const genAsset = rawAssets[assetName.toLowerCase()]
+        debugger
         if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw 'Invalid assetName'
         const meta = configWallet.walletsMeta[assetName.toLowerCase()]
         const genSymbol = meta.symbol
@@ -496,6 +497,10 @@ module.exports = {
             if (!email.includes("singdax.co")) { 
                 console.warn('temp/dbg - skipping singdax(t) for non SD email account')
                 needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
+            }
+            if (!email.includes("ayondo.com")) { 
+                console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
+                needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
             }
         }
 
