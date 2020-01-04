@@ -332,10 +332,10 @@ module.exports = {
     },
 
     //
-    // Compute tx fee, for supplied tx details
+    // Compute a specific tx fee, for the supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, apk, h_mpk } = p
+        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, apk, h_mpk } = p
         if (!feeData || !asset || !encryptedAssetsRaw || !apk || !h_mpk) { throw 'Invalid parameters' }
 
         var ret = {}
@@ -383,9 +383,12 @@ module.exports = {
                 var gasPriceToUse = useFastest ? feeData.gasprice_fastest 
                                   : useSlowest ? feeData.gasprice_safeLow 
                                   :              feeData.gasprice_fast 
+                
+                var gasLimitToUse = feeData.gasLimit // default "estimate" - from wallet/actions.getAssetFeeData()
 
-                // estimateGas
-                var gasLimitToUse = feeData.gasLimit // default estimate
+                // erc20's -- if asset flag set: use estimateGas + a multiplier (override hard-coded erc20_transferGasLimit); 
+                // required for complex transfer() functions, e.g. cashflow tokens
+                //if (erc20) { ...
                 if (asset.erc20_gasEstimateMultiplier) {
                     const dummyTxParams = {
                             from: asset.addresses[0].addr, //configExternal.walletExternal_config[asset.symbol].donate, 
@@ -394,30 +397,58 @@ module.exports = {
                         gasLimit: feeData.gasLimit,
                         gasPrice: gasPriceToUse,
                     }
-                    utilsWallet.log(`dummyTxParams`, dummyTxParams)
+                    utilsWallet.log(`erc20 - dummyTxParams`, dummyTxParams)
                     const dummyTxHex = await walletAccount.createTxHex_Account({ asset, params: dummyTxParams, privateKey: undefined })
                     if (dummyTxHex && dummyTxHex.txParams) {
                         const gasTxEstimate = await walletAccount.estimateTxGas_Account({ asset, params: dummyTxHex.txParams })
-                        utilsWallet.log(`gasEstimate`, gasTxEstimate)
-                        utilsWallet.log(`asset`, asset)
-                        utilsWallet.log(`asset.erc20_gasEstimateMultiplier`, asset.erc20_gasEstimateMultiplier)
+                        utilsWallet.log(`erc20 - gasEstimate`, gasTxEstimate)
+                        utilsWallet.log(`erc20 - asset`, asset)
+                        utilsWallet.log(`erc20 - asset.erc20_gasEstimateMultiplier`, asset.erc20_gasEstimateMultiplier)
                         if (gasTxEstimate && gasTxEstimate > 0) {
                             gasLimitToUse = Math.ceil(gasTxEstimate * asset.erc20_gasEstimateMultiplier) // actual web3 estimate
-                            utilsWallet.log(`estimatedGas`, gasLimitToUse)
+                            utilsWallet.log(`erc20 - estimatedGas`, gasLimitToUse)
                         }
                     }
-                    else utilsWallet.warn(`failed to get tx params`)
+                    else utilsWallet.warn(`erc20 - failed to get tx params`)
+                }
+
+                // eth -- if receiver addr supplied: use estimateGas to override feeData;
+                // required for complex payable functions, e.g. cashflow tokens
+                if (receiverAddress) {
+                    if (utilsWallet.isERC20(receiverAddress)) {
+                        if (asset.symbol === 'ETH_TEST' || asset.symbol === 'ETH') {
+                            const dummyTxParams = {
+                                    from: asset.addresses[0].addr, // ##? will fail if sending from ndx != 0? will need sending index to be passed?
+                                      to: receiverAddress,
+                                   value: sendValue,
+                                gasLimit: 7000000, //feeData.gasLimit,
+                                gasPrice: gasPriceToUse,
+                            }
+                            utilsWallet.log(`eth(_test) - dummyTxParams`, dummyTxParams)
+                            const dummyTxHex = await walletAccount.createTxHex_Account({ asset, params: dummyTxParams, privateKey: undefined })
+                            if (dummyTxHex && dummyTxHex.txParams) {
+                                const gasTxEstimate = await walletAccount.estimateTxGas_Account({ asset, params: dummyTxHex.txParams })
+                                utilsWallet.log(`eth(_test) - gasEstimate`, gasTxEstimate)
+                                utilsWallet.log(`eth(_test) - asset`, asset)
+                                if (gasTxEstimate && gasTxEstimate > 0) {
+                                    gasLimitToUse = Math.ceil(gasTxEstimate * 1.2) // actual web3 estimate
+                                    utilsWallet.log(`eth(_test) - estimatedGas`, gasLimitToUse)
+                                }
+                            }
+                            else utilsWallet.warn(`eth(_test) - failed to get tx params`)
+                        }
+                    }
                 }
 
                 // ret
                 var du_ethFee = 
-                    new BigNumber(gasLimitToUse) //new BigNumber(feeData.gasLimit)
+                    new BigNumber(gasLimitToUse)
                     .dividedBy(1000000000)
                     .multipliedBy(new BigNumber(gasPriceToUse))
                     .dividedBy(1000000000)
                     .toString()
                 ret = { inputsCount: 1,
-                       eth_gasLimit: gasLimitToUse, //feeData.gasLimit,
+                       eth_gasLimit: gasLimitToUse,
                        eth_gasPrice: gasPriceToUse,
                                 fee: du_ethFee }
             }

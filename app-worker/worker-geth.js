@@ -10,7 +10,6 @@ const configExternal = require('../config/wallet-external')
 
 const utilsWallet = require('../utils')
 
-
 module.exports = {
     // geth tx and block subscriptions (diagnostics and balance polling, respectively)
     // considered VOLATILE -- no built-in reconnect
@@ -165,7 +164,7 @@ module.exports = {
                                                                 erc20_symbols.forEach(erc20_symbol => {
 
                                                                     const meta = configWallet.getMetaBySymbol(erc20_symbol)
-                                                                    console.log(`GETH ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
+                                                                    //console.log(`GETH ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
                                                                     if ((x === 'ETH'      && !meta.isErc20_Ropsten)
                                                                      || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 

@@ -325,7 +325,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                         erc20_symbols.forEach(erc20_symbol => {
 
                                                             const meta = configWallet.getMetaBySymbol(erc20_symbol)
-                                                            console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
+                                                            //console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
                                                             if ((x === 'ETH'      && !meta.isErc20_Ropsten)
                                                              || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 

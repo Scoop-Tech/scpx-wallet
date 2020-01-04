@@ -174,14 +174,18 @@ module.exports = {
     //
     // erc20
     //
-    isERC20: (assetOrSymbol) => {
-        if (assetOrSymbol.addressType) {
-            return assetOrSymbol.addressType === configWallet.ADDRESS_TYPE_ETH &&
-                assetOrSymbol.symbol !== 'ETH' && assetOrSymbol.symbol !== 'ETH_TEST'
+    isERC20: (assetOrSymbolOrAddress) => {
+        if (assetOrSymbolOrAddress.addressType) {
+            return assetOrSymbolOrAddress.addressType === configWallet.ADDRESS_TYPE_ETH &&
+                   assetOrSymbolOrAddress.symbol !== 'ETH' && assetOrSymbolOrAddress.symbol !== 'ETH_TEST'
         }
-        else {
-            return Object.keys(configExternal.erc20Contracts).some(p => p == assetOrSymbol)
+        if (Object.keys(configExternal.erc20Contracts).some(p => p == assetOrSymbolOrAddress)) {
+            return true
         }
+        if (Object.values(configExternal.erc20Contracts).some(p => p == assetOrSymbolOrAddress)) {
+            return true
+        }
+        return false
     },
 
     //

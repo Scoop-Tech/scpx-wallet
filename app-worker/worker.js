@@ -182,6 +182,15 @@ function handler(e) {
         case 'INIT_WEB3_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             var setupCount = workerWeb3.web3_SetupSocketProvider()
+            if (data.wallet && data.wallet.assets) {
+                // TODO: take in data.wallet; iterate erc20's; call totalSupply() & postback 
+                // const mainnetErc20s = data.wallet.assets.filter(p => p.addressType === configWallet.ADDRESS_TYPE_ETH && utilsWallet.isERC20(p) && !p.isErc20_Ropsten);
+                // const testnetErc20s = data.wallet.assets.filter(p => p.addressType === configWallet.ADDRESS_TYPE_ETH && utilsWallet.isERC20(p) && p.isErc20_Ropsten);
+                // utilsWallet.warn(`INIT_WEB3_SOCKET - mainnetErc20s`, mainnetErc20s)
+                // utilsWallet.warn(`INIT_WEB3_SOCKET - testnetErc20s`, testnetErc20s)
+                //...
+            }
+
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
             }
@@ -256,7 +265,6 @@ function handler(e) {
                 // process balance (& tx/utxo) updates
                 if (context === 'ASSET_REFRESH_ADDR_MONITOR') {  // caller is an address monitor
                     //utilsWallet.log('DBG1 - ASSET_REFRESH_ADDR_MONITOR')
-
                     refreshAssetFull(asset, wallet) 
                 }
                 else if (context === 'ASSET_REFRESH_NEW_BLOCK') { // caller is new block subscriber
@@ -271,11 +279,11 @@ function handler(e) {
                         const local_txs = walletExternal.getAll_local_txs(asset)
 
                         if (unconfirmed_txs.length > 0 || local_txs.length > 0) {
-                            utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' got pending txs -- doing full update...')
+                            //utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' got pending txs -- doing full update...')
                             refreshAssetFull(asset, wallet)
                         }
                         else {
-                            utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' no pending txs -- doing light update (balance refresh)...')
+                            //utilsWallet.log('DBG1 - ASSET_REFRESH_NEW_BLOCK ' + asset.symbol + ' no pending txs -- doing light update (balance refresh)...')
                             refreshAssetBalance(asset, wallet)
                         }
                     }
@@ -409,7 +417,6 @@ function handler(e) {
                     //  2 - need a new flag "allAddressesLoaded" only set on happy path
                     //...
                     workerExternal.getAddressFull_External({ wallet, asset, addrNdx, bbSocket, utxo_mempool_spentTxIds: spentTxIds, },
-
                         (dispatchActions) => {
                             if (dispatchActions.length > 0) {
                                 allDispatchActions = [...allDispatchActions, ...dispatchActions]

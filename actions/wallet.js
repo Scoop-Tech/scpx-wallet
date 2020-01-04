@@ -648,7 +648,8 @@ module.exports = {
     },
 
     //
-    // get fees
+    // get default/"generic" fees
+    // should be deprecated/removed completely in favour of wallet-external.computeTxFee() [specific tx fee compute]
     //
     getAssetFeeData: (asset) => {
         //utilsWallet.log("fees - getAssetFeeData")

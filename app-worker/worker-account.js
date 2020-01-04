@@ -224,7 +224,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
     return new Promise((resolve, reject) => { 
         const symbol = asset.symbol
 
-        // if (tx.txid == '0xcd6eacb44be82483f3292c7338aa049c0a1daf34f179394969c5d1da9debfa84') {
+        // if (tx.txid == '0x03d01227e3c6d4c0797290985accdf360017efe0b5c215487d4093c0f560c94e') {
         //     debugger
         // }
 
@@ -238,10 +238,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         // try cache first
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
-
-            // if (tx.txid == '0xcd6eacb44be82483f3292c7338aa049c0a1daf34f179394969c5d1da9debfa84') {
-            //     debugger
-            // }
 
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed cached tx's
 
@@ -329,9 +325,15 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === txData.to.toLowerCase() })
                         const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
 
+                        // if (tx.txid == '0x03d01227e3c6d4c0797290985accdf360017efe0b5c215487d4093c0f560c94e') {
+                        //     debugger
+                        // }
+           
                         // map tx (eth or erc20)
                         var mappedTx
-                        if (erc20 !== undefined) { // ERC20 TX
+                        var processAsEthTx = true
+                        if (erc20 !== undefined) {
+                            processAsEthTx = false
                             const decodedData = decoder.decodeData(txData.input)
                             if (decodedData) {
                                 if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
@@ -374,9 +376,13 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                         // }
                                     }
                                 }
+                                else { // not ERC20 transfer() method - process as ETH
+                                    processAsEthTx = true
+                                }
                             }
                         }
-                        else { // ETH TX
+
+                        if (processAsEthTx) { // ETH TX
                             const sendToSelf =
                                    ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.to.toLowerCase())
                                 && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
@@ -402,7 +408,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         }
                         //utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
-                        // we can  fail to produce a mappedTx if we are excluding one specific erc20 in generateWallets() fn.
+                        // we can fail to produce a mappedTx if we are excluding one specific erc20 in generateWallets() fn.
                         if (!mappedTx) {
                             resolve(null)
                             return
@@ -445,7 +451,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         utilsWallet.error(`enrichTx - no block data from web3`)
                         resolve(null)
                     }
-                }) // getBlock
+                }) // getBlock 
                 .catch(err => {
                     debugger
                     utilsWallet.error(`## getBlock FAIL 1 - tx.txid=${tx.txid}, err=`, err)
