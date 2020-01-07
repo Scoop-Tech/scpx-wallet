@@ -170,7 +170,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 }
                             }
 
-                            console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 1`)
+                            console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress} dispatchTxs.length=${dispatchTxs.length}: CALLBACK 1`)
                             callback(res)
                         })
                         .catch((err) => {
@@ -224,10 +224,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
     return new Promise((resolve, reject) => { 
         const symbol = asset.symbol
 
-        // if (tx.txid == '0x03d01227e3c6d4c0797290985accdf360017efe0b5c215487d4093c0f560c94e') {
-        //     debugger
-        // }
-
         // cache key is ETH{_TEST} always --> i.e. erc20 tx's are cached as eth tx's
         // wallet owner is part of cache key because of relative fields: tx.sendToSelf and tx.isIncoming 
         const cacheKey = `${asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
@@ -239,6 +235,10 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         utilsWallet.txdb_getItem(cacheKey)
         .then((cachedTx) => {
 
+            // if (symbol === 'SD1A_TEST' && tx.txid == '0xde72f0883a1f937134d5795cb00223c88f2d41963353786e2a0f614657f93897') {
+            //     debugger
+            // }
+    
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed cached tx's
 
                 // if we are updating for erc20 asset, filter out eth or other erc20 assets
@@ -325,7 +325,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === txData.to.toLowerCase() })
                         const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
 
-                        // if (tx.txid == '0x03d01227e3c6d4c0797290985accdf360017efe0b5c215487d4093c0f560c94e') {
+                        // if (symbol === 'SD1A_TEST' && tx.txid == '0xde72f0883a1f937134d5795cb00223c88f2d41963353786e2a0f614657f93897') {
                         //     debugger
                         // }
            
@@ -481,7 +481,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
 // get balance
 //
 async function getAddressBalance_Account(symbol, address) {
-    utilsWallet.debug(`getAddressBalance (ACCOUNT) (${address})...`)
+    utilsWallet.debug(`getAddressBalance_Account ${symbol} (${address})...`)
 
     switch (symbol) {
         case 'EOS': // todo
@@ -491,7 +491,7 @@ async function getAddressBalance_Account(symbol, address) {
         case 'ETH_TEST':    
             const wei = await getETHAddressBalance_api(symbol, address)
             if (configWallet.ETH_COALESCE_DUST_TO_ZERO && wei > 0 && wei <= configWallet.ETH_DUST_WEI) {
-                utilsWallet.log(`getAddressBalance_Account - rounding dust (balance) wei for ${symbol} (${wei})`)
+                utilsWallet.log(`getAddressBalance_Account ${symbol} - rounding dust (balance) wei value ${wei}`)
                 return { bal: "0", symbol, address }
             }
             return { bal: wei, symbol, address }
@@ -552,7 +552,7 @@ function getETHAddressBalance_api(symbol, address) {
 
 function getERC20AddressBalance_api(symbol, address) {
     if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
-        utilsWallet.debug(`*** getERC20AddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
+        utilsWallet.debug(`*** getERC20AddressBalance_api ${symbol} (${address}) web3...`)
 
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
@@ -577,10 +577,12 @@ function getERC20AddressBalance_api(symbol, address) {
                 (err, result) => {
                     if (result) {
                         const tokens = web3.utils.toBN(result)
+                        if (symbol === 'SD1A_TEST')
+                            utilsWallet.warn(`OK: getERC20AddressBalance_api ${symbol} (${address}) web3 - tokens=`, tokens.toString())
                         resolve(tokens.toString())
                     }
                     else {
-                        utilsWallet.warn(`### getERC20AddressBalance_api (using web3) ${symbol} (${address}) FAIL - err=`, err)
+                        utilsWallet.warn(`### getERC20AddressBalance_api ${symbol} (${address}) web3 FAIL - err=`, err)
                         reject(err)
                     }
                 });

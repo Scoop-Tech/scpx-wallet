@@ -307,7 +307,7 @@ function handler(e) {
             break
         }
         case 'REFRESH_ASSET_FULL': {
-            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL ${data.asset.symbol}...`)
+            utilsWallet.warn(`appWorker >> ${self.workerId} REFRESH_ASSET_FULL ${data.asset.symbol}...`)
             // var updateAsset = data.asset
             // if (utils.isERC20(data.asset)) { 
             //     updateAsset = data.wallet.assets.find(p => p.symbol === 'ETH')
@@ -471,6 +471,7 @@ function handler(e) {
             .then((res) => {
                 if (allDispatchActions.length > 0) {
                     utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
+
                     allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                     self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
                 }

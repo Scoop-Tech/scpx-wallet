@@ -101,15 +101,14 @@ module.exports = {
                                                 // is the tx to a known erc20 (e.g. a transfer() or a payable() CFT issuance)
                                                 // for CFT tokens: trigger full asset refresh on the erc20 asset
                                                 // (could also do this here for non-CFT erc20's, but the erc20 local_tx path covers this already)
-                                                debugger
                                                 const isTxToErc20 = utilsWallet.isERC20(enrichTx.account_to)
                                                 console.log('REQUEST_DISPATCH_BATCH: ETH isTxToErc20=', isTxToErc20)
                                                 if (isTxToErc20) {
                                                     const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
                                                     const erc20Symbol = erc20s.find(p => p.erc20_addr.toLowerCase() === enrichTx.account_to.toLowerCase()).symbol
-                                                    console.log('REQUEST_DISPATCH_BATCH: ETH - TX to known ERC20; will REFRESH_ASSET_FULL for erc20Symbol=', erc20Symbol)
+                                                    console.log('REQUEST_DISPATCH_BATCH: ETH - TX to known ERC20; will REFRESH_ASSET_BALANCE for erc20Symbol=', erc20Symbol)
                                                     const erc20Asset = storeState.wallet.assets.find(p => p.symbol === erc20Symbol)
-                                                    utilsWallet.getAppWorker().postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet: storeState.wallet } })
+                                                    utilsWallet.getAppWorker().postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: erc20Asset, wallet: storeState.wallet } })
                                                 }
     
                                                 // notify user 

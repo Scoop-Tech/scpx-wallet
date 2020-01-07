@@ -182,7 +182,7 @@ module.exports = {
         if (Object.keys(configExternal.erc20Contracts).some(p => p == assetOrSymbolOrAddress)) {
             return true
         }
-        if (Object.values(configExternal.erc20Contracts).some(p => p == assetOrSymbolOrAddress)) {
+        if (Object.values(configExternal.erc20Contracts).map(p => p.toLowerCase()).some(p => p == assetOrSymbolOrAddress.toLowerCase())) {
             return true
         }
         return false

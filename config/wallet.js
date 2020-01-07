@@ -115,7 +115,7 @@ const walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC',
         displayName: 'Bitcoin',
-        desc: 'Legacy',
+        desc: undefined,
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc.png',
         primaryColor: '#f2a235',
@@ -425,6 +425,7 @@ const walletsMeta = {
     // },
     'aircarbon(t)': {
         isErc20_Ropsten: true,
+        isCashflowToken: true,
         name: 'aircarbon(t)',
         web: 'https://aircarbon.co/',
         type: WALLET_TYPE_ACCOUNT,
@@ -439,11 +440,13 @@ const walletsMeta = {
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 5000000,
         erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        erc20_gasMin: 300000, // if defined (and if multipler defined), we will apply this min. to estimateGas() (it's very innacurate for some reason when sending minimum qty == 1)
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
     'singdax(t)': {
         isErc20_Ropsten: true,
+        isCashflowToken: true,
         name: 'singdax(t)',
         web: 'https://singdax.co/',
         type: WALLET_TYPE_ACCOUNT,
@@ -457,12 +460,14 @@ const walletsMeta = {
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        erc20_gasEstimateMultiplier: 1.2,
+        erc20_gasMin: 300000,
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
     'ayondo(t)': {
         isErc20_Ropsten: true,
+        isCashflowToken: true,
         name: 'ayondo(t)',
         web: 'https://ayondo.com/',
         type: WALLET_TYPE_ACCOUNT,
@@ -476,7 +481,8 @@ const walletsMeta = {
         sortOrder: 444,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
         erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.2, // if defined, we will use override erc20_transferGasLimit with estimateGas() and apply this multiplier
+        erc20_gasEstimateMultiplier: 1.2,
+        erc20_gasMin: 300000,
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },

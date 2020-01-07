@@ -488,9 +488,9 @@ module.exports = {
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
 
-        // temp/hack - conditional load of asset types, by email type
+        // temp/hack - conditional load of assets, by email type
         if (email !== undefined) {
-            if (email !== 'testnets@scoop.tech') {
+            //if (email !== 'testnets@scoop.tech') {
                 if (!email.includes("aircarbon.co")) { 
                     console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
                     needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
@@ -503,7 +503,7 @@ module.exports = {
                     console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
                     needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
                 }
-            }
+            //}
         }
 
         // (re)generate wallets
@@ -816,12 +816,13 @@ function generateWalletAccount(p) {
     }
 
     if (defaultPrivKeys !== undefined) { // save only the wifs/privkeys
-        
+        const accountName = `${configWallet.walletsMeta[genType].displayName}`
+
         if (asset === undefined) {
             // no existing server data: first-time creation
             asset = { accounts: [] }    
             asset.accounts.push({ // new default asset account
-                name: `Scoop ${configWallet.walletsMeta[genType].displayName}`,
+                name: accountName,
             privKeys: []
             })
             asset.accounts[0].privKeys = defaultPrivKeys.slice() // new asset default address indexes
@@ -834,6 +835,9 @@ function generateWalletAccount(p) {
                 asset.accounts[0].privKeys[ndx] = defaultPrivKeys[ndx]
             }
             // note: we leave any other server-populated address indexes alone, so any user-activated (non-default) addresses persist across logins
+
+            // we reset the account name received from the server, too:
+            asset.accounts[0].name = accountName
         }
         return true
     }

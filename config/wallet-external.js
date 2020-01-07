@@ -62,20 +62,30 @@ const erc20Contracts = {
     NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 
     CCC_TEST: '0x00908425d40318287102A4cA6497eF13dbD3dD81', // v0.91
-    SD1A_TEST: '0x2c6DDab401CB44aD95B75a213C9735Ae58851Df7', // v0.94
-    AY1A_TEST: '0xE653164612D61EF01EcC22BC0E361dD4E2BF9025', // v0.91
+    SD1A_TEST: '0x21d233232d7A53BCf7141FD83329455106796Ee9', // v0.95c
+    AY1A_TEST: '0xf07aA78a849A441eBf882967F6130BD3E71C1D9C', // v0.95c
 }
 
+// eth explorers - mainnet
 function eth_AddrExplorer(address) { 
-    //return `https://blockscout.com/eth/mainnet/address/${address}` 
     return `https://etherscan.io/address/${address}`
 }
-function erc20_AddrExplorer(address) {
-    return `https://etherscan.io/tokentxns?a=${address}`
-}
 function eth_TxExplorer(tx) {
-    //return `https://blockscout.com/eth/mainnet/tx/${tx}/internal_transactions`
     return `https://etherscan.io/tx/${tx}`
+}
+function erc20_AddrExplorer(tokenAddr, holderAddr) {
+    return `https://etherscan.io/token/${tokenAddr}?a=${holderAddr}` // `https://etherscan.io/tokentxns?a=${address}`
+}
+
+// eth explorers - ropsten
+function eth_ropstenAddrExplorer(address) { 
+    return `https://ropsten.etherscan.io/address/${address}`
+}
+function eth_ropstenTxExplorer(tx) {
+    return `https://ropsten.etherscan.io/tx/${tx}`
+}
+function erc20_ropstenAddrExplorer(tokenAddr, holderAddr) {
+    return `https://ropsten.etherscan.io/token/${tokenAddr}?a=${holderAddr}` // `https://ropsten.etherscan.io/tokentxns?a=${address}`
 }
 
 module.exports = {
@@ -285,71 +295,71 @@ module.exports = {
         },
         ETH_TEST: { // ropsten  https://faucet.metamask.io/  
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
-            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
-            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            explorerPath: (address) => eth_ropstenAddrExplorer(address),
+            txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
 
         TUSD: { 
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.TUSD,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.TUSD, address), 
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         // TUSD_TEST: {
         //     donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
-        //     explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
-        //     txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+        //     explorerPath: (address) => eth_ropstenAddrExplorer(address),
+        //     txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
         //     httpProvider: ethTestHttpProvider,
         // },
         CCC_TEST: {
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             contractAddress: erc20Contracts.CCC_TEST,
-            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
-            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.CCC_TEST, address),
+            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
         SD1A_TEST: {
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             contractAddress: erc20Contracts.SD1A_TEST,
-            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
-            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.SD1A_TEST, address),
+            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
         AY1A_TEST: {
             donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
             contractAddress: erc20Contracts.AY1A_TEST,
-            explorerPath: (address) => { return 'https://ropsten.etherscan.io/address/' + address },
-            txExplorerPath: (txid) =>  { return 'https://ropsten.etherscan.io/tx/' + txid },
+            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.AY1A_TEST, address),
+            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
 
         BNT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.BNT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         ZRX: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.ZRX,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZRX, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         BAT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.BAT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BAT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         BNB: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.BNB,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNB, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
@@ -357,21 +367,21 @@ module.exports = {
         OMG: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.OMG,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.OMG, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         GTO: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.GTO,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.GTO, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         SNT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.SNT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SNT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
@@ -400,14 +410,14 @@ module.exports = {
         USDT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.USDT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.USDT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         EURT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.EURT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.EURT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
@@ -415,42 +425,42 @@ module.exports = {
         LINK: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.LINK,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.LINK, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         ZIL: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.ZIL,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZIL, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         HOT: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.HOT,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.HOT, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         REP: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.REP,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.REP, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         MKR: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.MKR,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.MKR, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },
         NEXO: {
             donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
             contractAddress: erc20Contracts.NEXO,
-            explorerPath: (address) => erc20_AddrExplorer(address),
+            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.NEXO, address),
             txExplorerPath: (txid) => eth_TxExplorer(txid),
             httpProvider: ethHttpProvider,
         },

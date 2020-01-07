@@ -28,6 +28,10 @@ module.exports = {
     //
     getAddressFull_ProcessResult: (res, asset, addrNdx) => {
         utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} addrNdx=${addrNdx}...`)
+        
+        // if (asset.symbol === 'SD1A_TEST' && addrNdx == 0) {
+        //     debugger
+        // }
 
         if (!res || !res.txs) return null
         if (configWallet.TEST_PAD_TXS) testPadTxs(res)
@@ -41,7 +45,7 @@ module.exports = {
         var testingPaddedTxs = configWallet.TEST_PAD_TXS ? true : false
 
         const new_txs = res.txs.filter(p => { return !asset.addresses[addrNdx].txs.some(p2 => { return p2.txid === p.txid }) })
-        const newTx = new_txs.length > 0 //res.txs && asset.addresses[addrNdx].txs && res.txs.length !== asset.addresses[addrNdx].txs.length
+        const anyNewTx = new_txs.length > 0
         var new_txs_value 
         if (asset.type === configWallet.WALLET_TYPE_UTXO) {
             new_txs_value = 
@@ -68,15 +72,30 @@ module.exports = {
         
         const delta_bal_conf   = new BigNumber(res.balance).minus(new BigNumber(asset.addresses[addrNdx].balance))
         const delta_bal_unconf = new BigNumber(res.unconfirmedBalance).minus(new BigNumber(asset.addresses[addrNdx].unconfirmedBalance))
-        
         const min_accept_delta = asset.addressType === configWallet.ADDRESS_TYPE_ETH ? 1 : configWallet.UTXO_DUST_SAT
 
+        const anyPendingLocalTxs = getAll_local_txs(asset).length > 0
+
+        if (asset.symbol === 'SD1A_TEST') {
+            console.log('DBG2 - balanceChanged', balanceChanged)
+            console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
+            console.log('DBG2 - delta_bal_conf', delta_bal_conf)
+            console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
+            console.log('DBG2 - new_txs.length', new_txs.length)
+            console.log('DBG2 - new_txs_value', new_txs_value)
+        }
         if (
             // initial load or testing - accept
             firstLoad || testingPaddedTxs                                  
         
             // utxo & account - MAIN ATOMIC UPDATE FILTER -- delta on tx's value and the balance are in sync
-            || (balanceChanged && newTx && new_txs_value.minus(delta_bal_conf).abs() <= min_accept_delta)
+            || (balanceChanged && anyNewTx && new_txs_value.minus(delta_bal_conf).abs() <= min_accept_delta)
+
+            // account only (eth) - CASHFLOW TOKENS -- we can get balance updates without *any* transactions!
+            //   > this happens when we subscribe to an issuance by sending eth to the CFT contract <
+            // in this case, accept a state change on the balance update, but only if there aren't any unconfirmed/pending tx's
+            // (the last condition keeps the CFT's working in the normal erc20 receive case [bug otherwise is balance updates to high, then settles to correct value])
+            || (asset.isCashflowToken && balanceChanged && anyPendingLocalTxs == false)
 
             // account - new tx but no balance change -- accept (note we don't accept the inverse)
             // this is to work around blockbook not giving us atomic tx/balance updates;
@@ -103,7 +122,7 @@ module.exports = {
             var newAddr = Object.assign({}, asset.addresses[addrNdx], res)
             newAddr.lastAddrFetchAt = new Date()
 
-            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - ACCEPTING STATE UPDATE: newTx=${newTx} balanceChanged=${balanceChanged}`) 
+            utilsWallet.log(`getAddressFull_ProcessResult - ${asset.symbol} - addrNdx=${addrNdx} - ACCEPTING STATE UPDATE: newTx=${anyNewTx} balanceChanged=${balanceChanged}`) 
 
             const dispatchAction = { type: actionsWallet.WCORE_SET_ADDRESS_FULL, payload: { updateAt: new Date(), symbol: asset.symbol, newAddr} }
             return dispatchAction
@@ -405,7 +424,12 @@ module.exports = {
                         utilsWallet.log(`erc20 - asset`, asset)
                         utilsWallet.log(`erc20 - asset.erc20_gasEstimateMultiplier`, asset.erc20_gasEstimateMultiplier)
                         if (gasTxEstimate && gasTxEstimate > 0) {
-                            gasLimitToUse = Math.ceil(gasTxEstimate * asset.erc20_gasEstimateMultiplier) // actual web3 estimate
+                            // use modified web3 gas estimate
+                            gasLimitToUse = Math.max(
+                                Math.ceil(gasTxEstimate * asset.erc20_gasEstimateMultiplier),
+                                asset.erc20_gasMin
+                            )
+
                             utilsWallet.log(`erc20 - estimatedGas`, gasLimitToUse)
                         }
                     }
@@ -431,7 +455,8 @@ module.exports = {
                                 utilsWallet.log(`eth(_test) - gasEstimate`, gasTxEstimate)
                                 utilsWallet.log(`eth(_test) - asset`, asset)
                                 if (gasTxEstimate && gasTxEstimate > 0) {
-                                    gasLimitToUse = Math.ceil(gasTxEstimate * 1.2) // actual web3 estimate
+                                    // use modified web3 gas estimate
+                                    gasLimitToUse = Math.ceil(gasTxEstimate * 1.2)
                                     utilsWallet.log(`eth(_test) - estimatedGas`, gasLimitToUse)
                                 }
                             }
@@ -451,6 +476,9 @@ module.exports = {
                        eth_gasLimit: gasLimitToUse,
                        eth_gasPrice: gasPriceToUse,
                                 fee: du_ethFee }
+
+                //console.warn(`computeTxFee - feeData=`, feeData)
+                //console.warn(`computeTxFee - du_ethFee=${du_ethFee}, ret=`, ret)
             }
             else throw(`Unknown account address type`)
         }
