@@ -800,8 +800,11 @@ async function createTxHex(params) {
         
             const walletAccount = require('./wallet-account')
             const txHexAndValue = await walletAccount.createTxHex_Account({ asset, params: txParams, privateKey: wif })
+            console.log('DBG1 - txHexAndValue', txHexAndValue)
             utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, txParams=`, txParams)
             utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex=`, txHexAndValue.hex)
+            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, cu_sendValue=`, txHexAndValue.cu_sendValue)
+            utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, cu_sendValue.toString()=`, txHexAndValue.cu_sendValue.toString())
 
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { 

@@ -206,6 +206,8 @@ module.exports = {
 
     createTxHex_erc20: (asset, params, privateKey) => {
         if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
+            debugger
+            throw 'Invalid or missing parameters'
         }
 
         utilsWallet.log(`*** createTxHex_erc20 ${asset.symbol}, params=`, params)
@@ -226,7 +228,7 @@ module.exports = {
                 type: configWallet.WALLET_TYPE_ACCOUNT,
          addressType: configWallet.ADDRESS_TYPE_ETH,
             decimals: assetMeta.decimals
-        }) //.toString() 
+        }).toString() 
 
         const cu_sendValue = params.value
         utilsWallet.log('createTxHex_erc20 - wei=', params.value)
