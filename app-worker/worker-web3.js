@@ -205,7 +205,7 @@ module.exports = {
     },
 
     createTxHex_erc20: (asset, params, privateKey) => {
-        if (!params || !params.gasLimit || !params.gasPrice || !params.value || !params.from || !params.to) {
+        if (!params || !params.gasLimit || !params.gasPrice || params.value === undefined || !params.from || !params.to) {
             debugger
             throw 'Invalid or missing parameters'
         }
