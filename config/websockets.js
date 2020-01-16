@@ -12,16 +12,23 @@ module.exports = {
         'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                  subBlocks: true  },
       //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         
+        'BTC_SEG' : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
+      //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
-        'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG' : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
+      //'BTC_SEG' : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
         
-      //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false  },
-        'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false  },
+        'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
+      //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
+      //'BTC'     : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
+      //'BTC'     : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
         
-        'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false  },
+        'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false },
       //'LTC'     : { url: 'wss://scp-ltc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
     
-        'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false  },
+        'ZEC'     : { url: 'wss://explorer.z.cash',                                          subBlocks: false },
+      //'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false },
       //'ZEC'     : { url: 'wss://scp-zec1.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
 
         'DASH'    : { url: 'wss://insight.dash.org',                                         subBlocks: false }, // BB v3 -- (insight only needed for lights)
@@ -31,8 +38,11 @@ module.exports = {
         'QTUM'    : { url: 'wss://explorer.qtum.org',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
         'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
-
-        'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        
+        'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false }, // BB v3 -- (insight only needed for lights)
+      //'BCHABC'  : { url: 'wss://bch-insight.bitpay.com',                                   subBlocks: false }, // BB v3 -- (insight only needed for lights)
+      //'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false }, // BB v3 -- (insight only needed for lights)
+      //'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
         'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
 

@@ -48,7 +48,9 @@ module.exports = {
 
                     // initial / main path
                     if (self.insightSocketIos[x] === undefined) { // connect & init
-
+                        networkConnected(x, true) // init UI
+                        networkStatusChanged(x, null)
+        
                         utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`, null, { logServerConsole: true })
 
                         self.insightSocketIos[x] = io(configWS.insightApi_ws_config[x].url, { transports: ['websocket'] })
@@ -69,7 +71,7 @@ module.exports = {
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect(1), err=`, err) }
                         })
                         socket.on('connect_failed', function () {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed`)
+                            utilsWallet.error(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed`)
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, false)
@@ -79,7 +81,7 @@ module.exports = {
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed, err=`, err) }
                         })
                         socket.on('connect_error', function (socketErr) {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, socketErr=`, socketErr.message)
+                            utilsWallet.error(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, socketErr=`, socketErr.message)
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, false)
@@ -140,17 +142,17 @@ module.exports = {
 
                                 //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
 
-                                // calc TPS - not using
-                                // if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
-                                // self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
-                                // const tps = self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000)
+                                // calc TPS
+                                if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
+                                self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
+                                const tps = self.countTx[x] > 1 ? self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000) : 0
 
                                 // throttle these to max n per sec
-                                const sinceLastTx = new Date().getTime() - self.lastTx[x]
-                                if (isNaN(sinceLastTx) || sinceLastTx > 500) {
-                                    self.lastTx[x] = new Date().getTime()
-                                    networkStatusChanged(x, tx.txid)
-                                }
+                                //const sinceLastTx = new Date().getTime() - self.lastTx[x]
+                                //if (isNaN(sinceLastTx) || sinceLastTx > 500) {
+                                //    self.lastTx[x] = new Date().getTime()
+                                    networkStatusChanged(x, { txid: tx.txid, tps })
+                                //}
                             })
                             socket.on('block', (blockHash) => {
                                 if (configWallet.DISABLE_BLOCK_UPDATES) return

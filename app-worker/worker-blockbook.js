@@ -244,7 +244,6 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
         setupSymbols.push(
             (function (x) {
-
                 // if we're called more than once, then the socket object already exists
                 if (self.blockbookIsoSockets[x] !== undefined) { // safari refocus handling
                     if (self.blockbookIsoSockets[x].readyState == 2 || self.blockbookIsoSockets[x].readyState == 3) { // if "closing" or "closed" respectively (connecting=0, open=1)
@@ -256,7 +255,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
                 // initial / main path
                 if (self.blockbookIsoSockets[x] === undefined) { // connect & init
-
+                    networkConnected(x, true) // UI
+                    networkStatusChanged(x, null)
+    
                     utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
 
                     self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket") 

@@ -579,9 +579,9 @@ function handler(e) {
         xmlHttp.send(null)
     }
 
-    function networkStatusChanged(symbol, txid) {
+    function networkStatusChanged(symbol, info) {
         //utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
-        self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, txid } })
+        self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, info } })
     }
     function networkConnected(symbol, connected) {
         utilsWallet.debug(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)

@@ -41,7 +41,9 @@ module.exports = {
 
                     // initial / main path
                     if (self.gethSockets[x] === undefined) { // connect & init
-
+                        networkConnected(x, true) // init UI
+                        networkStatusChanged(x, null)
+    
                         utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x}, wsUrl=`, configWS.geth_ws_config[x].url, { logServerConsole: true })
 
                         //debugger
@@ -118,12 +120,17 @@ module.exports = {
                                         if (o_data.params.subscription === tx_subId) {
                                             //utilsWallet.log(`appWorker >> ${self.workerId} GETH WS ${x} - isoWS - TX`)
 
+                                            // calc TPS
+                                            if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
+                                            self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
+                                            const tps = self.countTx[x] > 10 ? self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000) : 0
+
                                             // throttle these to max n per sec
-                                            const sinceLastTx = new Date().getTime() - self.lastTx[x]
-                                            if (isNaN(sinceLastTx) || sinceLastTx > 200) {
-                                                self.lastTx[x] = new Date().getTime()
-                                                networkStatusChanged(x, o_data.params.result)
-                                            }
+                                            //const sinceLastTx = new Date().getTime() - self.lastTx[x]
+                                            //if (isNaN(sinceLastTx) || sinceLastTx > 200) {
+                                            //    self.lastTx[x] = new Date().getTime()
+                                                networkStatusChanged(x, { txid: o_data.params.result, tps })
+                                            //}
                                         }
                                         else if (o_data.params.subscription === block_subId) {
                                             if (!configWallet.DISABLE_BLOCK_UPDATES) {
