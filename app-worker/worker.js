@@ -45,17 +45,21 @@ self.blockbookIsoSockets_subscriptions = []
 self.blockbookIsoSockets_subId_NewBlock = []
 self.blockbookIsoSockets_keepAliveIntervalID = []
 
-self.insightAddrTxs = []    // server sending >1 new tx notification - processed inbound tx list; disregard if tx is already in this list (one list for all assets, probably fine!)
-self.blockbookAddrTxs = []  // "
-self.gethBlockNos = []      // similar issue to address monitors: geth web3 sub - disregard if block already processed (polled) -- seeing sometimes same block sent twice
+self.insight_OwnAddrTxIds = {}    // server sending >1 new tx notification - processed inbound tx list; disregard if tx is already in this list (one list for all assets, probably fine!)
+self.blockbook_OwnAddrTxIds = {}  // "
+self.geth_BlockNos = {}           // similar issue to address monitors: geth web3 sub - disregard if block already processed (polled) -- seeing sometimes same block sent twice
 
-self.gethSockets = {}       // eth - isomorphic-ws - used for slightly faster tx and block polling compared to web3 subscriptions
-self.ws_web3 = {}           // eth - web3 socket for faster balance polling compared to HttpProvider
+self.geth_Sockets = {}            // eth - isomorphic-ws - used for slightly faster tx and block polling compared to web3 subscriptions
+self.ws_web3 = {}                 // eth - web3 socket for faster balance polling compared to HttpProvider
 
 // tx subscriptions - for throttling and TPS calcs
-self.lastTx = {}
-self.firstTx = {}
-self.countTx = {}
+//self.lastTx = {}
+//self.firstTx = {}
+//self.countTx = {}
+//self.gethAllTxs = {}
+self.mempool_tpsBuf = {}
+self.mempool_tot = {}
+self.blocks_time = {}
 
 self.window = self // for web3, and utilsWallet.getMainThreadGlobalScope in web worker context
 
@@ -125,6 +129,9 @@ function handler(e) {
         case 'INIT_INSIGHT_SOCKETIO':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
+            Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && !p.use_BBv3).forEach(p => { 
+                GetSyncInfo(p.symbol)
+            })
             break
         case 'INIT_GETH_ISOSOCKETS':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
@@ -140,7 +147,6 @@ function handler(e) {
             const timeoutMs = data.timeoutMs
 
             if (setupSymbols.length > 0 || walletFirstPoll) {
-                
                 const startWaitAt = new Date().getTime()
                 const wait_intId = setInterval(() => { // wait/poll for all sockets to be ready, then postback either success all or some failed
 
@@ -178,6 +184,9 @@ function handler(e) {
                     }
                 }, 888)
             }
+            Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && p.use_BBv3).forEach(p => { 
+                GetSyncInfo(p.symbol) 
+            })
             break
         case 'INIT_WEB3_SOCKET':
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
@@ -190,6 +199,9 @@ function handler(e) {
                 // utilsWallet.warn(`INIT_WEB3_SOCKET - testnetErc20s`, testnetErc20s)
                 //...
             }
+            Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_ACCOUNT).forEach(p => { 
+                GetSyncInfo(p.symbol)
+            })
 
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
@@ -370,20 +382,26 @@ function handler(e) {
 
         // get initial block/sync info 
         case 'GET_SYNC_INFO':
-            utilsWallet.debug(`appWorker >> ${self.workerId} ${data.symbol} GET_SYNC_INFO...`)
-            const meta = configWallet.getMetaBySymbol(data.symbol)
-            if (meta.type === configWallet.WALLET_TYPE_UTXO) {
-                if (meta.use_BBv3) {
-                    workerBlockbook.getSyncInfo_Blockbook_v3(data.symbol)
-                }
-                else {
-                    workerInsight.getSyncInfo_Insight(data.symbol)
-                }
-            }
-            else if (meta.type === configWallet.WALLET_TYPE_ACCOUNT) {
-                ; // nop - we'll get sync info on next block (eth is fast enough)
-            }
+            GetSyncInfo(data.symbol)
             break
+    }
+
+    function GetSyncInfo(symbol) {
+        utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+        const meta = configWallet.getMetaBySymbol(symbol)
+        if (meta.type === configWallet.WALLET_TYPE_UTXO) {
+            if (meta.use_BBv3) {
+                workerBlockbook.getSyncInfo_Blockbook_v3(symbol, undefined, undefined, networkStatusChanged)
+            }
+            else {
+                workerInsight.getSyncInfo_Insight(symbol, undefined, undefined, networkStatusChanged)
+            }
+        }
+        else if (meta.type === configWallet.WALLET_TYPE_ACCOUNT) {
+            if (symbol === 'ETH' || symbol === 'ETH_TEST') {
+                workerGeth.getSyncInfo_Geth(symbol, undefined, undefined, networkStatusChanged)
+            }
+        }
     }
 
     //

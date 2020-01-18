@@ -70,11 +70,12 @@ function subAddr_Blockbook(wallet, asset) {
                 const txid = data.txid
                 //const addr = data.address
 
-                if (self.blockbookAddrTxs.some(p => { return p === txid })) {
+                if (!self.blockbook_OwnAddrTxIds[asset.symbol]) self.blockbook_OwnAddrTxIds[asset.symbol] = []
+                if (self.blockbook_OwnAddrTxIds[asset.symbol].some(p => { return p === txid })) {
                     utilsWallet.log(`appWorker >> ${self.workerId} *** subAddr_Blockbook - new TX - ${asset.symbol} *** - ignoring: already processed this txid - data=`, data)
                 }
                 else {
-                    self.blockbookAddrTxs.push(txid)
+                    self.blockbook_OwnAddrTxIds[asset.symbol].push(txid)
 
                     if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
                         //utilsWallet.log('DBG1 - got addr-monitor callback, txid=', txid)
@@ -152,13 +153,14 @@ function subAddr_Insight(asset) {
                 const txid = data.txid
                 //const addr = data.address
 
-                if (self.insightAddrTxs.some(p => { return p === txid })) {
+                if (!self.insight_OwnAddrTxIds[asset.symbol]) self.insight_OwnAddrTxIds[asset.symbol] = []
+                if (self.insight_OwnAddrTxIds[asset.symbol].some(p => { return p === txid })) {
                     utilsWallet.warn(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** - ignoring: already processed this txid - data=`, data)
                 }
                 else {
                     utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - insightApi.txid=`, data.txid, { logServerConsole: true })
 
-                    self.insightAddrTxs.push(txid)
+                    self.insight_OwnAddrTxIds[asset.symbol].push(txid)
 
                     utilsWallet.log(`appWorker >> ${self.workerId} *** subscribe_InsightSocket - new TX - ${asset.symbol} *** data=`, data)
                     postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })

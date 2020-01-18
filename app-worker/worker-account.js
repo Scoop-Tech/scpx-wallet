@@ -1,6 +1,7 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
+const axios = require('axios')
 const _ = require('lodash')
 
 const configExternal = require('../config/wallet-external')
@@ -301,7 +302,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     // get tx
     utilsWallet.debug(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
 
-    //self.gethSockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
+    //self.geth_Sockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
 
     web3.eth.getTransaction(tx.txid)
     .then((txData) => {

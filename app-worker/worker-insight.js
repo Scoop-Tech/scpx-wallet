@@ -1,5 +1,6 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
+const CircularBuffer = require("circular-buffer")
 const io  = require('socket.io-client')
 const axios = require('axios')
 //const axiosRetry = require('axios-retry')
@@ -48,8 +49,8 @@ module.exports = {
 
                     // initial / main path
                     if (self.insightSocketIos[x] === undefined) { // connect & init
-                        networkConnected(x, true) // init UI
-                        networkStatusChanged(x, null)
+                        //networkConnected(x, true) // init UI
+                        //networkStatusChanged(x, null)
         
                         utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`, null, { logServerConsole: true })
 
@@ -64,7 +65,7 @@ module.exports = {
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, true)
-                                    networkStatusChanged(x)
+                                    networkStatusChanged(x, { insight_url: configWS.insightApi_ws_config[x].url })
                                     socket.emit('subscribe', 'inv') // subscribe new tx and new blocks
                                 }
                             }
@@ -75,7 +76,7 @@ module.exports = {
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, false)
-                                    networkStatusChanged(x)
+                                    networkStatusChanged(x, { insight_url: configWS.insightApi_ws_config[x].url })
                                 }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_failed, err=`, err) }
@@ -85,7 +86,7 @@ module.exports = {
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, false)
-                                    networkStatusChanged(x)
+                                    networkStatusChanged(x, { insight_url: configWS.insightApi_ws_config[x].url })
                                 }
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect_error, err=`, err) }
@@ -142,16 +143,31 @@ module.exports = {
 
                                 //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
 
-                                // calc TPS
-                                if (!self.firstTx[x]) self.firstTx[x] = new Date().getTime()
-                                self.countTx[x] = !self.countTx[x] ? 1 : self.countTx[x] = self.countTx[x] + 1 
-                                const tps = self.countTx[x] > 1 ? self.countTx[x] / ((new Date().getTime() - self.firstTx[x]) / 1000) : 0
+                                // calc mempool TPS
+                                const BUF_CAP = 5
+                                var mempool_tps = 0
+                                if (!self.mempool_tpsBuf[x]) self.mempool_tpsBuf[x] = new CircularBuffer(BUF_CAP)
+                                if (!self.mempool_tot[x]) self.mempool_tot[x] = 0
+                                //console.log(self.mempool_tpsBuf[x])
+                                if (!self.mempool_tpsBuf[x].toarray().some(p => p.txid == tx.txid)) {
+                                    self.mempool_tpsBuf[x].push({ txid: tx.txid, timestamp: new Date().getTime() })
+                                    self.mempool_tot[x]++
+                                    //console.log('pushed...')
+                                }
+                                //console.log(`${x}: mempool_tpsBuf[x].size()=${mempool_tpsBuf[x].size()}`)
+                                if (mempool_tpsBuf[x].size() == BUF_CAP) {
+                                    const buf1 = mempool_tpsBuf[x].get(0)
+                                    const buf2 = mempool_tpsBuf[x].get(BUF_CAP - 1)
+                                    const ms = buf2.timestamp - buf1.timestamp
+                                    mempool_tps = BUF_CAP / (ms/1000)
+                                    //console.log(`${x}: tot=${self.mempool_tot[x]} buf1=${buf1.timestamp} buf2=${buf2.timestamp} ms=${ms} mempool_tps=${mempool_tps}`)
+                                }
 
                                 // throttle these to max n per sec
                                 //const sinceLastTx = new Date().getTime() - self.lastTx[x]
                                 //if (isNaN(sinceLastTx) || sinceLastTx > 500) {
                                 //    self.lastTx[x] = new Date().getTime()
-                                    networkStatusChanged(x, { txid: tx.txid, tps })
+                                    networkStatusChanged(x, { txid: tx.txid, mempool_tps, insight_url: configWS.insightApi_ws_config[x].url })
                                 //}
                             })
                             socket.on('block', (blockHash) => {
@@ -162,7 +178,6 @@ module.exports = {
                                 }
                                 else {
                                     try {
-
                                         // requery balance check for asset on new block
                                         self.postMessage({ 
                                             msg: 'REQUEST_STATE', status: 'REQ',
@@ -319,16 +334,20 @@ module.exports = {
         })
     },
 
-    getSyncInfo_Insight: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) => {
-        return getSyncInfo_Insight(symbol, receivedBlockNo, receivedBlockTime)
+    getSyncInfo_Insight: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined, networkStatusChanged = undefined) => {
+        return getSyncInfo_Insight(symbol, receivedBlockNo, receivedBlockTime, networkStatusChanged)
     }
 }
 
-function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) {
+function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockTime = undefined, networkStatusChanged = undefined) {
+    if (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST) return
+    if (symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST) return
+    if (symbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST) return
+
     if (configExternal.walletExternal_config[symbol] === undefined ||
         configExternal.walletExternal_config[symbol].api == undefined ||
         configExternal.walletExternal_config[symbol].api.sync === undefined) {
-        utilsWallet.debug(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
+        utilsWallet.info(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
         return
     }
     axios.get(configExternal.walletExternal_config[symbol].api.sync())
@@ -349,6 +368,13 @@ function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockT
                         insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
             }} ] }
             })
+
+            // update lights - block tps
+            if (networkStatusChanged) {
+                networkStatusChanged(symbol, { 
+                    block_no: receivedBlockNo, 
+                 insight_url: configWS.insightApi_ws_config[symbol].url })
+            }
         }
     })
 }

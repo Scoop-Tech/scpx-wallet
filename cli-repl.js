@@ -49,7 +49,7 @@ const walletRemovePrivKeysHelp = `${helpBanner}` +
     `(wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\t--accountName  [string]              <required>  the import account name to remove e.g. "Import #1 BCash ABC"\n`
+    `\t--accountName  [string]              <required>  the import account name to remove e.g. "Import #1 Bitcoin Cash"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `(wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +

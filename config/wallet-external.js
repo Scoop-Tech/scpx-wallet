@@ -1,7 +1,7 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
 //
-// utxo v2 - insight api rest (absolete, but backup for non-BB supported types - now only using websockets/insight WS interfaces for Insight)
+// insight utxo v2 - insight api rest (absolete, but backup for non-BB supported types - now only using websockets/insight WS interfaces for Insight)
 //
 const serverBaseApi = 'https://scpx-svr.azurewebsites.net' 
 
@@ -20,6 +20,21 @@ const serverBaseApi = 'https://scpx-svr.azurewebsites.net'
 const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:4001/insight-api/'
 //const btcTestInsightApi = 'https://node0.scoop.tech:7545/api/' //'https://test-insight.bitpay.com/api/' --> gives 429's
 //const btcTestInsightApi = 'https://test-insight.bitpay.com/api/'
+
+//
+// blockbook rest/api
+//
+const zecBlockbookApi = 'https://ac-dev0.net:10000/api/' //'https://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888/api/' //'https://zec1.trezor.io/api/'
+const ltcBlockbookApi = 'https://ac-dev0.net:10001/api/' //'https://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888/api/' //'https://ltc1.trezor.io/api/'
+const btcBlockbookApi = 'https://ac-dev0.net:10002/api/' //'https://scp-btcsw.southeastasia.cloudapp.azure.com:10130/api/' //,btcBlockbookApi: 'https://btc1.trezor.io/api/'
+const dashBlockbookApi = 'https://ac-dev0.net:10004/api/' //'https://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888/api/' // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
+const vtcBlockbookApi = 'https://ac-dev0.net:10005/api/' //'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
+const dgbBlockbookApi = 'https://ac-dev0.net:10006/api/' //'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
+const bchabcBlockbookApi = 'https://ac-dev0.net:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
+const rvnBlockbookApi = 'https://ac-dev0.net:10008/api/'
+const qtumBlockbookApi = 'https://ac-dev0.net:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
+const zecTestBlockbookApi = 'https://ac-dev0.net:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
+const ltcTestBlockbookApi = '' // NOT USED //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
 
 //
 // eth - geth
@@ -106,28 +121,17 @@ module.exports = {
     // utxo/BB v3 - pure blockbook
     // using proxy with CORS to external trezor nodes for https, and direct trezor node for sockets
     //
-    ,zecBlockbookApi: 'https://ac-dev0.net:10000/api/' //'https://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888/api/' //'https://zec1.trezor.io/api/'
-
-    ,ltcBlockbookApi: 'https://ac-dev0.net:10001/api/' //'https://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888/api/' //'https://ltc1.trezor.io/api/'
-
-    ,btcBlockbookApi: 'https://ac-dev0.net:10002/api/' //'https://scp-btcsw.southeastasia.cloudapp.azure.com:10130/api/' //,btcBlockbookApi: 'https://btc1.trezor.io/api/'
-
-    ,dashBlockbookApi: 'https://ac-dev0.net:10004/api/' //'https://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888/api/' // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
-
-    ,vtcBlockbookApi: 'https://ac-dev0.net:10005/api/' //'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
-
-    ,dgbBlockbookApi: 'https://ac-dev0.net:10006/api/' //'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
-
-    ,bchabcBlockbookApi: 'https://ac-dev0.net:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
-
-    ,rvnTestBlockbookApi: 'https://ac-dev0.net:10008/api/'
-
-    ,qtumBlockbookApi: 'https://ac-dev0.net:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
-
-    ,zecTestBlockbookApi: 'https://ac-dev0.net:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
-
-    // NOT USED
-    ,ltcTestBlockbookApi: '' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
+    ,zecBlockbookApi
+    ,ltcBlockbookApi
+    ,btcBlockbookApi
+    ,dashBlockbookApi
+    ,vtcBlockbookApi
+    ,dgbBlockbookApi
+    ,bchabcBlockbookApi
+    ,rvnBlockbookApi
+    ,qtumBlockbookApi
+    ,zecTestBlockbookApi
+    ,ltcTestBlockbookApi
 
     //
     // fee oracles
@@ -151,10 +155,11 @@ module.exports = {
     
         BTC: {
             donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x',
-            explorerPath: (address) => { return     'https://www.blockchain.com/en/btc/address/' + address },
+            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
             txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
             api: {
                 utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         BTC_SEG: {
@@ -163,6 +168,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
             api: {
                 utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         DASH: {
@@ -171,6 +177,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://insight.dash.org/insight/tx/' + txid },
             api: {
                 utxo: (address) => { return `${dashBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${dashBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         VTC: {
@@ -179,6 +186,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://insight.vertcoin.org/tx/' + txid },
             api: {
                 utxo: (address) => { return `${vtcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${vtcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         QTUM: {
@@ -187,6 +195,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://explorer.qtum.org/tx/' + txid },
             api: {
                 utxo: (address) => { return `${qtumBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${qtumBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         DGB: {
@@ -195,6 +204,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://digiexplorer.info/tx/' + txid },
             api: {
                 utxo: (address) => { return `${dgbBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${dgbBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         BCHABC: {
@@ -203,6 +213,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://blockdozer.com/tx/' + txid },
             api: {
                 utxo: (address) => { return `${bchabcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${bchabcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
 
@@ -231,6 +242,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/ltc/tx/' + txid },
             api: {
                 utxo: (address) => { return `${ltcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${ltcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
         LTC_TEST: { // LTC TestNet4 -- no working faucet
@@ -239,6 +251,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
             api: {
                 utxo: (address) => { return `${ltcTestBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${ltcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
 
@@ -250,6 +263,7 @@ module.exports = {
             //txExplorerPath: (txid) => { return 'https://explorer.zcha.in/transactions/' + txid },
             api: {
                 utxo: (address) => { return `${zecBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash) => { return `${zecBlockbookApi}v2/block/${blockHash}` },
             }        
         },
         ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
@@ -258,6 +272,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
             api: {
                 utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${zecTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
 
@@ -267,6 +282,7 @@ module.exports = {
             txExplorerPath: (txid) => { return 'https://ravencoin.network/tx/' + txid },
             api: {
                 utxo: (address) => { return `${rvnBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${rvnBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
 

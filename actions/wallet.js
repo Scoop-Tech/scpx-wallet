@@ -61,10 +61,9 @@ module.exports = {
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
                 appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
-                //globalScope.loaderWorkers[2].postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
-            // wait for eth fetch to finish (and for eth_test fetch )to finish
+            // wait for eth fetch to finish (and for eth_test fetch) to finish
             const eth_intId = setInterval(() => {
                 storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {

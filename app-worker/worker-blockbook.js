@@ -1,5 +1,6 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 
+const axios = require('axios')
 const isoWs = require('isomorphic-ws')
 const BigNumber = require('bignumber.js')
 
@@ -27,10 +28,10 @@ module.exports = {
         return mapTx_BlockbookToInsight(asset, bbTx)
     },
 
-    // called for initial block-sync state - distinct from new blocks
+    // called for initial block-sync state - and from new blocks
     // also -- called for keep-alives of the WS connections (for direct trezor node connections)
-    getSyncInfo_Blockbook_v3: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) => {
-        return getSyncInfo_Blockbook_v3(symbol, receivedBlockNo, receivedBlockTime)
+    getSyncInfo_Blockbook_v3: (symbol, receivedBlockNo = undefined, receivedBlockTime = undefined, networkStatusChanged = undefined) => {
+        return getSyncInfo_Blockbook_v3(symbol, receivedBlockNo, receivedBlockTime, networkStatusChanged)
     },
 
     // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
@@ -200,33 +201,78 @@ function getAddressBalance_Blockbook_v3(asset, address) {
     })
 }
 
-// called for initial block-sync state - distinct from new blocks
-function getSyncInfo_Blockbook_v3(symbol, receivedBlockNo = undefined, receivedBlockTime = undefined) {
-    isosocket_send_Blockbook(symbol, 'getInfo', {}, (data) => {
+// called for initial block-sync state - and new blocks
+function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
+    
+    async function bb_getBlock(blockNo, page) {
+        const blockData = await axios.get(configExternal.walletExternal_config[symbol].api.block(blockNo, page))
+        if (!blockData || !blockData.data) return null
+        return blockData.data
+    }
 
+    // get node sync info
+    isosocket_send_Blockbook(symbol, 'getInfo', {}, async (data) => {
+        if (!configExternal.walletExternal_config[symbol].api) return
         const dispatchActions = []
 
+        // get current block - exact time & tx count
+        const receivedBlockNo = _receivedBlockNo || data.bestheight || data.bestHeight
+        const curBlock = await bb_getBlock(receivedBlockNo, 1)
+        const txCount = curBlock.txCount ? curBlock.txCount : 0
+        const receivedBlockTime = /*_receivedBlockTime || (curBlock.time ?*/ curBlock.time// : new Date().getTime())
+        if (symbol === 'DGB') {
+            console.log(`${symbol} curBlock`, curBlock)
+            console.log(`${symbol} txCount`, txCount)
+            console.log(`${symbol} receivedBlockTime`, receivedBlockTime)
+        }
+
+        // get prev block - exact time; for block TPS
+        if (!self.blocks_time[symbol]) self.blocks_time[symbol] = []
+        if (!self.blocks_time[symbol][receivedBlockNo - 1]) {
+            const prevBlock = await bb_getBlock(receivedBlockNo - 1, 1)
+            self.blocks_time[symbol][receivedBlockNo - 1] = prevBlock.time
+        }
+        const prevBlockTime = self.blocks_time[symbol][receivedBlockNo - 1]
+        const block_time = receivedBlockTime - prevBlockTime
+        const block_tps = block_time > 0 ? txCount / block_time : 0
+        if (symbol === 'DGB') {
+            console.log(`${symbol} prevBlockTime`, prevBlockTime)
+            console.log(`${symbol} block_time (s)`, parseFloat(block_time.toFixed(2)))
+            console.log(`${symbol} block_tps`, block_tps)
+        }
+        
         dispatchActions.push({
-            type: actionsWallet.SET_ASSET_BLOCK_INFO,
-         payload: {  symbol,
-            receivedBlockNo: receivedBlockNo || data.bestheight || data.bestHeight,
-          receivedBlockTime: receivedBlockTime || new Date().getTime() }
+               type: actionsWallet.SET_ASSET_BLOCK_INFO,
+            payload: { symbol, receivedBlockNo, receivedBlockTime }
         })
 
-        if (symbol === 'ETH') { // eth mainnet - update erc20s
+        if (symbol === 'ETH' || symbol === 'ETH_TEST') { // eth mainnet - update erc20s
             const erc20_symbols = Object.keys(configExternal.erc20Contracts)
             erc20_symbols.forEach(erc20_symbol => {
-                dispatchActions.push({
-                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                 payload: {  symbol: erc20_symbol,
-                    receivedBlockNo: receivedBlockNo || data.bestheight,
-                  receivedBlockTime: receivedBlockTime || new Date().getTime() }
-                })
+
+                const meta = configWallet.getMetaBySymbol(erc20_symbol)
+                if ((symbol === 'ETH'      && !meta.isErc20_Ropsten)
+                 || (symbol === 'ETH_TEST' && meta.isErc20_Ropsten)) {
+                    dispatchActions.push({
+                           type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                        payload: {  symbol: erc20_symbol, receivedBlockNo, receivedBlockTime }
+                    })
+                }
             })
         }
 
-        // update batch
+        // update batch - to state
         self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
+
+        // update lights - block tps
+        if (networkStatusChanged) {
+            networkStatusChanged(symbol, { 
+                block_no: receivedBlockNo, 
+           block_txCount: txCount,
+               block_tps,
+              block_time,
+                  bb_url: configWS.blockbook_ws_config[symbol].url })
+        }
     })
 }
 
@@ -255,8 +301,8 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
                 // initial / main path
                 if (self.blockbookIsoSockets[x] === undefined) { // connect & init
-                    networkConnected(x, true) // UI
-                    networkStatusChanged(x, null)
+                    // networkConnected(x, true) // init UI
+                    // networkStatusChanged(x, null)
     
                     utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
 
@@ -284,6 +330,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                             }
 
                             if (!loaderWorker) {
+                                networkConnected(x, true) // init UI
+                                networkStatusChanged(x, { bb_url: configWS.blockbook_ws_config[x].url })
+
                                 if (configWS.blockbook_ws_config[x].subBlocks === true) {
                                     // subscribe new block from BB -- note, no new TX subscription in BB 
                                     const method = 'subscribeNewBlock'
@@ -301,14 +350,12 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                 }
                                                 else {
                                                     const receivedBlockNo = result.height
+                                                    const receivedBlockTime = new Date().getTime() // TODO: getBlock & use actual
+
                                                     utilsWallet.logMajor('cyan','black', `appWorker >> ${self.workerId} BB BLOCK ${x} - ${receivedBlockNo}`)
 
                                                     // save blockheight & time on asset
-                                                    self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
-                                                                      data: { dispatchActions: [{ 
-                                                                            type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                         payload: { symbol: x, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
-                                                    })
+                                                    getSyncInfo_Blockbook_v3(x, receivedBlockNo, receivedBlockTime, networkStatusChanged)
 
                                                     // requery balance check for asset on new block - updates confirmed counts
                                                     self.postMessage({ msg: 'REQUEST_STATE', status: 'REQ',
@@ -330,11 +377,11 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                             if ((x === 'ETH'      && !meta.isErc20_Ropsten)
                                                              || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 
-                                                                self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
-                                                                    data: { dispatchActions: [{ 
-                                                                       type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                    payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
-                                                                })
+                                                                // self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
+                                                                //     data: { dispatchActions: [{ 
+                                                                //        type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                //     payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                                // })
 
                                                                 //
                                                                 // todo? (perf - but probably rapidly diminishing returns here)
@@ -360,12 +407,19 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect, err=`, err) }
                     }
                     socket.onclose = () => {
-    
                         utilsWallet.warn(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose...`)
                         self.blockbookIsoSockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
                         try {
                             // reconnect - this supplements volatileSockets_ReInit() for faster reconnection
                             isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
+
+                            // ##
+                            // very ugly - but worker-geth:socket.onclose isn't triggering reliably - this is, for some reason
+                            self.geth_Sockets[x] = undefined // help worker-geth
+                            if (!loaderWorker) {
+                                networkConnected(x, false)
+                                networkStatusChanged(x)
+                            }
                         }
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose callback, err=`, err) }
                     }
