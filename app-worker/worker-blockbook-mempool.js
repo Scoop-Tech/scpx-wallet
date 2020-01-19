@@ -22,14 +22,17 @@ module.exports = {
     //
     //  -- but note, re. ETH:  (BB limitation?) we're not getting eth outbound mempool tx's
     //
-    mempool_get_BB_txs: (asset, wallet, callback) => {
+    mempool_get_BB_txs: (asset, wallet) => { //}, callback) => {
         if (asset.symbol !== 'ETH' && asset.symbol !== 'ETH_TEST') { // nop unless ETH
-            callback([])
+            //callback([])
             return
         }
 
         var socket = self.get_BlockbookSocketIo(asset)
-        if (socket === undefined) { callback([]); return }
+        if (socket === undefined) { 
+            //callback([]); 
+            return
+        }
 
         try {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
@@ -89,7 +92,7 @@ module.exports = {
                                     // })
 
                                     //web3 = null
-                                    callback([])
+                                    //callback([])
                                 })
                         //}
                         // not needed, now btc_seg is using BB with proper segwit support
@@ -118,9 +121,9 @@ module.exports = {
                         }*/
                         //else callback([])
                     }
-                    else callback([])
+                    //else callback([])
                 }
-                else callback([])
+                //else callback([])
             })
         }
         catch (err) {

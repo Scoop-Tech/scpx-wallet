@@ -23,7 +23,6 @@ const ADDRESS_TYPE_VTC = 'VTC'
 const ADDRESS_TYPE_QTUM = 'QTUM'
 const ADDRESS_TYPE_DGB = 'DGB'
 const ADDRESS_TYPE_BCHABC = 'BCH'
-
 const ADDRESS_TYPE_RVN = 'RVN'
 
 // static - price sources
@@ -233,7 +232,7 @@ const walletsMeta = {
         displayName: 'Bitcoin Cash',
         desc: 'Bitcoin Cash ABC',
         displaySymbol: 'BCHABC',
-        imageUrl: 'img/asset-icon/bchabc3.png',
+        imageUrl: 'img/asset-icon/bchabc.png',
         primaryColor: '#380E09',
         sortOrder: 11,
         bip44_index: 145,
@@ -380,7 +379,7 @@ const walletsMeta = {
         displayName: 'ETH#',
         desc: 'Ropsten Testnet',
         displaySymbol: 'ETH#',
-        imageUrl: 'img/asset-icon/eth_test2.png',
+        imageUrl: 'img/asset-icon/eth_test.png',
         primaryColor: '#6e7bc4',
         sortOrder: 999,
         bip44_index: 60, // ##
@@ -838,7 +837,7 @@ module.exports = {
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
     , WALLET_MAX_ADDRESSES: 10                                           // hard cap max. no. addresses per asset, used or otherwise
-    , WALLET_MAX_TX_HISTORY: 20                                          // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+    , WALLET_MAX_TX_HISTORY: 100                                         // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
     // wallet config - utxo
     , UTXO_DUST_SAT: 1                                                   // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates

@@ -68,7 +68,11 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     const balData = await getAddressBalance_Account(asset.symbol, pollAddress) // balance - using web3
     try {
         bbSocket.send({ // ETH tx's
-            method: 'getAddressTxids',
+
+            // TODO: perf -- erc20's taking ~80% of the cached-loade time on dom+10 -- DON'T FETCH THESE MORE THAN ONCE!
+            // we're requerying same ETH data for each erc20!!!!???
+
+            method: 'getAddressTxids',  
             params: [
                 [pollAddress], 
 
@@ -77,14 +81,19 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                     // UPDATE: DEC 2019 -- we really *should* be doing this (end: 0), but it seems to be causing sometimes very, *VERY* slow
                     //         processing; as if BB was struggling to find the older TX's; no wait time observed on the server when this was happening
                     //         symptoms match exactly the "waiting for eth to load..." bug
-                    //end: 0, // uncapped -- all TX's (!)
+                    //end: 0, // uncapped -- all TX's
+
+                    // ### this is the load killer -- ERC20 dup'ing this; should run it exactly ONCE from 0 (for eth)
+                    // and loop on erc20 assets in the callback...
+                    // (or cache return data by block height and use cached for erc20's?)
+
        queryMempoolOnly: false }
 
             ]
         },
         (data) => {
             if (data && data.result) {
-                console.log(`data for ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
+                console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
 
                 // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
@@ -171,7 +180,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 }
                             }
 
-                            console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress} dispatchTxs.length=${dispatchTxs.length}: CALLBACK 1`)
+                            //console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress} dispatchTxs.length=${dispatchTxs.length}: CALLBACK 1`)
                             callback(res)
                         })
                         .catch((err) => {
@@ -179,7 +188,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         })
                     }
                     else {
-                        console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 2`)
+                        //console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 2`)
                         callback(res)
                     }
 

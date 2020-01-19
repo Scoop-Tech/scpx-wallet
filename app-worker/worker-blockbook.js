@@ -220,11 +220,11 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         const curBlock = await bb_getBlock(receivedBlockNo, 1)
         const txCount = curBlock.txCount ? curBlock.txCount : 0
         const receivedBlockTime = /*_receivedBlockTime || (curBlock.time ?*/ curBlock.time// : new Date().getTime())
-        if (symbol === 'DGB') {
-            console.log(`${symbol} curBlock`, curBlock)
-            console.log(`${symbol} txCount`, txCount)
-            console.log(`${symbol} receivedBlockTime`, receivedBlockTime)
-        }
+        // if (symbol === 'DGB') {
+        //     console.log(`${symbol} curBlock`, curBlock)
+        //     console.log(`${symbol} txCount`, txCount)
+        //     console.log(`${symbol} receivedBlockTime`, receivedBlockTime)
+        // }
 
         // get prev block - exact time; for block TPS
         if (!self.blocks_time[symbol]) self.blocks_time[symbol] = []
@@ -235,11 +235,11 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         const prevBlockTime = self.blocks_time[symbol][receivedBlockNo - 1]
         const block_time = receivedBlockTime - prevBlockTime
         const block_tps = block_time > 0 ? txCount / block_time : 0
-        if (symbol === 'DGB') {
-            console.log(`${symbol} prevBlockTime`, prevBlockTime)
-            console.log(`${symbol} block_time (s)`, parseFloat(block_time.toFixed(2)))
-            console.log(`${symbol} block_tps`, block_tps)
-        }
+        // if (symbol === 'DGB') {
+        //     console.log(`${symbol} prevBlockTime`, prevBlockTime)
+        //     console.log(`${symbol} block_time (s)`, parseFloat(block_time.toFixed(2)))
+        //     console.log(`${symbol} block_tps`, block_tps)
+        // }
         
         dispatchActions.push({
                type: actionsWallet.SET_ASSET_BLOCK_INFO,

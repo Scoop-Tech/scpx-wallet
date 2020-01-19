@@ -35,7 +35,7 @@ module.exports = {
         const wallet = storeState.wallet
         if (!wallet || !wallet.assets) throw 'No wallet supplied'
         
-        //console.time('loadAllAssets')
+        console.time('loadAllAssets')
         utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
         const appWorker = utilsWallet.getAppWorker()
@@ -43,7 +43,12 @@ module.exports = {
 
         return new Promise((resolve) => {
 
-            // fetch eth first -- all erc20 fetches will then use eth's cached tx data in the indexeddb
+            // get initial sync (block) info, all assets
+            wallet.assets.forEach(asset => {
+                appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+            })
+
+            // fetch eth[_test] first -- erc20 fetches will then use eth's cached tx data in the indexeddb
             const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
             ethAssets.forEach(ethAsset => {
                 appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
@@ -53,17 +58,13 @@ module.exports = {
             // then fetch all others, except erc20s
             var erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
             var otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
-            otherAssets.forEach(otherAsset => {
-                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
-                //globalScope.loaderWorkers[1].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
-            })
+            appWorker.postMessage({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
+            // otherAssets.forEach(otherAsset => {
+            //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
+            //     //globalScope.loaderWorkers[1].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
+            // })
 
-            // get initial sync (block) info, all assets
-            wallet.assets.forEach(asset => {
-                appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
-            })
-
-            // wait for eth fetch to finish (and for eth_test fetch) to finish
+            // wait for eth[_test] fetch to finish 
             const eth_intId = setInterval(() => {
                 storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
@@ -81,13 +82,14 @@ module.exports = {
                         utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
                     }
 
-                    // now fetch erc20s - they will use cached eth tx's
+                    // now fetch erc20s - they will use cached eth[_test] tx's
                     if (ethDone && ethTestDone) {
                         erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
-                        erc20Assets.forEach(erc20Asset => {
-                            appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
-                            //globalScope.loaderWorkers[3].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
-                        })
+                        appWorker.postMessage({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: erc20Assets, wallet } })
+                        // erc20Assets.forEach(erc20Asset => {
+                        //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
+                        //     //globalScope.loaderWorkers[3].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
+                        // })
                         clearInterval(eth_intId)
 
                         // now wait for all erc20 - and all other types - to finish
@@ -103,7 +105,7 @@ module.exports = {
                                     // done
                                     clearInterval(allRemaining_intId)
                                     utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
-                                    //console.timeEnd('loadAllAssets')
+                                    console.timeEnd('loadAllAssets')
                                     resolve()
                                 }
                                 else {
@@ -487,9 +489,11 @@ module.exports = {
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
 
-        // temp/hack - conditional load of assets, by email type
+        // temp/hack - conditional load of test assets, by email type
         if (email !== undefined) {
             //if (email !== 'testnets@scoop.tech') {
+
+                // remove test assets, unless logged into appropriate account
                 if (!email.includes("aircarbon.co")) { 
                     console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
                     needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
@@ -501,6 +505,13 @@ module.exports = {
                 if (!email.includes("ayondo.com")) { 
                     console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
                     needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
+                }
+            //}
+
+            // in prod, remove eth_test unless a test asset is present
+            //if (!configWalelt.IS_DEV) {
+                if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
+                    needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
                 }
             //}
         }
@@ -587,12 +598,14 @@ module.exports = {
 
             // persist raw encrypted to eos server - pruned raw assets (without addresss data)
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                await apiDataContract.updateAssetsJsonApi(
-                    { owner: userAccountName, 
-     encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(currentAssets, apk, h_mpk), 
-                    e_email: e_email,
-           showNotification: false })
-           
+                
+                //await 
+                apiDataContract.updateAssetsJsonApi({ 
+                          owner: userAccountName, 
+         encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(currentAssets, apk, h_mpk), 
+                        e_email: e_email,
+               showNotification: false
+                })
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
                     let msg = "Unknown Error"

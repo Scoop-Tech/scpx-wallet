@@ -77,12 +77,12 @@ module.exports = {
         const anyPendingLocalTxs = getAll_local_txs(asset).length > 0
 
         if (asset.symbol === 'SD1A_TEST') {
-            console.log('DBG2 - balanceChanged', balanceChanged)
-            console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
-            console.log('DBG2 - delta_bal_conf', delta_bal_conf)
-            console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
-            console.log('DBG2 - new_txs.length', new_txs.length)
-            console.log('DBG2 - new_txs_value', new_txs_value)
+            // console.log('DBG2 - balanceChanged', balanceChanged)
+            // console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
+            // console.log('DBG2 - delta_bal_conf', delta_bal_conf)
+            // console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
+            // console.log('DBG2 - new_txs.length', new_txs.length)
+            // console.log('DBG2 - new_txs_value', new_txs_value)
         }
         if (
             // initial load or testing - accept

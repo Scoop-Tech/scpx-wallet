@@ -86,7 +86,7 @@ module.exports = {
                             // alert on any enrich_tx actions for newly mined tx's
                             enrichTxOp.payload.addrTxs.forEach(addrTx => {
                                 addrTx.txs.forEach(enrichTx => {
-                                    console.log(`REQUEST_DISPATCH_BATCH: WCORE_SET_ENRICHED_TXS_MULTI / enrichTx=`, enrichTx)
+                                    //console.log(`REQUEST_DISPATCH_BATCH: WCORE_SET_ENRICHED_TXS_MULTI / enrichTx=`, enrichTx)
                                     
                                     if (assetTxs.some(p => p.txid === enrichTx.txid && p.block_no == -1 && enrichTx.block_no != -1)) {
 

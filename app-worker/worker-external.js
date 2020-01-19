@@ -42,7 +42,7 @@ function getAddressFull_Cleanup(p) {
 }
 
 function getAddressFull_External(p, callback) { // todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice
-    const { wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket } = p
+    const { wallet, asset, addrNdx, /*utxo_mempool_spentTxIds,*/ bbSocket } = p
     utilsWallet.debug(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
 
     var allDispatchActions = []
@@ -53,7 +53,7 @@ function getAddressFull_External(p, callback) { // todo: accept already fetched 
                 ? workerBlockbook.getAddressFull_Blockbook_v3
                 : workerInsight.getAddressFull_Insight_v2
 
-            fullUpdateFn(wallet, asset, asset.addresses[addrNdx].addr, utxo_mempool_spentTxIds, allDispatchActions)
+            fullUpdateFn(wallet, asset, asset.addresses[addrNdx].addr, undefined,/*utxo_mempool_spentTxIds,*/ allDispatchActions)
             .then(res => {
                 if (res) {
                     const dispatchAction = walletExternal.getAddressFull_ProcessResult(res, asset, addrNdx)
