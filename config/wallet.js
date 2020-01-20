@@ -837,7 +837,7 @@ module.exports = {
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
     , WALLET_MAX_ADDRESSES: 10                                           // hard cap max. no. addresses per asset, used or otherwise
-    , WALLET_MAX_TX_HISTORY: 100                                         // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+    , WALLET_MAX_TX_HISTORY: 10000                                       // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
     // wallet config - utxo
     , UTXO_DUST_SAT: 1                                                   // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates

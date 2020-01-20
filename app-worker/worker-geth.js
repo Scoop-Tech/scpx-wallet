@@ -155,25 +155,21 @@ module.exports = {
                                             // else  {
                                                 // calc mempool tps (actually, the rate at which we're streaming from the mempool;
                                                 // geth seems to want to give us all the current mempool tx's, not just new ones)
-                                                const BUF_CAP = 50
-                                                var mempool_tps = 0
-                                                if (!self.mempool_tpsBuf[x]) self.mempool_tpsBuf[x] = new CircularBuffer(BUF_CAP)
-                                                if (!self.mempool_tot[x]) self.mempool_tot[x] = 0
-                                                //console.log(self.mempool_tpsBuf[x])
-                                                if (!self.mempool_tpsBuf[x].toarray().some(p => p.txid == txid)) {
-                                                    self.mempool_tpsBuf[x].push({ txid, timestamp: new Date().getTime() })
-                                                    self.mempool_tot[x]++
-                                                    //console.log('pushed...')
-                                                }
-                                                //console.log(`${x}: mempool_tpsBuf[x].size()=${mempool_tpsBuf[x].size()}`)
-                                                if (mempool_tpsBuf[x].size() == BUF_CAP) {
-                                                    const buf1 = mempool_tpsBuf[x].get(0)
-                                                    const buf2 = mempool_tpsBuf[x].get(BUF_CAP - 1)
-                                                    const ms = buf2.timestamp - buf1.timestamp
-                                                    mempool_tps = BUF_CAP / (ms/1000)
-                                                    //console.log(`${x}: tot=${self.mempool_tot[x]} buf1=${buf1.timestamp} buf2=${buf2.timestamp} ms=${ms} tps=${tps}`)
-                                                }
-
+                                                //  SKIP THIS - above, value just isn't useful
+                                                // const BUF_CAP = 50
+                                                // var mempool_tps = 0
+                                                // if (!self.mempool_tpsBuf[x]) self.mempool_tpsBuf[x] = new CircularBuffer(BUF_CAP)
+                                                // if (!self.mempool_tot[x]) self.mempool_tot[x] = 0
+                                                // if (!self.mempool_tpsBuf[x].toarray().some(p => p.txid == txid)) {
+                                                //     self.mempool_tpsBuf[x].push({ txid, timestamp: new Date().getTime() })
+                                                //     self.mempool_tot[x]++
+                                                // }
+                                                // if (mempool_tpsBuf[x].size() == BUF_CAP) {
+                                                //     const buf1 = mempool_tpsBuf[x].get(0)
+                                                //     const buf2 = mempool_tpsBuf[x].get(BUF_CAP - 1)
+                                                //     const ms = buf2.timestamp - buf1.timestamp
+                                                //     mempool_tps = BUF_CAP / (ms/1000)
+                                                // }
 
                                                 // throttle these to max n per sec
                                                 //const sinceLastTx = new Date().getTime() - self.lastTx[x]
@@ -183,9 +179,9 @@ module.exports = {
                                                     // ## the rate calc'd above is the streaming rate of all txpool to client; it's not rate of newly
                                                     // added to txpool - behaviour is confusing/different compared to insight mempool subscription
                                                     networkStatusChanged(x, { txid, 
-                                                        mempool_tps: 0, // ## don't pass the value in - it's not accurate
-                                                        geth_url: configWS.geth_ws_config[x].url })
-                                                        
+                                                        mempool_tps: -1, // N/A
+                                                        geth_url: configWS.geth_ws_config[x].url
+                                                    })
                                                 //}
                                             //}
                                         }

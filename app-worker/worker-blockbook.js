@@ -204,6 +204,7 @@ function getAddressBalance_Blockbook_v3(asset, address) {
 // called for initial block-sync state - and new blocks
 function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
     
+    // ### getting 429's when running tests... (and 2x windows open!)
     async function bb_getBlock(blockNo, page) {
         const blockData = await axios.get(configExternal.walletExternal_config[symbol].api.block(blockNo, page))
         if (!blockData || !blockData.data) return null

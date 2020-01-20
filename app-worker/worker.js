@@ -61,6 +61,7 @@ self.ws_web3 = {}                 // eth - web3 socket for faster balance pollin
 //self.countTx = {}
 //self.gethAllTxs = {}
 self.mempool_tpsBuf = {}
+self.mempool_tpsAvg = {}
 self.mempool_tot = {}
 self.blocks_time = {}
 

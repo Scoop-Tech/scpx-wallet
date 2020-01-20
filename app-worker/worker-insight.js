@@ -143,7 +143,7 @@ module.exports = {
 
                                 //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
 
-                                // calc mempool TPS
+                                // calc spot mempool TPS over last BUF_CAP mempool tx's received
                                 const BUF_CAP = 5
                                 var mempool_tps = 0
                                 if (!self.mempool_tpsBuf[x]) self.mempool_tpsBuf[x] = new CircularBuffer(BUF_CAP)
@@ -163,11 +163,20 @@ module.exports = {
                                     //console.log(`${x}: tot=${self.mempool_tot[x]} buf1=${buf1.timestamp} buf2=${buf2.timestamp} ms=${ms} mempool_tps=${mempool_tps}`)
                                 }
 
+                                // average the spot mempool TPS values - trying to deal with network transmit spikes
+                                const AVG_CAP = 10
+                                if (!self.mempool_tpsAvg[x]) self.mempool_tpsAvg[x] = new CircularBuffer(AVG_CAP)
+                                if (mempool_tps < 15) { // gross hack: some insight servers are spitting out batches of tx's in bursts; no idea why - e.g. https://insight.dash.org/insight/
+                                    self.mempool_tpsAvg[x].push(mempool_tps)
+                                }
+                                const tps_values = self.mempool_tpsAvg[x].toarray()
+                                const mempool_tps_avg = tps_values.reduce((a,b) => a+b, 0) / tps_values.length
+
                                 // throttle these to max n per sec
                                 //const sinceLastTx = new Date().getTime() - self.lastTx[x]
                                 //if (isNaN(sinceLastTx) || sinceLastTx > 500) {
                                 //    self.lastTx[x] = new Date().getTime()
-                                    networkStatusChanged(x, { txid: tx.txid, mempool_tps, insight_url: configWS.insightApi_ws_config[x].url })
+                                    networkStatusChanged(x, { txid: tx.txid, mempool_tps: mempool_tps_avg, insight_url: configWS.insightApi_ws_config[x].url })
                                 //}
                             })
                             socket.on('block', (blockHash) => {
