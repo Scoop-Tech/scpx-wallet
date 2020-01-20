@@ -1,8 +1,9 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
 const axios = require('axios')
 const _ = require('lodash')
+const CircularBuffer = require("circular-buffer")
 
 const configExternal = require('../config/wallet-external')
 const configWallet = require('../config/wallet')
@@ -11,22 +12,21 @@ const configWS = require('../config/websockets')
 
 //const abiDecoder = require('abi-decoder')
 const InputDataDecoder = require('ethereum-input-data-decoder')
-const decoder = new InputDataDecoder(require('../config/erc20ABI').abi)
+const decoderErc20 = new InputDataDecoder(require('../config/erc20ABI').abi)
 
 const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
 
-module.exports = {
+const cache_bb_addressTxs = {} // needs self. semantics?
 
+module.exports = {
     getAddressFull_Account_v2: async (wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) => {
         return getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback)
     },
-
     getAddressBalance_Account: (symbol, address) => {
         return getAddressBalance_Account(symbol, address)
     },
-
     getAddressFull_Cleanup: (wallet, asset, address) => {
         return getAddressFull_Cleanup(wallet, asset, address)
     }
@@ -46,7 +46,6 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                    : asset.symbol
-
     const Web3 = require('web3')
     if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
         self.ws_web3[wsSymbol] = undefined 
@@ -55,8 +54,6 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
 
     var height
     try {
-        // ## web3 not throwing when geth is offline - awaits forever
-        // (related to intermittent load issues - almost always caused by geth issues)
         height = await web3.eth.getBlockNumber()
     }
     catch(ex) { 
@@ -65,35 +62,37 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
         return
     }
 
-    const balData = await getAddressBalance_Account(asset.symbol, pollAddress) // balance - using web3
+     // balance - web3
+    const balData = await getAddressBalance_Account(asset.symbol, pollAddress)
+
+    // address tx's - BB
+    if (!cache_bb_addressTxs[wsSymbol]) cache_bb_addressTxs[wsSymbol] = {}
+    if (!cache_bb_addressTxs[wsSymbol][pollAddress]) cache_bb_addressTxs[wsSymbol][pollAddress] = new CircularBuffer(1)
+    const cache = cache_bb_addressTxs[wsSymbol][pollAddress]
+
     try {
-        bbSocket.send({ // ETH tx's
-
-            // TODO: perf -- erc20's taking ~80% of the cached-loade time on dom+10 -- DON'T FETCH THESE MORE THAN ONCE!
-            // we're requerying same ETH data for each erc20!!!!???
-
-            method: 'getAddressTxids',  
-            params: [
-                [pollAddress], 
-
-                { start: height,// + 100, 
-                    end: height - 100000, // ~17 days
-                    // UPDATE: DEC 2019 -- we really *should* be doing this (end: 0), but it seems to be causing sometimes very, *VERY* slow
-                    //         processing; as if BB was struggling to find the older TX's; no wait time observed on the server when this was happening
-                    //         symptoms match exactly the "waiting for eth to load..." bug
-                    //end: 0, // uncapped -- all TX's
-
-                    // ### this is the load killer -- ERC20 dup'ing this; should run it exactly ONCE from 0 (for eth)
-                    // and loop on erc20 assets in the callback...
-                    // (or cache return data by block height and use cached for erc20's?)
-
-       queryMempoolOnly: false }
-
-            ]
-        },
-        (data) => {
+        // get address tx's from BB; used cached value if present (erc20 optimization)
+        if (cache.size() > 0 && cache.get(0).height == height) {
+            processBB_data(cache.get(0).data) // process from cache
+        }
+        else {
+            bbSocket.send({ // get tx's
+                method: 'getAddressTxids',  
+                params: [ [pollAddress], 
+                            { start: height,// + 100, 
+                              //end: height - 100000, // ~17 days
+                                // UPDATE 1: suspected: end: 0 causing sometimes very, slow processing?
+                                // UPDATE 2: CircularBuffer discards this path on erc20's - must be beneficial; reverting to end: 0
+                                end: 0, // uncapped -- all TX's
+                queryMempoolOnly: false }]
+            }, (data) => { 
+                cache.push({ height, data }) // cache
+                processBB_data(data)
+            })
+        }
+        function processBB_data(data) {
             if (data && data.result) {
-                console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress}`, data)
+                //console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress} bbSocket=`, bbSocket) //, data)
 
                 // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
@@ -124,10 +123,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 //dedicatedWeb3.currentProvider.on("connect", data => { 
                     
                     // enrich *all* the tx's (we will get from IDB cache if already enriched, so could be worse)
-                    const enrichOps = txids.map((tx) => { 
+                    const enrichOps = txids.map((txid) => { 
                         return enrichTx(
                             //dedicatedWeb3,
-                            wallet, asset, { txid: tx }, pollAddress
+                            wallet, asset, { txid }, pollAddress
                         )
                     })
 
@@ -198,7 +197,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 debugger
                 callback(null)
             }
-        })
+        }
     }
     catch(err) {
         debugger
@@ -248,7 +247,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             // if (symbol === 'SD1A_TEST' && tx.txid == '0xde72f0883a1f937134d5795cb00223c88f2d41963353786e2a0f614657f93897') {
             //     debugger
             // }
-    
+
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed cached tx's
 
                 // if we are updating for erc20 asset, filter out eth or other erc20 assets
@@ -265,7 +264,6 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             }
             else { // not in cache, or unconfirmed in cache: query
                 const web3Key = (asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH') + '_' + pollAddress
-
                 if (dedicatedWeb3[web3Key] === undefined) {
                     const Web3 = require('web3')
                     
@@ -274,7 +272,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                                    : asset.symbol
 
                     dedicatedWeb3[web3Key] = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[wsSymbol].url)) 
-                    utilsWallet.debug('>> created dedicatedWeb3: OK.') 
+                    utilsWallet.debug('>> created dedicatedWeb3: OK.')
                 }
                 if (dedicatedWeb3[web3Key].currentProvider.connection.readyState != 1) {
                     dedicatedWeb3[web3Key].currentProvider.on("connect", function() { 
@@ -282,11 +280,11 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                         // if (!dedicatedWeb3[web3Key]) {
                         //     debugger
                         // }
-                        getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses)
+                        getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses, pollAddress)
                     })
                 }
                 else {
-                    getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses)
+                    getTxDetails_web3(resolve, dedicatedWeb3[web3Key], wallet, asset, tx, cacheKey, ownAddresses, pollAddress)
                 }
             }
         })
@@ -299,9 +297,8 @@ function enrichTx(wallet, asset, tx, pollAddress) {
     })
 }
 
-function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddresses) {
+function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddresses, pollAddress) {
     const symbol = asset.symbol
-
     if (!web3) {
         utilsWallet.warn('getTxDetails_web3 - null web3!')
         resolve(null)
@@ -309,10 +306,9 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     }
 
     // get tx
-    utilsWallet.debug(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx... txid=`, tx.txid)
+    utilsWallet.warn(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx...`)
 
     //self.geth_Sockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
-
     web3.eth.getTransaction(tx.txid)
     .then((txData) => {
         if (txData) {
@@ -330,28 +326,43 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                     if (blockData) {
                         const blockTimestamp = blockData.timestamp
 
-                        // erc20 or eth tx?
-                        const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
-                        const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === txData.to.toLowerCase() })
                         const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
+
+                        // if (//tx.txid === '0x1bc5b94180d2b7521a1a1ca2b8be5eaf5106abee5b5965fa7594447ca7af97fa' || //  non-erc20: "transferEth" - no decode
+                        //     //tx.txid === '0x1d9018dd37fc010df2d20bf9151f3e25a34f1a55a125141faaa52386c872aa1b' // unsupported erc20 (AMB)
+                        //      tx.txid === '0x7d52ed1cc204d66b7f9b583c43db3e94bfbb019810cf45e72f8a47052e66eab9' //  non-erc20 "multisend" - no decode
+                        // ) { 
+                        //     debugger
+                        // }
+
+                        // is an erc20 tx? - includes unknown ERC20 types
+                        const decodedData = decoderErc20.decodeData(txData.input)
+                        var erc20_transferTo
+                        if (decodedData && decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
+                            erc20_transferTo = ('0x' + decodedData.inputs[0]).toLowerCase()
+                        }
+                        const isErc20_transfer = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === erc20_transferTo)
+                                              || ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
+
+                        // known erc20 tx?
+                        const known_erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
+                        const known_erc20 = known_erc20s.find(p => { return p.erc20_addr.toLowerCase() === txData.to.toLowerCase() })
 
                         // if (symbol === 'SD1A_TEST' && tx.txid == '0xde72f0883a1f937134d5795cb00223c88f2d41963353786e2a0f614657f93897') {
                         //     debugger
                         // }
            
-                        // map tx (eth or erc20)
+                        // map tx (eth or known erc20)
                         var mappedTx
                         var processAsEthTx = true
-                        if (erc20 !== undefined) {
-                            processAsEthTx = false
-                            const decodedData = decoder.decodeData(txData.input)
+                        if (known_erc20 !== undefined) {
                             if (decodedData) {
                                 if (decodedData.method === "transfer" && decodedData.inputs && decodedData.inputs.length > 1) {
                                     const param_to = '0x' + decodedData.inputs[0] 
                                     const tokenValue = decodedData.inputs[1] 
 
                                     const bn_tokenValue = new BigNumber(tokenValue)
-                                    const assetErc20 = wallet.assets.find(p => p.symbol === erc20.symbol )
+                                    const assetErc20 = wallet.assets.find(p => p.symbol === known_erc20.symbol )
                                     const du_value = assetErc20 
                                         ? utilsWallet.toDisplayUnit(bn_tokenValue, assetErc20) 
                                         : undefined
@@ -362,7 +373,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                             && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
 
                                         mappedTx = { // EXTERNAL_TX (enriched) - ERC20
-                                            erc20: erc20.symbol,
+                                            erc20: known_erc20.symbol,
                                             erc20_contract: txData.to,
                                             date: new Date(blockTimestamp * 1000), 
                                             txid: tx.txid,
@@ -380,14 +391,8 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                                 : 0,
                                             txFailedReverted
                                         }
-
-                                        // if (tx.txid == '0x1d1f7b566d2a1bce0b0be65e71a9906023b49b77b7e70d4807e8c27fa0119173') {
-                                        //     console.log('tmp mappedTx', mappedTx)
-                                        // }
+                                        processAsEthTx = false
                                     }
-                                }
-                                else { // not ERC20 transfer() method - process as ETH
-                                    processAsEthTx = true
                                 }
                             }
                         }
@@ -398,38 +403,44 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                 && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === txData.from.toLowerCase())
 
                             mappedTx = { // EXTERNAL_TX (enriched) - ETH 
-                                erc20: undefined,
-                                date: new Date(blockTimestamp * 1000), 
-                                txid: tx.txid,
-                                isMinimal: false,
+                                     erc20: undefined,
+                                      date: new Date(blockTimestamp * 1000), 
+                                      txid: tx.txid,
+                                 isMinimal: false,
                                 isIncoming: !weAreSender, 
                                 sendToSelf,
-
-                                value: Number(web3.utils.fromWei(txData.value, 'ether')),
-                                toOrFrom:  !weAreSender ? txData.from : txData.to,
+                                     value: Number(web3.utils.fromWei(txData.value, 'ether')),
+                                  toOrFrom:  !weAreSender ? txData.from : txData.to,
                                 account_to: txData.to.toLowerCase(), 
-                                account_from: txData.from.toLowerCase(),
-                                block_no: txData.blockNumber, 
-                                fees: weAreSender
-                                    ? Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
-                                    : 0,
-                                txFailedReverted
+                              account_from: txData.from.toLowerCase(),
+                                  block_no: txData.blockNumber, 
+                                      fees: weAreSender
+                                            ? Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
+                                            : 0,
+                           txFailedReverted
+                            }
+
+                            // unknown (unsupported) erc20 transfer? e.g. 0x1d9018dd37fc010df2d20bf9151f3e25a34f1a55a125141faaa52386c872aa1b (airdrop AMB)
+                            if (erc20_transferTo) {
+                                mappedTx.account_to = erc20_transferTo
+                                mappedTx.erc20_isUnsupported = true
+                            }
+
+                            // this condition is happening when we're involved in a nonstandard (non-payable fallback) TX, but we fail to decode an erc20 transfer() method;
+                            // (e.g. 0x7d52ed1cc204d66b7f9b583c43db3e94bfbb019810cf45e72f8a47052e66eab9: "multisend()")
+                            // the result is an unknown receiver (mappedTx.account_to: the non-standard erc20 contract addr)
+                            const weAreSenderOrReceiver = weAreSender || ownAddresses.some(ownAddr => ownAddr.toLowerCase() === mappedTx.account_to.toLowerCase())
+                            if (weAreSenderOrReceiver === false) {
+                                mappedTx.account_to = pollAddress
+                                mappedTx.isNonErc20_ContractParam = true
                             }
                         }
-                        //utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
                         // we can fail to produce a mappedTx if we are excluding one specific erc20 in generateWallets() fn.
                         if (!mappedTx) {
-                            resolve(null)
-                            return
-                        }
-
-                        // this condition is happening when one of our addresses is receiving (e.g. an airdrop) an unsupported ERC20;
-                        // the ETH TX path above is triggered (we don't decode the erc20 data.to field),
-                        // and the result is an unknown receiver (the unsupported erc20 contract addr, from the ETH TX path above)
-                        const weAreSenderOrReceiver = weAreSender || ownAddresses.some(ownAddr => ownAddr.toLowerCase() === mappedTx.account_to.toLowerCase())
-                        if (weAreSenderOrReceiver === false) {
-                            resolve(null)
+                            debugger
+                            utilsWallet.warn(`** enrichTx - ${symbol} ${tx.txid} IGNORE-TX (no mappedTx)`)
+                            resolve(null) // ### - perf: never gets cached -- TODO: return a minimal dodgy mappedTx, with a flag to exclude it from propagation to UI?
                             return
                         }
 
@@ -442,8 +453,9 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                             mappedTx.fromCache = false
 
                             if (utilsWallet.isERC20(asset) && mappedTx.erc20 !== asset.symbol) {
-                                //utilsWallet.warn(`** enrichTx - ${symbol} ${tx.txid} IGNORE-TX (it's eth or another erc20) - mappedTx=`, mappedTx)
-                                resolve(null)
+                                debugger
+                                utilsWallet.warn(`** enrichTx - ${symbol} ${tx.txid} IGNORE-TX (it's eth or another erc20) - mappedTx=`, mappedTx)
+                                resolve(null) // ### - perf: never gets cached
                             }
                             else {
                                 resolve(mappedTx)

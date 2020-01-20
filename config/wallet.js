@@ -1,11 +1,11 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
 
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
 
 // static - license, copyright, env
 const WALLET_VER = 'RC-' + require('../package.json').version
-const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019 Dominic Morris.`
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types
