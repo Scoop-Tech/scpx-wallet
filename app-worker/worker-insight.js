@@ -375,15 +375,17 @@ function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockT
                 updateSymbols.push('BTC_SEG')
                 updateSymbols.push('BTC_SEG2')
             }
-            updateSymbols.forEach(p =>  {
-                dispatchActions.push({ 
-                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                 payload: { symbol: p,
-                            receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
-                            receivedBlockTime: receivedBlockTime || new Date().getTime(),
-                            insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
-                }})
-            })
+            if (symbol === 'BTC') {  
+                updateSymbols.forEach(p =>  {
+                    dispatchActions.push({ 
+                        type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                     payload: { symbol: p,
+                                receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
+                                receivedBlockTime: receivedBlockTime || new Date().getTime(),
+                                insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
+                    }})
+                })
+            }
 
             self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
 

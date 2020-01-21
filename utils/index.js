@@ -315,10 +315,10 @@ module.exports = {
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
-            //if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
                 if (p) console.log(ts + ' [SW-ERR] ' + s.toString().red.bold, stringify(p))
                 else   console.log(ts + ' [SW-ERR] ' + s.toString().red.bold)
-            //}
+            }
         }
         else {
             if (p) console.error(ts + ' [SW-ERR]' + s, p)

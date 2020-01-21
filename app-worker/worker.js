@@ -73,7 +73,7 @@ self.dirtyDbFile = 'scp_tx.db'
 if (configWallet.WALLET_ENV === "SERVER") {
     if (!configWallet.IS_DEV) {
         process.on('unhandledRejection', (reason, promise) => {
-        utilsWallet.error(`## unhandledRejection (appWorker) - ${reason}`, promise, { logServerConsole: true })
+            utilsWallet.error(`## unhandledRejection (appWorker) - ${reason}`, promise, { logServerConsole: true })
         })
         process.on('uncaughtException', (err, origin) => {
             utilsWallet.error(`## uncaughtException (appWorker) - ${err.toString()}`, origin, { logServerConsole: true })
@@ -166,7 +166,9 @@ function handler(e) {
                     const allReady = bbSocketValues.some(p => !p || p.readyState != 1) === false
 
                     const symbolsConnected = bbSocketValues.filter(p => p && p.readyState == 1).map(p => p && p.symbol)
-                    const displaySymbolsConnected = _.uniq(bbSocketValues.filter(p => p && p.readyState == 1).map(p => p && p.displaySymbol))
+                    const displaySymbolsConnected = _.uniq(
+                        bbSocketValues.filter(p => p && p.readyState == 1).map(p => Object.values(configWallet.walletsMeta).find(p2 => p2.symbol === p.symbol).displaySymbol)
+                    )
                     const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt

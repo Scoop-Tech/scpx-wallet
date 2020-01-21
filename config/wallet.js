@@ -96,7 +96,7 @@ const walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,
         symbol: 'BTC_SEG2',
         displayName: 'Bitcoin',
-        desc: 'SegWit (P2WPKH) Bech32',
+        desc: 'Bech32', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -115,7 +115,7 @@ const walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_SEG',
         displayName: 'Bitcoin',
-        desc: 'SegWit (P2SH)',
+        desc: 'P2SH', //'SegWit (P2SH)',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -858,7 +858,10 @@ module.exports = {
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
     , WALLET_MAX_ADDRESSES: 10                                           // hard cap max. no. addresses per asset, used or otherwise
-    , WALLET_MAX_TX_HISTORY: 10000                                       // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
+
+    // large values (e.g. 10000): load-perf is acceptable, limiting factor is browser-render performance (not react render() fn!)
+    // of very large txlists (WalletDetailTxHistory) -- e.g. scoop admin wallet
+    , WALLET_MAX_TX_HISTORY: 100                                         // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
     // wallet config - utxo
     , UTXO_DUST_SAT: 1                                                   // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates

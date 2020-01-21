@@ -1,7 +1,7 @@
 // adapted from: https://github.com/MeLlamoPablo/minimist-string#readme
 // (added param: opts)
 
-//const minimist = require('minimist');
+const minimist = require('minimist');
 
 /**
  * Parses a string as a minimist input.

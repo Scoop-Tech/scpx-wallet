@@ -141,6 +141,11 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
            fees: Number(utilsWallet.toDisplayUnit(new BigNumber(bbTx.fees), asset)),
          //size: bbTx.hex.length,
     }
+
+    if (bbTx.vin === undefined) {
+        debugger
+    }
+    
     insightTx.vin = bbTx.vin.map(p => {
         return {
             txid: p.txid, 
@@ -256,7 +261,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
             updateSymbols.push('BTC_SEG')
             updateSymbols.push('BTC_SEG2')
         }
-        updateSymbols.forEach(p =>  {
+        updateSymbols.forEach(p => {
             dispatchActions.push({
                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
                 payload: { symbol: p, receivedBlockNo, receivedBlockTime }
@@ -512,34 +517,37 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             }
             else {
                 isosocket_send_Blockbook(asset.symbol, 'getTransaction', { txid: tx.txid }, (bbTx) => {
-
                     if (bbTx) {
+                        if (bbTx.error) {
+                            utilsWallet.error(`### enrichTx - ${asset.symbol} ${tx.txid} - error from BB:`, bbTx.error)
+                            resolve(null)
+                        }
+                        else {
+                            const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
+                            
+                            // map tx (prunes vins, drops vouts)
+                            const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses)[0]
+                            //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
-                        const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
-                        
-                        // map tx (prunes vins, drops vouts)
-                        const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses)[0]
-                        //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
-
-                        // add to cache
-                        mappedTx.addedToCacheAt = new Date()
-                        utilsWallet.txdb_setItem(cacheKey, mappedTx)
-                        .then(() => {
-                            utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
-                            mappedTx.fromCache = false
-                            resolve(mappedTx)
-                        })
-                        .catch((err) => {
-                            utilsWallet.logErr(err)
-                            utilsWallet.error(`## enrichTx - ${asset.symbol} ${tx.txid} - error writing cache=`, err)
-                            resolve(null) // allow all enrich ops to run
-                        })
+                            // add to cache
+                            mappedTx.addedToCacheAt = new Date()
+                            utilsWallet.txdb_setItem(cacheKey, mappedTx)
+                            .then(() => {
+                                utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
+                                mappedTx.fromCache = false
+                                resolve(mappedTx)
+                            })
+                            .catch((err) => {
+                                utilsWallet.logErr(err)
+                                utilsWallet.error(`## enrichTx - ${asset.symbol} ${tx.txid} - error writing cache=`, err)
+                                resolve(null)
+                            })
+                        }
                     }
                     else {
-                        utilsWallet.warn(`enrichTx - ${asset.symbol} ${tx.txid} - no data from insight`)
+                        utilsWallet.warn(`enrichTx - ${asset.symbol} ${tx.txid} - no data from BB`)
                         resolve(null)
                     }
-
                 })
             }
         })
