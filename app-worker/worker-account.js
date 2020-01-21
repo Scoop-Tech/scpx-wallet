@@ -94,10 +94,13 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             if (data && data.result) {
                 //console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress} bbSocket=`, bbSocket) //, data)
 
+                // if (asset.symbol === 'NEXO' && pollAddress === '0x23fa93bcabb452a9964d5b49777f2462bb632587') {
+                //     debugger
+                // }
+
                 // to support erc20's we have to cap *after* filtering out the ETH tx's
                 // (uncapped tx's will get populated in full to IDB cache but won't make it to browser local or session storage)
                 // i.e. here we must get everything
-                //
                 const totalTxCount = data.result.length // overridden below, when all dispatchTxs are fetched
                 var txids = data.result
 
@@ -143,8 +146,13 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                         Promise.all(enrichOps)
                         .then((enrichedTxs) => {
 
+                            // if (asset.symbol === 'NEXO' && pollAddress === '0x23fa93bcabb452a9964d5b49777f2462bb632587') {
+                            //     debugger
+                            // }
+
                             // remove any pure eth tx's that were filtered out for an erc20 asset
                             const dispatchTxs = enrichedTxs.filter(p => p != null)
+                            res.totalTxCount = dispatchTxs.length
 
                             if (dispatchTxs.length > 0) {
                                 utilsWallet.debug(`getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - dispatching to update tx's...`)
@@ -153,7 +161,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 // (quite different to utxo/BBv3 implementation)
                                 const dispatchTxs_Top = dispatchTxs.slice(0, configWallet.WALLET_MAX_TX_HISTORY)  // already sorted desc
 
-                                res.totalTxCount = dispatchTxs.length
+                                //res.totalTxCount = dispatchTxs.length
                                 res.cappedTxs = dispatchTxs_Top.length < dispatchTxs.length
 
                                 //

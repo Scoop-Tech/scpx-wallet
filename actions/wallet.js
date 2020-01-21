@@ -738,6 +738,7 @@ module.exports = {
         var { testSymbol, testAddressType, validateAddr } = p
         if (!testSymbol || testSymbol.length == 0) throw 'testSymbol is required'
         if (!testAddressType || testAddressType.length == 0) throw 'testAddressType is required'
+        if (testAddressType === 'BECH32') testAddressType = 'BTC'
 
         if (testSymbol === 'BCHABC') { // BCH: to legacy addr for validation
             if (validateAddr && validateAddr.length > 0) {
@@ -789,6 +790,7 @@ function generateWalletAccount(p) {
 
         case 'bitcoin':  defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC' }); break; 
         case 'btc(s)':   defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_SEG' }); break; 
+        case 'btc(s2)':  defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_SEG2' }); break; 
         case 'litecoin': defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'LTC' }); break; 
         case 'zcash':    defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'ZEC' }); break; 
         case 'dash':     defaultPrivKeys = generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'DASH' }); break; 
@@ -923,6 +925,7 @@ function getUtxoNetwork(symbol) {
     switch (symbol) { 
         case "BTC":      return bitgoUtxoLib.networks.bitcoin
         case "BTC_SEG":  return bitgoUtxoLib.networks.bitcoin
+        case "BTC_SEG2": return bitgoUtxoLib.networks.bitcoin
         case "BTC_TEST": return bitgoUtxoLib.networks.testnet
 
         case "LTC":      return bitgoUtxoLib.networks.litecoin
@@ -1044,16 +1047,22 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
             // bitcoinjs-lib
 
             // native segwit - BlockCypher throws errors on address_balance -- generated bc1 addr isn't viewable on any block explorers!
-            // const { address } = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
-            // return address
+            //const { address } = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
+            //return address
 
-            // ** preferred **
             // p2sh-wrapped segwit -- need to generate tx json entirely, blockcypher doesn't support
             // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
             // return address
 
-            // p2sh(p2wpkh) addr
+            // p2sh-wrapped segwit -- p2sh(p2wpkh) addr -- w/ bitcoinjsLib (3 addr)
             const { address } = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), network }), network })
+            return address
+        }
+        else if (symbol === "BTC_SEG2") {
+            // unwrapped P2WPKH -- w/ bitgoUtxoLib -- native SW (b addr)
+            var pubKey = keyPair.getPublicKeyBuffer()
+            var scriptPubKey = bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(pubKey))
+            var address = bitgoUtxoLib.address.fromOutputScript(scriptPubKey)
             return address
         }
         else { 

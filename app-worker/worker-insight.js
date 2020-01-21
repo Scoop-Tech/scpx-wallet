@@ -369,20 +369,34 @@ function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockT
 
             utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - request dispatch SET_ASSET_BLOCK_INFO...`)
 
-            self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: [{ 
-                type: actionsWallet.SET_ASSET_BLOCK_INFO,
-            payload: { symbol,
-                        receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
-                        receivedBlockTime: receivedBlockTime || new Date().getTime(),
-                        insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
-            }} ] }
+            const dispatchActions = []
+            const updateSymbols = [symbol]
+            if (symbol === 'BTC') { // don't send redundant requests: causes 429's - use BTC's request for BTC_SEG
+                updateSymbols.push('BTC_SEG')
+                updateSymbols.push('BTC_SEG2')
+            }
+            updateSymbols.forEach(p =>  {
+                dispatchActions.push({ 
+                    type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                 payload: { symbol: p,
+                            receivedBlockNo: receivedBlockNo || insightSyncBlockChainHeight,
+                            receivedBlockTime: receivedBlockTime || new Date().getTime(),
+                            insightSyncStatus, insightSyncBlockChainHeight, insightSyncHeight, insightSyncError
+                }})
             })
 
-            // update lights - block tps
+            self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
+
+            // TODO: (as needed) - calc block_tps avg, per worker-geth & worker-blockbook
+            //...
+
+            // update lights
             if (networkStatusChanged) {
-                networkStatusChanged(symbol, { 
+                updateSymbols.forEach(p =>  {
+                    networkStatusChanged(p, { 
                     block_no: receivedBlockNo, 
-                 insight_url: configWS.insightApi_ws_config[symbol].url })
+                 insight_url: configWS.insightApi_ws_config[p].url })
+                })
             }
         }
     })

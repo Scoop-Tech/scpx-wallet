@@ -29,7 +29,7 @@ const { createReducer } = require('./utils')
 
 const initialState = {
     price : {
-        BTC: 0, BTC_TEST: 0, BTC_SEG: 0, EOS: 0, LTC: 0, LTC_TEST: 0,
+        BTC: 0, BTC_TEST: 0, BTC_SEG: 0, BTC_SEG2: 0, EOS: 0, LTC: 0, LTC_TEST: 0,
         ZEC: 0, ZEC_TEST: 0,
         DASH: 0, VTC: 0, QTUM: 0, DGB: 0, BCHABC: 0, 
 
@@ -55,7 +55,12 @@ const handlers = {
 
     // utxo
     [BTC_PRICE_UPDATE]: (state, action) => {
-        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BTC: action.payload.price, BTC_TEST: action.payload.price, BTC_SEG: action.payload.price } }
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, 
+                 BTC: action.payload.price, 
+            BTC_TEST: action.payload.price, 
+             BTC_SEG: action.payload.price,
+            BTC_SEG2: action.payload.price,
+         } }
     },
     [LTC_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, LTC: action.payload.price, LTC_TEST: action.payload.price } }

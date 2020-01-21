@@ -24,17 +24,20 @@ const btcTestInsightApi = 'https://scp-btct.southeastasia.cloudapp.azure.com:400
 //
 // blockbook rest/api
 //
-const zecBlockbookApi = 'https://ac-dev0.net:10000/api/' //'https://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888/api/' //'https://zec1.trezor.io/api/'
-const ltcBlockbookApi = 'https://ac-dev0.net:10001/api/' //'https://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888/api/' //'https://ltc1.trezor.io/api/'
-const btcBlockbookApi = 'https://ac-dev0.net:10002/api/' //'https://scp-btcsw.southeastasia.cloudapp.azure.com:10130/api/' //,btcBlockbookApi: 'https://btc1.trezor.io/api/'
-const dashBlockbookApi = 'https://ac-dev0.net:10004/api/' //'https://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888/api/' // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
-const vtcBlockbookApi = 'https://ac-dev0.net:10005/api/' //'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
-const dgbBlockbookApi = 'https://ac-dev0.net:10006/api/' //'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
-const bchabcBlockbookApi = 'https://ac-dev0.net:10007/api/' //'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
-const rvnBlockbookApi = 'https://ac-dev0.net:10008/api/'
-const qtumBlockbookApi = 'https://ac-dev0.net:29188/api/' //'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
-const zecTestBlockbookApi = 'https://ac-dev0.net:29132/api/' //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
-const ltcTestBlockbookApi = '' // NOT USED //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
+const zecBlockbookApi     = 'https://ac-dev0.net:10000/api/'     // 'https://zec1.trezor.io/api/'
+const ltcBlockbookApi     = 'https://ac-dev0.net:10001/api/'     // 'https://ltc1.trezor.io/api/'
+
+const btcBlockbookApi     = 'https://ac-dev0.net:10002/api/'     // use different btc/btc_seg BB servers to minimize 429's on api/block calls
+//const btcSegBlockbookApi  = 'https://ac-dev0.net:10003/api/'     // TODO: setup proxy to btc2.trezor.io
+
+const dashBlockbookApi    = 'https://ac-dev0.net:10004/api/'     // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
+const vtcBlockbookApi     = 'https://ac-dev0.net:10005/api/'     // 'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
+const dgbBlockbookApi     = 'https://ac-dev0.net:10006/api/'     // 'https://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888/api/'
+const bchabcBlockbookApi  = 'https://ac-dev0.net:10007/api/'     // 'https://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888/api/'
+const rvnBlockbookApi     = 'https://ac-dev0.net:10008/api/'
+const qtumBlockbookApi    = 'https://ac-dev0.net:29188/api/'     // 'https://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888/api/'
+const zecTestBlockbookApi = 'https://ac-dev0.net:29132/api/'     // 'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132/api'
+const ltcTestBlockbookApi = ''                                   // NOT USED //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api'
 
 //
 // eth - geth
@@ -164,6 +167,15 @@ module.exports = {
         },
         BTC_SEG: {
             donate: '32FtNE5ShUDh4wQJm3bGYGtjKpFeJqeVEw',
+            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+            txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+            api: {
+                utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+            }
+        },
+        BTC_SEG2: {
+            donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
             explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
             txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
             api: {

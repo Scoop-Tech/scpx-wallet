@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.6.71",
+    "version": "0.6.80",
     "description": "Scoop Core Wallet: multi-asset, cross-platform and open-source crypto wallet",
     "keywords": [
         "crypto wallet",
@@ -92,7 +92,7 @@
         "bignumber.js": "^8.0.2",
         "bip32": "^1.0.4",
         "bitcoinjs-lib": "4.0.3",
-        "bitgo-utxo-lib": "1.7.0",
+        "bitgo-utxo-lib": "1.8.0",
         "chalk": "^2.4.2",
         "circular-buffer": "^1.0.2",
         "clear": "^0.1.0",

@@ -9,7 +9,6 @@ const workerBlockbook = require('./worker-blockbook')
 module.exports = {
 
     blockbook_pushTx: (asset, txhex, wallet) => {
-        //if (asset.symbol !== 'BTC_SEG' && asset.symbol !== 'DASH' && asset.symbol !== 'VTC') {
         if (!asset.use_BBv3) {
             postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, error: 'Unsupported BB asset type' } }) 
             return

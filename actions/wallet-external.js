@@ -679,10 +679,6 @@ async function createTxHex(params) {
                     //
                     const txb = new bitcoinJsLib.TransactionBuilder(network)
 
-                    if (asset.symbol === 'LTC_TEST') {
-                        debugger
-                    }
-                    
                     // add the outputs
                     txb.setVersion(1)
                     txSkeleton.outputs.forEach(output => {
@@ -706,7 +702,21 @@ async function createTxHex(params) {
                         // add the inputs
                         for (var i = 0; i < txSkeleton.inputs.length; i++) {
                             utilsWallet.log(`${asset.symbol} UTXO TX - input=`, txSkeleton.inputs[i])
-                            txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
+
+                            if (asset.symbol === "BTC_SEG2") {
+                                // https://github.com/bitcoinjs/bitcoinjs-lib/issues/999
+                                var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
+                                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
+                                
+                                const scriptPubKey = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey }).output;
+                                txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout, null, scriptPubKey)
+
+                                utilsWallet.softNuke(keyPair)
+                                utilsWallet.softNuke(wif)
+                            }
+                            else {
+                                txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
+                            }
                         }
 
                         if (asset.symbol === "BTC_SEG") {
@@ -721,7 +731,19 @@ async function createTxHex(params) {
                                 utilsWallet.softNuke(keyPair)
                                 utilsWallet.softNuke(wif)
                             }
-                        } else {
+                        }
+                        else if (asset.symbol === "BTC_SEG2") {
+                            for (var i = 0; i < txSkeleton.inputs.length; i++) {
+                                var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
+                                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
+
+                                txb.sign(i, keyPair, null, null, txSkeleton.inputs[i].utxo.satoshis)
+
+                                utilsWallet.softNuke(keyPair)
+                                utilsWallet.softNuke(wif)
+                            }
+                        }
+                        else {
                             for (var i = 0; i < txSkeleton.inputs.length; i++) {
                                 var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
                                 var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
@@ -847,6 +869,8 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
 // consolidated tx's (across all addresses)
 //
 function getAll_txs(asset) {
+    
+    // dedupe send-to-self tx's (present against >1 address)
     var all_txs = []
     for(var i=0 ; i < asset.addresses.length ; i++) {
         const addr = asset.addresses[i]
@@ -855,7 +879,7 @@ function getAll_txs(asset) {
             var deduped = addr.txs
                 //.filter(p => { return p.value !== 0 })
                 .filter(p => { return !existing_txids.some(p2 => p2 === p.txid) }) // dedupe
-            all_txs.extend(deduped) 
+            all_txs.extend(deduped)
         }
     }
     all_txs.sort((a,b) => { 

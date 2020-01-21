@@ -228,23 +228,39 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         // }
 
         // get prev block - exact time; for block TPS
-        if (!self.blocks_time[symbol]) self.blocks_time[symbol] = []
-        if (!self.blocks_time[symbol][receivedBlockNo - 1]) {
+        const cacheSymbol = symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'BTC' : symbol // don't send redundant requests: causes 429's
+        if (!self.blocks_time[cacheSymbol]) self.blocks_time[cacheSymbol] = []
+        if (!self.blocks_time[cacheSymbol][receivedBlockNo - 1]) {
             const prevBlock = await bb_getBlock(receivedBlockNo - 1, 1)
-            self.blocks_time[symbol][receivedBlockNo - 1] = prevBlock.time
+            self.blocks_time[cacheSymbol][receivedBlockNo - 1] = prevBlock.time
         }
-        const prevBlockTime = self.blocks_time[symbol][receivedBlockNo - 1]
+        const prevBlockTime = self.blocks_time[cacheSymbol][receivedBlockNo - 1]
         const block_time = receivedBlockTime - prevBlockTime
         const block_tps = block_time > 0 ? txCount / block_time : 0
+        if (!self.blocks_tps[cacheSymbol]) self.blocks_tps[cacheSymbol] = []
+        if (!self.blocks_height[cacheSymbol]) self.blocks_height[cacheSymbol] = 0
+        if (self.blocks_height[cacheSymbol] < receivedBlockNo) {
+            self.blocks_height[cacheSymbol] = receivedBlockNo
+            self.blocks_tps[cacheSymbol].push(block_tps)
+        }
+
         // if (symbol === 'DGB') {
         //     console.log(`${symbol} prevBlockTime`, prevBlockTime)
         //     console.log(`${symbol} block_time (s)`, parseFloat(block_time.toFixed(2)))
         //     console.log(`${symbol} block_tps`, block_tps)
         // }
         
-        dispatchActions.push({
-               type: actionsWallet.SET_ASSET_BLOCK_INFO,
-            payload: { symbol, receivedBlockNo, receivedBlockTime }
+        // TODO: caddy can load balance across proxies?
+        const updateSymbols = [symbol]
+        if (symbol === 'BTC') {  // don't send redundant requests: causes 429's - use BTC's request for BTC_SEG
+            updateSymbols.push('BTC_SEG')
+            updateSymbols.push('BTC_SEG2')
+        }
+        updateSymbols.forEach(p =>  {
+            dispatchActions.push({
+                   type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                payload: { symbol: p, receivedBlockNo, receivedBlockTime }
+            })
         })
 
         if (symbol === 'ETH' || symbol === 'ETH_TEST') { // eth mainnet - update erc20s
@@ -267,12 +283,15 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
 
         // update lights - block tps
         if (networkStatusChanged) {
-            networkStatusChanged(symbol, { 
-                block_no: receivedBlockNo, 
-           block_txCount: txCount,
-               block_tps,
-              block_time,
-                  bb_url: configWS.blockbook_ws_config[symbol].url })
+            updateSymbols.forEach(p =>  {
+                networkStatusChanged(p, { 
+                    block_no: receivedBlockNo, 
+               block_txCount: txCount,
+                   block_tps: self.blocks_tps[cacheSymbol].reduce((a,b) => a + b, 0) / self.blocks_tps[cacheSymbol].length,
+                 block_count: self.blocks_tps[cacheSymbol].length,
+                  block_time,
+                      bb_url: configWS.blockbook_ws_config[p].url })
+            })
         }
     })
 }

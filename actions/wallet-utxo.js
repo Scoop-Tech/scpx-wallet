@@ -161,7 +161,7 @@ module.exports = {
         var ret = {} // { fastest_satPerKB, fast_satPerKB, slow_satPerKB } // from oracle(s)
 
         // BTC - Bitpay recommended: https://www.bitgo.com/api/v1/tx/fee?numBlocks=2 
-        if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_TEST') {
+        if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_TEST' || symbol === 'BTC_SEG2' ) {
             return axios.get(configExternal.btcFeeOracle_BitGo)
             .then(res => {
                 if (res && res.data && res.data.feeByBlockTarget) {

@@ -64,6 +64,8 @@ self.mempool_tpsBuf = {}
 self.mempool_tpsAvg = {}
 self.mempool_tot = {}
 self.blocks_time = {}
+self.blocks_tps = {}
+self.blocks_height = {}
 
 self.dirtyDbFile = 'scp_tx.db'
 
@@ -164,6 +166,7 @@ function handler(e) {
                     const allReady = bbSocketValues.some(p => !p || p.readyState != 1) === false
 
                     const symbolsConnected = bbSocketValues.filter(p => p && p.readyState == 1).map(p => p && p.symbol)
+                    const displaySymbolsConnected = _.uniq(bbSocketValues.filter(p => p && p.readyState == 1).map(p => p && p.displaySymbol))
                     const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt
@@ -173,13 +176,13 @@ function handler(e) {
                         if (symbolsConnected.length > 0) {
                             utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - (re)connected=`, symbolsConnected.join(','), { logServerConsole: true })
                         }
-                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
+                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected: displaySymbolsConnected, symbolsNotConnected } }) 
                     }
                     else { // some failed
                         if (elapsedMs > timeoutMs) {
                             clearInterval(wait_intId)
                             utilsWallet.error(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ## timeout elapsed: sockets still not all readyState=1 ##`, null, { logServerConsole: true })
-                            self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
+                            self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected: displaySymbolsConnected, symbolsNotConnected } }) 
                         }
                     }
                 }, 888)
@@ -387,6 +390,10 @@ function handler(e) {
         utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
         const meta = configWallet.getMetaBySymbol(symbol)
         if (meta.type === configWallet.WALLET_TYPE_UTXO) {
+            // don't send redundant requests: causes 429's
+            // (BTC's GetSyncInfo will update BTC_SEG)
+            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2') return 
+
             if (meta.use_BBv3) {
                 workerBlockbook.getSyncInfo_Blockbook_v3(symbol, undefined, undefined, networkStatusChanged)
             }

@@ -295,8 +295,11 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
      payload: { symbol, receivedBlockNo, receivedBlockTime }} ] }
     })
 
-    // get prev block - exact time; for block TPS
     if (!self.blocks_time[symbol]) self.blocks_time[symbol] = []
+    if (!self.blocks_tps[symbol]) self.blocks_tps[symbol] = []
+    if (!self.blocks_height[symbol]) self.blocks_height[symbol] = 0
+
+    // get prev block - exact time; for block TPS
     if (!self.blocks_time[symbol][receivedBlockNo - 1]) {
         const prevBlock = await self.ws_web3[symbol].eth.getBlock(receivedBlockNo - 1)
         self.blocks_time[symbol][receivedBlockNo - 1] = prevBlock.timestamp
@@ -304,6 +307,10 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
     const prevBlockTime = self.blocks_time[symbol][receivedBlockNo - 1]
     const block_time = receivedBlockTime - prevBlockTime
     const block_tps = block_time > 0 ? txCount / block_time : 0
+    if (self.blocks_height[symbol] < receivedBlockNo) {
+        self.blocks_height[symbol] = receivedBlockNo
+        self.blocks_tps[symbol].push(block_tps)
+    }
 
     // console.log(`${symbol} blockData`, blockData)
     // console.log(`${symbol} txCount`, txCount)
@@ -314,7 +321,8 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
         networkStatusChanged(symbol, { 
              block_no: receivedBlockNo, 
         block_txCount: txCount,
-            block_tps,
+            block_tps: self.blocks_tps[symbol].reduce((a,b) => a + b, 0) / self.blocks_tps[symbol].length,
+          block_count: self.blocks_tps[symbol].length,
            block_time,
              geth_url: configWS.geth_ws_config[symbol].url
         })

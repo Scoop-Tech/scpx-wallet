@@ -17,6 +17,8 @@ module.exports = {
       //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
       //'BTC_SEG' : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
+
+        'BTC_SEG2': { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
         
         'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
       //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
@@ -56,13 +58,13 @@ module.exports = {
     // used for "bitcoind/addresstxid" sub, block sub, mempool tx queries and for BB v3 (tx detail, tx addr history, and pushes)
     //
     blockbook_ws_config: {
-      // use different btc/btc_seg BB servers to minimize 429's on api/block calls
-        'BTC_SEG'  : { url: 'wss://btc1.trezor.io',                                            subBlocks: true  },
-        'BTC'      : { url: 'wss://btc2.trezor.io',                                            subBlocks: true },
+        'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
+      //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
+        'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true  },
       //'BTC_SEG'  : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true  },
       //'BTC_SEG'  : { url: 'wss://btc1.trezor.io',                                            subBlocks: true  },
-      //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
-
+        'BTC_SEG2' : { url: 'wss://btc3.trezor.io',                                            subBlocks: true },
+  
         'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
       //'ZEC'      : { url: 'wss://node0.scoop.tech:10000',                                    subBlocks: true },
       //'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
