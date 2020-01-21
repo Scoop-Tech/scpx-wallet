@@ -71,7 +71,7 @@ module.exports = {
             global.loadedWallet.file = undefined
             global.loadedServerWallet = {}
 
-            if (configWallet.CLI_SAVE_LOADED_WALLET_KEY === true) {
+            if (configWallet.CLI_SAVE_KEY === true) {
                 global.loadedWallet.keys = { mpk }
             }
 

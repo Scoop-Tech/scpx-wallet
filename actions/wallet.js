@@ -523,7 +523,7 @@ module.exports = {
             utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} ASSET TYPE(s)...`, null, { logServerConsole: true })
             
             // DBG: ETH_T testnets dropping second address...
-            console.log(JSON.stringify(currentAssets['eth(t)'], null, 2))
+            //console.log(JSON.stringify(currentAssets['eth(t)'], null, 2))
 
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
@@ -590,7 +590,7 @@ module.exports = {
             })
 
             // log, all done 
-            utilsWallet.logMajor('green', 'white', `FINISHED GENERATING NEW ASSET TYPE(s)...`, null, { logServerConsole: true })
+            utilsWallet.logMajor('green', 'white', `FINISHED GENERATIN ASSETS`, null, { logServerConsole: true })
 
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets

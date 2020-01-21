@@ -47,7 +47,7 @@ module.exports = {
                 try {
                     // add mpk if in dev mode
                     if (global.loadedWallet.keys && global.loadedWallet.keys.mpk && !cmdParams.mpk) { 
-                        log.info(`CLI_SAVE_LOADED_WALLET_KEY: adding cached MPK...`)
+                        log.info(`CLI_SAVE_KEY: adding cached MPK...`)
                         cmdParams.mpk = global.loadedWallet.keys.mpk
                     }
 

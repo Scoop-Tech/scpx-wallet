@@ -13,9 +13,6 @@ const moment = require('moment')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
-// dbg - log core wallet to console (interferes with repl prompt)
-var LOG_CORE_TO_CONSOLE = false //(process.env.NODE_ENV === "test")
-
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {
@@ -244,14 +241,14 @@ module.exports = {
     // (also, re. powershell: https://github.com/nodejs/node/issues/14243)
     //
     // setLogToConsole: (v) => { 
-    //     getMainThreadGlobalScope().LOG_CORE_TO_CONSOLE = v // ## workers have different global scope to main thread
+    //     getMainThreadGlobalScope().configWallet.CLI_LOG_CORE = v // ## workers have different global scope to main thread
     // },
     logMajor: (bg, fg, s, p, opts) => { // level: info
         if (!s) return
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (configWallet.CLI_LOG_CORE || (opts && opts.logServerConsole)) {
                 if (bg === 'red') {
                     if (!p)  console.log(`${ts} ` + s.toString().bgRed.white.bold)
                     else     console.log(`${ts} ` + s.toString().bgRed.white.bold, stringify(p))
@@ -300,7 +297,7 @@ module.exports = {
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('info', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (configWallet.CLI_LOG_CORE || (opts && opts.logServerConsole)) {
                 if (p) console.log(ts + ' [SW-LOG] ' + s.toString().white.bold, stringify(p))
                 else   console.log(ts + ' [SW-LOG] ' + s.toString().white.bold) 
             }
@@ -315,7 +312,7 @@ module.exports = {
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('error', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (configWallet.CLI_LOG_CORE || (opts && opts.logServerConsole)) {
                 if (p) console.log(ts + ' [SW-ERR] ' + s.toString().red.bold, stringify(p))
                 else   console.log(ts + ' [SW-ERR] ' + s.toString().red.bold)
             }
@@ -330,7 +327,7 @@ module.exports = {
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('warn', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (configWallet.CLI_LOG_CORE || (opts && opts.logServerConsole)) {
                 if (p) console.log(ts + ' [SW-WRN] ' + s.toString().yellow.bold, stringify(p))
                 else   console.log(ts + ' [SW-WRN] ' + s.toString().yellow.bold)  
             }
@@ -345,7 +342,7 @@ module.exports = {
         const ts = moment(new Date()).format('HH:mm:ss.SSS')
         if (configWallet.WALLET_ENV === "SERVER") {
             fileLogger.log('verbose', s, p)
-            if (LOG_CORE_TO_CONSOLE || (opts && opts.logServerConsole)) {
+            if (configWallet.CLI_LOG_CORE || (opts && opts.logServerConsole)) {
                 if (p) console.debug(ts + ' [sw-dbg] ' + s.toString().gray, stringify(p))
                 else   console.debug(ts + ' [sw-dbg] ' + s.toString().gray)
             }

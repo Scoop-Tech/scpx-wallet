@@ -32,8 +32,8 @@ module.exports = {
                     const msg = input.msg
                     if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
                         
-                        log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsConnected=', data.symbolsConnected)
-                        log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsNotConnected=', data.symbolsNotConnected)
+                        //log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsConnected=', data.symbolsConnected)
+                        //log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsNotConnected=', data.symbolsNotConnected)
 
                         const storeState = store.getState()
                         if (storeState.wallet && storeState.wallet.assets) {
@@ -43,7 +43,7 @@ module.exports = {
                             appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
 
                             if (data.symbolsConnected.length > 0) {
-                                log.info('BLOCKBOOK_ISOSOCKETS_DONE: triggering loadAllAsets...')
+                                log.info('walletConnect - triggering loadAllAsets...')
 
                                 opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
                                 .then(p => {
@@ -53,10 +53,10 @@ module.exports = {
                             }
                         }
                         else {
-                            resolve({ ok: false })  // ** load resiliance (experimenting) ** -- keep waiting here
+                            resolve({ ok: false })
                         }
                         
-                        appWorker.removeEventListener('message', listener)  // ** load resiliance (experimenting) ** -- keep listening here
+                        appWorker.removeEventListener('message', listener)
                     }
                 }
             }
@@ -66,7 +66,7 @@ module.exports = {
             appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
             
             // volatile sockets reconnect / keep-alive timer
-            log.info(`Setting volatile sockets reconnector...`)
+            log.info(`walletConnect - setting volatile sockets reconnector...`)
             const globalScope = utilsWallet.getMainThreadGlobalScope()
             globalScope.volatileSockets_intId = setInterval(() => {
                 if (globalScope.appWorker) {
@@ -74,7 +74,7 @@ module.exports = {
                         globalScope.appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
                         globalScope.appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
                     }
-                    catch(err) { // test complete - disconnect timing
+                    catch(err) {
                         utilsWallet.warn(err)
                     }
                 }

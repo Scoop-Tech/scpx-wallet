@@ -848,6 +848,10 @@ module.exports = {
     , WALLET_COPYRIGHT
     , WALLET_ENV
 
+    // CLI
+    , CLI_LOG_CORE: true
+    , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
+
     // wallet config - core
     , WALLET_INCLUDE_ETH_TEST
     , WALLET_INCLUDE_BTC_TEST
@@ -881,9 +885,6 @@ module.exports = {
 
     // functional sockets - geth & blockbook
     , VOLATILE_SOCKETS_REINIT_SECS: 20                                   // volatile sockets - reinit timer (seconds)
-
-    // cli 
-    , CLI_SAVE_LOADED_WALLET_KEY: process.env.NODE_ENV === "development" // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet test params
     //,TEST_PAD_TXS:100                                                  // pad TX list -- testing LS/SS limits

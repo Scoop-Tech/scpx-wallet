@@ -101,7 +101,6 @@ module.exports = {
                             }
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onerror callback, err=`, err) }
                         }
-                        console.log('socket', socket)
 
                         //                                  
                         // subscriptions - new tx's and new blocks
