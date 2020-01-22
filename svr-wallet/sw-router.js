@@ -9,7 +9,7 @@ const serverPersist = require('./sw-server-persist')
 const asset = require('./sw-asset')
 const tx = require('./sw-tx')
 
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // validates & routes wallet functions

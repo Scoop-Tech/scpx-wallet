@@ -19,7 +19,7 @@ module.exports = {
     info: (s, p) => {
         if (p) console.log(`<< ${s.toString().cyan.bold}`, p)
         else   console.log(`<< ${s.toString().cyan.bold}`)
-        //utilsWallet.log('(cli-log) << ' + s.toString(), p)
+        //utilsWallet.log('(sw-cli-log) << ' + s.toString(), p)
     },
     
     warn: (s, p) => {

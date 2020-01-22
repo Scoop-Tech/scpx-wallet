@@ -8,7 +8,7 @@ const appStore = require('./store').store
 
 const svrWallet = require('./svr-wallet/sw-router')
 
-const log = require('./cli-log')
+const log = require('./sw-cli-log')
 
 var jaysonRpc
 var serverRpc

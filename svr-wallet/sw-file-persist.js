@@ -14,7 +14,7 @@
 const utilsWallet = require('../utils')
 
 const svrWalletCreate = require('./sw-create')
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // wallet file persistence

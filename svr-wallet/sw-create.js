@@ -11,7 +11,7 @@ const utilsWallet = require('../utils')
 const opsWallet = require('../actions/wallet')
 
 const functions = require('./sw-functions')
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // handles in-memory creation of new wallets and sub-asset private keys

@@ -8,7 +8,7 @@ const opsWallet = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // general wallet functions
@@ -21,7 +21,6 @@ module.exports = {
         log.cmd('walletConnect')
 
         return new Promise((resolve) => {
-    
             appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
             appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
             
@@ -86,54 +85,54 @@ module.exports = {
     // dumps current wallet asset data
     walletDump: (appWorker, store, p) => {
         var { mpk, apk, symbol, txs, keys } = p
+        const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+        const state = store.getState()
+        const wallet = state.wallet
+        const syncInfo = state.syncInfo
         log.cmd('walletDump')
 
-        // extract filter symbol, if any
-        var filterSymbol
-        if (symbol && symbol.length > 0) {
-            filterSymbol = symbol
-        }
-
-        // dump tx's, if specified
-        var dumpTxs = false
-        if (utilsWallet.isParamTrue(txs)) {
-            dumpTxs = true  
-        }
-
-        // dump privkeys, if specified
-        var dumpPrivKeys = false
-        if (utilsWallet.isParamTrue(keys)) {
-            dumpPrivKeys = true
-        }
-        
-        const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+        // params
+        const filterSymbol = symbol && symbol.length > 0 ? symbol : undefined
+        const dumpTxs = utilsWallet.isParamTrue(txs)
+        const dumpPrivKeys = utilsWallet.isParamTrue(keys)
 
         // decrypt raw assets (private keys) from the store
-        const wallet = store.getState().wallet
         var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
         if (!pt_rawAssets) return Promise.resolve({ err: `Decrypt failed - MPK is probably incorrect` })
         var pt_rawAssetsObj = JSON.parse(pt_rawAssets)
     
         // match privkeys to addresses by HD path in the displayable assets (unencrypted) store 
-        var allPathKeyAddrs = []
+        var dumpOut = []
         Object.keys(pt_rawAssetsObj).forEach(assetName => {
+            const meta = configWallet.walletsMeta[assetName]
+            const assetOut = { 
+                assetName,
+                accounts: null,
+                syncInfo: syncInfo[meta.symbol]
+            }
+            
+            const accountsOut = []
             pt_rawAssetsObj[assetName].accounts.forEach(account => {
+                const accountOut = {
+                    accountName: account.name,
+                }
+
+                var keysOut = []
                 account.privKeys.forEach(privKey => {
-                    var pathKeyAddr = {
-                        assetName,
-                        path: privKey.path,
-                        privKey: privKey.privKey,
+                    const pathKeyAddr = {
+                      //assetName,
+                             path: privKey.path,
+                          privKey: privKey.privKey,
+                       //syncInfo: syncInfo[meta.symbol]
                     }
-                    const meta = configWallet.walletsMeta[assetName]
 
                     if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {
-    
                         // get corresponding addr, lookup by HD path
                         const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
                         const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
         
                         pathKeyAddr.symbol = meta.symbol
-                        pathKeyAddr.accountName = walletAddr.accountName
+                        //pathKeyAddr.accountName = walletAddr.accountName
                         pathKeyAddr.addr = _.cloneDeep(walletAddr)
                         pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
 
@@ -149,22 +148,29 @@ module.exports = {
                                 tx.txExplorerPath = configExternal.walletExternal_config[meta.symbol].txExplorerPath(tx.txid)
                             })
                         }
-
                         if (!dumpPrivKeys) {
                             pathKeyAddr.privKey = undefined
                         }
                         
-                        allPathKeyAddrs.push(pathKeyAddr)
+                        keysOut.push(pathKeyAddr)
                     }
                 })
+                if (keysOut.length > 0) {
+                    accountOut.keys = keysOut
+                    accountsOut.push(accountOut)
+                }
             })
+            if (accountsOut.length > 0) {
+                assetOut.accounts = accountsOut
+                dumpOut.push(assetOut)
+            }
         })
     
         utilsWallet.softNuke(pt_rawAssets)
         utilsWallet.softNuke(pt_rawAssetsObj)
     
         return new Promise((resolve) => {
-            resolve({ ok: allPathKeyAddrs })
+            resolve({ ok: dumpOut })
         })
     },
 

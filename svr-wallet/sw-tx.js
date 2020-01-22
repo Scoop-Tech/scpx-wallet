@@ -9,7 +9,7 @@ const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
 
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // transaction-related wallet functions

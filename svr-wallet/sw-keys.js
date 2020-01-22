@@ -10,7 +10,7 @@ const filePersist = require('./sw-file-persist')
 const serverPersist = require('./sw-server-persist')
 const functions = require('./sw-functions')
 
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // general wallet functions

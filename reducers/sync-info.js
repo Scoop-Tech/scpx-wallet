@@ -19,10 +19,7 @@ const handlers = {
 
         return newState
     },
-
 }
 
-//export default
-module.exports = 
-createReducer(initialState, handlers)
+module.exports = createReducer(initialState, handlers)
 

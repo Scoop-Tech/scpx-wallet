@@ -9,7 +9,7 @@ const configWalletExternal = require('./config/wallet-external')
 const { store: appStore, persistor: appPersistor  } = require('./store')
 const utilsWallet = require('./utils')
 
-const cliRepl = require('./cli-repl')
+const cliRepl = require('./sw-cli-repl')
 const rpc = require('./sw-rpc')
 
 const svrWorkers = require('./svr-workers')
@@ -18,7 +18,7 @@ const svrWallet = require('./svr-wallet/sw-router')
 const svrFilePersist = require('./svr-wallet/sw-file-persist')
 const svrServerPersist = require('./svr-wallet/sw-server-persist')
 
-const log = require('./cli-log')
+const log = require('./sw-cli-log')
 const npmPackage = require('./package.json')
 
 //

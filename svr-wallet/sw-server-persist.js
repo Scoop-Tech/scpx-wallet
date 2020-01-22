@@ -16,7 +16,7 @@ const apiDataContract = require('../api/data-contract')
 const utilsWallet = require('../utils')
 
 const svrWalletCreate = require('./sw-create')
-const log = require('../cli-log')
+const log = require('../sw-cli-log')
 
 //
 // wallet Data Storage Contract (API+EOS chain, aka "server") persistence

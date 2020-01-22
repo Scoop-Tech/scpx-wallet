@@ -6,7 +6,7 @@ const utilsWallet = require('./utils')
 
 const appWorkerCallbacks = require('./actions/appWorkerCallbacks')
 
-const log = require('./cli-log')
+const log = require('./sw-cli-log')
 
 module.exports = {
 

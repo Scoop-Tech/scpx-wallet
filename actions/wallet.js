@@ -508,12 +508,14 @@ module.exports = {
                 }
             //}
 
-            // in prod, remove eth_test unless a test asset is present
-            //if (!configWalelt.IS_DEV) {
-                if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
-                    needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
-                }
-            //}
+            // in prod, remove eth_test unless a test asset is present (excluding testnets account)
+            if (email !== 'testnets@scoop.tech') {
+                //if (!configWallet.IS_DEV) {
+                    if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
+                        needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
+                    }
+                //}
+            }
         }
 
         // (re)generate wallets

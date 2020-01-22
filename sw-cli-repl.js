@@ -11,7 +11,8 @@ const svrWorkers = require('./svr-workers')
 const svrRouter = require('./svr-wallet/sw-router')
 const svrWalletCreate = require('./svr-wallet/sw-create')
 
-const log = require('./cli-log')
+const log = require('./sw-cli-log')
+const info = require('./sw-cli-info')
 const rpc = require('./sw-rpc')
 
 const helpBanner = '\n' + ' HELP '.bgCyan.white.bold + ' '
@@ -110,9 +111,12 @@ const rpcTestHelp = `${helpBanner}` +
     `\t--params       [string]              [required]  CLI parameters in JSON format, e.g. " { \\\"mpk\\\": \\\"...\\\", \\\"symbol\\\": \\\"...\\\", \\\"value\\\": \\\"...\\\", ... } \n`
 
 const logTailHelp = `${helpBanner}` +
-    `.lt (log-tail) - DBG: tails (doesn't follow) the last n lines of the debug log \n`.cyan.bold +
+    `.lt (log-tail) - DBG: tails the last n lines of the debug log \n`.cyan.bold +
     `\t--lines (--l)  [int]                 [optional]  number of lines to tail (default: 100)\n` +
     `\t--debug        [bool]                [optional]  tails the verbose (debug) log instead of the info log (default: false) \n`
+
+const infoHelp = `${helpBanner}` +
+    `.i (info) - DBG: displays summary wallet info \n`.cyan.bold
 
 //const clearCacheHelp = `${helpBanner}` +
 //    `.cc (clear-tx-db-cache) - clears the TX cache file\n`.cyan.bold
@@ -127,7 +131,6 @@ module.exports = {
         // init repl
         const colors = { RED: "31", GREEN: "32", YELLOW: "33", BLUE: "34", MAGENTA: "35", CYAN: "36" }
         const colorize = (color, s) => `\x1b[${color}m${s}\x1b[0m`
-        const say = message => () => console.log(message)
         const nodeVersion = colorize(colors.GREEN, `${process.title} ${process.version}`)
         const prompt = repl.start({
             terminal: true,
@@ -136,7 +139,14 @@ module.exports = {
             useGlobal: true,
             useColors: true,
             prompt: `${nodeVersion} SW-CLI > `,
+            breakEvalOnSigint: true,
+            // eval: (text, context, filename, callback) => {
+            //     prompt.setPrompt(`new [${new Date().getTime()}] >`)
+            // }
         })
+        // const getPrompt = (state) => {
+        //     return `ETH: ${state.getSyncInfo.ETH.receivedBlockNo}`
+        // }
 
         // init file history
         if (utilsWallet.isParamTrue(enableFileHistory)) {
@@ -159,17 +169,17 @@ module.exports = {
         const defineWalletCmd = (prompt, names, help, fn, walletFnName) => {
             names.forEach(name => {
                 prompt.defineCommand(name, {
-                    help, //help: name.length > 5 ? help : undefined,
+                    help,
                     action: function (args) {
                         prompt.clearBufferedCommand()
                         //var argv = require('minimist')(args.split(' '))
                         const argv = stringParseArgs(args, { 
                             string: ['t', 'f'],
-                            alias: {
+                             alias: {
+                                s: 'symbol',    // e.g. "-s" == --symbol (== --s)
                                 n: 'name',
                                 l: 'lines',
                                 e: 'email',
-                                s: 'symbol',
                                 v: 'value',
                                 t: 'to',
                                 f: 'from',
@@ -180,12 +190,8 @@ module.exports = {
                             //console.group()
                             fn(utilsWallet.getAppWorker(), walletContext.store, argv, walletFnName)
                             .then(res => {
-                                if (res) {
-                                    postCmd(prompt, res, help)
-                                }
-                                else {
-                                    process.exit(1)
-                                }
+                                if (res) postCmd(prompt, res, help)
+                                else process.exit(1)
                             })
                             //.finally(() => console.groupEnd())
                         }
@@ -219,6 +225,7 @@ module.exports = {
         defineWalletCmd(prompt, ['/rt', 'rpc-test'], rpcTestHelp, rpc.rpcTest)
         defineWalletCmd(prompt, ['/lt', 'log-tail'], logTailHelp, log.logTail)
 
+        defineWalletCmd(prompt, ['/i', 'info'], infoHelp, info.show)
 
         // clear, tx db cache 
         // defineWalletCmd(prompt, 'cc', clearCacheHelp, async () => {
@@ -269,14 +276,11 @@ function postCmd(prompt, res, help) {
                 log.info(help)
             }
         }
-        else {
-            log.success(`${JSON.stringify(res.ok, null, 2)}`)
-        }
-
+        else log.success(`${JSON.stringify(res.ok, null, 2)}`)
         if (global.loadedWallet && global.loadedWallet.keys && global.loadedWallet.keys.mpk) {
             log.warn(`DEV MODE - wallet MPK is being cached in-memory: ${global.loadedWallet.keys.mpk}`)
         }
-
+        //prompt.setPrompt('new>')
         prompt.displayPrompt()
     }, 1000) // https://github.com/nodejs/node/issues/11568 -- also, allow time for related reducer actions and their logs
 }
