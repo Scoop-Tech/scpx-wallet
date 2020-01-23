@@ -970,6 +970,9 @@ module.exports = {
 
     , walletsMeta
 
+    // exchange
+    , XS_CHANGELLY_VARRATE_MARKDOWN: 0.9 // changelly variable-rate api is wildly optimistic in its estimate: mark it down 10%
+
     // network (API)
     , API_DOMAIN
     , API_URL
@@ -986,4 +989,5 @@ module.exports = {
     //     retryDelay: require('axios-retry').exponentialDelay,
     //     retryCondition: (res) => { return true }
     // }    
+
 }
