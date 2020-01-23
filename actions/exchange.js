@@ -447,10 +447,11 @@ export function getTransaction(xsTx) {
 }
 
 // poll exchange status
-var exchangeStatusTimer_intId
+var exchangeStatusTimer_intId = []
 export function pollExchangeStatus(store, from, xsTx, owner) { 
     return (dispatch) => {
-        getExchangeStatus_ClearTimer()
+        //getExchangeStatus_ClearTimer()
+        console.log(`XS - pollExchangeStatus[${xsTx.xs.id}] ${from.symbol}`, xsTx)
 
         getStatusApi(xsTx.xs.id)
         .then(res => {
@@ -521,9 +522,21 @@ export function pollExchangeStatus(store, from, xsTx, owner) {
                 dispatch(getExchangeStatus_SetTimer(store, from, xsTx, owner))
             }
         })
-
     }
 }
+function getExchangeStatus_SetTimer(store, from, xsTx, owner) {
+    return (dispatch) => {
+        console.log(`XS - getExchangeStatus_SetTimer[${xsTx.xs.id}]`, xsTx)
+        exchangeStatusTimer_intId[xsTx.xs.id] = setTimeout(() => {
+            dispatch(pollExchangeStatus(store, from, xsTx, owner))
+        }, configWallet.IS_DEV ? 5000 : 30000)
+    }
+}
+// export function getExchangeStatus_ClearTimer() {
+//     if (exchangeStatusTimer_intId[xsTx.xs.id] !== undefined) {
+//         clearTimeout(exchangeStatusTimer_intId[xsTx.xs.id])
+//     }
+// }
 export function XS_setCurrentStatus(p) {
     const { from, status, owner } = p
 
@@ -533,7 +546,7 @@ export function XS_setCurrentStatus(p) {
             // exchange completed and acknowledged by user (could be successful or otherwise)
 
             // stop polling
-            getExchangeStatus_ClearTimer()
+            //getExchangeStatus_ClearTimer()
 
             // TODO (history) -- should push the xsTx to a history queue, or similar ...
 
@@ -554,18 +567,7 @@ export function XS_setCurrentStatus(p) {
         } })
     }
 }
-function getExchangeStatus_SetTimer(store, from, xsTx, owner) {
-    return (dispatch) => {
-        exchangeStatusTimer_intId = setTimeout(() => {
-            dispatch(pollExchangeStatus(store, from, xsTx, owner))
-        }, configWallet.IS_DEV ? 30000 : 30000)
-    }
-}
-export function getExchangeStatus_ClearTimer() {
-    if (exchangeStatusTimer_intId !== undefined) {
-        clearTimeout(exchangeStatusTimer_intId)
-    }
-}
+
 
 function toXsSymbol(symbol) {
     return symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'btc' 
