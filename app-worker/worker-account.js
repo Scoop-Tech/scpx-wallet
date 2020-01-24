@@ -18,7 +18,7 @@ const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
 
-const cache_bb_addressTxs = {} // needs self. semantics?
+const cache_bb_addressTxs = {}
 
 module.exports = {
     getAddressFull_Account_v2: async (wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) => {

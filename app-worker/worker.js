@@ -81,19 +81,23 @@ if (configWallet.WALLET_ENV === "SERVER") {
     }
 }
 
-utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
+utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
 function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
 
-    const eventData = !workerThreads ? e.data : e
-    if (!eventData.msg || !eventData.data) { utilsWallet.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
+    const eventData = e.data //!workerThreads ? e.data : e
+    if (!eventData.msg || !eventData.data) { 
+        utilsWallet.error(`appWorker >> ${workerId} bad event, e=`, e);
+        return
+    }
+
     const msg = eventData.msg
     const data = eventData.data
     switch (msg) {
 
         case 'SERVER_INIT_TX_DB':  // setup tx db cache (dirty - replaces node-persist)
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`)
+            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`, null, { logServerConsole: true })
             dirtyDbInit()
             break
         // ## broken -- see dirtyDbClear
@@ -420,7 +424,7 @@ function handler(e) {
         const refreshAssetOps = assets.map((asset) => { 
             return new Promise((resolveAssetOp, rejectAssetOp) => {
 
-                // !! different creation semantics for node!
+                // !! different creation semantics for node? (maybe not after v13 upgrade)
                 // const subWorker = new SubWorker_GetAddrFull()
                 // subWorker.addEventListener('message', e => {
                 //     const message = e.data;

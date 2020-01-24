@@ -30,19 +30,15 @@ module.exports = {
             globalScope.nextCpuWorker = 0
         }
 
-        // create app worker
+        // create singleton app worker
         if (globalScope.appWorker === undefined) {
-
             function createAppWorker() {
                 const appWorker = new Worker(`${__dirname}/app-worker/worker.js`)
-            
-                appWorker.setMaxListeners(30) 
+                appWorker.setMaxListeners(40) 
                 appWorker.removeEventListener = appWorker.removeListener 
                 appWorker.addEventListener = appWorker.on
-    
                 appWorker.on('message', event => {
                     appWorkerCallbacks.appWorkerHandler(store, event) // handle common core app worker callbacks
-    
                     const postback = event.data
                     const msg = event.msg
                     const status = event.status
@@ -57,11 +53,8 @@ module.exports = {
                             null, { logServerConsole: true })
                     }
                 })
-
                 return appWorker
             }
-
-            // main app worker
             globalScope.appWorker = createAppWorker()
 
             // test - create appworkers for loading concurrently
@@ -74,7 +67,7 @@ module.exports = {
             await txdb_init()
         }
 
-        // ping workers
+        // ping all workers
         const pongs = globalScope.cpuWorkers.concat([globalScope.appWorker]).map(worker => {
             return new Promise((resolve) => {
                 worker.once('message', (data) => { resolve(true) })
@@ -121,7 +114,11 @@ async function txdb_init() {
                 resolve()
             }
         })
-        utilsWallet.getAppWorker().postMessage({ msg: 'SERVER_INIT_TX_DB', data: {} })
+        const globalScope = utilsWallet.getMainThreadGlobalScope()
+        const appWorker = utilsWallet.getAppWorker()
+
+        //utilsWallet.getAppWorker()
+        appWorker.postMessage({ msg: 'SERVER_INIT_TX_DB', data: {} })
     })
     return txDbSetup
 }

@@ -3,6 +3,7 @@
 const axios = require('axios')
 const isoWs = require('isomorphic-ws')
 const BigNumber = require('bignumber.js')
+const CircularBuffer = require("circular-buffer")
 
 const configWS = require('../config/websockets')
 const configExternal = require('../config/wallet-external')
@@ -12,6 +13,8 @@ const walletUtxo = require('../actions/wallet-utxo')
 const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
+
+const cache_bb_blocks = {}
 
 module.exports = {
 
@@ -209,11 +212,31 @@ function getAddressBalance_Blockbook_v3(asset, address) {
 // called for initial block-sync state - and new blocks
 function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
     
-    // ### getting 429's when running tests... (and 2x windows open!)
+    // cache BB rest data so we can reuse across tests (across wallet load/worker load cycles) - we get 429's otherwise
     async function bb_getBlock(blockNo, page) {
-        const blockData = await axios.get(configExternal.walletExternal_config[symbol].api.block(blockNo, page))
-        if (!blockData || !blockData.data) return null
-        return blockData.data
+        //console.log('bb_getBlock - cache_bb_blocks', cache_bb_blocks)
+        if (!cache_bb_blocks[symbol]) cache_bb_blocks[symbol] = new CircularBuffer(10)
+        const url = configExternal.walletExternal_config[symbol].api.block(blockNo, page)
+        const cache = cache_bb_blocks[symbol]
+        if (cache.size() > 0 && cache.get(cache.size() - 1).url == url) {
+            //console.log('bb_getBlock - returning cached for', url)
+            return new Promise((resolve) => { resolve( cache.get(cache.size() - 1).data )})
+        }
+        else {
+            //console.log('bb_getBlock - fetching for', url)
+            return axios.get(url)
+            .then(blockData => {
+                if (!blockData || !blockData.data) return null
+                //console.log(`caching for ${url}, data=`, blockData.data)
+                cache.push({ url, data: blockData.data })
+                //console.log(`returning for ${url}, data=`, blockData.data)
+                return blockData.data
+            })
+            .catch(err => {
+                utilsWallet.error(`## bb_getBlock, err=`, err, { logServerConsole: true })
+                return null
+            })
+        }
     }
 
     // get node sync info
@@ -224,79 +247,81 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         // get current block - exact time & tx count
         const receivedBlockNo = _receivedBlockNo || data.bestheight || data.bestHeight
         const curBlock = await bb_getBlock(receivedBlockNo, 1)
-        const txCount = curBlock.txCount ? curBlock.txCount : 0
-        const receivedBlockTime = /*_receivedBlockTime || (curBlock.time ?*/ curBlock.time// : new Date().getTime())
-        // if (symbol === 'DGB') {
-        //     console.log(`${symbol} curBlock`, curBlock)
-        //     console.log(`${symbol} txCount`, txCount)
-        //     console.log(`${symbol} receivedBlockTime`, receivedBlockTime)
-        // }
+        //console.log('curBlock', curBlock)
+        const txCount = curBlock ? (curBlock.txCount ? curBlock.txCount : 0) : undefined
+        const receivedBlockTime = curBlock ? curBlock.time : undefined
 
         // get prev block - exact time; for block TPS
-        const cacheSymbol = symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'BTC' : symbol // don't send redundant requests: causes 429's
+        const cacheSymbol = symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'BTC' : symbol // don't send synonymous requests (http 429)
         if (!self.blocks_time[cacheSymbol]) self.blocks_time[cacheSymbol] = []
-        if (!self.blocks_time[cacheSymbol][receivedBlockNo - 1]) {
-            const prevBlock = await bb_getBlock(receivedBlockNo - 1, 1)
-            self.blocks_time[cacheSymbol][receivedBlockNo - 1] = prevBlock.time
-        }
-        const prevBlockTime = self.blocks_time[cacheSymbol][receivedBlockNo - 1]
-        const block_time = receivedBlockTime - prevBlockTime
-        const block_tps = block_time > 0 ? txCount / block_time : 0
         if (!self.blocks_tps[cacheSymbol]) self.blocks_tps[cacheSymbol] = []
         if (!self.blocks_height[cacheSymbol]) self.blocks_height[cacheSymbol] = 0
-        if (self.blocks_height[cacheSymbol] < receivedBlockNo) {
-            self.blocks_height[cacheSymbol] = receivedBlockNo
-            self.blocks_tps[cacheSymbol].push(block_tps)
-        }
+        var block_time = 0
+        if (txCount && receivedBlockTime) {
+            if (!self.blocks_time[cacheSymbol][receivedBlockNo - 1]) {
+                const prevBlock = await bb_getBlock(receivedBlockNo - 1, 1)
+                if (prevBlock) {
+                    self.blocks_time[cacheSymbol][receivedBlockNo - 1] = prevBlock.time
+                }
+            }
+            if (self.blocks_time[cacheSymbol][receivedBlockNo - 1]) {
+                const prevBlockTime = self.blocks_time[cacheSymbol][receivedBlockNo - 1]
+                block_time = receivedBlockTime - prevBlockTime
 
-        // if (symbol === 'DGB') {
-        //     console.log(`${symbol} prevBlockTime`, prevBlockTime)
-        //     console.log(`${symbol} block_time (s)`, parseFloat(block_time.toFixed(2)))
-        //     console.log(`${symbol} block_tps`, block_tps)
-        // }
+                if (self.blocks_height[cacheSymbol] < receivedBlockNo) {
+                    self.blocks_height[cacheSymbol] = receivedBlockNo
+                    self.blocks_tps[cacheSymbol].push(block_time > 0 ? txCount / block_time : 0)
+                }
+            }
+        }
+        else {
+            utilsWallet.warn(`## bb_getBlock - missing txCount || receivedBlockTime - probable 429`, null, { logServerConsole: true })
+        }
         
-        // TODO: caddy can load balance across proxies?
+        // update synonymous symbols
         const updateSymbols = [symbol]
-        if (symbol === 'BTC') {  // don't send redundant requests: causes 429's - use BTC's request for BTC_SEG
+        if (symbol === 'BTC') {
             updateSymbols.push('BTC_SEG')
             updateSymbols.push('BTC_SEG2')
         }
-        updateSymbols.forEach(p => {
-            dispatchActions.push({
-                   type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                payload: { symbol: p, receivedBlockNo, receivedBlockTime }
-            })
-        })
-
-        if (symbol === 'ETH' || symbol === 'ETH_TEST') { // eth mainnet - update erc20s
-            const erc20_symbols = Object.keys(configExternal.erc20Contracts)
-            erc20_symbols.forEach(erc20_symbol => {
-
-                const meta = configWallet.getMetaBySymbol(erc20_symbol)
-                if ((symbol === 'ETH'      && !meta.isErc20_Ropsten)
-                 || (symbol === 'ETH_TEST' && meta.isErc20_Ropsten)) {
-                    dispatchActions.push({
-                           type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                        payload: {  symbol: erc20_symbol, receivedBlockNo, receivedBlockTime }
-                    })
-                }
-            })
-        }
 
         // update batch - to state
+        if (receivedBlockNo && receivedBlockTime) {
+            updateSymbols.forEach(p => {
+                dispatchActions.push({
+                       type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                    payload: { symbol: p, receivedBlockNo, receivedBlockTime }
+                })
+            })
+            if (symbol === 'ETH' || symbol === 'ETH_TEST') { // eth[_test] - update erc20s
+                const erc20_symbols = Object.keys(configExternal.erc20Contracts)
+                erc20_symbols.forEach(erc20_symbol => {
+                    const meta = configWallet.getMetaBySymbol(erc20_symbol)
+                    if ((symbol === 'ETH'      && !meta.isErc20_Ropsten)
+                     || (symbol === 'ETH_TEST' && meta.isErc20_Ropsten)) {
+                        dispatchActions.push({
+                               type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                            payload: {  symbol: erc20_symbol, receivedBlockNo, receivedBlockTime }
+                        })
+                    }
+                })
+            }
+        }
         self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions } })
 
         // update lights - block tps
-        if (networkStatusChanged) {
-            updateSymbols.forEach(p =>  {
-                networkStatusChanged(p, { 
-                    block_no: receivedBlockNo, 
-               block_txCount: txCount,
-                   block_tps: self.blocks_tps[cacheSymbol].reduce((a,b) => a + b, 0) / self.blocks_tps[cacheSymbol].length,
-                 block_count: self.blocks_tps[cacheSymbol].length,
-                  block_time,
-                      bb_url: configWS.blockbook_ws_config[p].url })
-            })
+        if (receivedBlockNo && txCount && block_time > 0) {
+            if (networkStatusChanged) {
+                updateSymbols.forEach(p =>  {
+                    networkStatusChanged(p, { 
+                        block_no: receivedBlockNo, 
+                   block_txCount: txCount,
+                       block_tps: self.blocks_tps[cacheSymbol].reduce((a,b) => a + b, 0) / self.blocks_tps[cacheSymbol].length,
+                     block_count: self.blocks_tps[cacheSymbol].length,
+                      block_time,
+                          bb_url: configWS.blockbook_ws_config[p].url })
+                })
+            }
         }
     })
 }

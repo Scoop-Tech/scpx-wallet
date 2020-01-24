@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.6.86",
+    "version": "0.6.88",
     "description": "Scoop Core Wallet: multi-asset, cross-platform and open-source crypto wallet",
     "keywords": [
         "crypto wallet",
@@ -69,20 +69,20 @@
     "main": "sw-cli.js",
     "scripts": {
         "help": "node --experimental-worker ./sw-cli.js --help ",
-        "about": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --about",
-        "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=true",
-        "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --saveHistory=false",
-        "rpc": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 --experimental-worker ./sw-cli.js --rpc=true --rpcPort=4000 --rpcRemoteHosts=::ffff:127.0.0.1 --rpcUsername=scp --rpcPassword=123",
-        "jestver": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker&& jest --version",
-        "test": "set NODE_ENV=test&& set NODE_OPTIONS=--experimental-worker && jest --runInBand --forceExit --verbose --coverage --env=node"
+        "about": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 ./sw-cli.js --about",
+        "dev": "set NODE_ENV=development&& node --inspect=0.0.0.0:9229 ./sw-cli.js --saveHistory=true",
+        "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 ./sw-cli.js --saveHistory=false",
+        "rpc": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 ./sw-cli.js --rpc=true --rpcPort=4000 --rpcRemoteHosts=::ffff:127.0.0.1 --rpcUsername=scp --rpcPassword=123",
+        "jestver": "set NODE_ENV=test&& jest --version",
+        "test": "set NODE_ENV=test&& jest --runInBand --forceExit --verbose --coverage --env=node"
     },
     "jest": {
         "coverageDirectory": "./coverage/",
         "collectCoverage": true
     },
     "engines": {
-        "node": ">=10.14.1",
-        "npm": ">=6.4.1"
+        "node": ">=13.7.0",
+        "npm": ">=6.13.6"
     },
     "author": "Dominic Morris",
     "license": "AGPL-3.0",

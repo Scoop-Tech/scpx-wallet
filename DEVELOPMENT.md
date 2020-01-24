@@ -8,12 +8,7 @@
 
 ## Building from Source
 
-The tested and recommended build environment is node 10.15.3 and npm 6.9.0.
-
-## --experimental-worker
-```--experimental-worker``` configuration IS REQUIRED: this is set by the npm scripts fpr Windows, but you can also set it in your environment, e.g.
-Powershell: ```$env:NODE_OPTIONS = "--experimental-worker"```
-OSX: ```export NODE_OPTIONS=--experimental-worker``` (or see: ```./nodemon.json```)
+The tested and recommended build environment is Node 13.7.0 and NPM 6.13.6.
 
 ## Setup
  > All:
@@ -80,7 +75,6 @@ Visual Studio Code is recommended. An example ./vscode/launch.json is:
             "type": "node",
             "request": "launch",
             "env": {
-                "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "development"
             },
             "name": "wallet-dev",

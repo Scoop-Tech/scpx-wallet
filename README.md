@@ -35,7 +35,8 @@ Scoop uses three levels of data encryption: one round of encryption in browser s
 
 ## Running the Core Wallet CLI: from source
   * ```npm i```
-  * ```node --experimental-worker sw-cli.js --help```
+  * ```npm start``` (or ```npm run dev``` for dev flags)
+  * ```npm run rpc```for example RPC usage
 
 Type ```.help``` in the CLI for a full list of commands.
 

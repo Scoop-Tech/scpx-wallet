@@ -267,7 +267,7 @@ export function XS_getEstReceiveAmount_SetTimer(store, fromSymbol, toSymbol, amo
             //dispatch(
                 XS_getEstReceiveAmount(store, fromSymbol, toSymbol, amount)
             //)
-        }, configWallet.IS_DEV ? 10000 : 10000) // refresh frequently -- v2 fixed rate API rateId's expire after 30s!
+        }, configWallet.IS_DEV ? 5000 : 10000) // refresh frequently -- v2 fixed rate API rateId's expire after 30s!
     //}
 }
 export function XS_getEstReceiveAmount_ClearTimer() {
@@ -529,7 +529,7 @@ function getExchangeStatus_SetTimer(store, from, xsTx, owner) {
         console.log(`XS - getExchangeStatus_SetTimer[${xsTx.xs.id}]`, xsTx)
         exchangeStatusTimer_intId[xsTx.xs.id] = setTimeout(() => {
             dispatch(pollExchangeStatus(store, from, xsTx, owner))
-        }, configWallet.IS_DEV ? 5000 : 30000)
+        }, configWallet.IS_DEV ? 5000 : 10000)
     }
 }
 // export function getExchangeStatus_ClearTimer() {
@@ -568,10 +568,9 @@ export function XS_setCurrentStatus(p) {
     }
 }
 
-
-function toXsSymbol(symbol) {
+export function toXsSymbol(symbol) {
     return symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'btc' 
          : symbol === 'BCHABC' ? 'bch'
          : symbol === 'USDT' ? 'usdt20'
-         : symbol
+         : symbol.toLowerCase()
 }

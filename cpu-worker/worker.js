@@ -35,12 +35,12 @@ if (configWallet.WALLET_ENV === "SERVER") {
     }
 }
 
-utilsWallet.logMajor('magenta','white', `... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - init ...`, null, { logServerConsole: true })
+utilsWallet.logMajor('magenta','white', `... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
 function handler(e) {
     if (!e) { utilsWallet.error(`cpuWorker >> ${workerId} no event data`); return }
 
-    const eventData = !workerThreads ? e.data : e
+    const eventData = e.data //!workerThreads ? e.data : e
     if (!eventData.msg || !eventData.data) { utilsWallet.error(`cpuWorker >> ${workerId} bad event, e=`, e); return }
     const msg = eventData.msg
     const data = eventData.data
