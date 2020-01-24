@@ -81,8 +81,8 @@
         "collectCoverage": true
     },
     "engines": {
-        "node": ">=11.7.0",
-        "npm": ">=6.5.0"
+        "node": ">=11.10.1",
+        "npm": ">=6.7.0"
     },
     "author": "Dominic Morris",
     "license": "AGPL-3.0",
