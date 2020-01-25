@@ -80,9 +80,10 @@
         "coverageDirectory": "./coverage/",
         "collectCoverage": true
     },
+    "engineStrict": true,
     "engines": {
-        "node": ">=11.10.1",
-        "npm": ">=6.7.0"
+        "node": "11.10.1",
+        "npm": "6.7.0"
     },
     "author": "Dominic Morris",
     "license": "AGPL-3.0",
