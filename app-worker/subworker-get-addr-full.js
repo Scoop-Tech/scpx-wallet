@@ -24,7 +24,7 @@ self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 // CHILD WORKER: BOILERPLATE END
 
 workerFn = e => {
-    const params = e.data //!workerThreads ? e.data : e
+    const params = !workerThreads ? e.data : e
     const { asset, wallet } = params
 
     //****
