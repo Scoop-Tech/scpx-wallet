@@ -6,7 +6,7 @@ import * as utilsWallet from '../utils'
 
 import { XS_SET_EXCHANGE_ASSET, XS_SET_RECEIVE_ASSET, XS_SET_MINMAX_AMOUNT, 
          XS_SET_EST_RECEIVE_AMOUNT, XS_SET_FIXED_RECEIVE_AMOUNT,
-         XS_UPDATE_EXCHANGE_STATUS, XS_UPDATE_EXCHANGE_TX,
+         XS_UPDATE_EXCHANGE_TX,
          XS_SET_CURRENCIES } from '.'
 
 import { getCurrenciesFullApi,
@@ -404,11 +404,6 @@ export function XS_initiateExchange(store, p) {
                                       payload: { data: xsTx,
                                                 owner, //: utils.getBrowserStorage().owner 
                         } })
-
-                        // set initial exchange status: pending received by XS
-                        //var xsTxStatus = {}
-                        //xsTxStatus[exchangeAsset.symbol] = ExchangeStatusEnum.waiting
-                        //store.dispatch({ type: XS_UPDATE_EXCHANGE_STATUS, payload: { data: xsTxStatus, owner: utils.getBrowserStorage().owner } })
 
                         // poll for exchange status
                         store.dispatch(pollExchangeStatus(store, exchangeAsset, xsTx[exchangeAsset.symbol], owner))

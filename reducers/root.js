@@ -8,7 +8,7 @@ const prices = require('./prices')
 const appReducers = redux.combineReducers({
     wallet,
     syncInfo,
-    prices
+    prices,
 })
 
 //export default 

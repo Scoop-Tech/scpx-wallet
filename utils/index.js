@@ -398,23 +398,18 @@ module.exports = {
     //
     // global objects - cross server & browser
     //
-    getMainThreadGlobalScope: () => {
-        return getMainThreadGlobalScope()
-    },
-    getAppWorker: () => {
-        return getMainThreadGlobalScope().appWorker
-    },    
+    getStorageContext: () => getStorageContext(),
+
+    getMainThreadGlobalScope: () => getMainThreadGlobalScope(),
+
+    getAppWorker: () => getMainThreadGlobalScope().appWorker,
 
     //
     // workers
     //
-    getNextCpuWorker: () => {
-        return getNextCpuWorker()
-    },
+    getNextCpuWorker: () => getNextCpuWorker(),
 
-    unpackWorkerResponse: (event) => {
-        return unpackWorkerResponse(event)
-    },
+    unpackWorkerResponse: (event) => unpackWorkerResponse(event),
 
     op_WalletAddrFromPrivKey: (p, callbackProcessed) => {
         const ret = new Promise(resolve => {
@@ -487,6 +482,18 @@ const getKeyAndIV = (saltStr, passphrase) => {
     const iv128Bits = CryptoJS.PBKDF2(passphrase, salt, { keySize: 128 / 32, iterations: iterations })
     const key256Bits = CryptoJS.PBKDF2(passphrase, salt, { keySize: 256 / 32, iterations: iterations })
     return { iv: iv128Bits, key: key256Bits }
+}
+
+function getStorageContext() {
+    if (configWallet.WALLET_ENV === "BROWSER") {
+        if (window.isRunningHomescreen())
+            return window.localStorage
+        else
+            return window.sessionStorage
+    }
+    else {
+        return global.storageContext
+    }
 }
 
 function getMainThreadGlobalScope() {
