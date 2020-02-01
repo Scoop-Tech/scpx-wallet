@@ -9,7 +9,6 @@ const { SET_ASSET_BLOCK_INFO } = require('../actions')
 const initialState = {}
 
 const handlers = {
-
     [SET_ASSET_BLOCK_INFO]: (state, action) => {
 
         // update syncinfo for asset

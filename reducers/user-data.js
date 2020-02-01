@@ -1,23 +1,25 @@
 const _ = require('lodash')
-import update from 'immutability-helper'
+//import update from 'immutability-helper'
+const { update } = require('lodash')
 
-import { userData_SaveAll } from '../actions/user-data'
-import { getUserData_FromEncryptedJson } from '../actions/user-data-helpers'
-import { USERDATA_UPDATE_OPTION, USERDATA_UPDATE_FBASE, USERDATA_SET_FROM_SERVER } from '../actions'
+const { userData_SaveAll } = require('../actions/user-data')
+const { getUserData_FromEncryptedJson } = require('../actions/user-data-helpers')
+const { USERDATA_UPDATE_OPTION, USERDATA_UPDATE_FBASE, USERDATA_SET_FROM_SERVER } = require('../actions')
     
-import {
+const {
     XS_SET_EXCHANGE_ASSET, XS_SET_RECEIVE_ASSET, 
     XS_SET_MINMAX_AMOUNT,
     XS_SET_EST_RECEIVE_AMOUNT, XS_SET_FIXED_RECEIVE_AMOUNT,
     XS_UPDATE_EXCHANGE_TX,
     XS_SET_CURRENCIES
-} from '../actions'
+} = require('../actions')
 
-import * as utilsWallet from '../utils'
+//import * as utilsWallet from '../utils'
+const utilsWallet = require('../utils')
 
 const { createReducer } = require('./utils')
 
-export const initialState = {
+const initialState = {
     t_f3: "42-def1",
     t_f4: "42-def2",
 
@@ -82,7 +84,6 @@ const handlers = {
 
     // fbase logged-in status
     [USERDATA_UPDATE_FBASE]: (state, action) => {
-
         var newUserData = update(state, {
             fbaseCloudLoginSaved: {  email: { $set: action.payload.email },
                                   photoURL: { $set: action.payload.photoURL } }
@@ -110,7 +111,7 @@ const handlers = {
             var newUserData = {...state, ...serverUserData} // server wins on conflict
             newUserData.options = mergedOptionsArray 
 
-            userData_SaveAll({ userData: newUserData, hideToast: action.hideToast })
+            userData_SaveAll({ userData: newUserData, hideToast: action.hideToast || false })
             return newUserData
         }
     },
@@ -172,5 +173,7 @@ const handlers = {
     },
 }
 
-export default createReducer(initialState, handlers)
+//export default 
+module.exports = 
+createReducer(initialState, handlers)
 

@@ -107,11 +107,22 @@ module.exports = {
             if (!res.assetsJSON || res.assetsJSON.length == 0) {
                 return Promise.resolve({ err: `DSC API: no assets data returned` })
             }
+            if (!res.dataJSON || res.dataJSON.length == 0) {
+                return Promise.resolve({ err: `DSC API: no user data returned` })
+            }
 
             const owner = res.owner
             const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
             if (walletInit.err) resolve(walletInit)
             if (walletInit.ok) {
+                // set user-data (settings) from server-loaded wallet
+                store.dispatch({ type: walletActions.USERDATA_SET_FROM_SERVER, dataJson: res.dataJSON, payload: {} })
+
+                // async? can now access settings in state?
+                const state = store.getState()
+                console.dir(state)
+
+                // server-loaded wallet; set server wallet field
                 global.loadedWallet.dirty = false
                 utilsWallet.setTitle(`SERVER WALLET - ${email} / ${owner}`)
                 global.loadedServerWallet = { owner, email }

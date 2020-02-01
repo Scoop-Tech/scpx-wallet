@@ -4,11 +4,13 @@ const redux = require('redux')
 const wallet = require('./wallet')
 const syncInfo = require('./sync-info')
 const prices = require('./prices')
+const userData = require('./user-data')
 
 const appReducers = redux.combineReducers({
     wallet,
     syncInfo,
     prices,
+    userData
 })
 
 //export default 
