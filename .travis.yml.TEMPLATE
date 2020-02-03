@@ -1,0 +1,16 @@
+language: node_js
+env: 
+  - NODE_OPTIONS=--experimental-worker CODECOV_TOKEN=f65ece69-8be4-4cd8-bb6f-c397d2dbc967
+  - TESTNETS_MPK=...
+  - TESTNETS_EMAIL=...
+  - TESTNETS_KEYS_BTC_TEST=...
+  - TESTNETS_KEYS_ZEC_TEST=...
+  - TESTNETS_KEYS_ETH_TEST=...
+node_js:
+  - "11.10.1"
+script:
+  - npm run test
+before_install:
+  - pip install --user codecov
+after_success:
+  - codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967

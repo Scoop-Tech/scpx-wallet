@@ -7,4 +7,4 @@ scp_tx.db
 *.dat
 *.db
 .env
-.travis.yml2
+.travis.yml
