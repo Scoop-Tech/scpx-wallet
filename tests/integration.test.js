@@ -53,9 +53,11 @@ afterAll(async () => {
 // CI integration suite 
 describe('asset', function () {
     it('can access protected env vars', async () => {
-        console.dir(serverTestWallet)
+        console.log(serverTestWallet.email)
     })
 })
+
+// TODO: make sure no MPK logging ...
 
 /*describe('asset', function () {
     it('can create a new receive address for all asset types', async () => {
