@@ -26,13 +26,16 @@ module.exports = {
         const mpkRequired =
             (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'ADD-PRIV-KEYS' || fn === 'REMOVE-PRIV-KEYS'
           || fn === 'LOAD' || fn === 'SAVE' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
-          || fn === 'TX-GET-FEE' || fn === 'TX-PUSH')
+          || fn === 'TX-GET-FEE' || fn === 'TX-PUSH'
+          || fn === 'ASSET-CONVERT')
         
         const loadedWalletRequired =
             (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
 
         const connectedWalletRequired =
-            (fn === 'BALANCE' || fn === 'TX-GET-FEE' || fn === 'ASSET-GET-FEES' || fn === 'TX-PUSH')
+            (fn === 'BALANCE' || fn === 'ASSET-GET-FEES' 
+          || fn === 'TX-GET-FEE' || fn === 'TX-PUSH' 
+          || fn === 'ASSET-CONVERT')
     
         // param/state check - store is valid and wallet is loaded, if supplied and applicable
         var storeState = undefined
@@ -93,6 +96,8 @@ module.exports = {
             case 'SERVER-SAVE':       walletFn = serverPersist.walletServerSave; break; 
             
             case 'ASSET-GET-FEES':    walletFn = asset.getNetworkFees; break;
+            case 'ASSET-CONVERT':     walletFn = asset.convert; break;
+            
             case 'TX-GET-FEE':        walletFn = tx.txGetFee; break;
             case 'TX-PUSH':           walletFn = tx.txPush; break;
 

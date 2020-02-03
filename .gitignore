@@ -6,3 +6,5 @@ scp_tx.db
 *.log
 *.dat
 *.db
+.env
+.travis.yml2

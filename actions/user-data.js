@@ -30,7 +30,7 @@ module.exports = {
 
         if (utils.getStorageContext().owner !== null) {
             if (userData !== undefined && userData !== null) {
-                console.log(`settings - settingsSaveAll...`, userData)
+                //console.log(`settings - settingsSaveAll...`, userData)
 
                 // remove redundant / transient exchange fields
                 const prunedUserData = _.cloneDeep(userData)
@@ -59,6 +59,9 @@ module.exports = {
                 const dataJsonPayload = createEncryptedJson_FromUserData(prunedUserData)
                 if (dataJsonPayload) {
                     updateDataJsonApi(utils.getStorageContext().owner, dataJsonPayload, utils.getStorageContext().e_email, hideToast)
+                    .then(res => {
+                        console.log(res)
+                    })
                     .catch(error => {
                         utils.logErr(error)
                         console.log(`## settingsSaveAll FAIL ${error.message}`, error)

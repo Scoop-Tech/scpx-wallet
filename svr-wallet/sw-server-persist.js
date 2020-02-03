@@ -18,6 +18,7 @@ const utilsWallet = require('../utils')
 const svrWalletCreate = require('./sw-create')
 const log = require('../sw-cli-log')
 
+const userDataActions = require('../actions/user-data')
 const userDataHelper = require('../actions/user-data-helpers')
 
 //
@@ -73,7 +74,7 @@ module.exports = {
         var { mpk, email } = p
         log.cmd('walletServerLoad')
         log.param('mpk', mpk)
-        const keys = await Keygen.generateMasterKeys(mpk)
+        var keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
         log.param('apk', apk)
 
@@ -86,6 +87,8 @@ module.exports = {
         const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
         const h_email = MD5(email).toString()
         const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
+        utilsWallet.softNuke(keys)
+
         if (!(keyAccounts.account_names && keyAccounts.account_names.length > 0 && keyAccounts.account_names[0] !== undefined)) { 
             return Promise.resolve({ err: `No key account(s) found by public key` })
         }
@@ -117,16 +120,25 @@ module.exports = {
             const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
             if (walletInit.err) resolve(walletInit)
             if (walletInit.ok) {
-                // setup storage context for server-loaded wallet
-                global.storageContext = {}
-                global.storageContext.apk = keys.publicKeys.active
-                global.storageContext.opk = keys.publicKeys.owner
-                global.storageContext.PATCH_H_MPK = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)
+                // update storage context
+                global.storageContext.e_email = e_email
 
-                // set user-data (settings) from server-loaded wallet
+                // set user-data from server-loaded wallet
                 store.dispatch({ type: walletActions.USERDATA_SET_FROM_SERVER, dataJson: res.dataJSON, payload: {} })
 
-                //const userData = store.getState().userData
+                // update last loaded in user-data
+                var userData = store.getState().userData
+                //console.log(userData.loadHistory)
+                store.dispatch({ type: walletActions.USERDATA_UPDATE_LASTLOAD, payload: { 
+                       owner,
+                    newValue: { browser: false, server: true, datetime: new Date().toString() }
+                }})
+
+                // post back to server
+                userData = store.getState().userData
+                userDataActions.userData_SaveAll({ userData, hideToast: true })
+                //console.log(userData.loadHistory)
+
                 //console.log('OPT_CLOUD_PWD', userDataHelper.getOptionValue(userData, 'OPT_CLOUD_PWD'))
                 //console.log('OPT_AUTOLOGOUT', userDataHelper.getOptionValue(userData, 'OPT_AUTOLOGOUT'))
                 //console.log('OPT_NIGHTSHIFT', userDataHelper.getOptionValue(userData, 'OPT_NIGHTSHIFT'))
@@ -141,6 +153,10 @@ module.exports = {
             return { ok: { owner, email, walletInit } }
         })
         .catch(err => {
+            // stack:"ReferenceError: owner is not defined\n    
+            // at /Users/dom/SCP/scpx-app/ext/wallet/svr-wallet/sw-server-persist.js:150:68\n    
+            // at processTicksAndRejections (internal/process/next_tick.js:81:5)"
+
             if (err.response && err.response.statusText) {
                 return Promise.resolve({ err: err.response.statusText })
             }

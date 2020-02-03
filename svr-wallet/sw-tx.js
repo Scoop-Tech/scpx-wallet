@@ -5,9 +5,10 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const walletExternal = require('../actions/wallet-external')
-const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
+
+const utilsWallet = require('../utils')
 
 const log = require('../sw-cli-log')
 
@@ -23,7 +24,7 @@ module.exports = {
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // validate
-        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, symbol, value)
+        const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
         if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
         const toAddr = to
@@ -84,7 +85,7 @@ module.exports = {
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
 
         // validate
-        const { err, wallet, asset, du_sendValue } = await validateSymbolValue(store, symbol, value)
+        const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
 
         // get tx fee
@@ -106,18 +107,4 @@ module.exports = {
             return Promise.resolve({ err })
         }
     }
-}
-
-function validateSymbolValue(store, symbol, value) {
-    const wallet = store.getState().wallet
-    if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
-    const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
-    if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
-
-    if (utilsWallet.isParamEmpty(value)) return Promise.resolve({ err: `Asset value is required` })
-    if (isNaN(value)) return Promise.resolve({ err: `Invalid asset value` })
-    const du_sendValue = Number(value)
-    if (du_sendValue < 0) return Promise.resolve({ err: `Asset value cannot be negative` })
-
-    return Promise.resolve({ asset, wallet, du_sendValue })
 }

@@ -5,9 +5,10 @@ const _ = require('lodash')
 
 const configWallet = require('../config/wallet')
 const walletExternal = require('../actions/wallet-external')
-const utilsWallet = require('../utils')
 
 const opsWallet = require('../actions/wallet')
+
+const utilsWallet = require('../utils')
 
 const log = require('../sw-cli-log')
 
@@ -30,5 +31,19 @@ module.exports = {
         const feeData = await opsWallet.getAssetFeeData(asset)
 
         return Promise.resolve({ ok: { feeData } })
+    },
+
+    // use exchange service to convert from one asset to another
+    convert: async (appWorker, store, p) => {
+        var { mpk, apk, value, to, from } = p
+        const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+
+        // validate
+        var { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, from, value)
+        if (err) return Promise.resolve({ err })
+        var { err } = await utilsWallet.validateSymbolValue(store, to, value)
+        if (err) return Promise.resolve({ err })
+
+        return Promise.resolve({ ok: 'WIP...' })
     }
 }

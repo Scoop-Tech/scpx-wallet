@@ -230,7 +230,7 @@ module.exports = {
         },
 
         BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
-            donate: 'mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y', // testnets@scoop.tech
+            donate: 'mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM', // testnets2@scoop.tech
             explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
             txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
             api: { // insight-api -- active/fallback
@@ -257,8 +257,8 @@ module.exports = {
                 block: (blockHash, page) => { return `${ltcBlockbookApi}v2/block/${blockHash}?page=${page}` },
             }
         },
-        LTC_TEST: { // LTC TestNet4 -- no working faucet
-            donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', 
+        LTC_TEST: { // ### LTC TestNet4 -- no working faucet 
+            donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', // ???
             explorerPath: (address) => { return 'https://chain.so/address/LTCTEST/address/' + address },
             txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
             api: {
@@ -279,7 +279,7 @@ module.exports = {
             }        
         },
         ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
-            donate: 'tmH76MkVHc1ZDyWvdY3RDnZzzmXoFpFtXt9', // testnets@scoop.tech
+            donate: 'tmAU27N3iHMeejD6GPHYiSnH8vit1XT9uEX', // testnets2@scoop.tech
             explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
             txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
             api: {
@@ -322,7 +322,7 @@ module.exports = {
             // }
         },
         ETH_TEST: { // ropsten  https://faucet.metamask.io/  
-            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
             explorerPath: (address) => eth_ropstenAddrExplorer(address),
             txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
@@ -336,27 +336,27 @@ module.exports = {
             httpProvider: ethHttpProvider,
         },
         // TUSD_TEST: {
-        //     donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+        //     donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
         //     explorerPath: (address) => eth_ropstenAddrExplorer(address),
         //     txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
         //     httpProvider: ethTestHttpProvider,
         // },
         CCC_TEST: {
-            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
             contractAddress: erc20Contracts.CCC_TEST,
             explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.CCC_TEST, address),
             txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
         SD1A_TEST: {
-            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
             contractAddress: erc20Contracts.SD1A_TEST,
             explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.SD1A_TEST, address),
             txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
             httpProvider: ethTestHttpProvider,
         },
         AY1A_TEST: {
-            donate: '0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20', // testnets@scoop.tech
+            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
             contractAddress: erc20Contracts.AY1A_TEST,
             explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.AY1A_TEST, address),
             txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),

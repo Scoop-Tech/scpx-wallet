@@ -4,7 +4,10 @@ const _ = require('lodash')
 
 const { userData_SaveAll } = require('../actions/user-data')
 const { getUserData_FromEncryptedJson } = require('../actions/user-data-helpers')
-const { USERDATA_UPDATE_OPTION, USERDATA_UPDATE_FBASE, USERDATA_SET_FROM_SERVER } = require('../actions')
+const { USERDATA_SET_FROM_SERVER, USERDATA_UPDATE_LASTLOAD, 
+        USERDATA_UPDATE_OPTION,
+        USERDATA_UPDATE_FBASE,
+} = require('../actions')
     
 const {
     XS_SET_EXCHANGE_ASSET, XS_SET_RECEIVE_ASSET, 
@@ -22,6 +25,11 @@ const initialState = {
     t_f3: "42-def1",
     t_f4: "42-def2",
 
+    loadHistory: [ 
+        { browser: false, server: false, datetime: undefined }, // ndx 0 - current login
+        { browser: false, server: false, datetime: undefined }  // ndx 1 - previous login
+    ],
+
     fbaseCloudLoginSaved: {
         email: null,
         photoURL: null,
@@ -33,7 +41,7 @@ const initialState = {
         { key: "OPT_AUTOLOGOUT",  value: true },
         { key: "OPT_NIGHTSHIFT",  value: true },
         { key: "OPT_NOPATCH_MPK", value: true },
-        { key: "OPT_BETA_TESTER", value: false },
+        { key: "OPT_BETA_TESTER", value: true },
     ],
 
     // exchange service - current and history records
@@ -62,7 +70,41 @@ const initialState = {
 }
 
 const handlers = {
+
+    // assign state from server
+    [USERDATA_SET_FROM_SERVER]: (state, action) => { 
+        var dataJson = action.dataJson
+        if (dataJson !== undefined && dataJson !== "" && dataJson.length > 0) {
+            var serverUserData = getUserData_FromEncryptedJson(dataJson)
+            if (!serverUserData) { // sanity check -- have seen corrupted settings saved to server during dev cycles; ignore if so
+                return state
+            }
+
+            // don't nuke local options from server, instead merge
+            var mergedOptions = {...state.options, ...serverUserData.options} // server wins on conflict (right hand side of spread operator)
+            var mergedOptionsArray = Array.from(Object.values(mergedOptions))
+
+            // also merge top level fields of settings, so we can add new fields anytime on client and they get preserved on server
+            var newUserData = {...state, ...serverUserData} // server wins on conflict
+
+            newUserData.options = mergedOptionsArray 
+
+            //userData_SaveAll({ userData: newUserData, hideToast: action.hideToast || false })
+            return newUserData
+        }
+    },
     
+    // set load history
+    [USERDATA_UPDATE_LASTLOAD]: (state, action) => {
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+            var newState = _.cloneDeep(state)
+            newState.loadHistory[1] = newState.loadHistory[0] // assign previous login (old current)
+            newState.loadHistory[0] = action.payload.newValue // assign current login
+            //userData_SaveAll({ userData: newState, hideToast: true })
+            return newState
+        }
+    },
+
     // user settings (options)
     [USERDATA_UPDATE_OPTION]: (state, action) => {
         var ndx = state.options.findIndex((p) => p.key === action.key)
@@ -85,29 +127,6 @@ const handlers = {
         }
         userData_SaveAll({ userData: newState, hideToast: false })
         return newState 
-    },
-
-    [USERDATA_SET_FROM_SERVER]: (state, action) => { 
-        var dataJson = action.dataJson
-        
-        if (dataJson !== undefined && dataJson !== "" && dataJson.length > 0) {
-            
-            var serverUserData = getUserData_FromEncryptedJson(dataJson)
-            if (!serverUserData) { // sanity check -- have seen corrupted settings saved to server during dev cycles; ignore if so
-                return state
-            }
-
-            // don't nuke local options from server, instead merge
-            var mergedOptions = {...state.options, ...serverUserData.options} // server wins on conflict (right hand side of spread operator)
-            var mergedOptionsArray = Array.from(Object.values(mergedOptions))
-
-            // also merge top level fields of settings, so we can add new fields anytime on client and they get preserved on server
-            var newUserData = {...state, ...serverUserData} // server wins on conflict
-            newUserData.options = mergedOptionsArray 
-
-            userData_SaveAll({ userData: newUserData, hideToast: action.hideToast || false })
-            return newUserData
-        }
     },
 
     //

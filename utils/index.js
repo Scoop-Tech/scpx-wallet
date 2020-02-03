@@ -373,8 +373,17 @@ module.exports = {
         }
         return false
     },
-    isParamEmpty: (s) => {
-        return (!s || s.length === 0 || s === true)
+    isParamEmpty: (s) => isParamEmpty(s),
+    validateSymbolValue: (store, symbol, value) => {
+        const wallet = store.getState().wallet
+        if (isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
+        const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
+        if (isParamEmpty(value)) return Promise.resolve({ err: `Asset value is required` })
+        if (isNaN(value)) return Promise.resolve({ err: `Invalid asset value` })
+        const du_sendValue = Number(value)
+        if (du_sendValue < 0) return Promise.resolve({ err: `Asset value cannot be negative` })
+        return Promise.resolve({ asset, wallet, du_sendValue })
     },
 
     //
@@ -483,6 +492,10 @@ module.exports = {
     //EMOJI_HAPPY_KITTY: '😸',
     EMOJI_TICK: '✔️',
     EMOJI_CROSS: '❌️'
+}
+
+const isParamEmpty = (s) => {
+    return (!s || s.length === 0 || s === true)
 }
 
 const getKeyAndIV = (saltStr, passphrase) => {

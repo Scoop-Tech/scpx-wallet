@@ -40,7 +40,7 @@ const WALLET_INCLUDE_TUSD_TEST = false
 const WALLET_INCLUDE_AIRCARBON_TEST = true
 const WALLET_INCLUDE_SINGDAX_TEST = true
 const WALLET_INCLUDE_AYONDO_TEST = true
-const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be available in prod for testnets@scoop.tech
+const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be available in prod for testnets2@scoop.tech
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 

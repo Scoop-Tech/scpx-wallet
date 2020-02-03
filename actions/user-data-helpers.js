@@ -7,7 +7,7 @@ module.exports = {
     // create encrypted user data payload for post to server 
     // note: uses different salt to mpk encryption (plaintext for settings/userData is well known)
     createEncryptedJson_FromUserData: (userData) => {
-        console.log(`createEncryptedJson_FromUserData...`)
+        //console.log(`createEncryptedJson_FromUserData...`)
         const e_userDataJson = utils.aesEncryption(
             utils.getStorageContext().opk, 
             utils.getHashedMpk(), //document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, // #READ
@@ -29,7 +29,7 @@ module.exports = {
             utils.getHashedMpk(), //document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, //#READ
             e_userDataJson)
 
-        console.log(`getSettingsFromDataJson: pt_userDataJson.len=${pt_userDataJson.length}`)
+        //console.log(`getSettingsFromDataJson: pt_userDataJson.len=${pt_userDataJson.length}`)
         const o_userData = JSON.parse(pt_userDataJson)
         return o_userData
     },

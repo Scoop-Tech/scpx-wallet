@@ -1,6 +1,8 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
 
+const Eos = require('eosjs')
 const Keygen = require('eosjs-keygen').Keygen
+const scpEosConfig = require('../config/eos').scpEosConfig
 
 const BigNumber = require('bignumber.js')
 //const MD5 = require('crypto-js').MD5
@@ -78,7 +80,14 @@ module.exports = {
             }
 
             // setup storage context
-            global.storageContext = {}
+            if (!global.storageContext) global.storageContext = {}
+            
+            const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, scpEosConfig)
+            const eos = Eos(config)
+            const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
+            const owner = keyAccounts.account_names[0]
+            global.storageContext.owner = owner
+            
             global.storageContext.apk = keys.publicKeys.active
             global.storageContext.opk = keys.publicKeys.owner
             global.storageContext.PATCH_H_MPK = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)

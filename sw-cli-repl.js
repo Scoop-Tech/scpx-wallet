@@ -80,6 +80,13 @@ const assetGetFeesHelp = `${helpBanner}` +
     `(asset-get-fees) - fetches recommended network fee rates from oracles\n`.cyan.bold +
     `\t--symbol (--s) [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
 
+const assetConvertHelp = `${helpBanner}` +
+    `(asset-convert) - converts from one asset to another\n`.cyan.bold +
+    `\t--mpk          <master private key>  <required>  \n` +
+    `\t--from (--f)   [string]              <required>  the asset to convert from, e.g. "ETH" or "BTC"\n` +
+    `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n` +
+    `\t--value (--v)  [number]              <required>  the amount to cnvert, e.g. 0.01\n`
+
 const txGetFeeHelp = `${helpBanner}` +
     `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
@@ -218,6 +225,7 @@ module.exports = {
         defineWalletCmd(prompt, ['/wrpk', 'wallet-remove-priv-keys'], walletRemovePrivKeysHelp, svrRouter.fn, 'REMOVE-PRIV-KEYS')
 
         defineWalletCmd(prompt, ['/agf', 'asset-get-fees'], assetGetFeesHelp, svrRouter.fn, 'ASSET-GET-FEES')
+        defineWalletCmd(prompt, ['/ac', 'asset-convert'], assetConvertHelp, svrRouter.fn, 'ASSET-CONVERT')
         
         defineWalletCmd(prompt, ['/txgf', 'tx-get-fee'], txGetFeeHelp, svrRouter.fn, 'TX-GET-FEE')
         defineWalletCmd(prompt, ['/txp', 'tx-push'], txPushHelp, svrRouter.fn, 'TX-PUSH')

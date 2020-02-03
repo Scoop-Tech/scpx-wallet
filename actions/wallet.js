@@ -491,7 +491,7 @@ module.exports = {
 
         // temp/hack - conditional load of test assets, by email type
         if (email !== undefined) {
-            //if (email !== 'testnets@scoop.tech') {
+            //if (email !== 'testnets2@scoop.tech') {
 
                 // remove test assets, unless logged into appropriate account
                 if (!email.includes("aircarbon.co")) { 
@@ -509,7 +509,7 @@ module.exports = {
             //}
 
             // in prod, remove eth_test unless a test asset is present (excluding testnets account)
-            if (email !== 'testnets@scoop.tech') {
+            if (email !== 'testnets2@scoop.tech') {
                 //if (!configWallet.IS_DEV) {
                     if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
                         needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
