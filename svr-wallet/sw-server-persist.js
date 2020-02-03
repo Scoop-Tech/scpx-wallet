@@ -18,6 +18,8 @@ const utilsWallet = require('../utils')
 const svrWalletCreate = require('./sw-create')
 const log = require('../sw-cli-log')
 
+const userDataHelper = require('../actions/user-data-helpers')
+
 //
 // wallet Data Storage Contract (API+EOS chain, aka "server") persistence
 //
@@ -115,12 +117,21 @@ module.exports = {
             const walletInit = await svrWalletCreate.walletInit(appWorker, store, { mpk, apk }, res.assetsJSON)
             if (walletInit.err) resolve(walletInit)
             if (walletInit.ok) {
+                // setup storage context for server-loaded wallet
+                global.storageContext = {}
+                global.storageContext.apk = keys.publicKeys.active
+                global.storageContext.opk = keys.publicKeys.owner
+                global.storageContext.PATCH_H_MPK = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)
+
                 // set user-data (settings) from server-loaded wallet
                 store.dispatch({ type: walletActions.USERDATA_SET_FROM_SERVER, dataJson: res.dataJSON, payload: {} })
 
-                // async? can now access settings in state?
-                const state = store.getState()
-                console.dir(state)
+                //const userData = store.getState().userData
+                //console.log('OPT_CLOUD_PWD', userDataHelper.getOptionValue(userData, 'OPT_CLOUD_PWD'))
+                //console.log('OPT_AUTOLOGOUT', userDataHelper.getOptionValue(userData, 'OPT_AUTOLOGOUT'))
+                //console.log('OPT_NIGHTSHIFT', userDataHelper.getOptionValue(userData, 'OPT_NIGHTSHIFT'))
+                //console.log('OPT_NOPATCH_MPK', userDataHelper.getOptionValue(userData, 'OPT_NOPATCH_MPK'))
+                //console.log('OPT_BETA_TESTER', userDataHelper.getOptionValue(userData, 'OPT_BETA_TESTER'))
 
                 // server-loaded wallet; set server wallet field
                 global.loadedWallet.dirty = false

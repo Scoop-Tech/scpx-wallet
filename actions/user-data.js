@@ -1,6 +1,8 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
 const _ = require('lodash')
 
-const { SHARED_TOGGLE_DARKMODE, USERDATA_UPDATE_FBASE, USERDATA_UPDATE_OPTION } = require('.')
+const { USERDATA_UPDATE_FBASE, USERDATA_UPDATE_OPTION } = require('.')
 const { updateDataJsonApi } = require('../api/user-data')
 
 const { createEncryptedJson_FromUserData, getOptionValue } = require('./user-data-helpers')

@@ -1,8 +1,9 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
 const axios = require('axios')
 
 const { changellyConfig } = require('../config/changelly')
-const { xs_changelly_Sign } = require('./xs-changelly')
-const { toXsSymbol } = require('./xs-changelly')
+const { xs_changelly_Sign, toXsSymbol } = require('./xs-changelly')
 
 module.exports = {
 
@@ -179,10 +180,3 @@ async function genParamsAndSign(method, params) {
         return { params: rpcParams, sign: remoteSig }
     }
 }
-
-// function toXsSymbol(symbol) {
-//     return symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'btc' 
-//          : symbol === 'BCHABC' ? 'bch'
-//          : symbol === 'USDT' ? 'usdt20'
-//          : symbol
-// }

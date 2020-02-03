@@ -1,6 +1,6 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
 const _ = require('lodash')
-//import update from 'immutability-helper'
-const { update } = require('lodash')
 
 const { userData_SaveAll } = require('../actions/user-data')
 const { getUserData_FromEncryptedJson } = require('../actions/user-data-helpers')
@@ -14,7 +14,6 @@ const {
     XS_SET_CURRENCIES
 } = require('../actions')
 
-//import * as utilsWallet from '../utils'
 const utilsWallet = require('../utils')
 
 const { createReducer } = require('./utils')
@@ -34,7 +33,7 @@ const initialState = {
         { key: "OPT_AUTOLOGOUT",  value: true },
         { key: "OPT_NIGHTSHIFT",  value: true },
         { key: "OPT_NOPATCH_MPK", value: true },
-        { key: "OPT_BETA_TESTER", value: true },
+        { key: "OPT_BETA_TESTER", value: false },
     ],
 
     // exchange service - current and history records
@@ -53,10 +52,10 @@ const initialState = {
         cur_xsTx: {
             //...
         }, 
-            // todo: -> cur_xsTx.eth -> cur_xsTx.eth[] -- i.e. functions as current and history
-            // * creating new --> append only (not replace) ...
-            // * updating     --> find, update in place
-            // * removing     --> nop
+        // todo: -> cur_xsTx.eth -> cur_xsTx.eth[] -- i.e. functions as current and history
+        // * creating new --> append only (not replace) ...
+        // * updating     --> find, update in place
+        // * removing     --> nop
 
         //cur_xsTxStatus: {}, // todo: -> either remove, or couple into cur_xsTx[asset][i].cur_xsTxStatus
     }
@@ -67,30 +66,25 @@ const handlers = {
     // user settings (options)
     [USERDATA_UPDATE_OPTION]: (state, action) => {
         var ndx = state.options.findIndex((p) => p.key === action.key)
-        
+
         // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
-            var newUserData = update(state, {
-                options: {
-                    [ndx]: {
-                        value: { $set: action.payload.newValue }
-                    }
-                }
-            })
-            userData_SaveAll({ userData: newUserData, hideToast: false })
-            return newUserData
+            var newState = _.cloneDeep(state)
+            newState.options[ndx].value = action.payload.newValue
+            userData_SaveAll({ userData: newState, hideToast: false })
+            return newState
         }
     },
 
     // fbase logged-in status
     [USERDATA_UPDATE_FBASE]: (state, action) => {
-        var newUserData = update(state, {
-            fbaseCloudLoginSaved: {  email: { $set: action.payload.email },
-                                  photoURL: { $set: action.payload.photoURL } }
-         })
-
-        userData_SaveAll({ userData: newUserData, hideToast: false })
-        return newUserData 
+        var newState = _.cloneDeep(state)
+        newState.fbaseCloudLoginSaved = { 
+              email: action.payload.email,
+           photoURL: action.payload.photoURL
+        }
+        userData_SaveAll({ userData: newState, hideToast: false })
+        return newState 
     },
 
     [USERDATA_SET_FROM_SERVER]: (state, action) => { 
@@ -174,6 +168,9 @@ const handlers = {
 }
 
 //export default 
-module.exports = 
-createReducer(initialState, handlers)
+module.exports = { 
+    userData: createReducer(initialState, handlers),
+    initialState
+}
+
 

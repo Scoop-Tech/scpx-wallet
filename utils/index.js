@@ -404,6 +404,15 @@ module.exports = {
 
     getAppWorker: () => getMainThreadGlobalScope().appWorker,
 
+    getHashedMpk: () => {
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            return document.hjs_mpk || getStorageContext().PATCH_H_MPK
+        }
+        else {
+            return getStorageContext().PATCH_H_MPK
+        }
+    },
+
     //
     // workers
     //

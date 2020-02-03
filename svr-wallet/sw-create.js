@@ -43,7 +43,8 @@ module.exports = {
         if (invalidMpk.err) return invalidMpk
         log.param('mpk', mpk)
 
-        const apk = (await Keygen.generateMasterKeys(mpk)).publicKeys.active
+        var keys = await Keygen.generateMasterKeys(mpk)
+        const apk = keys.publicKeys.active
         log.param('apk', apk)
     
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
@@ -71,18 +72,26 @@ module.exports = {
             global.loadedWallet.file = undefined
             global.loadedServerWallet = {}
 
+            // save MPK
             if (configWallet.CLI_SAVE_KEY === true) {
                 global.loadedWallet.keys = { mpk }
             }
 
-            utilsWallet.setTitle(`${apk}`)
+            // setup storage context
+            global.storageContext = {}
+            global.storageContext.apk = keys.publicKeys.active
+            global.storageContext.opk = keys.publicKeys.owner
+            global.storageContext.PATCH_H_MPK = utilsWallet.pbkdf2(keys.publicKeys.active, keys.masterPrivateKey)
+            utilsWallet.softNuke(keys)
 
             // (re)connect addr monitors
             const walletConnect = await functions.walletConnect(appWorker, store, {})
 
+            utilsWallet.setTitle(`${apk}`)
             return { ok: { mpk, apk, h_mpk, walletConnect }}
         })
         .catch(err => {
+            utilsWallet.softNuke(keys)
             return { err: err.message || err.toString() }
         })
     },

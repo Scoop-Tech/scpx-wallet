@@ -1,3 +1,5 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
 const _ = require('lodash')
 const BigNumber = require('bignumber.js')
 const BigDecimal = require('js-big-decimal')
@@ -117,8 +119,8 @@ module.exports = {
                             feeParams: feeParams,
                              sendMode: false,
                       sendFromAddrNdx: addrNdx,
-                                  apk, //utils.getBrowserStorage().apk, 
-                                h_mpk, //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK, //#READ
+                                  apk, 
+                                h_mpk, 
             })
             console.log('DBG1 - txHexAndValue.cu_sendValue', txHexAndValue.cu_sendValue)
 
@@ -173,8 +175,8 @@ module.exports = {
                             asset: exchangeAsset,
                         feeParams: feeParams,
                   sendFromAddrNdx: addrNdx,
-                              apk, //utils.getBrowserStorage().apk, 
-                            h_mpk, //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK, //#READ
+                              apk, 
+                            h_mpk, 
                 }, (res, err) => {
 
                     if (err) {

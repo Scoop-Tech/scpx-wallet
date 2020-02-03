@@ -1,10 +1,11 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
 const redux = require('redux')
 
 const wallet = require('./wallet')
 const syncInfo = require('./sync-info')
 const prices = require('./prices')
-const userData = require('./user-data')
+const { userData } = require('./user-data')
 
 const appReducers = redux.combineReducers({
     wallet,
@@ -13,7 +14,6 @@ const appReducers = redux.combineReducers({
     userData
 })
 
-//export default 
 module.exports = (state, action) => {
     return appReducers(state, action)
 }

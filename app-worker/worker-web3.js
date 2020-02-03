@@ -160,9 +160,6 @@ module.exports = {
                        : asset.symbol
 
         const web3 = self.ws_web3[wsSymbol]
-        // const Web3 = require('web3')
-        // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
-    
         var wei_sendValue = new BigNumber(web3.utils.toWei(params.value.toString(), 'ether'))
         var bal = walletExternal.get_combinedBalance(asset)
         var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
@@ -184,7 +181,7 @@ module.exports = {
         params.gasPrice = web3.utils.toHex(params.gasPrice)
 
         var nextNonce = await web3.eth.getTransactionCount(params.from, 'pending') // ~100 bytes ('pending' - fixed in geth 1.8.21 https://github.com/ethereum/go-ethereum/issues/2880)
-        //try {
+        try {
             params.nonce = nextNonce
             const tx = new EthTx(params)
             if (!privateKey)
@@ -196,12 +193,12 @@ module.exports = {
 
             return { txhex: '0x' + tx.serialize().toString('hex'),
               cu_sendValue: wei_sendValue }
-        //}
-        // catch (err) {
-        //     utilsWallet.error(`### createTxHex_Eth ${asset.symbol} TX sign FAIL, error=`, err)
-        //     return null
-        //     //throw 'TX sign failed'
-        // }
+        }
+        catch (err) {
+            utilsWallet.error(`### createTxHex_Eth ${asset.symbol} TX sign FAIL, error=`, err)
+            return null
+            //throw 'TX sign failed'
+        }
     },
 
     createTxHex_erc20: (asset, params, privateKey) => {
@@ -217,8 +214,6 @@ module.exports = {
                        : asset.symbol
 
         const web3 = self.ws_web3[wsSymbol]
-        // const Web3 = require('web3')
-        // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
         utilsWallet.log('createTxHex_erc20 - params.value=', params.value);
         utilsWallet.log('createTxHex_erc20 - params.value.toString()=', params.value.toString())
@@ -228,12 +223,12 @@ module.exports = {
                 type: configWallet.WALLET_TYPE_ACCOUNT,
          addressType: configWallet.ADDRESS_TYPE_ETH,
             decimals: assetMeta.decimals
-        }).toString() 
+        }).toFixed() //.toString() 
 
         const cu_sendValue = params.value
         utilsWallet.log('createTxHex_erc20 - wei=', params.value)
 
-        params.value = web3.utils.toHex(params.value) //web3.utils.toHex(new BigNumber(params.value))
+        params.value = web3.utils.toHex(params.value)
         utilsWallet.log('createTxHex_erc20 - params.value(toHex)=', params.value)
 
         utilsWallet.log('createTxHex_erc20 - params.gasLimit=', params.gasLimit)

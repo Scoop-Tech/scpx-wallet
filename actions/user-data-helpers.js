@@ -1,3 +1,4 @@
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
 
 const utils = require('../utils')
 
@@ -9,7 +10,7 @@ module.exports = {
         console.log(`createEncryptedJson_FromUserData...`)
         const e_userDataJson = utils.aesEncryption(
             utils.getStorageContext().opk, 
-            document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, // #READ
+            utils.getHashedMpk(), //document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, // #READ
             JSON.stringify(userData))
         const data = {
             settingsJson: e_userDataJson // "settingsJson" - legacy name; it should really be called userDataJson
@@ -25,7 +26,7 @@ module.exports = {
         var opk = utils.getStorageContext().opk
         var pt_userDataJson = utils.aesDecryption(
             opk, 
-            document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, //#READ
+            utils.getHashedMpk(), //document.hjs_mpk || utils.getStorageContext().PATCH_H_MPK, //#READ
             e_userDataJson)
 
         console.log(`getSettingsFromDataJson: pt_userDataJson.len=${pt_userDataJson.length}`)

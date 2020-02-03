@@ -29,7 +29,8 @@ module.exports = {
         'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false },
       //'LTC'     : { url: 'wss://scp-ltc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
     
-        'ZEC'     : { url: 'wss://explorer.z.cash',                                          subBlocks: false },
+        'ZEC'     : { url: 'wss://explorer.zecmate.com',                                     subBlocks: false },
+      //'ZEC'     : { url: 'wss://explorer.z.cash',                                          subBlocks: false },
       //'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false },
       //'ZEC'     : { url: 'wss://scp-zec1.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
 

@@ -5,7 +5,6 @@ const _ = require('lodash')
 const { createReducer } = require('./utils')
 const { SET_ASSET_BLOCK_INFO } = require('../actions')
 
-//export
 const initialState = {}
 
 const handlers = {

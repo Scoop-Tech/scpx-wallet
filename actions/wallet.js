@@ -592,7 +592,7 @@ module.exports = {
             })
 
             // log, all done 
-            utilsWallet.logMajor('green', 'white', `FINISHED GENERATIN ASSETS`, null, { logServerConsole: true })
+            utilsWallet.logMajor('green', 'white', `FINISHED GENERATING ASSETS`, null, { logServerConsole: true })
 
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets
