@@ -326,8 +326,8 @@ module.exports = {
                                       block_no: -1,
                                           fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
                             }
-                            utilsWallet.log('DBG1 - payTo[0].value=', payTo[0].value)
-                            utilsWallet.log('DBG1 - erc20 local_tx=', local_tx)
+                            //utilsWallet.log('DBG1 - payTo[0].value=', payTo[0].value)
+                            //utilsWallet.log('DBG1 - erc20 local_tx=', local_tx)
                             
                             // we push the erc20 eth send fee to eth's local_tx
                             

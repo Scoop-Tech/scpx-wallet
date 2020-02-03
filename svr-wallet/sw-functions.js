@@ -17,10 +17,10 @@ const log = require('../sw-cli-log')
 module.exports = {
     
     // connects 3PBP sockets, and requests initial load for all assets in the current wallet
-    walletConnect: (appWorker, store, p) => {
+    walletConnect: async (appWorker, store, p) => {
         log.cmd('walletConnect')
 
-        return new Promise((resolve) => {
+        return new Promise( (resolve) => {
             appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
             appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
             
@@ -31,27 +31,27 @@ module.exports = {
                     const msg = input.msg
                     if (msg === 'BLOCKBOOK_ISOSOCKETS_DONE') {
                         
+                        //log.info('data=', data)
                         //log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsConnected=', data.symbolsConnected)
                         //log.info('BLOCKBOOK_ISOSOCKETS_DONE: data.symbolsNotConnected=', data.symbolsNotConnected)
 
                         const storeState = store.getState()
                         if (storeState.wallet && storeState.wallet.assets) {
-
                             // connect addr monitors & populate all assets
                             appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
                             appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-
+                            
                             if (data.symbolsConnected.length > 0) {
                                 log.info('walletConnect - triggering loadAllAsets...')
-
                                 opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
                                 .then(p => {
                                     resolve({ ok: true })
                                 })
-
                             }
                         }
                         else {
+                            //log.info('msg=', msg)
+                            //log.info('resolve2')
                             resolve({ ok: false })
                         }
                         

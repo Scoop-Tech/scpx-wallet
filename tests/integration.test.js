@@ -38,7 +38,7 @@ beforeAll(async () => {
 
     console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 3
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 10
     await svrWorkers.init(appStore)
 })
 afterAll(async () => {
@@ -50,25 +50,24 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-// CI integration suite 
+// describe('test security', function () {
+//     it('can access protected env vars', async () => {
+//         console.log('serverTestWallet.email: ', serverTestWallet.email)
+//     })
+// })
+
 describe('asset', function () {
-    it('can access protected env vars', async () => {
-        console.log(serverTestWallet.email)
-    })
-})
-
-// TODO: make sure no MPK logging ...
-
-/*describe('asset', function () {
     it('can create a new receive address for all asset types', async () => {
         expect.assertions(3)
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appWorker, appStore)
             var wallet = appStore.getState().wallet
-            const ops = wallet.assets.map(asset => { 
-                return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR')
-            })
-            const results = await Promise.all(ops)
+            
+            const results = []
+            for (var i=0 ; i < wallet.assets.length ; i++) {
+                const asset = wallet.assets[i]
+                results.push(await svrRouter.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR'))
+            }
             const countOk = results.filter(p => p.ok).length
             
             wallet = appStore.getState().wallet
@@ -357,4 +356,4 @@ describe('testnets', function () {
         }
         expect(result.txid).toBeDefined()
     }
-})*/
+})

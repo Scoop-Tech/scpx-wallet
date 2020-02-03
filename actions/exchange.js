@@ -122,10 +122,10 @@ module.exports = {
                                   apk, 
                                 h_mpk, 
             })
-            console.log('DBG1 - txHexAndValue.cu_sendValue', txHexAndValue.cu_sendValue)
+            //console.log('DBG1 - txHexAndValue.cu_sendValue', txHexAndValue.cu_sendValue)
 
             const du_sendAmountActual = utilsWallet.toDisplayUnit(new BigNumber(txHexAndValue.cu_sendValue), exchangeAsset)
-            console.log('DBG1 - du_sendAmountActual=', du_sendAmountActual)
+            //console.log('DBG1 - du_sendAmountActual=', du_sendAmountActual)
 
             // init changelly 
             var xsCreateTx

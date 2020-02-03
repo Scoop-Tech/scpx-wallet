@@ -43,7 +43,7 @@ module.exports = {
         const svrWallet = require('./sw-router')
         const invalidMpk = await svrWallet.validateMpk(mpk)
         if (invalidMpk.err) return invalidMpk
-        log.param('mpk', mpk)
+        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
 
         var keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
