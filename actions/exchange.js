@@ -33,11 +33,10 @@ module.exports = {
 
     // currency statuses
     XS_getCurrencies: (store) => {
-        getCurrenciesFullApi()
+        return getCurrenciesFullApi()
         .then(res => {
             if (res && res.result) {
-                //const store = require('../store').store
-                console.log('XS - getCurrencies, res=', res)
+                //console.log('XS - getCurrencies, res=', res)
                 
                 // disable erc20 usdt manually -- not supported by changelly (have asked them if they can add it)
                 // TODO: changelly -- "If it's about ERC20 USDT, we have already listed it. The ticker is usdt20."

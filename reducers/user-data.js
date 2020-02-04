@@ -179,7 +179,7 @@ const handlers = {
     },
 
     [XS_SET_CURRENCIES]: (state, action) => {
-        utilsWallet.logMajor('orange','black', `XS_SET_CURRENCIES`, action.payload, { logServerConsole: true })
+        utilsWallet.logMajor('orange','black', `XS_SET_CURRENCIES`, action.payload.length, { logServerConsole: true })
         return {...state, exchange: {...state.exchange, 
             currencies: action.payload
         } }

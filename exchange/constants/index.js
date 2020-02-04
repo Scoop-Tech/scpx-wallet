@@ -1,4 +1,6 @@
-export const ExchangeStatusEnum = {
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+
+const ExchangeStatus = {
     // our statuses:
     created: 'created',     // initial status
     done: 'done',           // set to done when xs tx is finalized, and when user has acknowledged final status
@@ -17,20 +19,24 @@ export const ExchangeStatusEnum = {
     hold: 'hold',
 }
 
-export function isStatusExchangePending(status) {
-    switch(status) {
-        case undefined:
-        case ExchangeStatusEnum.done:
+module.exports = {
+    ExchangeStatusEnum: ExchangeStatus,
 
-        case ExchangeStatusEnum.finished:
-        case ExchangeStatusEnum.failed:
-        case ExchangeStatusEnum.expired:
-        case ExchangeStatusEnum.refunded:
-        case ExchangeStatusEnum.overdue:
-        case ExchangeStatusEnum.hold:
-            return false
-        
-        default:
-            return true
+    isStatusExchangePending: (status) => {
+        switch(status) {
+            case undefined:
+            case ExchangeStatus.done:
+    
+            case ExchangeStatus.finished:
+            case ExchangeStatus.failed:
+            case ExchangeStatus.expired:
+            case ExchangeStatus.refunded:
+            case ExchangeStatus.overdue:
+            case ExchangeStatus.hold:
+                return false
+            
+            default:
+                return true
+        }
     }
 }

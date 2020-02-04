@@ -81,11 +81,11 @@ const assetGetFeesHelp = `${helpBanner}` +
     `\t--symbol (--s) [string]              <required>  the asset to get fee rates for, e.g. "ETH" or "BTC"\n`
 
 const assetConvertHelp = `${helpBanner}` +
-    `(asset-convert) - converts from one asset to another\n`.cyan.bold +
+    `(asset-convert) - exchange service: converts from one asset to another\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--from (--f)   [string]              <required>  the asset to convert from, e.g. "ETH" or "BTC"\n` +
     `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n` +
-    `\t--value (--v)  [number]              <required>  the amount to cnvert, e.g. 0.01\n`
+    `\t--value (--v)  [number]              <required>  the amount to convert, e.g. 0.01\n`
 
 const txGetFeeHelp = `${helpBanner}` +
     `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +

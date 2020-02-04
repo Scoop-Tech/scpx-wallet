@@ -5,9 +5,9 @@ const { axiosApi } = require('./api')
 
 module.exports = { 
     toXsSymbol: (symbol) => { 
-        return symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ? 'btc' 
-             : symbol === 'BCHABC' ? 'bch'
-             : symbol === 'USDT' ? 'usdt20'
+        return symbol.toUpperCase() === 'BTC_SEG' || symbol.toUpperCase() === 'BTC_SEG2' ? 'btc' 
+             : symbol.toUpperCase() === 'BCHABC' ? 'bch'
+             : symbol.toUpperCase() === 'USDT' ? 'usdt20'
              : symbol.toLowerCase()
     },
 
