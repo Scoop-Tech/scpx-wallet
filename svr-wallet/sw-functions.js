@@ -105,10 +105,25 @@ module.exports = {
         var dumpOut = []
         Object.keys(pt_rawAssetsObj).forEach(assetName => {
             const meta = configWallet.walletsMeta[assetName]
+            const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
             const assetOut = { 
                 assetName,
                 accounts: null,
-                syncInfo: syncInfo[meta.symbol]
+                syncInfo: syncInfo[meta.symbol],
+                
+                countAll_txs: walletExternal.getAll_txs(walletAsset).length,
+                all_txs: walletExternal.getAll_txs(walletAsset),
+                
+                countAll_local_txs: walletExternal.getAll_local_txs(walletAsset).length,
+                local_txs: walletExternal.getAll_local_txs(walletAsset),
+                
+                countAll_unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset).length,
+                unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset),
+            }
+            if (!dumpTxs) {
+                delete assetOut.all_txs
+                delete assetOut.local_txs
+                delete assetOut.unconfirmed_txs
             }
             
             const accountsOut = []
@@ -120,15 +135,12 @@ module.exports = {
                 var keysOut = []
                 account.privKeys.forEach(privKey => {
                     const pathKeyAddr = {
-                      //assetName,
                              path: privKey.path,
                           privKey: privKey.privKey,
-                       //syncInfo: syncInfo[meta.symbol]
                     }
 
                     if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {
                         // get corresponding addr, lookup by HD path
-                        const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
                         const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
         
                         pathKeyAddr.symbol = meta.symbol
@@ -136,8 +148,8 @@ module.exports = {
                         pathKeyAddr.addr = _.cloneDeep(walletAddr)
                         pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
 
-                        pathKeyAddr.addr.txCountConfirmed = pathKeyAddr.addr.txs.filter(p => p.block_no > 0).length
-                        pathKeyAddr.addr.txCountUnconfirmed = pathKeyAddr.addr.txs.filter(p => !(p.block_no > 0)).length
+                        //pathKeyAddr.addr.txCountConfirmed = pathKeyAddr.addr.txs.filter(p => p.block_no > 0).length
+                        //pathKeyAddr.addr.txCountUnconfirmed = pathKeyAddr.addr.txs.filter(p => !(p.block_no > 0)).length
                         pathKeyAddr.addr.utxoCount = pathKeyAddr.addr.utxos.length
                         if (!dumpTxs) {
                             delete pathKeyAddr.addr.txs

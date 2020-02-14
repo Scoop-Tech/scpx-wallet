@@ -169,7 +169,7 @@ module.exports = {
             // (tested very carefully -- values are exactly correct, minus fees:, all the way up to the hex conversions below)
             wei_sendValue = wei_sendValue.minus(configWallet.ETH_SENDMAX_PADDING_WEI)
         }
-        wei_sendValue = wei_sendValue.toString()
+        wei_sendValue = wei_sendValue.toFixed() //wei_sendValue.toString() // ####
 
         utilsWallet.log('createTxHex_Eth - params.value=', params.value.toString())
         utilsWallet.log('createTxHex_Eth - params.gasLimit=', params.gasLimit)
@@ -278,7 +278,7 @@ module.exports = {
 
             web3.eth.sendSignedTransaction(txHex, (err, txHash) => {
                 if (err) {
-                    utilsWallet.error(`*** pushRawTransaction_Account ${symbol} (callback), err=`, err)
+                    utilsWallet.error(`*** pushRawTransaction_Account ${symbol} (callback), err=`, err, { logServerConsole: true })
                     //callback(null, err)
                     resolve({ res: null, err })
                 }

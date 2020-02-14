@@ -380,7 +380,7 @@ function getExchangeStatus_SetTimer(store, from, xsTx, owner) {
         console.log(`XS - getExchangeStatus_SetTimer[${xsTx.xs.id}]`, xsTx)
         exchangeStatusTimer_intId[xsTx.xs.id] = setTimeout(() => {
             dispatch(pollExchangeStatus(store, from, xsTx, owner))
-        }, configWallet.IS_DEV ? 5000 : 10000)
+        }, configWallet.IS_DEV ? 10000 : 10000)
     }
 }
 

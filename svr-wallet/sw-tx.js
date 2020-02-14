@@ -22,12 +22,17 @@ module.exports = {
     txPush: async (appWorker, store, p) => {
         var { mpk, apk, symbol, value, to, from } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+        log.cmd('txPush')
+        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('symbol', symbol)
+        log.param('value', value)
+        log.param('to', to)
+        log.param('from', from)
 
-        // validate
+        // validate from addr
         const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
         if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
-        const toAddr = to
         var fromAddr
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
         if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) {
@@ -35,19 +40,31 @@ module.exports = {
             fromAddr = from
             const assetFromAddrNdx = asset.addresses.findIndex(p => p.addr === fromAddr)
             if (assetFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
-            sendFromAddrNdx = assetFromAddrNdx
+            sendFromAddrNdx = assetFromAddrNdx // account: use specific address index
         }
 
+        // validate to addr
+        const toAddr = to
         const addrIsValid = opsWallet.validateAssetAddress({ 
                  testSymbol: asset.symbol,
             testAddressType: asset.addressType,
                validateAddr: toAddr
         })
-        if (!addrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} address` })
+        if (!addrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} to address` })
 
         // get fee
         const txGetFee = await module.exports.txGetFee(appWorker, store, p)
         if (txGetFee.err) return Promise.resolve({ err: txGetFee.err })
+        if (!txGetFee.ok || !txGetFee.ok.txFee || txGetFee.ok.txFee.fee === undefined) return Promise.resolve({ err: `Error computing TX fee` })
+        const du_fee = Number(txGetFee.ok.txFee.fee)
+
+        // validate sufficient balance
+        const bal = walletExternal.get_combinedBalance(asset, sendFromAddrNdx)
+        const du_balConf = utilsWallet.toDisplayUnit(bal.conf, asset)
+        log.info('du_sendValue', du_sendValue)
+        log.info('du_balConf', du_balConf)
+        log.info('du_fee', du_fee)
+        if (du_sendValue + du_fee > du_balConf) return Promise.resolve({ err: `Insufficient confirmed balance` })
 
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
@@ -83,6 +100,10 @@ module.exports = {
     txGetFee: async (appWorker, store, p) => {
         var { mpk, apk, symbol, value } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+        log.cmd('txGetFee')
+        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('symbol', symbol)
+        log.param('value', value)
 
         // validate
         const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)

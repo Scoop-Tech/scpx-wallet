@@ -44,6 +44,8 @@ module.exports = {
         // XS - get currency statuses
         await exchangeActions.XS_getCurrencies(store)
         const exchangeState = store.getState().userData.exchange
+        if (!exchangeState) return Promise.resolve({ err: "Failed to get exchange state" })
+
         //console.dir(exchangeState)
 /*
 { cur_xsTx: {},
@@ -79,14 +81,21 @@ module.exports = {
         if (err) return Promise.resolve({ err })
         
         const currencies = exchangeState.currencies
+        if (!currencies) return Promise.resolve({ err: "Failed to get exchange currencies state" })
         const xsFrom = currencies.find(p => p.name === toXsSymbol(from))
         const xsTo = currencies.find(p => p.name === toXsSymbol(to))
         if (!xsFrom) return Promise.resolve({ err: `Unsupported XS from symbol "${from}"` })
         if (!xsTo) return Promise.resolve({ err: `Unsupported XS to symbol "${to}"` })
         if (_.eq(xsFrom, xsTo)) return Promise.resolve({ err: `From and to assets must be different` })
 
-        if (!xsFrom.enabled) return Promise.resolve({ err: `XS from asset "${from}" is not currently enabled (maintenance)` })
-        if (!xsTo.enabled) return Promise.resolve({ err: `XS to asset "${to}" is not currently enabled (maintenance)` })
+        if (!xsFrom.enabled) return Promise.resolve({ err: `XS from asset "${from}" is currently disabled (maintenance)` })
+        if (!xsTo.enabled) return Promise.resolve({ err: `XS to asset "${to}" is currently disabled (maintenance)` })
+
+        // todo: get fee
+
+        // todo: validate balance, same as txPush()
+
+        // todo: execute XS
 
         return Promise.resolve({ ok: 'WIP...' })
     }
