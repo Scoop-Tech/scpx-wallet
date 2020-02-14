@@ -96,7 +96,7 @@ module.exports = {
             case 'SERVER-SAVE':       walletFn = serverPersist.walletServerSave; break; 
             
             case 'ASSET-GET-FEES':    walletFn = asset.getNetworkFees; break;
-            case 'ASSET-CONVERT':     walletFn = asset.convert; break;
+            case 'ASSET-CONVERT':     walletFn = asset.assetConvert; break;
             
             case 'TX-GET-FEE':        walletFn = tx.txGetFee; break;
             case 'TX-PUSH':           walletFn = tx.txPush; break;

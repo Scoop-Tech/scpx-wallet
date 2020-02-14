@@ -33,14 +33,13 @@ module.exports = {
         const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
         if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
-        var fromAddr
+
+        // account-type: map supplied from-addr to addr-index
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
-        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) {
+        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { // account: use specific address index
             if (utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is required` })
-            fromAddr = from
-            const assetFromAddrNdx = asset.addresses.findIndex(p => p.addr === fromAddr)
-            if (assetFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
-            sendFromAddrNdx = assetFromAddrNdx // account: use specific address index
+            sendFromAddrNdx = asset.addresses.findIndex(p => p.addr.toLowerCase() === from.toLowerCase())
+            if (sendFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
         }
 
         // validate to addr

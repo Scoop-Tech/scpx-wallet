@@ -106,10 +106,22 @@ module.exports = {
         Object.keys(pt_rawAssetsObj).forEach(assetName => {
             const meta = configWallet.walletsMeta[assetName]
             const walletAsset = wallet.assets.find(p => p.symbol === meta.symbol)
+
+            const bal = walletExternal.get_combinedBalance(walletAsset, -1)
+            var addrNdx = 0
             const assetOut = { 
                 assetName,
                 accounts: null,
                 syncInfo: syncInfo[meta.symbol],
+
+                addresses: walletAsset.addresses.map(p => { 
+                    const addrBal = walletExternal.get_combinedBalance(walletAsset, addrNdx)
+                    return { 
+                               ndx: addrNdx++,
+                              addr: p.addr, 
+                        du_balConf: utilsWallet.toDisplayUnit(addrBal.conf, walletAsset),
+                      du_balUnconf: utilsWallet.toDisplayUnit(addrBal.unconf, walletAsset),
+                }}),
                 
                 countAll_txs: walletExternal.getAll_txs(walletAsset).length,
                 all_txs: walletExternal.getAll_txs(walletAsset),
@@ -119,6 +131,9 @@ module.exports = {
                 
                 countAll_unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset).length,
                 unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset),
+
+                du_balConf: utilsWallet.toDisplayUnit(bal.conf, walletAsset),
+                du_balUnconf: utilsWallet.toDisplayUnit(bal.unconf, walletAsset),
             }
             if (!dumpTxs) {
                 delete assetOut.all_txs
@@ -142,7 +157,7 @@ module.exports = {
                     if (filterSymbol === undefined || filterSymbol.toLowerCase() === meta.symbol.toLowerCase()) {
                         // get corresponding addr, lookup by HD path
                         const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
-        
+
                         pathKeyAddr.symbol = meta.symbol
                         //pathKeyAddr.accountName = walletAddr.accountName
                         pathKeyAddr.addr = _.cloneDeep(walletAddr)

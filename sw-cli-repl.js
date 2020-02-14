@@ -83,9 +83,10 @@ const assetGetFeesHelp = `${helpBanner}` +
 const assetConvertHelp = `${helpBanner}` +
     `(asset-convert) - exchange service: converts from one asset to another\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
-    `\t--from (--f)   [string]              <required>  the asset to convert from, e.g. "ETH" or "BTC"\n` +
-    `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n` +
-    `\t--value (--v)  [number]              <required>  the amount to convert, e.g. 0.01\n`
+    `\t--symbol (--s) [string]              <required>  the asset to convert, e.g. "ZEC"\n` +
+    `\t--value (--v)  [number]              <required>  the amount to convert, e.g. 0.01\n` +
+    `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
+    `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n`
 
 const txGetFeeHelp = `${helpBanner}` +
     `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +
@@ -98,8 +99,8 @@ const txPushHelp = `${helpBanner}` +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
     `\t--value (--v)  [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
-    `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n`
+    `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
+    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold
