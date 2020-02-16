@@ -44,12 +44,12 @@ module.exports = {
                     const status = event.status
                     if (postback && msg === 'NOTIFY_USER') {
                         utilsWallet.logMajor(postback.type == 'error' ? 'red' : 'green', 'white',
-                            `${postback.type ? postback.type.toUpperCase() : ''}: ` + 
-                            `${postback.headline ? postback.headline : ''} ` + 
-                            `${postback.info ? postback.info : ''} ` + 
-                            `${postback.desc1 ? postback.desc1 : ''} ` + 
-                            `${postback.desc2 ? postback.desc2 : ''} ` + 
-                            `${postback.txid ? ('txid: ' + postback.txid) : ''}`,
+                            `${postback.type ? postback.type.toUpperCase() : ''}` + 
+                            `${postback.headline ? ' [' + postback.headline + ']' : ''}` + 
+                            `${postback.info ? ' [' + postback.info + ']': ''}` + 
+                            `${postback.desc1 ? ' [' +postback.desc1 + ']': ''}` + 
+                            `${postback.desc2 ? ' [' +postback.desc2 + ']' : ''}` + 
+                            `${postback.txid ? (' txid: ' + postback.txid + '') : ''}`,
                             null, { logServerConsole: true })
                     }
                 })

@@ -12,12 +12,13 @@ const configWallet = require('../config/wallet')
 const configEos = require('../config/eos')
 
 const apiDataContract = require('../api/data-contract')
-
 const utilsWallet = require('../utils')
 
 const svrWalletCreate = require('./sw-create')
 const log = require('../sw-cli-log')
 
+const exchangeActions = require('../actions/exchange')
+const { ExchangeStatusEnum } = require('../exchange/constants')
 const userDataActions = require('../actions/user-data')
 const userDataHelper = require('../actions/user-data-helpers')
 
@@ -129,6 +130,7 @@ module.exports = {
                 // update last loaded in user-data
                 var userData = store.getState().userData
                 //console.log(userData.loadHistory)
+                //console.log(userData.exchange.cur_xsTx)
                 store.dispatch({ type: walletActions.USERDATA_UPDATE_LASTLOAD, payload: { 
                        owner,
                     newValue: { browser: false, server: true, datetime: new Date().toString() }
@@ -138,12 +140,30 @@ module.exports = {
                 userData = store.getState().userData
                 userDataActions.userData_SaveAll({ userData, hideToast: true })
                 //console.log(userData.loadHistory)
-
                 //console.log('OPT_CLOUD_PWD', userDataHelper.getOptionValue(userData, 'OPT_CLOUD_PWD'))
                 //console.log('OPT_AUTOLOGOUT', userDataHelper.getOptionValue(userData, 'OPT_AUTOLOGOUT'))
                 //console.log('OPT_NIGHTSHIFT', userDataHelper.getOptionValue(userData, 'OPT_NIGHTSHIFT'))
                 //console.log('OPT_NOPATCH_MPK', userDataHelper.getOptionValue(userData, 'OPT_NOPATCH_MPK'))
                 //console.log('OPT_BETA_TESTER', userDataHelper.getOptionValue(userData, 'OPT_BETA_TESTER'))
+
+                // poll any pending XS statuses
+                const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()
+                //log.info('walletServerLoad - cur_xsTx', cur_xsTx)
+                if (wallet && wallet.assets && cur_xsTx) {
+                    wallet.assets.forEach(asset => {
+                        const xsTx = cur_xsTx[asset.symbol]
+                        if (xsTx && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.done     // internal status - web wallet sets to this status explicitly (when user has confirmed)
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.finished // changelly status - (server wallet final status)
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.failed   // "
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.expired  // "
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.refunded // "
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.overdue  // "
+                                 && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.hold     // "
+                        ) {
+                            store.dispatch(exchangeActions.XS_pollExchangeStatus(store, asset, xsTx, utilsWallet.getStorageContext().owner))
+                        }
+                    })
+                }
 
                 // server-loaded wallet; set server wallet field
                 global.loadedWallet.dirty = false
@@ -153,10 +173,6 @@ module.exports = {
             return { ok: { owner, email, walletInit } }
         })
         .catch(err => {
-            // stack:"ReferenceError: owner is not defined\n    
-            // at /Users/dom/SCP/scpx-app/ext/wallet/svr-wallet/sw-server-persist.js:150:68\n    
-            // at processTicksAndRejections (internal/process/next_tick.js:81:5)"
-
             if (err.response && err.response.statusText) {
                 return Promise.resolve({ err: err.response.statusText })
             }

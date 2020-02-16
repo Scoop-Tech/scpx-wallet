@@ -28,7 +28,7 @@ module.exports = {
 
     userData_SaveAll: (p) =>  { 
         var { userData, hideToast } = p
-        //if (configWallet.WALLET_ENV === "SERVER") hideToast = false
+        if (configWallet.WALLET_ENV === "SERVER") hideToast = false
 
         if (utils.getStorageContext().owner !== null) {
             if (userData !== undefined && userData !== null) {

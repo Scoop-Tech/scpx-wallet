@@ -12,6 +12,7 @@ const opsWallet = require('../actions/wallet')
 const utilsWallet = require('../utils')
 
 const exchangeActions = require('../actions/exchange')
+const { isStatusExchangePending } = require('../exchange/constants')
 const { toXsSymbol } = require('../api/xs-changelly')
 
 const log = require('../sw-cli-log')
@@ -40,8 +41,9 @@ module.exports = {
 
     // use exchange service to convert from one asset to another
     assetConvert: async (appWorker, store, p) => {
-        var { mpk, apk, value, symbol, to, from } = p
+        var { mpk, apk, value, symbol, to, from, status } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
+        const showStatus = utilsWallet.isParamTrue(status)
 
         log.cmd('asset-convert')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -49,8 +51,23 @@ module.exports = {
         log.param('value', value)
         log.param('to', to)
         log.param('from', from)
+        log.param('status', showStatus)
 
-        // XS - get currency statuses
+        // display status of in-process XS transaction(s)
+        if (showStatus) {
+            const cur_xsTx = store.getState().userData.exchange.cur_xsTx
+            if (!cur_xsTx) Promise.resolve({ ok: [] })
+            const xsInfo = []
+            Object.keys(cur_xsTx).map(symbol => {
+                const xsTx = cur_xsTx[symbol]
+                if (isStatusExchangePending(xsTx.cur_xsTxStatus)) {
+                    xsInfo.push(xsTx)
+                }
+            })
+            return Promise.resolve({ ok: xsInfo })
+        }
+
+        // XS - get currencies
         await exchangeActions.XS_getCurrencies(store)
         const exchangeState = store.getState().userData.exchange
         if (!exchangeState) return Promise.resolve({ err: "Failed to get exchange state" })
@@ -61,7 +78,12 @@ module.exports = {
         if (err) return Promise.resolve({ err })
         var { err, asset: receiveAsset } = await utilsWallet.validateSymbolValue(store, to, value)
         if (err) return Promise.resolve({ err })
-        
+
+        // abort if XS tx already in process for this asset
+        const cur_xsTx = exchangeState.cur_xsTx
+        if (isStatusExchangePending(cur_xsTx[exchangeAsset.symbol].cur_xsTxStatus)) return Promise.resolve({ err: `Conversion already in process for ${exchangeAsset.displaySymbol}` })
+
+        // validate XS status for supplied conversion currencies
         const currencies = exchangeState.currencies
         if (!currencies) return Promise.resolve({ err: "Failed to get exchange currencies state" })
         const xsFrom = currencies.find(p => p.name === toXsSymbol(symbol))
@@ -69,7 +91,6 @@ module.exports = {
         if (!xsFrom) return Promise.resolve({ err: `Unsupported XS from symbol "${symbol}"` })
         if (!xsTo) return Promise.resolve({ err: `Unsupported XS to symbol "${to}"` })
         if (_.eq(xsFrom, xsTo)) return Promise.resolve({ err: `From and to assets must be different` })
-
         if (!xsFrom.enabled) return Promise.resolve({ err: `XS from asset "${symbol}" is currently disabled (maintenance)` })
         if (!xsTo.enabled) return Promise.resolve({ err: `XS to asset "${to}" is currently disabled (maintenance)` })
 
@@ -95,16 +116,6 @@ module.exports = {
         log.info('du_sendValue', du_sendValue)
         log.info('du_balConf', du_balConf)
         log.info('du_fee', du_fee)
-        
-        // const bd_sendValue = new BigDecimal(du_sendValue)
-        // const bd_balConf = new BigDecimal(du_balConf)
-        // const bd_fee = new BigDecimal(du_fee)
-        // log.info('bd_sendValue', bd_sendValue.getPrettyValue())
-        // log.info('bd_balConf', bd_balConf.getPrettyValue())
-        // log.info('bd_fee', bd_fee.getPrettyValue())
-        // const remaining = bd_balConf.subtract(bd_sendValue).subtract(bd_fee)
-        // log.info('remaining', remaining.getPrettyValue())
-
         if (du_sendValue + du_fee > du_balConf) return Promise.resolve({ err: `Insufficient confirmed balance` })
 
         // get expected receive amount, and fixed rate ID (if fixed-rate pair)
@@ -122,8 +133,6 @@ module.exports = {
         if (du_sendValue > Number(userDataExchange.cur_maxAmount)) return Promise.resolve({ err: `Send value too high - XS maximum allowable (${userDataExchange.cur_maxAmount})` })
         if (du_sendValue < Number(userDataExchange.cur_minAmount)) return Promise.resolve({ err: `Send value not enough - XS minimum allowable (${userDataExchange.cur_minAmount})` })
 
-        // TODO: load-resume (i.e. init pollExchangeStatus...)
-
         // initiate XS
         const feeParams = { txFee:  _.cloneDeep(txGetFee.ok.txFee) }
         return exchangeActions.XS_initiateExchange(store, {
@@ -140,9 +149,10 @@ module.exports = {
                     owner: utilsWallet.getStorageContext().owner,
         })
         .then(res => {
-            //console.log('XS_initiateExchange OK: res=', res)
             const cur_xsTx = store.getState().userData.exchange.cur_xsTx
             return Promise.resolve({ ok: { xsTx: cur_xsTx[exchangeAsset.symbol] } })
+
+            // todo: should set to status to "done" on finalized states - to match web bahavior (manual user ack)
         })
         .catch(err => {
             //console.error('XS_initiateExchange FAIL: err=', err)

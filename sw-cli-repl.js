@@ -86,7 +86,8 @@ const assetConvertHelp = `${helpBanner}` +
     `\t--symbol (--s) [string]              <required>  the asset to convert, e.g. "ZEC"\n` +
     `\t--value (--v)  [number]              <required>  the amount to convert, e.g. 0.01\n` +
     `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
-    `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n`
+    `\t--to (--t)     [string]              <required>  the asset to convert to, e.g. "ETH" or "BTC"\n` + 
+    `\t--status       [bool]                [optional]  display conversion status(es) (default: false)\n`
 
 const txGetFeeHelp = `${helpBanner}` +
     `(tx-get-fee) - gets the network fee for the specified single-recipient transaction\n`.cyan.bold +

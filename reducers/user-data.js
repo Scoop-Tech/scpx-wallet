@@ -167,13 +167,15 @@ const handlers = {
 
     [XS_UPDATE_EXCHANGE_TX]: (state, action) => {
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { // redux-state-sync
-            utilsWallet.logMajor('orange','black', `XS_UPDATE_EXCHANGE_TX`, action.payload, { logServerConsole: true })
-
-            var newUserData = _.cloneDeep(state)
             const asset = Object.keys(action.payload.data)[0]
-            newUserData.exchange.cur_xsTx[asset] = {...newUserData.exchange.cur_xsTx[asset], ...action.payload.data[asset] }
+            var newUserData = _.cloneDeep(state)
 
-            userData_SaveAll({ userData: newUserData, hideToast: true })
+            // skip update and DSC save unless actually changed - avoids intermittent DSC "duplicate transaction" exceptions
+            if (_.isEqual(state.exchange.cur_xsTx[asset], action.payload.data[asset]) == false) { 
+                utilsWallet.logMajor('orange','black', `XS_UPDATE_EXCHANGE_TX`, action.payload, { logServerConsole: true })
+                newUserData.exchange.cur_xsTx[asset] = {...newUserData.exchange.cur_xsTx[asset], ...action.payload.data[asset] }
+                userData_SaveAll({ userData: newUserData, hideToast: true })
+            }
             return newUserData
         }
     },

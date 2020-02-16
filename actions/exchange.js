@@ -315,7 +315,7 @@ function pollExchangeStatus(store, from, xsTx, owner) {
                     return
                 }
                 var status = res.result 
-                console.log(`XS - pollExchangeStatus - ${from.symbol}==>[XS ID ${xsTx.xs.id}], status=`, status)
+                //console.log(`XS - pollExchangeStatus - ${from.symbol}==>[XS ID ${xsTx.xs.id}], status=`, status)
                 if (status === 'sending') { 
                     status = ExchangeStatusEnum.receiving
                 }
@@ -335,36 +335,41 @@ function pollExchangeStatus(store, from, xsTx, owner) {
                         // is tx concluded? mark it finalized if so
                         if (status === 'finished' || status === 'failed' || status === 'refunded' || status === 'overdue' || status === 'hold') {
                             continuePolling = false
+                        
+                            storeState = store.getState() // refresh store state
 
-                            // notify user - XS concluded
-                            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: status === 'finished' ? 'success' : 'error',
-                            headline: `${from.displaySymbol}: Exchange Finished`,
-                                info: `Final Status: ${status.toUpperCase()} (Changelly)`,
-                               desc1: `xsTx.xs.id: ${xsTx.xs.id}`, //`For exchange into ${receiveAsset.displayName}`,
-                                txid: undefined //res.tx.txid
-                            }})
+                            // update store & notify -- only on actual state change
+                            if (storeState.userData.exchange && storeState.userData.exchange.cur_xsTx) { 
+                                const xsTx = storeState.userData.exchange.cur_xsTx[from.symbol]
+                                if (xsTx && xsTx.cur_xsTxStatus !== status) { // state changed?
 
-                            // update the XS tx data with finalized data
-                            getTransaction(xsTx)
-                            .then((tx) => {
-                                storeState = store.getState() // refresh store state
-                                if (storeState.userData.exchange && storeState.userData.exchange.cur_xsTx) { 
-                                    const updated = _.cloneDeep(storeState.userData.exchange.cur_xsTx)
-                                    if (updated[from.symbol]) {
-                                        // edge-case: it is possible that we might fail to get the finalized tx data from changelly
-                                        // don't overwrite what we do have, in this case
-                                        if (tx) { 
-                                            updated[from.symbol].xs = tx
+                                    // update the XS tx data with finalized data
+                                    getTransaction(xsTx)
+                                    .then((tx) => {
+                                        if (storeState.userData.exchange && storeState.userData.exchange.cur_xsTx) { 
+                                            const updated = _.cloneDeep(storeState.userData.exchange.cur_xsTx)
+                                            if (updated[from.symbol]) {
+                                                // edge-case: it is possible that we might fail to get the finalized tx data from changelly
+                                                // in this case, don't overwrite what we do have
+                                                if (tx) { 
+                                                    updated[from.symbol].xs = tx
+                                                }
+                                                updated[from.symbol].cur_xsTxStatus = status
+                                                dispatch({ type: XS_UPDATE_EXCHANGE_TX, payload: { data: updated, owner }})
+                                            }
                                         }
-                                        updated[from.symbol].finalized = true
-                                        updated[from.symbol].cur_xsTxStatus = status
-                                        dispatch({ type: XS_UPDATE_EXCHANGE_TX,
-                                                payload: { data: updated, 
-                                                          owner, //: utils.getBrowserStorage().owner 
-                                        } })
-                                    }
+                                    })
+
+                                    // notify user - XS concluded
+                                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: status === 'finished' ? 'success' : 'error',
+                                        headline: `${from.displaySymbol}: Exchange Completed`,
+                                            info: `Status: ${status.toUpperCase()} (Changelly)`,
+                                           desc1: `xsTx.xs.id: ${xsTx.xs.id}`, //`For exchange into ${receiveAsset.displayName}`,
+                                            txid: undefined
+                                    }})
                                 }
-                            })
+                            }
+
                         }
                     }
                 }

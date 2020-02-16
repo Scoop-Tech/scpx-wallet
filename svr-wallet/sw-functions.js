@@ -6,7 +6,6 @@ const configWallet = require('../config/wallet')
 const configExternal  = require('../config/wallet-external')
 const opsWallet = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
-const exchangeActions = require('../actions/exchange')
 const utilsWallet = require('../utils')
 
 const log = require('../sw-cli-log')
@@ -46,24 +45,6 @@ module.exports = {
                                 log.info('walletConnect - triggering loadAllAsets...')
                                 opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
                                 .then(p => {
-
-                                    // ### got null cur_xsTx on reload (waiting for LTC...)
-                                    
-                                    // poll any pending XS statuses
-                                    const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()
-                                    log.info('sw-functions - loadAllAssets: complete - cur_xsTx', cur_xsTx)
-
-                                    if (wallet && wallet.assets && cur_xsTx) {
-                                        wallet.assets.forEach(asset => {
-                                            const xsTx = cur_xsTx[asset.symbol]
-                                            if (xsTx && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.done 
-                                                //&& xsTx.cur_xsTxStatus !== ExchangeStatusEnum.doneAcknowledged
-                                            ) {
-                                                store.dispatch(exchangeActions.XS_pollExchangeStatus(store, asset, xsTx, utilsWallet.getStorageContext().owner))
-                                            }
-                                        })
-                                    }
-
                                     resolve({ ok: true })
                                 })
                             }
