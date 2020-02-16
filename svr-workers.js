@@ -43,7 +43,7 @@ module.exports = {
                     const msg = event.msg
                     const status = event.status
                     if (postback && msg === 'NOTIFY_USER') {
-                        utilsWallet.logMajor('green', 'white',
+                        utilsWallet.logMajor(postback.type == 'error' ? 'red' : 'green', 'white',
                             `${postback.type ? postback.type.toUpperCase() : ''}: ` + 
                             `${postback.headline ? postback.headline : ''} ` + 
                             `${postback.info ? postback.info : ''} ` + 

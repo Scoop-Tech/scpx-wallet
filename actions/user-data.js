@@ -6,6 +6,7 @@ const { USERDATA_UPDATE_FBASE, USERDATA_UPDATE_OPTION } = require('.')
 const { updateDataJsonApi } = require('../api/user-data')
 
 const { createEncryptedJson_FromUserData, getOptionValue } = require('./user-data-helpers')
+const configWallet = require('../config/wallet')
 
 const utils = require('../utils')
 
@@ -26,7 +27,8 @@ module.exports = {
     },
 
     userData_SaveAll: (p) =>  { 
-        const { userData, hideToast } = p
+        var { userData, hideToast } = p
+        //if (configWallet.WALLET_ENV === "SERVER") hideToast = false
 
         if (utils.getStorageContext().owner !== null) {
             if (userData !== undefined && userData !== null) {
@@ -60,7 +62,7 @@ module.exports = {
                 if (dataJsonPayload) {
                     updateDataJsonApi(utils.getStorageContext().owner, dataJsonPayload, utils.getStorageContext().e_email, hideToast)
                     .then(res => {
-                        console.log(res)
+                        //console.log(res)
                     })
                     .catch(error => {
                         utils.logErr(error)
@@ -73,10 +75,8 @@ module.exports = {
                             msg = error.message || "Unknown Error"
                         }
                     })
-                }
-                else console.warn(`## settingsSaveAll - ignoring: got undefined dataJsonPayload!`)
-            }
-            else console.warn(`## settingsSaveAll - ignoring: undefined settings passed!`)
+                } else console.warn(`## settingsSaveAll - ignoring: got undefined dataJsonPayload!`)
+            } else console.warn(`## settingsSaveAll - ignoring: undefined settings passed!`)
         } else console.warn(`## settingsSaveAll - ignoring: not logged in!`)
     }
 }

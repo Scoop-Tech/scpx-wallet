@@ -133,7 +133,7 @@ module.exports = {
                     fromSymbol: exchangeAsset.symbol,
                       toSymbol: receiveAsset.symbol, 
                 receiveAddress: receiveAsset.addresses[0].addr,  
-                 refundAddress: exchangeAsset.addresses[addrNdx].addr,
+                 refundAddress: exchangeAsset.addresses[addrNdx == -1 ? 0 : addrNdx].addr,
                         amount: du_sendAmountActual
                 })
             }
@@ -142,7 +142,7 @@ module.exports = {
                   fromSymbol: exchangeAsset.symbol,
                     toSymbol: receiveAsset.symbol, 
               receiveAddress: receiveAsset.addresses[0].addr,  
-               refundAddress: exchangeAsset.addresses[addrNdx].addr,
+               refundAddress: exchangeAsset.addresses[addrNdx == -1 ? 0 : addrNdx].addr,
                       rateId: rateId,
                       amount: du_sendAmountActual
                 })
@@ -151,13 +151,13 @@ module.exports = {
             if (xsCreateTx) {
                 if (xsCreateTx.error) {
                     console.error(`## XS - xsCreateTx - error=`, xsCreateTx.error)
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 6', info: `xsCreateTx - ${xsCreateTx.error.message}` }})
+                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 6', info: `xsCreateTx - ${xsCreateTx.error.message}` }})
                     reject()
                     return
                 }
                 if (!xsCreateTx.result) {
                     console.error(`## XS - xsCreateTx - error=`, xsCreateTx.error)
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 10', info: `xsCreateTx - no result` }})
+                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 10', info: `xsCreateTx - no result` }})
                     if (Sentry) {
                         Sentry.captureMessage(`!xsCreateTx.result, xsCreateTx=${JSON.stringify(xsCreateTx)}`)
                     }
@@ -227,14 +227,14 @@ module.exports = {
                             // poll for exchange status
                             store.dispatch(pollExchangeStatus(store, exchangeAsset, xsTx[exchangeAsset.symbol], owner))
 
-                            console.log(`Exchange - XS_initiateExchange - createAndPushTx OK`, res)
+                            //console.log(`Exchange - XS_initiateExchange - createAndPushTx OK`, res)
                             resolve()
                         }
                     }
                 })
             }
             else {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 9', info: 'xsCreateTx - no data' }})
+                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 9', info: 'xsCreateTx - no data' }})
                 console.error(`## XS - XS_initiateExchange (${rateId ? 'FIXED' : 'VARIABLE'}) - xsCreateTx - no data`)
                 reject()
             }
@@ -285,15 +285,15 @@ async function getTransaction(xsTx) {
     return getTransactionsApi({ currency: xsTx.xs.currencyFrom, address: xsTx.xs.payinAddress })
     .then(res => {
         if (res && res.result) {
-            console.log(`getTransactions - ${xsTx.xs.currencyFrom}, res=`, res)
+            //console.log(`getTransactions - ${xsTx.xs.currencyFrom}, res=`, res)
             const txs = res.result.filter(p => p.id === xsTx.xs.id)
             if (txs.length != 1) {
                 // it is possible that we may not get back the finalized xs tx data - getTransactionsApi() caps at the last 99 tx's
                 // this can happen if we have executed many other XS tx's from the same fromCurrency since we last polled
-                console.warn(`getTransactions - ${xsTx.xs.currencyFrom} - failed to get id ${xsTx.xs.id}`)
+                utilsWallet.logErr(`getTransactions - ${xsTx.xs.currencyFrom} - failed to get id ${xsTx.xs.id}`)
                 return null
             }
-            console.log(`getTransactions - ${xsTx.xs.currencyFrom} - txid ${xsTx.xs.id} [0]=`, txs[0])
+            //console.log(`getTransactions - ${xsTx.xs.currencyFrom} - txid ${xsTx.xs.id} [0]=`, txs[0])
             return txs[0]
         }
     })
@@ -301,7 +301,8 @@ async function getTransaction(xsTx) {
 function pollExchangeStatus(store, from, xsTx, owner) { 
     return (dispatch) => {
         //getExchangeStatus_ClearTimer()
-        console.log(`XS - pollExchangeStatus[${xsTx.xs.id}] ${from.symbol}`, xsTx)
+
+        //console.log(`XS - pollExchangeStatus - [XS ID ${xsTx.xs.id}]<==${from.symbol}...`)//, xsTx)
 
         getStatusApi(xsTx.xs.id)
         .then(res => {
@@ -314,13 +315,12 @@ function pollExchangeStatus(store, from, xsTx, owner) {
                     return
                 }
                 var status = res.result 
-                console.log(`getExchangeStatus - ${from.symbol}==>(${xsTx.xs.id}), status=`, status)
+                console.log(`XS - pollExchangeStatus - ${from.symbol}==>[XS ID ${xsTx.xs.id}], status=`, status)
                 if (status === 'sending') { 
                     status = ExchangeStatusEnum.receiving
                 }
 
                 // get current store state for this xs tx 
-                //const store = require('../store').store
                 var storeState = store.getState()
                 if (storeState.userData.exchange && storeState.userData.exchange.cur_xsTx) {
                     const store_cur_xsTx = storeState.userData.exchange.cur_xsTx[from.symbol]
@@ -335,6 +335,14 @@ function pollExchangeStatus(store, from, xsTx, owner) {
                         // is tx concluded? mark it finalized if so
                         if (status === 'finished' || status === 'failed' || status === 'refunded' || status === 'overdue' || status === 'hold') {
                             continuePolling = false
+
+                            // notify user - XS concluded
+                            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: status === 'finished' ? 'success' : 'error',
+                            headline: `${from.displaySymbol}: Exchange Finished`,
+                                info: `Final Status: ${status.toUpperCase()} (Changelly)`,
+                               desc1: `xsTx.xs.id: ${xsTx.xs.id}`, //`For exchange into ${receiveAsset.displayName}`,
+                                txid: undefined //res.tx.txid
+                            }})
 
                             // update the XS tx data with finalized data
                             getTransaction(xsTx)
@@ -377,7 +385,7 @@ function pollExchangeStatus(store, from, xsTx, owner) {
 
 function getExchangeStatus_SetTimer(store, from, xsTx, owner) {
     return (dispatch) => {
-        console.log(`XS - getExchangeStatus_SetTimer[${xsTx.xs.id}]`, xsTx)
+        //console.log(`XS - getExchangeStatus_SetTimer[${xsTx.xs.id}]`)//, xsTx)
         exchangeStatusTimer_intId[xsTx.xs.id] = setTimeout(() => {
             dispatch(pollExchangeStatus(store, from, xsTx, owner))
         }, configWallet.IS_DEV ? 10000 : 10000)
@@ -400,7 +408,7 @@ function getEstReceiveAmount_ClearTimer() {
 
 async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
     //return async (dispatch) => {
-        console.log(`getEstReceiveAmount fromSymbol=${fromSymbol} toSymbol=${toSymbol}`)
+        //console.log(`getEstReceiveAmount fromSymbol=${fromSymbol} toSymbol=${toSymbol}`)
 
         // if timer exist, clear timer for new pairs
         //getEstReceiveAmount_ClearTimer()
@@ -422,13 +430,13 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
         const xsCcyFrom = storeState.userData.exchange.currencies.find((p) => { return p.name === fromSymbolLookup.toLowerCase() })
         const xsCcyTo = storeState.userData.exchange.currencies.find((p) => { return p.name === toSymbolLookup.toLowerCase() })
 
-        console.log(`getEstReceiveAmount - xsCcyFrom=`, xsCcyFrom)
-        console.log(`getEstReceiveAmount - xsCcyTo=`, xsCcyTo)
+        //console.log(`getEstReceiveAmount - xsCcyFrom=`, xsCcyFrom)
+        //console.log(`getEstReceiveAmount - xsCcyTo=`, xsCcyTo)
         if (!xsCcyFrom.fixRateEnabled || !xsCcyTo.fixRateEnabled) {  
             // variable-rate api
             const res = await getEstReceiveAmountApi({ fromSymbol, toSymbol, amount })
             if (res) {
-                console.log(`XS - getEstReceiveAmount (VARIABLE) - ${amount} ${fromSymbol}==>${toSymbol}, res=`, res)
+                //console.log(`XS - getEstReceiveAmount (VARIABLE) - ${amount} ${fromSymbol}==>${toSymbol}, res=`, res)
                 store.dispatch({ type: XS_SET_EST_RECEIVE_AMOUNT, payload: { result: res.result * configWallet.XS_CHANGELLY_VARRATE_MARKDOWN } })
             }
             else {
@@ -444,11 +452,11 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
             if (USE_CHANGELLY_FIXEDRATE_V2 == false) {
                 const res = await getFixRateApi({ fromSymbol, toSymbol })
                 if (res) {
-                    console.log('getEstReceiveAmount - v1(dep) - fixed getFixRate', res);
+                    //console.log('getEstReceiveAmount - v1(dep) - fixed getFixRate', res);
                     const rateId = res.id
                     const fixedRate = res.result
                     const derivedExpected = fixedRate * amount
-                    console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
+                    //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
                     store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
                 }
                 else {
@@ -465,7 +473,7 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
                     const rateId = res.id 
                     const fixedRate = res.result
                     const derivedExpected = fixedRate * amount
-                    console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
+                    //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
                     store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
                 }
                 else {
@@ -521,7 +529,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
                 min: rounded,
                 max: undefined // TODO: see below -- should be calling getPairsParams() and reading the float fields?
             }})
-            console.log('rounded', rounded.toString())
+            //console.log('rounded', rounded.toString())
             return rounded
         }
         else {
@@ -535,7 +543,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
         if (USE_CHANGELLY_FIXEDRATE_V2 == false) {
             const res = await getFixRateApi({ fromSymbol, toSymbol })
             if (res) {
-                console.log('getMinAmount - v1(dep) - fixed getFixRate', res);
+                //console.log('getMinAmount - v1(dep) - fixed getFixRate', res);
                 const rounded = roundUp(metaFrom.decimals, 
                                         (Number(res.min) * 1.1).toFixed(4)
                                     )
@@ -543,7 +551,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
                     min: rounded, 
                     max: res.max
                 }})
-                console.log('rounded', rounded.toString())
+                //console.log('rounded', rounded.toString())
                 return rounded
             }
             else {

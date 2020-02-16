@@ -54,39 +54,12 @@ module.exports = {
         await exchangeActions.XS_getCurrencies(store)
         const exchangeState = store.getState().userData.exchange
         if (!exchangeState) return Promise.resolve({ err: "Failed to get exchange state" })
-
         //console.dir(exchangeState)
-/*
-{ cur_xsTx: {},
-  currencies:
-   [ { name: 'btc',
-       ticker: 'btc',
-       fullName: 'Bitcoin',
-       enabled: true,
-       fixRateEnabled: true,
-       payinConfirmations: 2,
-       extraIdName: null,
-       addressUrl: 'https://www.blockchain.com/btc/address/%1$s',
-       transactionUrl: 'https://www.blockchain.com/btc/tx/%1$s',
-       image: 'https://web-api.changelly.com/api/coins/btc.png',
-       fixedTime: 1200000 },
-     { name: 'eth',
-       ticker: 'eth',
-       fullName: 'Ethereum',
-       enabled: true,
-       fixRateEnabled: true,
-       payinConfirmations: 15,
-       extraIdName: null,
-       addressUrl: 'https://changelly.enjinx.io/eth/address/%1$s/transactions',
-       transactionUrl: 'https://changelly.enjinx.io/eth/transaction/%1$s',
-       image: 'https://web-api.changelly.com/api/coins/eth.png',
-       ...
-*/
 
         // validate from and to symbols
-        var { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
+        var { err, wallet, asset: exchangeAsset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
-        var { err } = await utilsWallet.validateSymbolValue(store, to, value)
+        var { err, asset: receiveAsset } = await utilsWallet.validateSymbolValue(store, to, value)
         if (err) return Promise.resolve({ err })
         
         const currencies = exchangeState.currencies
@@ -102,9 +75,9 @@ module.exports = {
 
         // account-type: map supplied from-addr to addr-index
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
-        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { // account: use specific address index
+        if (exchangeAsset.type === configWallet.WALLET_TYPE_ACCOUNT) { // account: use specific address index
             if (utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is required` })
-            sendFromAddrNdx = asset.addresses.findIndex(p => p.addr.toLowerCase() === from.toLowerCase())
+            sendFromAddrNdx = exchangeAsset.addresses.findIndex(p => p.addr.toLowerCase() === from.toLowerCase())
             if (sendFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
         }
 
@@ -117,8 +90,8 @@ module.exports = {
         const du_fee = Number(txGetFee.ok.txFee.fee)
 
         // validate sufficient balance
-        const bal = walletExternal.get_combinedBalance(asset, sendFromAddrNdx)
-        const du_balConf = utilsWallet.toDisplayUnit(bal.conf, asset)
+        const bal = walletExternal.get_combinedBalance(exchangeAsset, sendFromAddrNdx)
+        const du_balConf = utilsWallet.toDisplayUnit(bal.conf, exchangeAsset)
         log.info('du_sendValue', du_sendValue)
         log.info('du_balConf', du_balConf)
         log.info('du_fee', du_fee)
@@ -134,9 +107,46 @@ module.exports = {
 
         if (du_sendValue + du_fee > du_balConf) return Promise.resolve({ err: `Insufficient confirmed balance` })
 
-        // todo: execute XS
-        //...
+        // get expected receive amount, and fixed rate ID (if fixed-rate pair)
+        await exchangeActions.XS_setReceiveAsset(store, receiveAsset.symbol)
+        const minAmount = await exchangeActions.XS_setExchangeAsset(store, exchangeAsset.symbol)
+        if (minAmount === undefined) return Promise.resolve({ err: `Error getting min amount from XS for ${exchangeAsset.symbol}==>${receiveAsset.symbol}` })
+        const userData = store.getState().userData
+        await exchangeActions.XS_getEstReceiveAmount(store, userData.exchange.cur_fromSymbol, userData.exchange.cur_toSymbol, du_sendValue) 
+        const userDataExchange = _.cloneDeep(store.getState().userData.exchange) 
+        if (userDataExchange.cur_estReceiveAmount === undefined) return Promise.resolve({ err: `Error getting est. receive amount from XS for ${exchangeAsset.symbol}==>${receiveAsset.symbol}` })
+        delete userDataExchange.currencies // dbg output
+        console.log('userDataExchange', userDataExchange)
 
-        return Promise.resolve({ ok: 'WIP...' })
+        // validate min/max amounts
+        if (du_sendValue > Number(userDataExchange.cur_maxAmount)) return Promise.resolve({ err: `Send value too high - XS maximum allowable (${userDataExchange.cur_maxAmount})` })
+        if (du_sendValue < Number(userDataExchange.cur_minAmount)) return Promise.resolve({ err: `Send value not enough - XS minimum allowable (${userDataExchange.cur_minAmount})` })
+
+        // TODO: load-resume (i.e. init pollExchangeStatus...)
+
+        // initiate XS
+        const feeParams = { txFee:  _.cloneDeep(txGetFee.ok.txFee) }
+        return exchangeActions.XS_initiateExchange(store, {
+                   wallet,
+            exchangeAsset,
+             receiveAsset,
+                   amount: du_sendValue,
+     cur_estReceiveAmount: userDataExchange.cur_estReceiveAmount,
+                feeParams,
+                  addrNdx: sendFromAddrNdx,
+                   rateId: userDataExchange.cur_fixedRateId,
+                      apk,
+                    h_mpk: utilsWallet.getHashedMpk(), //#READ
+                    owner: utilsWallet.getStorageContext().owner,
+        })
+        .then(res => {
+            //console.log('XS_initiateExchange OK: res=', res)
+            const cur_xsTx = store.getState().userData.exchange.cur_xsTx
+            return Promise.resolve({ ok: { xsTx: cur_xsTx[exchangeAsset.symbol] } })
+        })
+        .catch(err => {
+            //console.error('XS_initiateExchange FAIL: err=', err)
+            return Promise.resolve({ err })
+        })
     }
 }

@@ -6,6 +6,7 @@ const configWallet = require('../config/wallet')
 const configExternal  = require('../config/wallet-external')
 const opsWallet = require('../actions/wallet')
 const walletExternal = require('../actions/wallet-external')
+const exchangeActions = require('../actions/exchange')
 const utilsWallet = require('../utils')
 
 const log = require('../sw-cli-log')
@@ -45,6 +46,24 @@ module.exports = {
                                 log.info('walletConnect - triggering loadAllAsets...')
                                 opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
                                 .then(p => {
+
+                                    // ### got null cur_xsTx on reload (waiting for LTC...)
+                                    
+                                    // poll any pending XS statuses
+                                    const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()
+                                    log.info('sw-functions - loadAllAssets: complete - cur_xsTx', cur_xsTx)
+
+                                    if (wallet && wallet.assets && cur_xsTx) {
+                                        wallet.assets.forEach(asset => {
+                                            const xsTx = cur_xsTx[asset.symbol]
+                                            if (xsTx && xsTx.cur_xsTxStatus !== ExchangeStatusEnum.done 
+                                                //&& xsTx.cur_xsTxStatus !== ExchangeStatusEnum.doneAcknowledged
+                                            ) {
+                                                store.dispatch(exchangeActions.XS_pollExchangeStatus(store, asset, xsTx, utilsWallet.getStorageContext().owner))
+                                            }
+                                        })
+                                    }
+
                                     resolve({ ok: true })
                                 })
                             }
@@ -214,15 +233,29 @@ module.exports = {
         }
 
         const balances = wallet.assets
-            .filter(p => utilsWallet.isParamEmpty(symbol) || p.symbol.toLowerCase() === symbol.toLowerCase())
-            .map(asset => {
+        .filter(p => utilsWallet.isParamEmpty(symbol) || p.symbol.toLowerCase() === symbol.toLowerCase())
+        .map(asset => {
             const bal = walletExternal.get_combinedBalance(asset)
-            return {
-                symbol: asset.symbol,
-                  conf: utilsWallet.toDisplayUnit(bal.conf, asset),
-                unconf: utilsWallet.toDisplayUnit(bal.unconf, asset)
+            if (bal.conf > 0 || bal.unconf > 0) {
+                const ret = {
+                    symbol: asset.symbol,
+                      conf: utilsWallet.toDisplayUnit(bal.conf, asset),
+                    unconf: utilsWallet.toDisplayUnit(bal.unconf, asset)
+                }
+                var addrNdx = 0
+                ret.addresses = asset.addresses.map(p => { 
+                    const addrBal = walletExternal.get_combinedBalance(asset, addrNdx)
+                    return { 
+                         ndx: addrNdx++,
+                        addr: p.addr, 
+                  du_balConf: utilsWallet.toDisplayUnit(addrBal.conf, asset),
+                du_balUnconf: utilsWallet.toDisplayUnit(addrBal.unconf, asset),
+                }})
+                return ret
             }
+            else return null
         })
+        .filter(p => p !== null)
         return Promise.resolve({ ok: { balances } })
     }
 }
