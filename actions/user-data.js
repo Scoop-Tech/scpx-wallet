@@ -2,7 +2,7 @@
 
 const _ = require('lodash')
 
-const { USERDATA_UPDATE_FBASE, USERDATA_UPDATE_OPTION } = require('.')
+const { USERDATA_UPDATE_FBASE, USERDATA_UPDATE_OPTION, USERDATA_UPDATE_AUTOCONVERT } = require('.')
 const { updateDataJsonApi } = require('../api/user-data')
 
 const { createEncryptedJson_FromUserData, getOptionValue } = require('./user-data-helpers')
@@ -22,7 +22,14 @@ module.exports = {
     settingsUpdateFirebase: (p) =>  { 
         console.log(`settings - settingsUpdateFirebase: email,photoURL=`, p.email, p.photoURL)
         return dispatch => {
-            dispatch({ type: USERDATA_UPDATE_FBASE, payload: { email: p.email, photoURL: p.photoURL, } })
+            dispatch({ type: USERDATA_UPDATE_FBASE, payload: { email: p.email, photoURL: p.photoURL, }})
+        }
+    },
+
+    settingsUpdateAutoConvert: (p) => {
+        console.log(`settings - settingsUpdateAutoConvert: fromSymbol, toSymbol=`, p.fromSymbol, p.toSymbol)
+        return dispatch => {
+            dispatch({ type: USERDATA_UPDATE_AUTOCONVERT, payload: { fromSymbol: p.fromSymbol, toSymbol: p.toSymbol }})
         }
     },
 

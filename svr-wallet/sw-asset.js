@@ -71,7 +71,7 @@ module.exports = {
         await exchangeActions.XS_getCurrencies(store)
         const exchangeState = store.getState().userData.exchange
         if (!exchangeState) return Promise.resolve({ err: "Failed to get exchange state" })
-        //console.dir(exchangeState)
+        console.dir(exchangeState)
 
         // validate from and to symbols
         var { err, wallet, asset: exchangeAsset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
@@ -126,8 +126,8 @@ module.exports = {
         await exchangeActions.XS_getEstReceiveAmount(store, userData.exchange.cur_fromSymbol, userData.exchange.cur_toSymbol, du_sendValue) 
         const userDataExchange = _.cloneDeep(store.getState().userData.exchange) 
         if (userDataExchange.cur_estReceiveAmount === undefined) return Promise.resolve({ err: `Error getting est. receive amount from XS for ${exchangeAsset.symbol}==>${receiveAsset.symbol}` })
-        delete userDataExchange.currencies // dbg output
-        console.log('userDataExchange', userDataExchange)
+        //delete userDataExchange.currencies // dbg output
+        //console.log('userDataExchange', userDataExchange)
 
         // validate min/max amounts
         if (du_sendValue > Number(userDataExchange.cur_maxAmount)) return Promise.resolve({ err: `Send value too high - XS maximum allowable (${userDataExchange.cur_maxAmount})` })

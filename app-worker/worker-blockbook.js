@@ -233,7 +233,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
                 return blockData.data
             })
             .catch(err => {
-                utilsWallet.error(`## bb_getBlock, err=`, err, { logServerConsole: true })
+                //utilsWallet.error(`## bb_getBlock, err=`, err, { logServerConsole: true })
                 return null
             })
         }
@@ -275,7 +275,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
             }
         }
         else {
-            utilsWallet.warn(`## bb_getBlock - missing txCount || receivedBlockTime - probable 429`, null, { logServerConsole: true })
+            //utilsWallet.warn(`## bb_getBlock - missing txCount || receivedBlockTime - probable 429`, null, { logServerConsole: true })
         }
         
         // update synonymous symbols

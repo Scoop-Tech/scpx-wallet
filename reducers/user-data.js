@@ -7,6 +7,7 @@ const { getUserData_FromEncryptedJson } = require('../actions/user-data-helpers'
 const { USERDATA_SET_FROM_SERVER, USERDATA_UPDATE_LASTLOAD, 
         USERDATA_UPDATE_OPTION,
         USERDATA_UPDATE_FBASE,
+        USERDATA_UPDATE_AUTOCONVERT,
 } = require('../actions')
     
 const {
@@ -24,6 +25,15 @@ const { createReducer } = require('./utils')
 const initialState = {
     t_f3: "42-def1",
     t_f4: "42-def2",
+
+    // exchange autoconvert settings
+    autoConvertSettings: {
+        // e.g.
+        // ZEC: { 
+        //     fromBlockNo: undefined,
+        //     toSymbol: undefined,
+        // }
+    },
 
     loadHistory: [ 
         { browser: false, server: false, datetime: undefined }, // ndx 0 - current login
@@ -57,15 +67,62 @@ const initialState = {
         // transient - 3PXS current states
         currencies: [],
 
-        cur_xsTx: {
+        // current XS data
+        cur_xsTx: { 
+            // e.g.
+            // ZEC: { txid: 'bafd224be48a65d2b87dc7bc67dbd297831fd1437fd7edad1833b20cf9070f82',
+            //        sentAt: 1581854132982,
+            //        xs:
+            //         { id: '9giaknetruwxndp4',
+            //           createdAt: 1581854078,
+            //           type: 'fixed',
+            //           moneyReceived: 1581854171,
+            //           moneySent: 1581855179,
+            //           rate: '0.00635068',
+            //           payinConfirmations: '0',
+            //           status: 'finished',
+            //           currencyFrom: 'zec',
+            //           currencyTo: 'btc',
+            //           payinAddress: 't1estHVAkNYPzvcARRj5zRWNN3FYowKev7H',
+            //           payinExtraId: null,
+            //           payinExtraIdName: null,
+            //           payinHash:
+            //            'bafd224be48a65d2b87dc7bc67dbd297831fd1437fd7edad1833b20cf9070f82',
+            //           payoutHashLink:
+            //            'https://www.blockchain.com/btc/tx/13332ddb2848dcdeea7330b748d3d820b5bfacf8aaa9d893fec38414fa630ea7',
+            //           refundHashLink: null,
+            //           amountExpectedFrom: '0.715',
+            //           payoutAddress: '1NGwcdq26vDRT3kErPN83Zx2AwW9UBFffN',
+            //           payoutExtraId: null,
+            //           payoutExtraIdName: null,
+            //           payoutHash:
+            //            '13332ddb2848dcdeea7330b748d3d820b5bfacf8aaa9d893fec38414fa630ea7',
+            //           refundHash: null,
+            //           amountFrom: '0.715',
+            //           amountTo: '0.00454074',
+            //           amountExpectedTo: '0.00454074',
+            //           networkFee: '0.00025',
+            //           changellyFee: '0.5',
+            //           apiExtraFee: '0.50',
+            //           totalFee: '0.00025',
+            //           fiatProviderId: null,
+            //           fiatProvider: null,
+            //           fiatProviderRedirect: null },
+            //        fromSymbol: 'ZEC',
+            //        toSymbol: 'BTC',
+            //        amountSent: 0.715,
+            //        cur_estReceiveAmount: 0.0045407483192499995,
+            //        fixedRateId:
+            //         'ebcc48106d63b65b898e5f0c38274ecc940d89c5fcb5a95e08d52b7b903f1775',
+            //        cur_xsTxStatus: 'done',
+            //        finalized: true },  
+            // }
             //...
         }, 
-        // todo: -> cur_xsTx.eth -> cur_xsTx.eth[] -- i.e. functions as current and history
+        // todo? -> cur_xsTx.eth -> cur_xsTx.eth[] -- i.e. current *and* history combined?
         // * creating new --> append only (not replace) ...
         // * updating     --> find, update in place
         // * removing     --> nop
-
-        //cur_xsTxStatus: {}, // todo: -> either remove, or couple into cur_xsTx[asset][i].cur_xsTxStatus
     }
 }
 
@@ -127,6 +184,25 @@ const handlers = {
         }
         userData_SaveAll({ userData: newState, hideToast: false })
         return newState 
+    },
+
+    // user settings (autoconvert)
+    [USERDATA_UPDATE_AUTOCONVERT]: (state, action) => {
+        // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+            var newState = _.cloneDeep(state)
+
+            if (newState.autoConvertSettings[action.payload.fromSymbol] === undefined) {
+                newState.autoConvertSettings[action.payload.fromSymbol] = {
+                    toSymbol: action.payload.toSymbol,
+                }
+            }
+            newState.autoConvertSettings[action.payload.fromSymbol].fromBlockNo = 0 // ## TODO: should write current block_no...
+            utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
+
+            userData_SaveAll({ userData: newState, hideToast: false })
+            return newState
+        }
     },
 
     //
