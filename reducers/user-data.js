@@ -194,12 +194,12 @@ const handlers = {
             var newState = _.cloneDeep(state)
 
             if (newState.autoConvertSettings[action.payload.fromSymbol] === undefined) {
-                newState.autoConvertSettings[action.payload.fromSymbol] = {
-                    toSymbol: action.payload.toSymbol,
-                }
+                newState.autoConvertSettings[action.payload.fromSymbol] = {}
             }
-            debugger
+
+            newState.autoConvertSettings[action.payload.fromSymbol].toSymbol = action.payload.toSymbol
             newState.autoConvertSettings[action.payload.fromSymbol].fromBlockNo = 0 // ## TODO: should write current block_no...
+            
             utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
 
             userData_SaveAll({ userData: newState, hideToast: false })
