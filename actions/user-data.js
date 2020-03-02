@@ -29,7 +29,7 @@ module.exports = {
     settingsUpdateAutoConvert: (p) => {
         console.log(`settings - settingsUpdateAutoConvert: fromSymbol, toSymbol=`, p.fromSymbol, p.toSymbol)
         return dispatch => {
-            dispatch({ type: USERDATA_UPDATE_AUTOCONVERT, payload: { fromSymbol: p.fromSymbol, toSymbol: p.toSymbol }})
+            dispatch({ type: USERDATA_UPDATE_AUTOCONVERT, payload: { fromSymbol: p.fromSymbol, toSymbol: p.toSymbol, owner: utils.getStorageContext().owner }})
         }
     },
 

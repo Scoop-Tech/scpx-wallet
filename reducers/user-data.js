@@ -188,6 +188,7 @@ const handlers = {
 
     // user settings (autoconvert)
     [USERDATA_UPDATE_AUTOCONVERT]: (state, action) => {
+
         // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
             var newState = _.cloneDeep(state)
@@ -197,6 +198,7 @@ const handlers = {
                     toSymbol: action.payload.toSymbol,
                 }
             }
+            debugger
             newState.autoConvertSettings[action.payload.fromSymbol].fromBlockNo = 0 // ## TODO: should write current block_no...
             utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
 

@@ -91,7 +91,7 @@ module.exports = {
         getEstReceiveAmount(store, fromSymbol, toSymbol, amount)
         receiveAssetValue_intId = setInterval(() => {
             getEstReceiveAmount(store, fromSymbol, toSymbol, amount)
-        }, configWallet.IS_DEV ? 5000 : 10000) // refresh frequently -- v2 fixed rate API rateId's expire after 30s!
+        }, configWallet.IS_DEV ? 20000 : 20000) // refresh frequently -- v2 fixed rate API rateId's expire after 30s!
     },
     XS_getEstReceiveAmount_ClearTimer: () => getEstReceiveAmount_ClearTimer(),
 
