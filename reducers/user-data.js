@@ -162,7 +162,7 @@ const handlers = {
         }
     },
 
-    // user settings (options)
+    // user settings - options
     [USERDATA_UPDATE_OPTION]: (state, action) => {
         var ndx = state.options.findIndex((p) => p.key === action.key)
 
@@ -170,6 +170,39 @@ const handlers = {
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
             var newState = _.cloneDeep(state)
             newState.options[ndx].value = action.payload.newValue
+            userData_SaveAll({ userData: newState, hideToast: false })
+            return newState
+        }
+    },
+
+    // user settings - autoconvert
+    [USERDATA_UPDATE_AUTOCONVERT]: (state, action) => {
+        // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+            var newState = _.cloneDeep(state)
+
+            // validate
+            if (!action.payload.fromSymbol || !action.payload.fromSyncInfo) {
+                console.error('USERDATA_UPDATE_AUTOCONVERT - invalid params')
+                return newState
+            }
+            if (action.payload.fromSyncInfo.receivedBlockNo <= 0) {
+                console.error('USERDATA_UPDATE_AUTOCONVERT - invalid params (receivedBlockNo)', action.payload.fromSyncInfo)
+                return newState
+            }
+
+            // update
+            if (newState.autoConvertSettings[action.payload.fromSymbol] === undefined) {
+                newState.autoConvertSettings[action.payload.fromSymbol] = {}
+            }
+            newState.autoConvertSettings[action.payload.fromSymbol].toSymbol = action.payload.toSymbol
+            newState.autoConvertSettings[action.payload.fromSymbol].fromBlockNo =
+                action.payload.toSymbol !== undefined 
+                    ? action.payload.fromSyncInfo.receivedBlockNo
+                    : undefined
+
+            utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
+
             userData_SaveAll({ userData: newState, hideToast: false })
             return newState
         }
@@ -184,27 +217,6 @@ const handlers = {
         }
         userData_SaveAll({ userData: newState, hideToast: false })
         return newState 
-    },
-
-    // user settings (autoconvert)
-    [USERDATA_UPDATE_AUTOCONVERT]: (state, action) => {
-
-        // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
-        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
-            var newState = _.cloneDeep(state)
-
-            if (newState.autoConvertSettings[action.payload.fromSymbol] === undefined) {
-                newState.autoConvertSettings[action.payload.fromSymbol] = {}
-            }
-
-            newState.autoConvertSettings[action.payload.fromSymbol].toSymbol = action.payload.toSymbol
-            newState.autoConvertSettings[action.payload.fromSymbol].fromBlockNo = 0 // ## TODO: should write current block_no...
-            
-            utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
-
-            userData_SaveAll({ userData: newState, hideToast: false })
-            return newState
-        }
     },
 
     //

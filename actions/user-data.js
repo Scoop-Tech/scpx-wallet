@@ -27,9 +27,14 @@ module.exports = {
     },
 
     settingsUpdateAutoConvert: (p) => {
-        console.log(`settings - settingsUpdateAutoConvert: fromSymbol, toSymbol=`, p.fromSymbol, p.toSymbol)
+        console.log(`settings - settingsUpdateAutoConvert: fromSyncInfo, fromSymbol, toSymbol=`, p.fromSyncInfo, p.fromSymbol, p.toSymbol)
         return dispatch => {
-            dispatch({ type: USERDATA_UPDATE_AUTOCONVERT, payload: { fromSymbol: p.fromSymbol, toSymbol: p.toSymbol, owner: utils.getStorageContext().owner }})
+            dispatch({ type: USERDATA_UPDATE_AUTOCONVERT, payload: { 
+                fromSyncInfo: p.fromSyncInfo, 
+                  fromSymbol: p.fromSymbol, 
+                    toSymbol: p.toSymbol, 
+                       owner: utils.getStorageContext().owner
+            }})
         }
     },
 

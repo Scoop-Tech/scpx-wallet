@@ -153,9 +153,6 @@ module.exports = {
             //     prompt.setPrompt(`new [${new Date().getTime()}] >`)
             // }
         })
-        // const getPrompt = (state) => {
-        //     return `ETH: ${state.getSyncInfo.ETH.receivedBlockNo}`
-        // }
 
         // init file history
         if (utilsWallet.isParamTrue(enableFileHistory)) {
