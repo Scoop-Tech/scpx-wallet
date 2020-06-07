@@ -42,9 +42,9 @@ module.exports = {
 
         'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
         
-        'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false }, // BB v3 -- (insight only needed for lights)
+      //'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false }, // BB v3 -- (insight only needed for lights)
       //'BCHABC'  : { url: 'wss://bch-insight.bitpay.com',                                   subBlocks: false }, // BB v3 -- (insight only needed for lights)
-      //'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false }, // BB v3 -- (insight only needed for lights)
       //'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
 
         'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
