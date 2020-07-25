@@ -508,10 +508,11 @@ const getKeyAndIV = (saltStr, passphrase) => {
 
 function getStorageContext() {
     if (configWallet.WALLET_ENV === "BROWSER") {
-        if (window.isRunningHomescreen())
-            return window.localStorage
-        else
-            return window.sessionStorage
+        return window.sessionStorage // UPDATE: JUL 2020 -- iOS/Safari now supports sessionStorage in homescreen mode... (I think!)
+        // if (window.isRunningHomescreen())
+        //     return window.localStorage
+        // else
+        //     return window.sessionStorage
     }
     else {
         return global.storageContext
