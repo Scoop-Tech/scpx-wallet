@@ -666,7 +666,7 @@ module.exports = {
     // should be deprecated/removed completely in favour of wallet-external.computeTxFee() [specific tx fee compute]
     //
     getAssetFeeData: (asset) => {
-        //utilsWallet.log("fees - getAssetFeeData")
+        utilsWallet.log(`fees - getAssetFeeData`, asset)
         switch (asset.type) {
 
             case configWallet.WALLET_TYPE_UTXO:
@@ -699,6 +699,7 @@ module.exports = {
                                 if (assetSymbol === asset.symbol) {
                                     resolve(fees)
                                     appWorker.removeEventListener('message', listener)
+                                    utilsWallet.log(`fees - (ACCOUNT) getAssetFeeData - ${asset.symbol}, fees=`, fees)
                                 }
                             } 
                         }
@@ -820,13 +821,15 @@ function generateWalletAccount(p) {
             // erc20's and eth_test
             const meta = configWallet.walletsMeta[genType];
             if (meta == undefined) {
-                console.warn('## missing meta for ' + genType, configWallet.walletsMeta)
+                utilsWallet.error('## missing meta for ' + genType, configWallet.walletsMeta)
             }
-            if (configWallet.walletsMeta[genType].addressType === configWallet.ADDRESS_TYPE_ETH) {
-                defaultPrivKeys = 
-                    //assets['ethereum'].accounts !== undefined ?
-                        assets['ethereum'].accounts[0].privKeys.slice()
-                    //: [{ privKey: assets['ethereum'].wif }] // ###### race? - old path?
+            else {
+                if (meta.addressType === configWallet.ADDRESS_TYPE_ETH) {
+                    defaultPrivKeys = 
+                        //assets['ethereum'].accounts !== undefined ?
+                            assets['ethereum'].accounts[0].privKeys.slice()
+                        //: [{ privKey: assets['ethereum'].wif }] // ###### race? - old path?
+                }
             }
             break
     }

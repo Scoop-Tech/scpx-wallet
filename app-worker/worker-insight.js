@@ -180,7 +180,7 @@ module.exports = {
                                 //}
                             })
                             socket.on('block', (blockHash) => {
-                                if (configWallet.DISABLE_BLOCK_UPDATES) return
+                                if (configWallet.WALLET_DISABLE_BLOCK_UPDATES) return
                                 
                                 if (configWS.insightApi_ws_config[x].subBlocks === false) {
                                     utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)

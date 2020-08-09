@@ -461,9 +461,8 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                             mappedTx.fromCache = false
 
                             if (utilsWallet.isERC20(asset) && mappedTx.erc20 !== asset.symbol) {
-                                debugger
                                 utilsWallet.warn(`** enrichTx - ${symbol} ${tx.txid} IGNORE-TX (it's eth or another erc20) - mappedTx=`, mappedTx)
-                                resolve(null) // ### - perf: never gets cached
+                                resolve(null) // ignore eth or unknown erc20 tx,when processing known erc20s
                             }
                             else {
                                 resolve(mappedTx)

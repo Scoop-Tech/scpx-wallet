@@ -12,16 +12,17 @@ module.exports = {
         'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                  subBlocks: true  },
       //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         
-        'BTC_SEG' : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG' : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
+        'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
       //'BTC_SEG' : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
 
-        'BTC_SEG2': { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-        
-        'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-      //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG2': { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
+        'BTC_SEG2': { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+
+      //'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
+        'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
       //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
       //'BTC'     : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
       //'BTC'     : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
@@ -167,8 +168,12 @@ module.exports = {
             '5~CCCAGG~MKR~USD',     
             '5~CCCAGG~BCH~USD',
             '5~CCCAGG~NEXO~USD',
-            
             '5~CCCAGG~RVN~USD',
+
+            '5~CCCAGG~BAND~USD',
+            '5~CCCAGG~DOS~USD',
+            '5~CCCAGG~RING~USD',
+            '5~CCCAGG~SWAP~USD',
         ]
     },
 

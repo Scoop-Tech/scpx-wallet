@@ -46,8 +46,7 @@ const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be a
                                 // WALLET_INCLUDE_AYONDO_TEST || 
                                 // (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 
-const DISABLE_BLOCK_UPDATES = false
-const SOCKET_DISABLE_PRICES = false
+const WALLET_DISABLE_BLOCK_UPDATES = false
 
 // wallet config - internal
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
@@ -60,9 +59,9 @@ const API_URL = `${API_DOMAIN}api/`
 //
 // RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
 //
-//   add also: config/wallet-external
-//   add also: config/websockets (prices, insight and BB)
-//   add also: reducers/prices + actions/index
+//   add also: config/wallet-external.js
+//   add also: config/websockets.js (prices, insight and BB)
+//   add also: reducers/prices.js + actions/index
 //   add also: commons.scss (:root)
 //   add also: getSupportedWalletTypes() (below)
 //
@@ -249,7 +248,7 @@ const walletsMeta = {
         addressType: ADDRESS_TYPE_BCHABC,
         symbol: 'BCHABC',
         displayName: 'Bitcoin Cash',
-        desc: 'Adjustable Blocksize Cap',
+        desc: 'ABC',
         displaySymbol: 'BCHABC',
         imageUrl: 'img/asset-icon/bchabc.png',
         primaryColor: '#380E09',
@@ -552,32 +551,32 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'BAT',
         imageUrl: 'img/asset-icon/bat.png',
-        primaryColor: '#FF5800',
+        primaryColor: '#EC622B',
         sortOrder: 34,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 3,
         erc20_transferGasLimit: 120000,
         decimals: 18,
         tradingViewSymbol: "BINANCE:BATBTC",
     },
-    'bnb': {
-        name: 'bnb',
-        desc: '(ERC20)',
-        web: 'https://binance.com/',
-        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
-        type: WALLET_TYPE_ACCOUNT,
-        addressType: ADDRESS_TYPE_ETH,
-        symbol: 'BNB',
-        displayName: 'Binance Coin',
-        desc: 'ERC20',
-        displaySymbol: 'BNB',
-        imageUrl: 'img/asset-icon/bnb.png',
-        primaryColor: '#eeba33',
-        sortOrder: 35,
-        //bip44_index: 714, //mainnet?
-        erc20_transferGasLimit: 120000,
-        decimals: 18,
-        tradingViewSymbol: "BINANCE:BNBBTC",
-    },
+    // 'bnb': { // old erc20
+    //     name: 'bnb',
+    //     desc: '(ERC20)',
+    //     web: 'https://binance.com/',
+    //     priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+    //     type: WALLET_TYPE_ACCOUNT,
+    //     addressType: ADDRESS_TYPE_ETH,
+    //     symbol: 'BNB',
+    //     displayName: 'Binance Coin',
+    //     desc: 'ERC20',
+    //     displaySymbol: 'BNB',
+    //     imageUrl: 'img/asset-icon/bnb.png',
+    //     primaryColor: '#eeba33',
+    //     sortOrder: 35,
+    //     //bip44_index: 714, //mainnet?
+    //     erc20_transferGasLimit: 120000,
+    //     decimals: 18,
+    //     tradingViewSymbol: "BINANCE:BNBBTC",
+    // },
 
     'omg': {
         name: 'omg',
@@ -590,31 +589,31 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'OMG',
         imageUrl: 'img/asset-icon/omg.png',
-        primaryColor: '#3250EE',
+        primaryColor: '#2A52E8',
         sortOrder: 36,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 4,
         erc20_transferGasLimit: 65000,
         decimals: 18,
         tradingViewSymbol: "BINANCE:OMGBTC",
     },
-    'gto': {
-        name: 'gto',
-        web: 'https://gifto.io/',
-        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
-        type: WALLET_TYPE_ACCOUNT,
-        addressType: ADDRESS_TYPE_ETH,
-        symbol: 'GTO',
-        displayName: 'Gifto',
-        desc: 'ERC20',
-        displaySymbol: 'GTO',
-        imageUrl: 'img/asset-icon/gto.png',
-        primaryColor: '#801AFD',
-        sortOrder: 37,
-        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 5,
-        erc20_transferGasLimit: 120000,
-        decimals: 5,
-        tradingViewSymbol: "BINANCE:GTOBTC",
-    },
+    // 'gto': { // retiring - not liked
+    //     name: 'gto',
+    //     web: 'https://gifto.io/',
+    //     priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+    //     type: WALLET_TYPE_ACCOUNT,
+    //     addressType: ADDRESS_TYPE_ETH,
+    //     symbol: 'GTO',
+    //     displayName: 'Gifto',
+    //     desc: 'ERC20',
+    //     displaySymbol: 'GTO',
+    //     imageUrl: 'img/asset-icon/gto.png',
+    //     primaryColor: '#5F6DE6',
+    //     sortOrder: 37,
+    //     //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 5,
+    //     erc20_transferGasLimit: 120000,
+    //     decimals: 5,
+    //     tradingViewSymbol: "BINANCE:GTOBTC",
+    // },
     'snt': {
         name: 'snt',
         web: 'https://status.im/',
@@ -626,31 +625,32 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'SNT',
         imageUrl: 'img/asset-icon/snt.png',
-        primaryColor: '#5B6DEE',
+        primaryColor: '#5F6DE6',
         sortOrder: 38,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 6,
         erc20_transferGasLimit: 120000,
         decimals: 18,
         tradingViewSymbol: "BINANCE:SNTBTC",
     },
-    'ht': {
-        name: 'ht',
-        web: 'https://huobipro.com/',
-        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
-        type: WALLET_TYPE_ACCOUNT,
-        addressType: ADDRESS_TYPE_ETH,
-        symbol: 'HT',
-        displayName: 'Huobi Token',
-        desc: 'ERC20',
-        displaySymbol: 'HT',
-        imageUrl: 'img/asset-icon/ht.png',
-        primaryColor: '#46A2D9',
-        sortOrder: 40,
-        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 7,
-        erc20_transferGasLimit: 120000,
-        decimals: 18,
-        tradingViewSymbol: "HUOBI:HTBTC",
-    },
+    // 'ht': { // retiring - not liked
+    //     name: 'ht',
+    //     web: 'https://huobipro.com/',
+    //     priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+    //     type: WALLET_TYPE_ACCOUNT,
+    //     addressType: ADDRESS_TYPE_ETH,
+    //     symbol: 'HT',
+    //     displayName: 'Huobi Token',
+    //     desc: 'ERC20',
+    //     displaySymbol: 'HT',
+    //     imageUrl: 'img/asset-icon/ht.png',
+    //     primaryColor: '#C7C3C3',
+    //     sortOrder: 40,
+    //     //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 7,
+    //     erc20_transferGasLimit: 120000,
+    //     decimals: 18,
+    //     tradingViewSymbol: "HUOBI:HTBTC",
+    // },
+
     // 'ven': { // old erc20 - now on its mainnet ("vet")
     //     desc: undefined,
     //     type: WALLET_TYPE_ACCOUNT,
@@ -693,7 +693,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'USDT',
         imageUrl: 'img/asset-icon/usdt.png',
-        primaryColor: '#94AE53',
+        primaryColor: '#6BAC95',
         sortOrder: 5,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 8,
         erc20_transferGasLimit: 120000,
@@ -712,7 +712,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'EURT',
         imageUrl: 'img/asset-icon/eurt.png',
-        primaryColor: '#94AE53',
+        primaryColor: '#6BAC95',
         sortOrder: 6,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 9,
         erc20_transferGasLimit: 120000,
@@ -731,7 +731,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'LINK',
         imageUrl: 'img/asset-icon/link.png',
-        primaryColor: '#D75739',
+        primaryColor: '#3657D2',
         sortOrder: 50,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 10,
         erc20_transferGasLimit: 120000,
@@ -750,7 +750,7 @@ const walletsMeta = {
         displaySymbol: 'ZIL',
         desc: 'ERC20',
         imageUrl: 'img/asset-icon/zil.png',
-        primaryColor: '#C0C15B',
+        primaryColor: '#6ABEBD',
         sortOrder: 51,
         //bip44_index: 313, // mainnet?
         erc20_transferGasLimit: 120000,
@@ -768,7 +768,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'HOT',
         imageUrl: 'img/asset-icon/hot.png',
-        primaryColor: '#8D8300',
+        primaryColor: '#38818B',
         sortOrder: 52,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 11,
         erc20_transferGasLimit: 120000,
@@ -786,7 +786,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'REP',
         imageUrl: 'img/asset-icon/rep.png',
-        primaryColor: '#672241',
+        primaryColor: '#582950',
         sortOrder: 53,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 12,
         erc20_transferGasLimit: 120000,
@@ -804,7 +804,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'MKR',
         imageUrl: 'img/asset-icon/mkr.png',
-        primaryColor: '#95B54D',
+        primaryColor: '#4FA99B',
         sortOrder: 54,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 13,  
         erc20_transferGasLimit: 120000,
@@ -822,7 +822,7 @@ const walletsMeta = {
         desc: 'ERC20',
         displaySymbol: 'NEXO',
         imageUrl: 'img/asset-icon/nexo.png',
-        primaryColor: '#95B54D',
+        primaryColor: '#2E4291',
         sortOrder: 55,
         //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 14,  
         erc20_transferGasLimit: 120000,
@@ -830,16 +830,78 @@ const walletsMeta = {
         tradingViewSymbol: "HITBTC:NEXOBTC",
     },
 
-    // 'tron': {
-    //     type: WALLET_TYPE_ACCOUNT,
-    //     addressType: ADDRESS_TYPE_ETH,
-    //     name: 'Tron',
-    //     symbol: 'TRX',
-    //     imageUrl: 'img/asset-icon/trx.png',
-    //     primaryColor: '#e70014',
-    //     sortOrder: 12,
-    //     bip44_index: 195,
-    // },
+    'band': {
+        name: 'band',
+        web: 'https://bandprotocol.com/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'BAND',
+        displayName: 'Band Protocol',
+        desc: 'ERC20',
+        displaySymbol: 'BAND',
+        imageUrl: 'img/asset-icon/band.png',
+        primaryColor: '#5269FF',
+        sortOrder: 60,
+        bip44_index: 494,
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "BINANCE:BANDBTC",
+    },
+    'dos': {
+        name: 'dos',
+        web: 'https://dos.network/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'DOS',
+        displayName: 'DOS Network',
+        desc: 'ERC20',
+        displaySymbol: 'DOS',
+        imageUrl: 'img/asset-icon/dos.png',
+        primaryColor: '#7A7875',
+        sortOrder: 61,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 15,  
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "BITFINEX:BTCUSD",
+    },
+    'ring': {
+        name: 'ring',
+        web: 'https://darwinia.network/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'RING',
+        displayName: 'Darwinia',
+        desc: 'ERC20',
+        displaySymbol: 'RING',
+        imageUrl: 'img/asset-icon/ring.png',
+        primaryColor: '#949497',
+        sortOrder: 62,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 16,  
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "POLONIEX:RINGUSDT",
+    },
+    'swap': {
+        name: 'swap',
+        web: 'https://trustswap.org/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'SWAP',
+        displayName: 'TrustSwap',
+        desc: 'ERC20',
+        displaySymbol: 'SWAP',
+        imageUrl: 'img/asset-icon/swap.png',
+        primaryColor: '#0A1477',
+        sortOrder: 63,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 17,  
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "POLONIEX:SWAPBTC",
+    },
 }
 
 module.exports = {
@@ -858,7 +920,7 @@ module.exports = {
     , WALLET_INCLUDE_BTC_TEST
     , WALLET_INCLUDE_LTC_TEST
     , WALLET_INCLUDE_ZEC_TEST
-    , DISABLE_BLOCK_UPDATES 
+    , WALLET_DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
@@ -919,13 +981,16 @@ module.exports = {
             'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
             'raven',
 
-            'bnb', 'trueusd', 'bancor', '0x', 'bat',
-            'omg', 'snt', 'gto', 'ht',
+            //'bnb', // erc20 old
+            'trueusd', 'bancor', '0x', 'bat',
+            'omg', 'snt', //'gto', 'ht', // retiring - not liked
             //'btm', // on mainnet, erc20 deprecated
             //'ven', // on mainnet, erc20 deprecated
             'usdt', 'eurt',
             'mkr', 'rep', 'hot', 'zil', 'link',
             'nexo',
+
+            'band', 'dos', 'ring', 'swap'
 
             // todo 
             //'tgbp' (new)

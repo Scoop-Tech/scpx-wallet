@@ -185,7 +185,7 @@ module.exports = {
                                             //}
                                         }
                                         else if (o_data.params.subscription === block_subId) {
-                                            if (!configWallet.DISABLE_BLOCK_UPDATES) {
+                                            if (!configWallet.WALLET_DISABLE_BLOCK_UPDATES) {
 
                                                 if (configWS.geth_ws_config[x].subBlocks === false) {
                                                     utilsWallet.debug(`appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ignoring block: subBlocks=false`)

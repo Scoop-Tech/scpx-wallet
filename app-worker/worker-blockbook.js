@@ -392,7 +392,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                         self.blockbookIsoSockets_subId_NewBlock[x] = ""
                                     }
                                     self.blockbookIsoSockets_subId_NewBlock[x] = isosocket_sub_Blockbook(x, method, params, function (result) {
-                                        if (!configWallet.DISABLE_BLOCK_UPDATES)  {
+                                        if (!configWallet.WALLET_DISABLE_BLOCK_UPDATES)  {
 
                                             if (result) {
                                                 if (result.subscribed === true) {
@@ -423,27 +423,32 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                         erc20_symbols.forEach(erc20_symbol => {
 
                                                             const meta = configWallet.getMetaBySymbol(erc20_symbol)
-                                                            //console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
-                                                            if ((x === 'ETH'      && !meta.isErc20_Ropsten)
-                                                             || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
+                                                            if (meta == undefined) {
+                                                                utilsWallet.error(`undefined wallet meta for ${erc20_symbol}`)
+                                                            }
+                                                            else {
+                                                                //console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
+                                                                if ((x === 'ETH'      && !meta.isErc20_Ropsten)
+                                                                || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 
-                                                                // self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
-                                                                //     data: { dispatchActions: [{ 
-                                                                //        type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                                                                //     payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
-                                                                // })
+                                                                    // self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
+                                                                    //     data: { dispatchActions: [{ 
+                                                                    //        type: actionsWallet.SET_ASSET_BLOCK_INFO,
+                                                                    //     payload: { symbol: erc20_symbol, receivedBlockNo, receivedBlockTime: new Date().getTime() }} ] }
+                                                                    // })
 
-                                                                //
-                                                                // todo? (perf - but probably rapidly diminishing returns here)
-                                                                //  change REQUEST_STATE to accept [] of asset for update in 
-                                                                //  a single batch via ASSET_REFRESH_NEW_BLOCK -> refreshAssetFull/refreshAssetBalance
-                                                                //   (the latter two fn's would return [] of dispatchActions and caller (worker.js) would 
-                                                                //    send one batch of actions to update eth+[erc20's] in one hit)
-                                                                //
-                                                                self.postMessage({ 
-                                                                    msg: 'REQUEST_STATE', status: 'REQ',
-                                                                    data: { stateItem: 'ASSET', stateKey: erc20_symbol, context: 'ASSET_REFRESH_NEW_BLOCK' } 
-                                                                })
+                                                                    //
+                                                                    // todo? (perf - but probably rapidly diminishing returns here)
+                                                                    //  change REQUEST_STATE to accept [] of asset for update in 
+                                                                    //  a single batch via ASSET_REFRESH_NEW_BLOCK -> refreshAssetFull/refreshAssetBalance
+                                                                    //   (the latter two fn's would return [] of dispatchActions and caller (worker.js) would 
+                                                                    //    send one batch of actions to update eth+[erc20's] in one hit)
+                                                                    //
+                                                                    self.postMessage({ 
+                                                                        msg: 'REQUEST_STATE', status: 'REQ',
+                                                                        data: { stateItem: 'ASSET', stateKey: erc20_symbol, context: 'ASSET_REFRESH_NEW_BLOCK' } 
+                                                                    })
+                                                                }
                                                             }
                                                         })
                                                     }

@@ -355,7 +355,11 @@ module.exports = {
     //
     computeTxFee: async (p) => { 
         var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, apk, h_mpk } = p
-        if (!feeData || !asset || !encryptedAssetsRaw || !apk || !h_mpk) { throw 'Invalid parameters' }
+        if (!feeData) { throw 'Invalid parameter - feeData' }
+        if (!asset) { throw 'Invalid parameter - asset' }
+        if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
+        if (!apk) { throw 'Invalid parameter - apk' }
+        if (!h_mpk) { throw 'Invalid parameter - h_mpk' }
 
         var ret = {}
 
@@ -398,7 +402,6 @@ module.exports = {
         else if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
 
             if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
-
                 var gasPriceToUse = useFastest ? feeData.gasprice_fastest 
                                   : useSlowest ? feeData.gasprice_safeLow 
                                   :              feeData.gasprice_fast 
@@ -574,12 +577,18 @@ async function createTxHex(params) {
             //console.time('ext-createTxHex-utxo-createSignTx')
                 const opsWallet = require('./wallet')
                 const network = opsWallet.getUtxoNetwork(asset.symbol)
+                
                 var tx, hex, vSize, byteLength
                 if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
                 || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
                 || asset.symbol === 'ZEC_TEST'
                 || asset.symbol === 'RVN')
                 {
+                    if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
+                        network.consensusBranchId["4"] = 4122551051 // 0xf5b9230b -- Heartwood -- https://github.com/BitGo/bitgo-utxo-lib/releases/tag/1.7.1
+                    }
+                    utilsWallet.log(`createTxHex - network`, network)
+
                     //
                     // UTXO - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )
                     //

@@ -20,6 +20,7 @@ const {
             USDT_PRICE_UPDATE, EURT_PRICE_UPDATE,
             LINK_PRICE_UPDATE, ZIL_PRICE_UPDATE, HOT_PRICE_UPDATE, REP_PRICE_UPDATE, MKR_PRICE_UPDATE, 
             NEXO_PRICE_UPDATE,
+            BAND_PRICE_UPDATE, DOS_PRICE_UPDATE, RING_PRICE_UPDATE, SWAP_PRICE_UPDATE,
  
     EOS_PRICE_UPDATE, 
 
@@ -39,6 +40,7 @@ const initialState = {
              OMG: 0, GTO: 0, SNT: 0,  HT: 0, //VEN: 0, BTM: 0,
             USDT: 0, EURT: 0,
             LINK: 0, ZIL: 0, HOT: 0, REP: 0, MKR: 0,
+            BAND: 0,
 
         CCC_TEST: (10 / 1000), // ##.. TODO
        SD1A_TEST: 100,
@@ -153,6 +155,18 @@ const handlers = {
     },
     [NEXO_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, NEXO: action.payload.price} }
+    },
+    [BAND_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BAND: action.payload.price} }
+    },
+    [DOS_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, DOS: action.payload.price} }
+    },
+    [RING_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, RING: action.payload.price} }
+    },
+    [SWAP_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, SWAP: action.payload.price} }
     },
     
     // eos

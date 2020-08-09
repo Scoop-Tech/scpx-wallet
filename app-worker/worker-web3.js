@@ -99,8 +99,9 @@ module.exports = {
                 ret.gasLimit = gasLimit
             }
             else {
-                if (!asset.erc20_transferGasLimit)
+                if (!asset.erc20_transferGasLimit) {
                     utilsWallet.warn(`no erc20_transferGasLimit set for ${asset.symbol}; using fallback`)
+                }
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
 
@@ -123,6 +124,7 @@ module.exports = {
                 ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
                 ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
             }
+            utilsWallet.log(`fees - getGasPrices ${asset.symbol}, ret=`, ret)
             return ret
         })
     },

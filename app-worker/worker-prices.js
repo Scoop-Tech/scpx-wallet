@@ -156,85 +156,80 @@ module.exports = {
     priceSocket_Connect: () => {
         var lastPriceAt = {}
 
-        if (!configWallet.SOCKET_DISABLE_PRICES) {
-
-            if (self.priceSocket !== undefined) {
-                if (self.priceSocket.connected === false) {
-                    utilsWallet.warn(`appWorker >> ${self.workerId} priceSocket_Connect: got disconnected socket - nuking it!`)
-                    self.priceSocket = undefined
-                }
+        if (self.priceSocket !== undefined) {
+            if (self.priceSocket.connected === false) {
+                utilsWallet.warn(`appWorker >> ${self.workerId} priceSocket_Connect: got disconnected socket - nuking it!`)
+                self.priceSocket = undefined
             }
+        }
 
-            if (self.priceSocket === undefined) {
-                try {
+        if (self.priceSocket === undefined) {
+            try {
 
-                    self.priceSocket = io(configWS.cryptocompare_priceSocketConfig.baseURL)
-                    
-                    self.priceSocket.on('connect', function() {
-                        utilsWallet.log(`appWorker >> ${self.workerId} priceSocket_Connect - socket connect...`)
-                        try {
-                            self.priceSocket.emit('SubAdd', { subs: configWS.cryptocompare_priceSocketConfig.subAdd })
-                            postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: {
-                                dispatchType: actionsWallet.PRICE_SOCKET_CONNECTED } })
-                        }
-                        catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} priceSocket_Connect - socket connect, err=`, err) }
-                    })
-                    
-                    self.priceSocket.on('disconnect', function() {
-                        utilsWallet.warn(`appWorker >> ${self.workerId} PRICES - disconnect...`)
-                        self.priceSocket = undefined
-                        try {
-                            postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: { dispatchType: actionsWallet.PRICE_SOCKET_DISCONNECTED } })
-                        }
-                        catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} PRICES - disconnect, err=`, err) }
-                    })
+                self.priceSocket = io(configWS.cryptocompare_priceSocketConfig.baseURL)
+                
+                self.priceSocket.on('connect', function() {
+                    utilsWallet.log(`appWorker >> ${self.workerId} priceSocket_Connect - socket connect...`)
+                    try {
+                        self.priceSocket.emit('SubAdd', { subs: configWS.cryptocompare_priceSocketConfig.subAdd })
+                        postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: {
+                            dispatchType: actionsWallet.PRICE_SOCKET_CONNECTED } })
+                    }
+                    catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} priceSocket_Connect - socket connect, err=`, err) }
+                })
+                
+                self.priceSocket.on('disconnect', function() {
+                    utilsWallet.warn(`appWorker >> ${self.workerId} PRICES - disconnect...`)
+                    self.priceSocket = undefined
+                    try {
+                        postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: { dispatchType: actionsWallet.PRICE_SOCKET_DISCONNECTED } })
+                    }
+                    catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} PRICES - disconnect, err=`, err) }
+                })
 
-                    self.priceSocket.on('m', function(data) {
-                        if (!configWallet.SOCKET_DISABLE_PRICES) {
-                            try {
-                                // data set
-                                // '{SubscriptionId}~{ExchangeName}~{FromCurrency}~{ToCurrency}~{Flag}~{Price}~{LastUpdate}~{LastVolume}~{LastVolumeTo}~{LastTradeId}~{Volume24h}~{Volume24hTo}~{LastMarket}'
-                                const datas = data.split('~')
-                                const type = datas[0]
-                                const fromCurrency = datas[2]
-                                const price = datas[5]
+                self.priceSocket.on('m', function(data) {
+                    try {
+                        // data set
+                        // '{SubscriptionId}~{ExchangeName}~{FromCurrency}~{ToCurrency}~{Flag}~{Price}~{LastUpdate}~{LastVolume}~{LastVolumeTo}~{LastTradeId}~{Volume24h}~{Volume24hTo}~{LastMarket}'
+                        const datas = data.split('~')
+                        const type = datas[0]
+                        const fromCurrency = datas[2]
+                        const price = datas[5]
 
-                                if (price) {
-                                    if (type === '5') {
-                                        if (Number(price) !== NaN) {
-                                            const flag = datas[4]
-                                            // flag desc
-                                            // 1 - price up
-                                            // 2 - price down
-                                            // 4 - price unchanged (will not include price in data)
+                        if (price) {
+                            if (type === '5') {
+                                if (Number(price) !== NaN) {
+                                    const flag = datas[4]
+                                    // flag desc
+                                    // 1 - price up
+                                    // 2 - price down
+                                    // 4 - price unchanged (will not include price in data)
 
-                                            // don't push prices too frequently; it's surprisingly expensive
-                                            if (lastPriceAt[fromCurrency] === undefined
-                                                || (flag != 4 &&  ((new Date().getTime() - lastPriceAt[fromCurrency]) / 1000) > CONST.PRICE_UPDATE_INTERVAL_SECS)) {
+                                    // don't push prices too frequently; it's surprisingly expensive
+                                    if (lastPriceAt[fromCurrency] === undefined
+                                        || (flag != 4 &&  ((new Date().getTime() - lastPriceAt[fromCurrency]) / 1000) > CONST.PRICE_UPDATE_INTERVAL_SECS)) {
 
-                                                utilsWallet.log(`price update ccy=${fromCurrency}, price=${price}`)
-                                                
-                                                lastPriceAt[fromCurrency] = new Date().getTime()
+                                        utilsWallet.log(`price update ccy=${fromCurrency}, price=${price}`)
+                                        
+                                        lastPriceAt[fromCurrency] = new Date().getTime()
 
-                                                utilsWallet.log(`dispatch price update - asset=${fromCurrency} price=${price}...`)
-                                                
-                                                postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
-                                                    data: { dispatchType: actionsWallet.getPriceUpdateDispatchType(fromCurrency),
-                                                        dispatchPayload: { price: Number(price), lastPriceUpdateAt: new Date() } }
-                                                })
-                                            }
-                                        }
+                                        utilsWallet.log(`dispatch price update - asset=${fromCurrency} price=${price}...`)
+                                        
+                                        postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
+                                            data: { dispatchType: actionsWallet.getPriceUpdateDispatchType(fromCurrency),
+                                                dispatchPayload: { price: Number(price), lastPriceUpdateAt: new Date() } }
+                                        })
                                     }
                                 }
                             }
-                            catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} priceSocket_Connect - on data, err=`, err) }
                         }
-                    })
-                }
-                catch(err) {
-                    utilsWallet.error(`appWorker >> ${self.workerId} priceSocket_Connect >> , err=`, err)
-                    utilsWallet.trace()
-                }
+                    }
+                    catch(err) { utilsWallet.error(`### appWorker >> ${self.workerId} priceSocket_Connect - on data, err=`, err) }
+                })
+            }
+            catch(err) {
+                utilsWallet.error(`appWorker >> ${self.workerId} priceSocket_Connect >> , err=`, err)
+                utilsWallet.trace()
             }
         }
     }    

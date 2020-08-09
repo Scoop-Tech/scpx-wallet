@@ -394,6 +394,15 @@ function handler(e) {
 
     function GetSyncInfo(symbol) {
         utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+
+        if ((symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST)
+         || (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST)
+         || (symbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST)
+         || (symbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST)
+        ) {
+            return
+        }
+
         const meta = configWallet.getMetaBySymbol(symbol)
         if (meta.type === configWallet.WALLET_TYPE_UTXO) {
             // don't send redundant requests: causes 429's
