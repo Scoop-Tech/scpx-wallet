@@ -3,7 +3,8 @@
 const BigDecimal = require('js-big-decimal')
 const BigNumber = require('bignumber.js')
 const CryptoJS = require('crypto-js')
-var stringify = require('json-stringify-safe')
+const base32Encode = require('base32-encode')
+const stringify = require('json-stringify-safe')
 
 const colors = require('colors')
 const chalk = require('chalk')
@@ -230,6 +231,32 @@ module.exports = {
             hexString = hexString.substring(2, hexString.length)
         }
         return result
+    },
+
+    //
+    // TOTP: https://rootprojects.org/authenticator/
+    //
+    genTotpSecret: () => {
+        const bytes = new Uint8Array(20)
+        if (configWallet.WALLET_ENV === "BROWSER") {
+            if (window && window.crypto) {
+                window.crypto.getRandomValues(bytes)
+                return base32Encode(bytes, 'RFC4648').replace(/=/g, '')
+            } else throw 'No browser crypto'
+        }
+        else {
+            // TODO: ... https://stackoverflow.com/questions/25725596/use-window-crypto-in-nodejs-code
+            throw 'Not supported on server'
+        }
+    },
+    getTotpUri: (secret, accountName, issuer, algo, digits, period) => {
+        return 'otpauth://totp/' // full OTPAUTH URI spec as explained at https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+            + encodeURI(issuer || '') + ':' + encodeURI(accountName || '')
+            + '?secret=' + secret.replace(/[\s\.\_\-]+/g, '').toUpperCase()
+            + '&issuer=' + encodeURIComponent(issuer || '')
+            + '&algorithm=' + (algo || 'SHA1')
+            + '&digits=' + (digits || 6)
+            + '&period=' + (period || 30)
     },
 
     //

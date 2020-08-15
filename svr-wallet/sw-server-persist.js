@@ -145,6 +145,7 @@ module.exports = {
                 //console.log('OPT_NIGHTSHIFT', userDataHelper.getOptionValue(userData, 'OPT_NIGHTSHIFT'))
                 //console.log('OPT_NOPATCH_MPK', userDataHelper.getOptionValue(userData, 'OPT_NOPATCH_MPK'))
                 //console.log('OPT_BETA_TESTER', userDataHelper.getOptionValue(userData, 'OPT_BETA_TESTER'))
+                console.log('OPT_TOTP', userDataHelper.getOptionValue(userData, 'OPT_TOTP'))
 
                 // poll any pending XS statuses
                 const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()

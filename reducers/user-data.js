@@ -4,7 +4,7 @@ const _ = require('lodash')
 
 const { userData_SaveAll } = require('../actions/user-data')
 const { getUserData_FromEncryptedJson } = require('../actions/user-data-helpers')
-const { USERDATA_SET_FROM_SERVER, USERDATA_UPDATE_LASTLOAD, 
+const { USERDATA_SET_FROM_SERVER, USERDATA_UPDATE_LASTLOAD, USERDATA_UPDATE_TOTP_SECRET,
         USERDATA_UPDATE_OPTION,
         USERDATA_UPDATE_FBASE,
         USERDATA_UPDATE_AUTOCONVERT,
@@ -35,10 +35,15 @@ const initialState = {
         // }
     },
 
+    // ndx 0 - current login
+    // ndx 1 - previous login
     loadHistory: [ 
-        { browser: false, server: false, datetime: undefined }, // ndx 0 - current login
-        { browser: false, server: false, datetime: undefined }  // ndx 1 - previous login
+        { browser: false, server: false, datetime: undefined }, 
+        { browser: false, server: false, datetime: undefined }  
     ],
+
+    // random 32 char entropy - completely uncorrelated with all other account identifiers
+    totpSecret: undefined,
 
     fbaseCloudLoginSaved: {
         email: null,
@@ -52,6 +57,7 @@ const initialState = {
         { key: "OPT_NIGHTSHIFT",  value: true },
         { key: "OPT_NOPATCH_MPK", value: true },
         { key: "OPT_BETA_TESTER", value: true },
+        { key: "OPT_TOTP",        value: true },
     ],
 
     // exchange service - current and history records
@@ -148,6 +154,16 @@ const handlers = {
 
             //userData_SaveAll({ userData: newUserData, hideToast: action.hideToast || false })
             return newUserData
+        }
+    },
+
+    // set TOTP secret key
+    [USERDATA_UPDATE_TOTP_SECRET]: (state, action) => {
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+            var newState = _.cloneDeep(state)
+            newState.totpSecret = action.payload.newValue
+            //userData_SaveAll({ userData: newState, hideToast: false })
+            return newState
         }
     },
     
