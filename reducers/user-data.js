@@ -186,7 +186,9 @@ const handlers = {
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
             var newState = _.cloneDeep(state)
             newState.options[ndx].value = action.payload.newValue
-            userData_SaveAll({ userData: newState, hideToast: false })
+            if (action.payload.save) {
+                userData_SaveAll({ userData: newState, hideToast: false })
+            }
             return newState
         }
     },

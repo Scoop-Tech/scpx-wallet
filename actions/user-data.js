@@ -12,10 +12,16 @@ const utils = require('../utils')
 
 module.exports = {
 
-    settingsUpdateOption: (key, newValue) => {
-        console.log(`settings - settingsChange: ${key}=${newValue}`)
+    settingsUpdateOption: (p) => {
+        const { key, newValue, saveNow } = p
+        console.log(`settings - settingsChange: ${key}=${newValue}, saveNow=${saveNow}`)
         return dispatch => {
-            dispatch({ type: USERDATA_UPDATE_OPTION, key, payload: { newValue, owner: utils.getStorageContext().owner } })
+            dispatch({ type: USERDATA_UPDATE_OPTION, key, payload: { 
+                newValue, 
+                   owner: utils.getStorageContext().owner, 
+                    save: saveNow === undefined || saveNow === true 
+                            ? true : false 
+            }})
         }
     },
 
