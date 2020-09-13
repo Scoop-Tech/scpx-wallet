@@ -9,20 +9,24 @@ module.exports = {
     // note also: that insight doesn't support segwit mempool tx's at all - so BB v3 is a strong requirement for btc_seg
     //
     insightApi_ws_config: {
-        'BTC_TEST': { url: 'wss://test-insight.bitpay.com',                                  subBlocks: true  },
+        'BTC_TEST': { url: 'https://test-insight.bitpay.com',                                subBlocks: true  },
       //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         
+        'BTC_SEG' : { url: 'https://btc.com',                                                subBlocks: false },
       //'BTC_SEG' : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-        'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
       //'BTC_SEG' : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
       //'BTC_SEG' : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
 
+        'BTC_SEG2': { url: 'https://btc.com',                                                subBlocks: false },
       //'BTC_SEG2': { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-        'BTC_SEG2': { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG2': { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC_SEG2'     : { url: 'wss://insight.bitcore.io',                                  subBlocks: false },
 
+        'BTC'     : { url: 'https://btc.com',                                                subBlocks: false },
       //'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-        'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
+      //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
       //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
       //'BTC'     : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
       //'BTC'     : { url: 'wss://blockexplorer.com',                                        subBlocks: false },

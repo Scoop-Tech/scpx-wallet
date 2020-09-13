@@ -29,7 +29,6 @@ module.exports = {
             }
         })
         .catch(err => {
-            utils.logErr(err)
             console.error('## xs_changelly_Sign POST, err= ', err)
             return null
         })    

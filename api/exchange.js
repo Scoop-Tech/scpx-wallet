@@ -5,6 +5,8 @@ const axios = require('axios')
 const { changellyConfig } = require('../config/changelly')
 const { xs_changelly_Sign, toXsSymbol } = require('./xs-changelly')
 
+const utilsWallet = require('../utils')
+
 module.exports = {
 
     getCurrenciesFullApi: () => {

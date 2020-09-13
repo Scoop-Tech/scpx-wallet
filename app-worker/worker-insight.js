@@ -142,6 +142,11 @@ module.exports = {
                             socket.on('tx', (tx) => {
 
                                 //utilsWallet.log(`appWorker >> ${self.workerId} INSIGHT TX ${x}`, x)
+                                
+                                // btc.com's "insight" server produces some weird responses (tx event is missing txid)
+                                if (tx.txid === undefined) {
+                                    tx.txid = `@${Date.now().toString()}`
+                                }
 
                                 // calc spot mempool TPS over last BUF_CAP mempool tx's received
                                 const BUF_CAP = 5

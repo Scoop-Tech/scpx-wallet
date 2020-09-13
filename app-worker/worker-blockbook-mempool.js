@@ -57,26 +57,25 @@ module.exports = {
 
                             const allTxFetches = mempool_txids.map(txid => {
                                 return new Promise((resolve, reject) => {
-                                    
                                     // we got the mempool entry from BB, but we're calling web3 against a different node... not at all ideal!
                                     //utilsWallet.log(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - web3 getTx, txid=`, txid)
 
                                     web3.eth.getTransaction(txid)
                                         .then((tx) => {
-                                            //utilsWallet.log('eth mempool tx detail (from web3)=', tx)
+                                            if (tx !== undefined && tx !== null) { // observed
+                                                //utilsWallet.log('eth mempool tx detail (from web3)=', tx)
 
-                                            // blockbook is giving us confirmed tx's sometimes in it's "mempool" (sometimes days old)
-                                            //utilsWallet.log('mempool eth - tx=', tx)
-                                            if (tx.blockNumber !== null) {
-                                                //utilsWallet.log(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - got a confirmed tx from blockbook mempool: ignoring! tx=`, tx)
-                                            } else {
-
-                                                const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
-                                                const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === tx.to.toLowerCase() })
-                                                const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())
-                                                mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
+                                                // blockbook is giving us confirmed tx's sometimes in it's "mempool" (sometimes days old)
+                                                if (tx.blockNumber !== null) {
+                                                    utilsWallet.warn(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - got a confirmed tx from blockbook mempool: ignoring! tx=`, tx)
+                                                }
+                                                else {
+                                                    const erc20s = Object.keys(configExternal.erc20Contracts).map(p => { return { erc20_addr: configExternal.erc20Contracts[p], symbol: p } })
+                                                    const erc20 = erc20s.find(p => { return p.erc20_addr.toLowerCase() === tx.to.toLowerCase() })
+                                                    const weAreSender = ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())
+                                                    mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
+                                                }
                                             }
-
                                             resolve()
                                         })
                                 })
@@ -90,7 +89,6 @@ module.exports = {
                                     //         utilsWallet.log(`TODO: remove local_tx(s) from ${walletAsset.symbol}`, remove_local_txids)
                                     //     }
                                     // })
-
                                     //web3 = null
                                     //callback([])
                                 })

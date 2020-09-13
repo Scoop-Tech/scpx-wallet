@@ -226,8 +226,8 @@ module.exports = {
         },
         BCHABC: {
             donate: 'bitcoincash:qr64xlxssq62t0ntyccxgwk7x0ftpw52lc0yflvyje',
-            explorerPath: (address) => { return 'https://blockdozer.com/address/' + address },
-            txExplorerPath: (txid) => { return 'https://blockdozer.com/tx/' + txid },
+            explorerPath: (address) => { return 'https://explorer.bitcoin.com/bch/address/' + address },
+            txExplorerPath: (txid) => { return 'https://explorer.bitcoin.com/bch/tx/' + txid },
             api: {
                 utxo: (address) => { return `${bchabcBlockbookApi}v1/utxo/${address}` },
                 block: (blockHash, page) => { return `${bchabcBlockbookApi}v2/block/${blockHash}?page=${page}` },
@@ -295,8 +295,8 @@ module.exports = {
 
         RVN: {
             donate: 'RG7VkPniBt9K3nqhSucTxM6x8o1xsoEGHW', 
-            explorerPath: (address) => { return 'https://ravencoin.network/address/' + address },
-            txExplorerPath: (txid) => { return 'https://ravencoin.network/tx/' + txid },
+            explorerPath: (address) => { return 'https://rvn.tokenview.com/en/address/' + address },
+            txExplorerPath: (txid) => { return 'https://rvn.tokenview.com/en/tx/' + txid },
             api: {
                 utxo: (address) => { return `${rvnBlockbookApi}v1/utxo/${address}` },
                 block: (blockHash, page) => { return `${rvnBlockbookApi}v2/block/${blockHash}?page=${page}` },
