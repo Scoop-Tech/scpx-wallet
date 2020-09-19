@@ -46,7 +46,7 @@ const initialState = {
     totpSecret: undefined,
 
     fbaseCloudLoginSaved: {
-        email: null,
+    email: null,
         photoURL: null,
     },
 
@@ -57,7 +57,7 @@ const initialState = {
         { key: "OPT_NIGHTSHIFT",  value: true },
         { key: "OPT_NOPATCH_MPK", value: true },
         { key: "OPT_BETA_TESTER", value: true },
-        { key: "OPT_TOTP",        value: true },
+        { key: "OPT_TOTP",        value: false },
     ],
 
     // exchange service - current and history records
