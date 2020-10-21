@@ -246,7 +246,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         const cacheKey = `${asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'}_${wallet.owner}_txid_${tx.txid}` 
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
-        //utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid}...`)
+        utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} ${configWallet.WALLET_ENV}...`)
 
         // try cache first
         utilsWallet.txdb_getItem(cacheKey)
@@ -606,8 +606,9 @@ function getERC20AddressBalance_api(symbol, address) {
                 (err, result) => {
                     if (result) {
                         const tokens = web3.utils.toBN(result)
-                        if (symbol === 'SD1A_TEST')
-                            utilsWallet.warn(`OK: getERC20AddressBalance_api ${symbol} (${address}) web3 - tokens=`, tokens.toString())
+                        // if (symbol === 'SD1A_TEST') {
+                        //     utilsWallet.warn(`OK: getERC20AddressBalance_api ${symbol} (${address}) web3 - tokens=`, tokens.toString())
+                        // }
                         resolve(tokens.toString())
                     }
                     else {

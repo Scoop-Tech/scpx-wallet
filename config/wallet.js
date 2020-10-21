@@ -2,6 +2,8 @@
 
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
+const axios = require('axios')
+//const utilsWallet = require('../utils')
 
 // static - license, copyright, env
 const WALLET_VER = 'RC-' + require('../package.json').version
@@ -85,6 +87,22 @@ const API_URL = `${API_DOMAIN}api/`
 // ** use "(t)" for testnets **
 // ** use cryptocompare symbol in displaySymbol field, (or in priceSource_CC_symbol) **
 //
+
+//
+// Dynamic types (ERC20's) - for SD StMaster integration (from API), but also would work for token lists
+//
+//  * pre-genWallet hook: in actions/wallet.generateWallets()...
+//
+//  * dynamic add to...
+//      walletsMeta, in config/wallet.js (here)
+//      erc20Contracts, in config/wallet-external.js
+//      module.exports.walletExternal_config, in config/wallet-external.js
+//      price.js (?)
+//      WalletDetailSend.js (?)
+//      common.cscc (?)
+//
+var supportedWalletTypes; // assigned to statically by getSupportedWalletTypes(), and augmented with dynamic (network fetched) ERC20's
+
 const walletsMeta = {
     // utxo's
     'btc(s2)': {
@@ -975,53 +993,81 @@ module.exports = {
     , PRICE_SOURCE_SYNTHETIC_FIAT
 
     // static - supported assets
+    // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
     , getSupportedWalletTypes: () => { // use walletsMeta keys for this list
-        var ret = [
-            'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
-            'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
-            'raven',
+        if (supportedWalletTypes === undefined) {
+            supportedWalletTypes = [
+                'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
+                'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
+                'raven',
+    
+                //'bnb', // erc20 old
+                'trueusd', 'bancor', '0x', 'bat',
+                'omg', 'snt', //'gto', 'ht', // retiring - not liked
+                //'btm', // on mainnet, erc20 deprecated
+                //'ven', // on mainnet, erc20 deprecated
+                'usdt', 'eurt',
+                'mkr', 'rep', 'hot', 'zil', 'link',
+                'nexo',
+    
+                'band', 'dos', 'ring', 'swap'
+    
+                // todo 
+                //'tgbp' (new)
+            ]
+    
+            if (WALLET_INCLUDE_ETH_TEST) {
+                supportedWalletTypes.push('eth(t)')
+            }
+            // if (WALLET_INCLUDE_TUSD_TEST) {
+            //     supportedWalletTypes.push('trueusd(t)')
+            // }
 
-            //'bnb', // erc20 old
-            'trueusd', 'bancor', '0x', 'bat',
-            'omg', 'snt', //'gto', 'ht', // retiring - not liked
-            //'btm', // on mainnet, erc20 deprecated
-            //'ven', // on mainnet, erc20 deprecated
-            'usdt', 'eurt',
-            'mkr', 'rep', 'hot', 'zil', 'link',
-            'nexo',
+            if (WALLET_INCLUDE_BTC_TEST) {
+                supportedWalletTypes.push('btc(t)')
+            }
+            if (WALLET_INCLUDE_LTC_TEST) {
+                supportedWalletTypes.push('ltc(t)')
+            }
+            if (WALLET_INCLUDE_ZEC_TEST) {
+                supportedWalletTypes.push('zcash(t)')
+            }
 
-            'band', 'dos', 'ring', 'swap'
+            // fetch StMaster erc20's
+            axios.create({ baseURL: API_URL }).get(`stm`).then(response => {
+                var stm_data
+                if (response !== undefined) {
+                    if (response.data !== undefined) {
+                        stm_data = response.data.data
+                        if (stm_data !== undefined) {
+                            //...
+                        }
+                    }
+                } 
+                if (stm_data) {
+                    console.log('got stm_data ok', stm_data)
 
-            // todo 
-            //'tgbp' (new)
-        ]
+                }
+                else { 
+                    console.error(`unexpected StMaster response`)
+                }
+            }).catch(e => {
+                const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
+                console.error(msg)
+                //utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
+            })
 
-        if (WALLET_INCLUDE_ETH_TEST) {
-            ret.push('eth(t)')
+            if (WALLET_INCLUDE_SINGDAX_TEST) {
+                supportedWalletTypes.push('singdax(t)')
+            }
+            if (WALLET_INCLUDE_AIRCARBON_TEST) {
+                supportedWalletTypes.push('aircarbon(t)')
+            }
+            if (WALLET_INCLUDE_AYONDO_TEST) {
+                supportedWalletTypes.push('ayondo(t)')
+            }
         }
-        // if (WALLET_INCLUDE_TUSD_TEST) {
-        //     ret.push('trueusd(t)')
-        // }
-        if (WALLET_INCLUDE_AIRCARBON_TEST) {
-            ret.push('aircarbon(t)')
-        }
-        if (WALLET_INCLUDE_SINGDAX_TEST) {
-            ret.push('singdax(t)')
-        }
-        if (WALLET_INCLUDE_AYONDO_TEST) {
-            ret.push('ayondo(t)')
-        }
-
-        if (WALLET_INCLUDE_BTC_TEST) {
-            ret.push('btc(t)')
-        }
-        if (WALLET_INCLUDE_LTC_TEST) {
-            ret.push('ltc(t)')
-        }
-        if (WALLET_INCLUDE_ZEC_TEST) {
-            ret.push('zcash(t)')
-        }
-        return ret
+        return supportedWalletTypes
     }
 
     , getMetaBySymbol: (symbol) => {

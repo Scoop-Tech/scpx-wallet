@@ -29,10 +29,6 @@ module.exports = {
     getAddressFull_ProcessResult: (res, asset, addrNdx) => {
         utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} addrNdx=${addrNdx}...`)
         
-        // if (asset.symbol === 'SD1A_TEST' && addrNdx == 0) {
-        //     debugger
-        // }
-
         if (!res || !res.txs) return null
         if (configWallet.TEST_PAD_TXS) testPadTxs(res)
         if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE 
@@ -76,14 +72,14 @@ module.exports = {
 
         const anyPendingLocalTxs = getAll_local_txs(asset).length > 0
 
-        if (asset.symbol === 'SD1A_TEST') {
-            // console.log('DBG2 - balanceChanged', balanceChanged)
-            // console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
-            // console.log('DBG2 - delta_bal_conf', delta_bal_conf)
-            // console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
-            // console.log('DBG2 - new_txs.length', new_txs.length)
-            // console.log('DBG2 - new_txs_value', new_txs_value)
-        }
+        // if (asset.symbol === 'SD1A_TEST') {
+        //     console.log('DBG2 - balanceChanged', balanceChanged)
+        //     console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
+        //     console.log('DBG2 - delta_bal_conf', delta_bal_conf)
+        //     console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
+        //     console.log('DBG2 - new_txs.length', new_txs.length)
+        //     console.log('DBG2 - new_txs_value', new_txs_value)
+        // }
         if (
             // initial load or testing - accept
             firstLoad || testingPaddedTxs                                  
