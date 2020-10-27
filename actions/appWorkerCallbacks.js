@@ -36,7 +36,7 @@ module.exports = {
                     if (storeState && storeState.wallet && storeState.wallet.assets) {
                         const asset = storeState.wallet.assets.find((p) => { return p.symbol === stateKey })
                         if (asset) { // response
-                            appWorker.postMessage({ msg: 'STATE_RESPONSE', status: 'RES', data: { 
+                            appWorker.postMessageWrapped({ msg: 'STATE_RESPONSE', status: 'RES', data: { 
                                 stateItem, stateKey, value: { asset, wallet: storeState.wallet, ux: storeState.ux }, context
                             } }) 
                         }
@@ -112,7 +112,7 @@ module.exports = {
                                                 }
     
                                                 // notify user 
-                                                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: {
+                                                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: {
                                                     type: 'success',
                                                 headline: `${asset.displaySymbol}: Confirmed TX`,
                                                     info: `${asset.displayName} mined`, //${/*utilsWallet.EMOJI_HAPPY_KITTY*/utilsWallet.EMOJI_TICK}`,

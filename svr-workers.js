@@ -25,6 +25,15 @@ module.exports = {
                 worker.removeEventListener = worker.removeListener // map same interface as web worker
                 worker.addEventListener = worker.on
 
+                // StMaster - override postMessage to append common global data
+                worker.postMessageWrapped = function(msg) {
+                    if (msg !== undefined && msg.data !== undefined) {
+                        msg.data.stm_ApiPayload = configWallet.get_stm_ApiPayload() // StMaster - pass through config/wallet.js::stm_ApiPayload
+                    }
+                    console.log('cpuWorker.postMessageWrapped...', msg)
+                    return this.postMessage(msg)
+                }
+
                 globalScope.cpuWorkers.push(worker)
             }
             globalScope.nextCpuWorker = 0
@@ -53,6 +62,15 @@ module.exports = {
                             null, { logServerConsole: true })
                     }
                 })
+
+                // StMaster - override postMessage to append common global data
+                appWorker.postMessageWrapped = function(msg) {
+                    if (msg !== undefined && msg.data !== undefined) {
+                        msg.data.stm_ApiPayload = configWallet.get_stm_ApiPayload() // StMaster - pass through config/wallet.js::stm_ApiPayload
+                    }
+                    console.log('appWorker.postMessageWrapped...', msg)
+                    return this.postMessage(msg)
+                }
                 return appWorker
             }
             globalScope.appWorker = createAppWorker()
@@ -71,7 +89,7 @@ module.exports = {
         const pongs = globalScope.cpuWorkers.concat([globalScope.appWorker]).map(worker => {
             return new Promise((resolve) => {
                 worker.once('message', (data) => { resolve(true) })
-                worker.postMessage({ msg: 'DIAG_PING', data: {} })
+                worker.postMessageWrapped({ msg: 'DIAG_PING', data: {} })
             })
         })
         return Promise.all(pongs)
@@ -118,7 +136,7 @@ async function txdb_init() {
         const appWorker = utilsWallet.getAppWorker()
 
         //utilsWallet.getAppWorker()
-        appWorker.postMessage({ msg: 'SERVER_INIT_TX_DB', data: {} })
+        appWorker.postMessageWrapped({ msg: 'SERVER_INIT_TX_DB', data: {} })
     })
     return txDbSetup
 }

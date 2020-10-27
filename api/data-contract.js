@@ -24,7 +24,7 @@ module.exports = {
         .then(res => {
             utilsWallet.log('account POST - ok' + JSON.stringify(res, 2, null))
             if (res && res.data) {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER',
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
                     data: { type: 'success', headline: 'Created Wallet', info: 'Wrote Scoop chain', txid: res.data.txid } })
             }
             return res.data
@@ -32,7 +32,7 @@ module.exports = {
         .catch(e => {
             const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
             utilsWallet.logErr(msg)
-            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
         })
     },
 
@@ -46,7 +46,7 @@ module.exports = {
 
             if (res && res.data) {
                 if (showNotification) {
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER',
+                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
                         data: { type: 'success', headline: 'Saved Wallet', info: 'Updated Scoop chain', txid: res.data.txid } })
                 }
                 return res.data
@@ -55,7 +55,7 @@ module.exports = {
         .catch(e => {
             const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
             utilsWallet.logErr(msg)
-            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
         })
     },    
     

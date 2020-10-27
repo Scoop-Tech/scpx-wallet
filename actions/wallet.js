@@ -45,20 +45,20 @@ module.exports = {
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
-                appWorker.postMessage({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+                appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
             // fetch eth[_test] first -- erc20 fetches will then use eth's cached tx data in the indexeddb
             const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
             ethAssets.forEach(ethAsset => {
-                appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
+                appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
                 //globalScope.loaderWorkers[0].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
             })
 
             // then fetch all others, except erc20s
             var erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
             var otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
-            appWorker.postMessage({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
+            appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
             // otherAssets.forEach(otherAsset => {
             //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
             //     //globalScope.loaderWorkers[1].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
@@ -85,7 +85,7 @@ module.exports = {
                     // now fetch erc20s - they will use cached eth[_test] tx's
                     if (ethDone && ethTestDone) {
                         erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
-                        appWorker.postMessage({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: erc20Assets, wallet } })
+                        appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: erc20Assets, wallet } })
                         // erc20Assets.forEach(erc20Asset => {
                         //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
                         //     //globalScope.loaderWorkers[3].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
@@ -217,11 +217,11 @@ module.exports = {
                 const appWorker = globalScope.appWorker    
 
                 // update addr monitors
-                appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
         
                 // refresh asset balance
-                appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             }
             else {
                 ; // nop
@@ -350,11 +350,11 @@ module.exports = {
        showNotification: true })
 
             // update addr monitors
-            window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-            window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
             // refresh asset balance
-            window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
         }
         
         // ret ok
@@ -435,11 +435,11 @@ module.exports = {
        showNotification: true })
 
             // update addr monitors
-            window.appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-            window.appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
 
             // refresh asset balance
-            window.appWorker.postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+            window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
         }
 
         // ret ok
@@ -484,7 +484,19 @@ module.exports = {
 
         // determine what wallets to generate, if any
         const currentTypes = Object.keys(currentAssets)
-        var supportWalletTypes = configWallet.getSupportedWalletTypes()
+        
+        var supportWalletTypes = await configWallet.getSupportedWalletTypes() // stm: dynamic add StMaster erc20 types
+        //
+        // TODO: stm - refactor getSupportedWalletTypes() so that it caches the api payload in a configWallet static field...
+        //
+        //       then pass this static field (payload) into op_WalletAddrFromPrivKey() (and op_getAddressFromPrivateKey() ?!) callers;
+        //       payload then goes all the way into CPU workers, and they can 
+        //
+        // basically, the main thread keeps the pauload cached and passes it down to the cpu-workers so that they can
+        // do the atomic singleton dynamic appends on their copies of the static structs....
+        //
+
+        console.log('StMaster - supportWalletTypes', supportWalletTypes)
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
@@ -633,7 +645,8 @@ module.exports = {
         // ***
         // store local state: viewable asset data, e.g. last known balances: subset of currentAssets, persisted to browser storage, without privkeys
         // ***
-        const displayableAssets = displayableWalletAssets(currentAssets, userAccountName)
+        const displayableAssets = await displayableWalletAssets(currentAssets, userAccountName)
+        console.log('StMaster - displayableAssets', displayableAssets)
         store.dispatch((action) => {
             action({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
         })
@@ -705,7 +718,7 @@ module.exports = {
                         }
                     }
                     appWorker.addEventListener('message', listener)
-                    appWorker.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3', data: { asset, params: estimateGasParams } })
+                    appWorker.postMessageWrapped({ msg: 'GET_ETH_TX_FEE_WEB3', data: { asset, params: estimateGasParams } })
                 })
                 break
 
@@ -864,11 +877,12 @@ function generateWalletAccount(p) {
 }
 
 // creates wallet.assets[] safe/displayable core wallet data
-function displayableWalletAssets(assets) {
+async function displayableWalletAssets(assets) {
     var displayableAssets = []
     if (assets) {
         for (const key in assets) {
-            if (!configWallet.getSupportedWalletTypes().includes(key)) continue
+            const supportedTypes = await configWallet.getSupportedWalletTypes()
+            if (!supportedTypes.includes(key)) continue
             if (assets[key]) {
                 var displayableAsset = Object.assign(
                     { addresses: assets[key].addresses, local_txs: [], },
@@ -887,6 +901,8 @@ function displayableWalletAssets(assets) {
 function newWalletAddressFromPrivKey(p) {
     const { assetName, accountName, key, eosActiveWallet, knownAddr, symbol } = p
     
+    console.log(`newWalletAddressFromPrivKey, symbol=${symbol}, assetName=${assetName} configWallet.walletsMeta=`, configWallet.walletsMeta)
+
     var addr = !knownAddr ? getAddressFromPrivateKey(
                     { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }
                 )

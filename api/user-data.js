@@ -18,14 +18,14 @@ module.exports = {
         .then(res => {
             //console.log(`updateDataJsonApi - ok`)
             if (res && res.data && hideToast == false) {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'success', headline: 'Saved Settings', info: 'Updated Scoop chain', txid: res.data.txid }})
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'success', headline: 'Saved Settings', info: 'Updated Scoop chain', txid: res.data.txid }})
             }
             return res.data
         })
         .catch(e => {
             //const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
             //utilsWallet.logErr(msg)
-            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Server Error', info: e.toString() }})
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Server Error', info: e.toString() }})
         })
     }
 }

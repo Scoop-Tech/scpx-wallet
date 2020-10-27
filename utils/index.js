@@ -481,7 +481,12 @@ module.exports = {
                     return
                 }
             }
-            cpuWorker.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
+ 
+            console.log('StMaster - op_WalletAddrFromPrivKey, configWallet.stm_ApiPayload=', configWallet.get_stm_ApiPayload())
+            cpuWorker.postMessageWrapped({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: 'REQ', data: { 
+                params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount,
+                stm_ApiPayload: configWallet.get_stm_ApiPayload(), // StMaster - pass down config/wallet.js::stm_ApiPayload
+            }})
         })
         return ret
     },
@@ -512,7 +517,12 @@ module.exports = {
                     return
                 }
             }
-            cpuWorker.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: 'REQ', data: { params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount } })
+            
+            console.log('StMaster - op_getAddressFromPrivateKey, configWallet.stm_ApiPayload=', configWallet.get_stm_ApiPayload())
+            cpuWorker.postMessageWrapped({ msg: 'ADDR_FROM_PRIVKEY', status: 'REQ', data: { 
+                params: p.params, reqId: p.reqId, totalReqCount: p.totalReqCount,
+                stm_ApiPayload: configWallet.get_stm_ApiPayload(), // StMaster - pass down config/wallet.js::stm_ApiPayload
+             }})
         })
     },
 

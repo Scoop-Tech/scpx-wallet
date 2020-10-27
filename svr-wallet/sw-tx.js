@@ -84,7 +84,7 @@ module.exports = {
                 }
                 else {
                     setTimeout(() => {
-                        appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } })
+                        appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } })
                     }, 3000)
 
                     setTimeout(() => {

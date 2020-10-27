@@ -41,7 +41,7 @@ module.exports = {
                 }
             }
             appWorker.addEventListener('message', listener)
-            appWorker.postMessage({ msg: 'GET_ETH_ESTIMATE_TX_GAS', data: { asset, params } })
+            appWorker.postMessageWrapped({ msg: 'GET_ETH_ESTIMATE_TX_GAS', data: { asset, params } })
         })
         return await op
     },
@@ -79,7 +79,7 @@ module.exports = {
             }
         }
         appWorker.addEventListener('message', listener)
-        appWorker.postMessage({ msg: 'PUSH_TX_WEB3', data: { payTo, asset, txHex } })
+        appWorker.postMessageWrapped({ msg: 'PUSH_TX_WEB3', data: { payTo, asset, txHex } })
     },
 }
 
@@ -101,7 +101,7 @@ function createTxHex_Eth(asset, params, privateKey) {
             }
         }
         appWorker.addEventListener('message', listener)
-        appWorker.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3', data: { asset, params, privateKey } })
+        appWorker.postMessageWrapped({ msg: 'GET_ETH_TX_HEX_WEB3', data: { asset, params, privateKey } })
     })
 }
 
@@ -123,7 +123,7 @@ function createTxHex_erc20(asset, params, privateKey) {
             }
         }
         appWorker.addEventListener('message', listener)
-        appWorker.postMessage({ msg: 'GET_ERC20_TX_HEX_WEB3', data: { asset, params, privateKey } })
+        appWorker.postMessageWrapped({ msg: 'GET_ERC20_TX_HEX_WEB3', data: { asset, params, privateKey } })
     })   
 }
  

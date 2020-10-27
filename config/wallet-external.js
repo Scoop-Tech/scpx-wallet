@@ -77,16 +77,16 @@ const erc20Contracts = {
     REP:  '0x1985365e9f78359a9B6AD760e32412f4a445E862',
     MKR:  '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
 
-    NEXO:  '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
+    NEXO: '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
 
     BAND: '0xba11d00c5f74255f56a5e366f4f77f5a186d7f55',
-    DOS: '0x0A913beaD80F321E7Ac35285Ee10d9d922659cB7',
+    DOS:  '0x0A913beaD80F321E7Ac35285Ee10d9d922659cB7',
     RING: '0x9469d013805bffb7d3debe5e7839237e535ec483',
     SWAP: '0xCC4304A31d09258b0029eA7FE63d032f52e44EFe',
 
     CCC_TEST: '0xD661a646E28D157eb60e74298CE799E23d17db07', // v0.96a
-    SD1A_TEST: '0x21d233232d7A53BCf7141FD83329455106796Ee9', // v0.95c
     AY1A_TEST: '0xf07aA78a849A441eBf882967F6130BD3E71C1D9C', // v0.95c
+  //SD1A_TEST: '0x21d233232d7A53BCf7141FD83329455106796Ee9', // v0.95c
 }
 
 // eth explorers - mainnet
@@ -111,6 +111,374 @@ function erc20_ropstenAddrExplorer(tokenAddr, holderAddr) {
     return `https://ropsten.etherscan.io/token/${tokenAddr}?a=${holderAddr}` // `https://ropsten.etherscan.io/tokentxns?a=${address}`
 }
 
+const walletExternal_config = {
+    
+    BTC: {
+        donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x',
+        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    BTC_SEG: {
+        donate: '32FtNE5ShUDh4wQJm3bGYGtjKpFeJqeVEw',
+        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    BTC_SEG2: {
+        donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
+        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    DASH: {
+        donate: 'Xw9oJkZHqMYiEiRTVjQ3sqhLBxyrZgd2WH',
+        explorerPath: (address) => { return 'https://insight.dash.org/insight/address/' + address },
+        txExplorerPath: (txid) => { return 'https://insight.dash.org/insight/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${dashBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${dashBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    VTC: {
+        donate: 'VxUmA3JdxdFjGn75FF7jpBzt63quPsfzm7',
+        explorerPath: (address) => { return 'https://insight.vertcoin.org/address/' + address },
+        txExplorerPath: (txid) => { return 'https://insight.vertcoin.org/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${vtcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${vtcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    QTUM: {
+        donate: 'QbXCeBHPoyNz99r9gRdWbRJMA3FZJQyYVH',
+        explorerPath: (address) => { return 'https://explorer.qtum.org/address/' + address },
+        txExplorerPath: (txid) => { return 'https://explorer.qtum.org/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${qtumBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${qtumBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    DGB: {
+        donate: 'D6nE8r7Bwh25ER8rfMYF99qVG2R7kd9pHv',
+        explorerPath: (address) => { return 'https://digiexplorer.info/address/' + address },
+        txExplorerPath: (txid) => { return 'https://digiexplorer.info/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${dgbBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${dgbBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    BCHABC: {
+        donate: 'bitcoincash:qr64xlxssq62t0ntyccxgwk7x0ftpw52lc0yflvyje',
+        explorerPath: (address) => { return 'https://explorer.bitcoin.com/bch/address/' + address },
+        txExplorerPath: (txid) => { return 'https://explorer.bitcoin.com/bch/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${bchabcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${bchabcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+
+    BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
+        donate: 'mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM', // testnets2@scoop.tech
+        explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
+        api: { // insight-api -- active/fallback
+            baseUrl: () => { return btcTestInsightApi },
+            sync: () => { return btcTestInsightApi + 'sync' },
+            block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
+            v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
+            v2_addrData: (address, from, to) => { return `${btcTestInsightApi}addr/${address}?from=${from}&to=${to}` },
+            v2_addrBal: (address) => { return `${btcTestInsightApi}addr/${address}?noTxList=1` },
+            balance: (address) => { return btcTestInsightApi + 'addr/' + address + '/balance' },
+            unconfirmedBalance: (address) => { return btcTestInsightApi + 'addr/' + address + '/unconfirmedBalance' },
+            tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
+            txs: (address) => { return btcTestInsightApi + 'txs/?address=' + address },
+            utxo: (address) => { return btcTestInsightApi + 'addrs/' + address + '/utxo' },
+            push_tx: btcTestInsightApi + 'tx/send',
+        }
+    },
+    LTC: {
+        donate: 'LcTqsN3agVPA6EX2hhq2gtJBwjdpq2c6GC',
+        explorerPath: (address) => { return 'https://live.blockcypher.com/ltc/address/' + address },
+        txExplorerPath: (txid) => { return 'https://live.blockcypher.com/ltc/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${ltcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${ltcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    LTC_TEST: { // ### LTC TestNet4 -- no working faucet 
+        donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', // ???
+        explorerPath: (address) => { return 'https://chain.so/address/LTCTEST/address/' + address },
+        txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
+        api: {
+            utxo: (address) => { return `${ltcTestBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${ltcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+
+    ZEC: {
+        donate: 't1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi',
+        explorerPath: (address) => { return 'https://chain.so/address/ZEC/' + address }, // shows unconfirmed better than zcha.in
+        txExplorerPath: (txid) => { return 'https://chain.so/tx/ZEC/' + txid },
+        //explorerPath: (address) => { return 'https://explorer.zcha.in/accounts/' + address },
+        //txExplorerPath: (txid) => { return 'https://explorer.zcha.in/transactions/' + txid },
+        api: {
+            utxo: (address) => { return `${zecBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash) => { return `${zecBlockbookApi}v2/block/${blockHash}` },
+        }        
+    },
+    ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
+        donate: 'tmAU27N3iHMeejD6GPHYiSnH8vit1XT9uEX', // testnets2@scoop.tech
+        explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
+        txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${zecTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+
+    RVN: {
+        donate: 'RG7VkPniBt9K3nqhSucTxM6x8o1xsoEGHW', 
+        explorerPath: (address) => { return 'https://rvn.tokenview.com/en/address/' + address },
+        txExplorerPath: (txid) => { return 'https://rvn.tokenview.com/en/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${rvnBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${rvnBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+
+    EOS: {
+        donate: 'guytmnrrguge',
+        explorerPath: (address) => { return 'https://etherscan.io/address/' + address },
+        txExplorerPath: (txid) => { return 'https://etherscan.io/tx/' + txid },
+        api: {
+            txlist: (address) => {
+                return 'https://api.etherscan.io/api?module=account&action=txlist&address=' + address + '&startblock=0&endblock=99999999&sort=asc&apikey=EG3Q7SGYF2CN7AWZIFFY2UEC8MN7M6B883'
+            }
+        }
+    },
+
+    ETH: { 
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        explorerPath: (address) => eth_AddrExplorer(address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+        // api: { // etherscan-compatible REST API (deprecated)
+        //     // txlist: (address) =>  { return `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${es_apiKeys[0]}` },
+        //     // balance: (address) => { return `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${es_apiKeys[0]}` }
+        //     txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc` },
+        //     balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=balance&address=${address}` }
+        // }
+    },
+    ETH_TEST: { // ropsten  https://faucet.metamask.io/  
+        donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+        explorerPath: (address) => eth_ropstenAddrExplorer(address),
+        txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
+        httpProvider: ethTestHttpProvider,
+    },
+
+    TUSD: { 
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.TUSD,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.TUSD, address), 
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    // TUSD_TEST: {
+    //     donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+    //     explorerPath: (address) => eth_ropstenAddrExplorer(address),
+    //     txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
+    //     httpProvider: ethTestHttpProvider,
+    // },
+    CCC_TEST: {
+        donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+        contractAddress: erc20Contracts.CCC_TEST,
+        explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.CCC_TEST, address),
+        txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
+        httpProvider: ethTestHttpProvider,
+    },
+    // SD1A_TEST: {
+    //     donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+    //     contractAddress: erc20Contracts.SD1A_TEST,
+    //     explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.SD1A_TEST, address),
+    //     txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
+    //     httpProvider: ethTestHttpProvider,
+    // },
+    AY1A_TEST: {
+        donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+        contractAddress: erc20Contracts.AY1A_TEST,
+        explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.AY1A_TEST, address),
+        txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
+        httpProvider: ethTestHttpProvider,
+    },
+
+    BNT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.BNT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    ZRX: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.ZRX,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZRX, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    BAT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.BAT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BAT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    // BNB: { // old erc20
+    //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+    //     contractAddress: erc20Contracts.BNB,
+    //     explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNB, address),
+    //     txExplorerPath: (txid) => eth_TxExplorer(txid),
+    //     httpProvider: ethHttpProvider,
+    // },
+    
+    OMG: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.OMG,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.OMG, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    // GTO: { // retiring - not liked
+    //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+    //     contractAddress: erc20Contracts.GTO,
+    //     explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.GTO, address),
+    //     txExplorerPath: (txid) => eth_TxExplorer(txid),
+    //     httpProvider: ethHttpProvider,
+    // },
+    SNT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.SNT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SNT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    // HT: { // retiring - not liked
+    //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+    //     contractAddress: erc20Contracts.HT,
+    //     explorerPath: (address) => erc20_AddrExplorer(address),
+    //     txExplorerPath: (txid) => eth_TxExplorer(txid),
+    //     httpProvider: ethHttpProvider,
+    // },
+    // BTM: { // old erc20 - now on mainnet
+    //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
+    //     contractAddress: erc20Contracts.BTM,
+    //     explorerPath: (address) => erc20_AddrExplorer(address),
+    //     txExplorerPath: (txid) => eth_TxExplorer(txid),
+    //     httpProvider: ethHttpProvider,
+    // },    
+    // VEN: { // old erc20 - now on mainnet
+    //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
+    //     contractAddress: erc20Contracts.VEN,
+    //     explorerPath: (address) => erc20_AddrExplorer(address),
+    //     txExplorerPath: (txid) => eth_TxExplorer(txid),
+    //     httpProvider: ethHttpProvider,
+    // },
+
+    USDT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.USDT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.USDT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    EURT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.EURT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.EURT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+
+    LINK: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.LINK,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.LINK, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    ZIL: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.ZIL,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZIL, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    HOT: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.HOT,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.HOT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    REP: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.REP,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.REP, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    MKR: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.MKR,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.MKR, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    NEXO: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.NEXO,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.NEXO, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    BAND: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.BAND,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BAND, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    DOS: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.DOS,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.DOS, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    RING: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.RING,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.RING, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    SWAP: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.SWAP,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SWAP, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+}
+
 module.exports = {
 
     // utxo v2- insight api legacy - kept alive only for btc_test
@@ -122,6 +490,7 @@ module.exports = {
     ,btcTestInsightApi
 
     // eth
+    ,erc20Contracts_append: (symbol, addr) => { erc20Contracts[symbol] = addr }
     ,erc20Contracts
     ,ethHttpProvider
 
@@ -159,371 +528,14 @@ module.exports = {
     // NOT USED
     ,ltcTestFeeOracle_Blockbook: '' //`https://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134/api/v2/estimatefee/1`
 
-    ,walletExternal_config: {
-    
-        BTC: {
-            donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x',
-            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-            txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        BTC_SEG: {
-            donate: '32FtNE5ShUDh4wQJm3bGYGtjKpFeJqeVEw',
-            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-            txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        BTC_SEG2: {
-            donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
-            explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-            txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        DASH: {
-            donate: 'Xw9oJkZHqMYiEiRTVjQ3sqhLBxyrZgd2WH',
-            explorerPath: (address) => { return 'https://insight.dash.org/insight/address/' + address },
-            txExplorerPath: (txid) => { return 'https://insight.dash.org/insight/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${dashBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${dashBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        VTC: {
-            donate: 'VxUmA3JdxdFjGn75FF7jpBzt63quPsfzm7',
-            explorerPath: (address) => { return 'https://insight.vertcoin.org/address/' + address },
-            txExplorerPath: (txid) => { return 'https://insight.vertcoin.org/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${vtcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${vtcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        QTUM: {
-            donate: 'QbXCeBHPoyNz99r9gRdWbRJMA3FZJQyYVH',
-            explorerPath: (address) => { return 'https://explorer.qtum.org/address/' + address },
-            txExplorerPath: (txid) => { return 'https://explorer.qtum.org/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${qtumBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${qtumBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        DGB: {
-            donate: 'D6nE8r7Bwh25ER8rfMYF99qVG2R7kd9pHv',
-            explorerPath: (address) => { return 'https://digiexplorer.info/address/' + address },
-            txExplorerPath: (txid) => { return 'https://digiexplorer.info/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${dgbBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${dgbBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        BCHABC: {
-            donate: 'bitcoincash:qr64xlxssq62t0ntyccxgwk7x0ftpw52lc0yflvyje',
-            explorerPath: (address) => { return 'https://explorer.bitcoin.com/bch/address/' + address },
-            txExplorerPath: (txid) => { return 'https://explorer.bitcoin.com/bch/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${bchabcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${bchabcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
+    // MAIN CONFIG
+    ,walletExternal_config_append: (symbol, config) => { walletExternal_config[symbol] = config }
+    ,walletExternal_config
 
-        BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
-            donate: 'mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM', // testnets2@scoop.tech
-            explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
-            txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
-            api: { // insight-api -- active/fallback
-                baseUrl: () => { return btcTestInsightApi },
-                sync: () => { return btcTestInsightApi + 'sync' },
-                block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
-                v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
-                v2_addrData: (address, from, to) => { return `${btcTestInsightApi}addr/${address}?from=${from}&to=${to}` },
-                v2_addrBal: (address) => { return `${btcTestInsightApi}addr/${address}?noTxList=1` },
-                balance: (address) => { return btcTestInsightApi + 'addr/' + address + '/balance' },
-                unconfirmedBalance: (address) => { return btcTestInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-                tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
-                txs: (address) => { return btcTestInsightApi + 'txs/?address=' + address },
-                utxo: (address) => { return btcTestInsightApi + 'addrs/' + address + '/utxo' },
-                push_tx: btcTestInsightApi + 'tx/send',
-            }
-        },
-        LTC: {
-            donate: 'LcTqsN3agVPA6EX2hhq2gtJBwjdpq2c6GC',
-            explorerPath: (address) => { return 'https://live.blockcypher.com/ltc/address/' + address },
-            txExplorerPath: (txid) => { return 'https://live.blockcypher.com/ltc/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${ltcBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${ltcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-        LTC_TEST: { // ### LTC TestNet4 -- no working faucet 
-            donate: 'mxkquCpjQraMcYJVF8p7EnSkbWsFd8cQdq', // ???
-            explorerPath: (address) => { return 'https://chain.so/address/LTCTEST/address/' + address },
-            txExplorerPath: (txid) => { return 'https://chain.so/tx/LTCTEST/' + txid },
-            api: {
-                utxo: (address) => { return `${ltcTestBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${ltcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-
-        ZEC: {
-            donate: 't1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi',
-            explorerPath: (address) => { return 'https://chain.so/address/ZEC/' + address }, // shows unconfirmed better than zcha.in
-            txExplorerPath: (txid) => { return 'https://chain.so/tx/ZEC/' + txid },
-            //explorerPath: (address) => { return 'https://explorer.zcha.in/accounts/' + address },
-            //txExplorerPath: (txid) => { return 'https://explorer.zcha.in/transactions/' + txid },
-            api: {
-                utxo: (address) => { return `${zecBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash) => { return `${zecBlockbookApi}v2/block/${blockHash}` },
-            }        
-        },
-        ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
-            donate: 'tmAU27N3iHMeejD6GPHYiSnH8vit1XT9uEX', // testnets2@scoop.tech
-            explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
-            txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${zecTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-
-        RVN: {
-            donate: 'RG7VkPniBt9K3nqhSucTxM6x8o1xsoEGHW', 
-            explorerPath: (address) => { return 'https://rvn.tokenview.com/en/address/' + address },
-            txExplorerPath: (txid) => { return 'https://rvn.tokenview.com/en/tx/' + txid },
-            api: {
-                utxo: (address) => { return `${rvnBlockbookApi}v1/utxo/${address}` },
-                block: (blockHash, page) => { return `${rvnBlockbookApi}v2/block/${blockHash}?page=${page}` },
-            }
-        },
-
-        EOS: {
-            donate: 'guytmnrrguge',
-            explorerPath: (address) => { return 'https://etherscan.io/address/' + address },
-            txExplorerPath: (txid) => { return 'https://etherscan.io/tx/' + txid },
-            api: {
-                txlist: (address) => {
-                    return 'https://api.etherscan.io/api?module=account&action=txlist&address=' + address + '&startblock=0&endblock=99999999&sort=asc&apikey=EG3Q7SGYF2CN7AWZIFFY2UEC8MN7M6B883'
-                }
-            }
-        },
-
-        ETH: { 
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            explorerPath: (address) => eth_AddrExplorer(address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-            // api: { // etherscan-compatible REST API (deprecated)
-            //     // txlist: (address) =>  { return `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apikey=${es_apiKeys[0]}` },
-            //     // balance: (address) => { return `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${es_apiKeys[0]}` }
-            //     txlist: (address) =>  { return `https://blockscout.com/eth/mainnet/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc` },
-            //     balance: (address) => { return `https://blockscout.com/eth/mainnet/api?module=account&action=balance&address=${address}` }
-            // }
-        },
-        ETH_TEST: { // ropsten  https://faucet.metamask.io/  
-            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-            explorerPath: (address) => eth_ropstenAddrExplorer(address),
-            txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
-            httpProvider: ethTestHttpProvider,
-        },
-
-        TUSD: { 
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.TUSD,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.TUSD, address), 
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        // TUSD_TEST: {
-        //     donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-        //     explorerPath: (address) => eth_ropstenAddrExplorer(address),
-        //     txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
-        //     httpProvider: ethTestHttpProvider,
-        // },
-        CCC_TEST: {
-            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-            contractAddress: erc20Contracts.CCC_TEST,
-            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.CCC_TEST, address),
-            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
-            httpProvider: ethTestHttpProvider,
-        },
-        SD1A_TEST: {
-            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-            contractAddress: erc20Contracts.SD1A_TEST,
-            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.SD1A_TEST, address),
-            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
-            httpProvider: ethTestHttpProvider,
-        },
-        AY1A_TEST: {
-            donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-            contractAddress: erc20Contracts.AY1A_TEST,
-            explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.AY1A_TEST, address),
-            txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
-            httpProvider: ethTestHttpProvider,
-        },
-
-        BNT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.BNT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        ZRX: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.ZRX,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZRX, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        BAT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.BAT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BAT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        // BNB: { // old erc20
-        //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-        //     contractAddress: erc20Contracts.BNB,
-        //     explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BNB, address),
-        //     txExplorerPath: (txid) => eth_TxExplorer(txid),
-        //     httpProvider: ethHttpProvider,
-        // },
-        
-        OMG: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.OMG,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.OMG, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        // GTO: { // retiring - not liked
-        //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-        //     contractAddress: erc20Contracts.GTO,
-        //     explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.GTO, address),
-        //     txExplorerPath: (txid) => eth_TxExplorer(txid),
-        //     httpProvider: ethHttpProvider,
-        // },
-        SNT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.SNT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SNT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        // HT: { // retiring - not liked
-        //     donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-        //     contractAddress: erc20Contracts.HT,
-        //     explorerPath: (address) => erc20_AddrExplorer(address),
-        //     txExplorerPath: (txid) => eth_TxExplorer(txid),
-        //     httpProvider: ethHttpProvider,
-        // },
-        // BTM: { // old erc20 - now on mainnet
-        //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
-        //     contractAddress: erc20Contracts.BTM,
-        //     explorerPath: (address) => erc20_AddrExplorer(address),
-        //     txExplorerPath: (txid) => eth_TxExplorer(txid),
-        //     httpProvider: ethHttpProvider,
-        // },    
-        // VEN: { // old erc20 - now on mainnet
-        //     donate: '0x8c7015Be965CFa11ec7BfC25FDDDA4FE4A1e34AB',
-        //     contractAddress: erc20Contracts.VEN,
-        //     explorerPath: (address) => erc20_AddrExplorer(address),
-        //     txExplorerPath: (txid) => eth_TxExplorer(txid),
-        //     httpProvider: ethHttpProvider,
-        // },
-
-        USDT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.USDT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.USDT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        EURT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.EURT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.EURT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-
-        LINK: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.LINK,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.LINK, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        ZIL: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.ZIL,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.ZIL, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        HOT: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.HOT,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.HOT, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        REP: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.REP,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.REP, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        MKR: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.MKR,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.MKR, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        NEXO: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.NEXO,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.NEXO, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        BAND: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.BAND,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.BAND, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        DOS: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.DOS,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.DOS, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        RING: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.RING,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.RING, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-        SWAP: {
-            donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
-            contractAddress: erc20Contracts.SWAP,
-            explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SWAP, address),
-            txExplorerPath: (txid) => eth_TxExplorer(txid),
-            httpProvider: ethHttpProvider,
-        },
-    }
+    // HELPER REFS
+    ,eth_ropstenAddrExplorer: (address) => eth_ropstenAddrExplorer(address)
+    ,eth_ropstenTxExplorer: (tx) => eth_ropstenTxExplorer(tx)
+    ,erc20_ropstenAddrExplorer: (tokenAddr, holderAddr) => erc20_ropstenAddrExplorer(tokenAddr, holderAddr)
+    ,ethTestHttpProvider
+    ,ethHttpProvider
 }

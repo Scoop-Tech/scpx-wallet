@@ -21,8 +21,8 @@ module.exports = {
         log.cmd('walletConnect')
 
         return new Promise( (resolve) => {
-            appWorker.postMessage({ msg: 'INIT_WEB3_SOCKET', data: {} })
-            appWorker.postMessage({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
+            appWorker.postMessageWrapped({ msg: 'INIT_WEB3_SOCKET', data: {} })
+            appWorker.postMessageWrapped({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
             
             const listener = function(event) {
                 var input = utilsWallet.unpackWorkerResponse(event)
@@ -38,8 +38,8 @@ module.exports = {
                         const storeState = store.getState()
                         if (storeState.wallet && storeState.wallet.assets) {
                             // connect addr monitors & populate all assets
-                            appWorker.postMessage({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
-                            appWorker.postMessage({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
+                            appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
+                            appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
                             
                             if (data.symbolsConnected.length > 0) {
                                 log.info('walletConnect - triggering loadAllAsets...')
@@ -61,8 +61,8 @@ module.exports = {
             }
             appWorker.addEventListener('message', listener)
     
-            appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
-            appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+            appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
+            appWorker.postMessageWrapped({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
             
             // volatile sockets reconnect / keep-alive timer
             log.info(`walletConnect - setting volatile sockets reconnector...`)
@@ -70,8 +70,8 @@ module.exports = {
             globalScope.volatileSockets_intId = setInterval(() => {
                 if (globalScope.appWorker) {
                     try {
-                        globalScope.appWorker.postMessage({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
-                        globalScope.appWorker.postMessage({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
+                        globalScope.appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+                        globalScope.appWorker.postMessageWrapped({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
                     }
                     catch(err) {
                         utilsWallet.warn(err)

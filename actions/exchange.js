@@ -151,13 +151,13 @@ module.exports = {
             if (xsCreateTx) {
                 if (xsCreateTx.error) {
                     console.error(`## XS - xsCreateTx - error=`, xsCreateTx.error)
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 6', info: `xsCreateTx - ${xsCreateTx.error.message}` }})
+                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 6', info: `xsCreateTx - ${xsCreateTx.error.message}` }})
                     reject()
                     return
                 }
                 if (!xsCreateTx.result) {
                     console.error(`## XS - xsCreateTx - error=`, xsCreateTx.error)
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 10', info: `xsCreateTx - no result` }})
+                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 10', info: `xsCreateTx - no result` }})
                     if (Sentry) {
                         Sentry.captureMessage(`!xsCreateTx.result, xsCreateTx=${JSON.stringify(xsCreateTx)}`)
                     }
@@ -185,7 +185,7 @@ module.exports = {
                         }
                         console.error(`## XS - XS_initiateExchange (${rateId ? 'FIXED' : 'VARIABLE'}) - createAndPushTx - err=`, err)
                         utilsWallet.error(err)
-                        utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 7', info: `createAndPushTx - ${err.message || err.toString()}` }})
+                        utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 7', info: `createAndPushTx - ${err.message || err.toString()}` }})
                         reject()
                     }
                     else {
@@ -195,12 +195,12 @@ module.exports = {
                                 clearTimeout(exchangeStatusTimer_intId)
                             }
                             utilsWallet.error(err)
-                            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 8', info: 'createAndPushTx - no data' }})
+                            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 8', info: 'createAndPushTx - no data' }})
                             console.error(`## XS - XS_initiateExchange (${rateId ? 'FIXED' : 'VARIABLE'}) - createAndPushTx - no data`)
                             reject()
                         }
                         else {
-                            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'info',
+                            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'info',
                                 headline: `${exchangeAsset.displaySymbol}: Broadcast TX`,
                                     info: `Node accepted`,
                                    desc1: `For exchange into ${receiveAsset.displayName}`,
@@ -234,7 +234,7 @@ module.exports = {
                 })
             }
             else {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 9', info: 'xsCreateTx - no data' }})
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Exchange Error 9', info: 'xsCreateTx - no data' }})
                 console.error(`## XS - XS_initiateExchange (${rateId ? 'FIXED' : 'VARIABLE'}) - xsCreateTx - no data`)
                 reject()
             }
@@ -361,7 +361,7 @@ function pollExchangeStatus(store, from, xsTx, owner) {
                                     })
 
                                     // notify user - XS concluded
-                                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data: { type: status === 'finished' ? 'success' : 'error',
+                                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: status === 'finished' ? 'success' : 'error',
                                         headline: `${from.displaySymbol}: Exchange Completed`,
                                             info: `Status: ${status.toUpperCase()} (Changelly)`,
                                            desc1: `xsTx.xs.id: ${xsTx.xs.id}`, //`For exchange into ${receiveAsset.displayName}`,
@@ -445,7 +445,7 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
                 store.dispatch({ type: XS_SET_EST_RECEIVE_AMOUNT, payload: { result: res.result * configWallet.XS_CHANGELLY_VARRATE_MARKDOWN } })
             }
             else {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 4', info: `getEstReceiveAmountApi - no data` }})
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 4', info: `getEstReceiveAmountApi - no data` }})
                 console.error('XS - getEstReceiveAmount - getEstReceiveAmountApi - no data')
                 return null
             }
@@ -465,7 +465,7 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
                     store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
                 }
                 else {
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
+                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
                     console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
                     return null
                 }
@@ -482,7 +482,7 @@ async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
                     store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
                 }
                 else {
-                    utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
+                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
                     console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
                     return null
                 }
@@ -538,7 +538,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
             return rounded
         }
         else {
-            utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 2', info: `getMinAmountApi - no data` }})
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 2', info: `getMinAmountApi - no data` }})
             console.error('XS - getMinAmount - getMinAmountApi - no data')
             return null
         }
@@ -560,7 +560,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
                 return rounded
             }
             else {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 3', info: `getFixRateApi - no data` }})
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 3', info: `getFixRateApi - no data` }})
                 console.error('XS - getMinAmount - getFixRateApi - no data')
                 return null
             }
@@ -577,7 +577,7 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
                 return roundedMin
             }
             else {
-                utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 3', info: `getPairsParamsApi - no data` }})
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 3', info: `getPairsParamsApi - no data` }})
                 console.error('XS - getMinAmount - v2 getPairsParamsApi - no data')
                 return null
             }

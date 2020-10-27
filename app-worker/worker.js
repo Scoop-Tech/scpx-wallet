@@ -83,17 +83,31 @@ if (configWallet.WALLET_ENV === "SERVER") {
 
 utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
-function handler(e) {
+async function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
 
-    const eventData = !workerThreads ? e.data : e
+    const eventData = e.data; //!workerThreads ? e.data : e
     if (!eventData.msg || !eventData.data) { 
         utilsWallet.error(`appWorker >> ${workerId} bad event, e=`, e);
-        return
+        return Promise.resolve()
     }
 
     const msg = eventData.msg
     const data = eventData.data
+
+    // StMaster - read & apply passed stm payload (i.e. dynamic add to walletConfig et al...)
+    utilsWallet.log(`StMaster - (app-worker) got data... >> ${workerId} - workerThreads(node): ${workerThreads !== undefined}`, data)
+    if (data !== undefined) {
+        if (data.stm_ApiPayload !== undefined) {
+            if (configWallet.get_stm_ApiPayload() === undefined) {
+                utilsWallet.log(`StMaster - (app-worker) setting stm_ApiPayload... >> ${workerId} - workerThreads(node): ${workerThreads !== undefined}`, data.stm_ApiPayload)
+                configWallet.set_stm_ApiPayload(data.stm_ApiPayload)
+                utilsWallet.log(`StMaster - (app-worker) set stm_ApiPayload... >> ${workerId} - configWallet.get_stm_ApiPayload()=`, configWallet.get_stm_ApiPayload())
+                await configWallet.getSupportedWalletTypes()
+            }
+        }
+    }
+    
     switch (msg) {
 
         case 'SERVER_INIT_TX_DB':  // setup tx db cache (dirty - replaces node-persist)
@@ -391,6 +405,7 @@ function handler(e) {
             GetSyncInfo(data.symbol)
             break
     }
+    return Promise.resolve()
 
     function GetSyncInfo(symbol) {
         utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)

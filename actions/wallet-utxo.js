@@ -131,7 +131,7 @@ module.exports = {
             appWorker.addEventListener('message', listener)
 
             // request worker BB push
-            appWorker.postMessage({ msg: 'PUSH_TX_BLOCKBOOK', data: { asset, txhex, wallet } }) 
+            appWorker.postMessageWrapped({ msg: 'PUSH_TX_BLOCKBOOK', data: { asset, txhex, wallet } }) 
         }
         else { // push tx with insight-api
             axios

@@ -30,7 +30,6 @@ const serverTestWallet = {
         ETH_TEST: process.env.TESTNETS_KEYS_ETH_TEST,
     }
 }
-// TODO: travis .env config...
 
 beforeAll(async () => {
     global.loadedWallet = {}
@@ -50,13 +49,11 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-// describe('test security', function () {
-//     it('can access protected env vars', async () => {
-//         console.log('serverTestWallet.email: ', serverTestWallet.email)
-//     })
-// })
-
 describe('asset', function () {
+    it('test1', async () => {
+        console.log('test1')
+    })
+
     it('can create a new receive address for all asset types', async () => {
         expect.assertions(3)
         const result = await new Promise(async (resolve, reject) => {

@@ -3,7 +3,9 @@
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
 const axios = require('axios')
+
 //const utilsWallet = require('../utils')
+const configWalletExternal = require('./wallet-external')
 
 // static - license, copyright, env
 const WALLET_VER = 'RC-' + require('../package.json').version
@@ -88,22 +90,9 @@ const API_URL = `${API_DOMAIN}api/`
 // ** use cryptocompare symbol in displaySymbol field, (or in priceSource_CC_symbol) **
 //
 
-//
-// Dynamic types (ERC20's) - for SD StMaster integration (from API), but also would work for token lists
-//
-//  * pre-genWallet hook: in actions/wallet.generateWallets()...
-//
-//  * dynamic add to...
-//      walletsMeta, in config/wallet.js (here)
-//      erc20Contracts, in config/wallet-external.js
-//      module.exports.walletExternal_config, in config/wallet-external.js
-//      price.js (?)
-//      WalletDetailSend.js (?)
-//      common.cscc (?)
-//
-var supportedWalletTypes; // assigned to statically by getSupportedWalletTypes(), and augmented with dynamic (network fetched) ERC20's
+var supportedWalletTypes // assigned to statically by getSupportedWalletTypes(), and augmented with dynamic (network fetched) ERC20's
 
-const walletsMeta = {
+var walletsMeta = {
     // utxo's
     'btc(s2)': {
         name: 'btc(s2)',
@@ -922,6 +911,82 @@ const walletsMeta = {
     },
 }
 
+//
+// StMaster - stm_ApiPayload
+// populated once by getSupportedWalletTypes(); then subsequently passed down into cpu-workers
+// by wallet/utils/op_WalletAddrFromPrivKey() & op_getAddressFromPrivateKey() so that workers can 
+// also update/augment their static configs...
+//
+var stm_ApiPayload = undefined
+function addDynamicSecTokens(stm_data) {
+
+    if (stm_ApiPayload === undefined) {
+        console.error('StMaster - addDynamicSecTokens - missing stm_ApiPayload')
+    }
+    else {
+
+        // if (stm_ApiPayload !== undefined) {
+        //     console.log('StMaster - addDynamicSecTokens - already set stm_ApiPayload; nop.')
+        //     return
+        // }
+        // console.log('StMaster - addDynamicSecTokens - setting stm_ApiPayload...', stm_data)
+        // stm_ApiPayload = stm_data
+        
+        for (let i=0; i < stm_ApiPayload.base_types.length ; i++) {
+            const stm = stm_ApiPayload.base_types[i]
+
+            // config/wallet.js (here): ...walletsMeta
+            const newWalletsMeta = {
+                isErc20_Ropsten: true,
+                isCashflowToken: true,
+                name: `${stm.base_symbol.toLowerCase()}(t)`,
+                web: `https://uat.sdax.co/token/${stm.base_symbol}/${stm.base_addr}`,
+                type: WALLET_TYPE_ACCOUNT,
+                addressType: ADDRESS_TYPE_ETH,
+                symbol: `${stm.base_symbol}_TEST`,
+                displayName: `SDAX ${stm.base_symbol}`, //'SingDax 1A#',
+                desc: `SDAX ${stm.base_name}`, //'ERC20 Ropsten Testnet',
+                displaySymbol: 'SD1A#',
+                imageUrl: 'img/asset-icon/SD3.png',
+                primaryColor: '#6eaffa',
+                sortOrder: 444,
+                //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+                erc20_transferGasLimit: 5000000,
+                erc20_gasEstimateMultiplier: 1.2,
+                erc20_gasMin: 300000,
+                decimals: 0,
+                tradingViewSymbol: "BITTREX:TUSDBTC", // #
+                
+                cft_stm: stm,           // StMaster - CFT-B base contract/type
+                cft_c: stm_ApiPayload.cftc,   // StMaster - CFT-C controller contract
+            }
+            walletsMeta[newWalletsMeta.name] = newWalletsMeta
+            supportedWalletTypes.push(newWalletsMeta.name)
+            console.log('StMaster - added to walletsMeta ok...', walletsMeta)
+
+            // config/wallet-external.js: ...erc20Contracts
+            console.log(`StMaster - erc20Contracts_append ${newWalletsMeta.symbol} ${newWalletsMeta.cft_stm.base_addr}...`)
+            configWalletExternal.erc20Contracts_append(newWalletsMeta.symbol, newWalletsMeta.cft_stm.base_addr)
+
+            // config/wallet-external.js: ...module.exports.walletExternal_config
+            configWalletExternal.walletExternal_config_append(newWalletsMeta.symbol, {
+                donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+                contractAddress: newWalletsMeta.cft_stm.base_addr,
+                explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(erc20Contracts[newWalletsMeta.symbol], address),
+                txExplorerPath: (txid) => configWalletExternal.eth_ropstenTxExplorer(txid),
+                httpProvider: configWalletExternal.ethTestHttpProvider,
+            })
+            
+            //      price.js (?)
+            //      WalletDetailSend.js (?)
+            //      common.cscc (?)
+        }
+        console.log(`StMaster - done appends - configWalletExternal.erc20Contracts=`, configWalletExternal.erc20Contracts)
+        console.log(`StMaster - done appends - configWalletExternal.walletExternal_config=`, configWalletExternal.walletExternal_config)
+        console.log(`StMaster - done appends - stm_ApiPayload=`, stm_ApiPayload)
+    }
+}
+
 module.exports = {
 
       WALLET_VER
@@ -930,7 +995,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: false
+    , CLI_LOG_CORE: true
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
@@ -992,9 +1057,11 @@ module.exports = {
     , PRICE_SOURCE_BITFINEX
     , PRICE_SOURCE_SYNTHETIC_FIAT
 
-    // static - supported assets
+    //
+    // StMaster - dynamic supported assets
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
-    , getSupportedWalletTypes: () => { // use walletsMeta keys for this list
+    //
+    , getSupportedWalletTypes: async () => { // use walletsMeta keys for this list
         if (supportedWalletTypes === undefined) {
             supportedWalletTypes = [
                 'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
@@ -1033,42 +1100,57 @@ module.exports = {
                 supportedWalletTypes.push('zcash(t)')
             }
 
-            // fetch StMaster erc20's
-            axios.create({ baseURL: API_URL }).get(`stm`).then(response => {
-                var stm_data
-                if (response !== undefined) {
-                    if (response.data !== undefined) {
-                        stm_data = response.data.data
-                        if (stm_data !== undefined) {
-                            //...
-                        }
-                    }
-                } 
-                if (stm_data) {
-                    console.log('got stm_data ok', stm_data)
-
-                }
-                else { 
-                    console.error(`unexpected StMaster response`)
-                }
-            }).catch(e => {
-                const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
-                console.error(msg)
-                //utilsWallet.getAppWorker().postMessage({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
-            })
-
-            if (WALLET_INCLUDE_SINGDAX_TEST) {
-                supportedWalletTypes.push('singdax(t)')
-            }
             if (WALLET_INCLUDE_AIRCARBON_TEST) {
                 supportedWalletTypes.push('aircarbon(t)')
             }
             if (WALLET_INCLUDE_AYONDO_TEST) {
                 supportedWalletTypes.push('ayondo(t)')
             }
+            // if (WALLET_INCLUDE_SINGDAX_TEST) {
+            //     supportedWalletTypes.push('singdax(t)')
+            // }
+            
+            // StMaster - dynamic ERC20s: read from API (also would work for token lists)
+            // note: API return is cached, so the value from the main thread can be passed down and re-used by worker thread(s)
+            if (stm_ApiPayload !== undefined) {
+                // use the cached/passed value
+                console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
+                addDynamicSecTokens()
+            }
+            else {
+                // call API and cache return value
+                console.log('StMaster - await fetching stm_data...')
+                var response
+                try {
+                    response = await axios.create({ baseURL: API_URL }).get(`stm`) // fetch StMaster erc20's - hardcoded in API to Ropsten for now
+                }
+                catch(ex) {
+                    console.warn(`StMaster - failed getting stm data - skipping`, ex)
+                }
+                if (response !== undefined) {
+                    if (response.data !== undefined) {
+                        const stm_data = response.data.data
+                        if (stm_data !== undefined && stm_data.base_types !== undefined) { // * dynamic add to...
+                            console.log('StMaster - got stm_data ok', stm_data)
+                            stm_ApiPayload = stm_data
+                            console.log('StMaster - getSupportedWalletTypes - set stm_ApiPayload=', stm_ApiPayload)
+                            addDynamicSecTokens()
+
+                        } else console.error(`StMaster - bad stm response (1)`)
+                    } else console.error(`StMaster - bad stm response (2)`)
+                } 
+                console.log('StMaster - returning - newly populated', supportedWalletTypes)
+                return new Promise((resolve) => resolve(supportedWalletTypes))
+            }
         }
-        return supportedWalletTypes
+        else {
+            //console.log('StMaster - returning - already populated', supportedWalletTypes)
+            return new Promise((resolve) => resolve(supportedWalletTypes))
+        }
     }
+    , get_stm_ApiPayload: () => stm_ApiPayload
+    , set_stm_ApiPayload: (val) => { stm_ApiPayload = val }
+    , addDynamicSecTokens: (stm_data) => addDynamicSecTokens(stm_data)
 
     , getMetaBySymbol: (symbol) => {
         var ret
