@@ -972,7 +972,7 @@ function addDynamicSecTokens(stm_data) {
             configWalletExternal.walletExternal_config_append(newWalletsMeta.symbol, {
                 donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
                 contractAddress: newWalletsMeta.cft_stm.base_addr,
-                explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(erc20Contracts[newWalletsMeta.symbol], address),
+                explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(configWalletExternal.erc20Contracts[newWalletsMeta.symbol], address),
                 txExplorerPath: (txid) => configWalletExternal.eth_ropstenTxExplorer(txid),
                 httpProvider: configWalletExternal.ethTestHttpProvider,
             })
