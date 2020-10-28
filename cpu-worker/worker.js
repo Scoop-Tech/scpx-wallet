@@ -46,7 +46,7 @@ async function handler(e) {
     const data = eventData.data
     
     // StMaster - read & apply passed stm payload (i.e. dynamic add to walletConfig et al...)
-    utilsWallet.log(`StMaster - (cpu-worker) got data... >> ${workerId} - workerThreads(node): ${workerThreads !== undefined}`, data)
+    //utilsWallet.log(`StMaster - (cpu-worker) got data... >> ${workerId} - workerThreads(node): ${workerThreads !== undefined}`, data)
     if (data !== undefined) {
         if (data.stm_ApiPayload !== undefined) {
             if (configWallet.get_stm_ApiPayload() === undefined) {

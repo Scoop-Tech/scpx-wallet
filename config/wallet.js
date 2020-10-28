@@ -90,7 +90,27 @@ const API_URL = `${API_DOMAIN}api/`
 // ** use cryptocompare symbol in displaySymbol field, (or in priceSource_CC_symbol) **
 //
 
-var supportedWalletTypes // assigned to statically by getSupportedWalletTypes(), and augmented with dynamic (network fetched) ERC20's
+// default static assets
+// augmented with dynamic (network fetched) ERC20's
+var supportedWalletTypes = [ // use walletsMeta keys for this list
+    'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
+    'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
+    'raven',
+
+    //'bnb', // erc20 old
+    'trueusd', 'bancor', '0x', 'bat',
+    'omg', 'snt', //'gto', 'ht', // retiring - not liked
+    //'btm', // on mainnet, erc20 deprecated
+    //'ven', // on mainnet, erc20 deprecated
+    'usdt', 'eurt',
+    'mkr', 'rep', 'hot', 'zil', 'link',
+    'nexo',
+
+    'band', 'dos', 'ring', 'swap'
+
+    // todo 
+    //'tgbp' (new)
+] 
 
 var walletsMeta = {
     // utxo's
@@ -919,35 +939,53 @@ var walletsMeta = {
 //
 var stm_ApiPayload = undefined
 function addDynamicSecTokens(stm_data) {
+    // semi-dynamic assets (dynamic at build time)
+    if (WALLET_INCLUDE_ETH_TEST && !supportedWalletTypes.includes('eth(t)')) {
+        supportedWalletTypes.push('eth(t)')
+    }
+    // if (WALLET_INCLUDE_TUSD_TEST && !supportedWalletTypes.includes('trueusd(t)')) {
+    //     supportedWalletTypes.push('trueusd(t)')
+    // }
+    if (WALLET_INCLUDE_BTC_TEST && !supportedWalletTypes.includes('btc(t)')) {
+        supportedWalletTypes.push('btc(t)')
+    }
+    if (WALLET_INCLUDE_LTC_TEST && !supportedWalletTypes.includes('ltc(t)')) {
+        supportedWalletTypes.push('ltc(t)')
+    }
+    if (WALLET_INCLUDE_ZEC_TEST && !supportedWalletTypes.includes('zcash(t)')) {
+        supportedWalletTypes.push('zcash(t)')
+    }
 
+    if (WALLET_INCLUDE_AIRCARBON_TEST && !supportedWalletTypes.includes('aircarbon(t)')) {
+        supportedWalletTypes.push('aircarbon(t)')
+    }
+    if (WALLET_INCLUDE_AYONDO_TEST && !supportedWalletTypes.includes('ayondo(t)')) {
+        supportedWalletTypes.push('ayondo(t)')
+    }
+    // if (WALLET_INCLUDE_SINGDAX_TEST && !supportedWalletTypes.includes('singdax(t)')) {
+    //     supportedWalletTypes.push('singdax(t)')
+    // }
+    // SD - replaced with true dynamic assets:
     if (stm_ApiPayload === undefined) {
         console.error('StMaster - addDynamicSecTokens - missing stm_ApiPayload')
     }
     else {
-
-        // if (stm_ApiPayload !== undefined) {
-        //     console.log('StMaster - addDynamicSecTokens - already set stm_ApiPayload; nop.')
-        //     return
-        // }
-        // console.log('StMaster - addDynamicSecTokens - setting stm_ApiPayload...', stm_data)
-        // stm_ApiPayload = stm_data
-        
         for (let i=0; i < stm_ApiPayload.base_types.length ; i++) {
             const stm = stm_ApiPayload.base_types[i]
 
-            // config/wallet.js (here): ...walletsMeta
+            // config/wallet.js (here): ...walletsMeta, ...supportedWalletTypes
             const newWalletsMeta = {
                 isErc20_Ropsten: true,
                 isCashflowToken: true,
                 name: `${stm.base_symbol.toLowerCase()}(t)`,
-                web: `https://uat.sdax.co/token/${stm.base_symbol}/${stm.base_addr}`,
+                web: `https://uat.sdax.co/token/${stm.base_symbol}/${stm.base_addr}`, // SD UAT env assumed
                 type: WALLET_TYPE_ACCOUNT,
                 addressType: ADDRESS_TYPE_ETH,
-                symbol: `${stm.base_symbol}_TEST`,
-                displayName: `SDAX ${stm.base_symbol}`, //'SingDax 1A#',
-                desc: `SDAX ${stm.base_name}`, //'ERC20 Ropsten Testnet',
-                displaySymbol: 'SD1A#',
-                imageUrl: 'img/asset-icon/SD3.png',
+                symbol: `${stm.base_symbol}_TEST`, // Ropsten assumed
+                displayName: stm.base_type_name,
+                desc: `SDAX ${stm.base_symbol}`,
+                displaySymbol: stm.base_symbol,
+                imageUrl: 'img/asset-icon/SD3.png', 
                 primaryColor: '#6eaffa',
                 sortOrder: 444,
                 //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
@@ -955,35 +993,46 @@ function addDynamicSecTokens(stm_data) {
                 erc20_gasEstimateMultiplier: 1.2,
                 erc20_gasMin: 300000,
                 decimals: 0,
-                tradingViewSymbol: "BITTREX:TUSDBTC", // #
+                tradingViewSymbol: "BITFINEX:BTCUSD",
                 
-                cft_stm: stm,           // StMaster - CFT-B base contract/type
+                cft_stm: stm,                 // StMaster - CFT-B base contract/type
                 cft_c: stm_ApiPayload.cftc,   // StMaster - CFT-C controller contract
             }
-            walletsMeta[newWalletsMeta.name] = newWalletsMeta
-            supportedWalletTypes.push(newWalletsMeta.name)
-            console.log('StMaster - added to walletsMeta ok...', walletsMeta)
+            if (walletsMeta[newWalletsMeta.name] === undefined) {
+                walletsMeta[newWalletsMeta.name] = newWalletsMeta
+                console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to walletsMeta ok`)
+            }
+            if (!supportedWalletTypes.includes(newWalletsMeta.name)) {
+                supportedWalletTypes.push(newWalletsMeta.name)
+                console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to supportedWalletTypes ok`)
+            }
 
             // config/wallet-external.js: ...erc20Contracts
-            console.log(`StMaster - erc20Contracts_append ${newWalletsMeta.symbol} ${newWalletsMeta.cft_stm.base_addr}...`)
-            configWalletExternal.erc20Contracts_append(newWalletsMeta.symbol, newWalletsMeta.cft_stm.base_addr)
+            if (configWalletExternal.erc20Contracts[newWalletsMeta.symbol] === undefined) {
+                configWalletExternal.erc20Contracts_append(newWalletsMeta.symbol, newWalletsMeta.cft_stm.base_addr)
+                console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to erc20Contracts ok`)
+            }
 
             // config/wallet-external.js: ...module.exports.walletExternal_config
-            configWalletExternal.walletExternal_config_append(newWalletsMeta.symbol, {
-                donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
-                contractAddress: newWalletsMeta.cft_stm.base_addr,
-                explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(configWalletExternal.erc20Contracts[newWalletsMeta.symbol], address),
-                txExplorerPath: (txid) => configWalletExternal.eth_ropstenTxExplorer(txid),
-                httpProvider: configWalletExternal.ethTestHttpProvider,
-            })
+            if (configWalletExternal.walletExternal_config[newWalletsMeta.symbol] === undefined) {
+                configWalletExternal.walletExternal_config_append(newWalletsMeta.symbol, {
+                    donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+                    contractAddress: newWalletsMeta.cft_stm.base_addr,
+                    explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(configWalletExternal.erc20Contracts[newWalletsMeta.symbol], address),
+                    txExplorerPath: (txid) => configWalletExternal.eth_ropstenTxExplorer(txid),
+                    httpProvider: configWalletExternal.ethTestHttpProvider,
+                })
+                console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to walletExternal_config ok`)
+            }
             
+            //...
             //      price.js (?)
             //      WalletDetailSend.js (?)
             //      common.cscc (?)
         }
-        console.log(`StMaster - done appends - configWalletExternal.erc20Contracts=`, configWalletExternal.erc20Contracts)
-        console.log(`StMaster - done appends - configWalletExternal.walletExternal_config=`, configWalletExternal.walletExternal_config)
-        console.log(`StMaster - done appends - stm_ApiPayload=`, stm_ApiPayload)
+        //console.log(`StMaster - done appends - configWalletExternal.erc20Contracts=`, configWalletExternal.erc20Contracts)
+        //console.log(`StMaster - done appends - configWalletExternal.walletExternal_config=`, configWalletExternal.walletExternal_config)
+        //console.log(`StMaster - done appends - stm_ApiPayload=`, stm_ApiPayload)
     }
 }
 
@@ -1061,98 +1110,74 @@ module.exports = {
     // StMaster - dynamic supported assets
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
     //
-    , getSupportedWalletTypes: async () => { // use walletsMeta keys for this list
-        if (supportedWalletTypes === undefined) {
-            supportedWalletTypes = [
-                'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
-                'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
-                'raven',
-    
-                //'bnb', // erc20 old
-                'trueusd', 'bancor', '0x', 'bat',
-                'omg', 'snt', //'gto', 'ht', // retiring - not liked
-                //'btm', // on mainnet, erc20 deprecated
-                //'ven', // on mainnet, erc20 deprecated
-                'usdt', 'eurt',
-                'mkr', 'rep', 'hot', 'zil', 'link',
-                'nexo',
-    
-                'band', 'dos', 'ring', 'swap'
-    
-                // todo 
-                //'tgbp' (new)
-            ]
-    
-            if (WALLET_INCLUDE_ETH_TEST) {
-                supportedWalletTypes.push('eth(t)')
-            }
-            // if (WALLET_INCLUDE_TUSD_TEST) {
-            //     supportedWalletTypes.push('trueusd(t)')
-            // }
-
-            if (WALLET_INCLUDE_BTC_TEST) {
-                supportedWalletTypes.push('btc(t)')
-            }
-            if (WALLET_INCLUDE_LTC_TEST) {
-                supportedWalletTypes.push('ltc(t)')
-            }
-            if (WALLET_INCLUDE_ZEC_TEST) {
-                supportedWalletTypes.push('zcash(t)')
-            }
-
-            if (WALLET_INCLUDE_AIRCARBON_TEST) {
-                supportedWalletTypes.push('aircarbon(t)')
-            }
-            if (WALLET_INCLUDE_AYONDO_TEST) {
-                supportedWalletTypes.push('ayondo(t)')
-            }
-            // if (WALLET_INCLUDE_SINGDAX_TEST) {
-            //     supportedWalletTypes.push('singdax(t)')
-            // }
-            
+    , getSupportedWalletTypes: async () => { 
+        if (stm_ApiPayload === undefined) {
             // StMaster - dynamic ERC20s: read from API (also would work for token lists)
-            // note: API return is cached, so the value from the main thread can be passed down and re-used by worker thread(s)
-            if (stm_ApiPayload !== undefined) {
-                // use the cached/passed value
-                console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
-                addDynamicSecTokens()
+            // call API and cache return value
+            console.log('StMaster - await fetching stm_data...')
+            var response
+            try {
+                response = await axios.create({ baseURL: API_URL }).get(`stm`) // fetch StMaster erc20's - hardcoded in API to Ropsten for now
             }
-            else {
-                // call API and cache return value
-                console.log('StMaster - await fetching stm_data...')
-                var response
-                try {
-                    response = await axios.create({ baseURL: API_URL }).get(`stm`) // fetch StMaster erc20's - hardcoded in API to Ropsten for now
-                }
-                catch(ex) {
-                    console.warn(`StMaster - failed getting stm data - skipping`, ex)
-                }
-                if (response !== undefined) {
-                    if (response.data !== undefined) {
-                        const stm_data = response.data.data
-                        if (stm_data !== undefined && stm_data.base_types !== undefined) { // * dynamic add to...
-                            console.log('StMaster - got stm_data ok', stm_data)
-                            stm_ApiPayload = stm_data
-                            console.log('StMaster - getSupportedWalletTypes - set stm_ApiPayload=', stm_ApiPayload)
-                            addDynamicSecTokens()
+            catch(ex) {
+                console.warn(`StMaster - failed getting stm data - skipping`, ex)
+            }
+            if (response !== undefined) {
+                if (response.data !== undefined) {
+                    const stm_data = response.data.data
+                    if (stm_data !== undefined && stm_data.base_types !== undefined) { // * dynamic add to...
+                        console.log('StMaster - got stm_data ok', stm_data)
+                        // note:
+                        // dynamic API return is cached (both in var and in state), so that the main thread value can be passed down and re-used
+                        // by worker thread(s), and also so that browser f5 persistence 
+                        stm_ApiPayload = stm_data // save in var
+                        if (WALLET_ENV === "BROWSER") { 
+                            if (window !== undefined && window.sessionStorage !== undefined) {
+                                window.sessionStorage.stm_ApiPayload = JSON.stringify(stm_ApiPayload) // save in state (for f5 rehydration)
+                            }
+                        }
+                        console.log(`StMaster - getSupportedWalletTypes - WALLET_ENV=${WALLET_ENV}, set stm_ApiPayload=`, stm_ApiPayload)
+                        addDynamicSecTokens()
 
-                        } else console.error(`StMaster - bad stm response (1)`)
-                    } else console.error(`StMaster - bad stm response (2)`)
-                } 
-                console.log('StMaster - returning - newly populated', supportedWalletTypes)
-                return new Promise((resolve) => resolve(supportedWalletTypes))
-            }
+                    } else console.error(`StMaster - bad stm response (1)`)
+                } else console.error(`StMaster - bad stm response (2)`)
+            } 
+            console.log('StMaster - returning - newly populated', supportedWalletTypes)
+            return new Promise((resolve) => resolve(supportedWalletTypes))
         }
         else {
+            console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
+            addDynamicSecTokens()
+
             //console.log('StMaster - returning - already populated', supportedWalletTypes)
             return new Promise((resolve) => resolve(supportedWalletTypes))
         }
     }
     , get_stm_ApiPayload: () => stm_ApiPayload
-    , set_stm_ApiPayload: (val) => { stm_ApiPayload = val }
+    , set_stm_ApiPayload: (val) => { 
+        if (WALLET_ENV === "BROWSER") { 
+            if (window !== undefined && window.sessionStorage !== undefined) {
+                window.sessionStorage.stm_ApiPayload = JSON.stringify(val) // set in state (for f5 rehydration)
+            }
+        }
+        stm_ApiPayload = val // set in var
+    }
     , addDynamicSecTokens: (stm_data) => addDynamicSecTokens(stm_data)
 
     , getMetaBySymbol: (symbol) => {
+
+        // StMaster - re-add any dynamically added types, if we've lost JS local var state (e.g. on page refresh)
+        if (stm_ApiPayload === undefined) { 
+            if (WALLET_ENV === "BROWSER") { //** rehydrate stm_ApiPayload from state, then re-init the dynamic tokens
+                if (window !== undefined && window.sessionStorage !== undefined && window.sessionStorage.stm_ApiPayload !== undefined) {
+                    console.warn(`StMaster - getMetaBySymbol, stm_ApiPayload is undefined... reloading from sessionStorage.stm_ApiPayload; supportedWalletTypes=${supportedWalletTypes}`)
+                    stm_ApiPayload = JSON.parse(window.sessionStorage.stm_ApiPayload)
+                    addDynamicSecTokens()
+                }
+            }
+        }
+
+        // lookup & return meta for symbol
         var ret
         Object.keys(walletsMeta).map(p => {
             if (walletsMeta[p].symbol === symbol) // *A*
