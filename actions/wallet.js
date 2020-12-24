@@ -483,19 +483,8 @@ module.exports = {
         }
 
         // determine what wallets to generate, if any
+        var supportWalletTypes = await configWallet.getSupportedWalletTypes() // StMaster: dynamically adds StMaster erc20 types
         const currentTypes = Object.keys(currentAssets)
-        
-        var supportWalletTypes = await configWallet.getSupportedWalletTypes() // stm: dynamic add StMaster erc20 types
-        //
-        // TODO: stm - refactor getSupportedWalletTypes() so that it caches the api payload in a configWallet static field...
-        //
-        //       then pass this static field (payload) into op_WalletAddrFromPrivKey() (and op_getAddressFromPrivateKey() ?!) callers;
-        //       payload then goes all the way into CPU workers, and they can 
-        //
-        // basically, the main thread keeps the pauload cached and passes it down to the cpu-workers so that they can
-        // do the atomic singleton dynamic appends on their copies of the static structs....
-        //
-
         console.log('StMaster - supportWalletTypes', supportWalletTypes)
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
@@ -901,7 +890,7 @@ async function displayableWalletAssets(assets) {
 function newWalletAddressFromPrivKey(p) {
     const { assetName, accountName, key, eosActiveWallet, knownAddr, symbol } = p
     
-    console.log(`newWalletAddressFromPrivKey, symbol=${symbol}, assetName=${assetName} configWallet.walletsMeta=`, configWallet.walletsMeta)
+    //console.log(`newWalletAddressFromPrivKey, symbol=${symbol}, assetName=${assetName} configWallet.walletsMeta=`, configWallet.walletsMeta)
 
     var addr = !knownAddr ? getAddressFromPrivateKey(
                     { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }

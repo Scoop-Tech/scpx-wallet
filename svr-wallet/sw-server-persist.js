@@ -149,7 +149,7 @@ module.exports = {
 
                 // poll any pending XS statuses
                 const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()
-                log.info('walletServerLoad - cur_xsTx', cur_xsTx)
+                //log.info('walletServerLoad - cur_xsTx', cur_xsTx)
                 if (wallet && wallet.assets && cur_xsTx) {
                     wallet.assets.forEach(asset => {
                         const xsTx = cur_xsTx[asset.symbol]

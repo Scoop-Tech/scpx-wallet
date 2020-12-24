@@ -32,7 +32,7 @@ module.exports = {
         const wallet = store.getState().wallet
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
-        if (!asset) Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
+        if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         const feeData = await opsWallet.getAssetFeeData(asset)
 

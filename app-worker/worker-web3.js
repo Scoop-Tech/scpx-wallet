@@ -87,12 +87,16 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                        : asset.symbol
 
-        if (!utilsWallet.isERC20(asset)) {
-            params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
-        }
+        // note - params not used - anymore; we never need to actually call estimateGas()...
+        // if (!utilsWallet.isERC20(asset)) {
+        //     params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
+        // }
 
-        // ## ?? "Uncaught TypeError: Cannot read property 'eth' of undefined"
-        return self.ws_web3[wsSymbol].eth.estimateGas(params)  // tx gas limit estimate
+        // update: use static/known gasLimits for the erc20/eth send tx
+        return (!utilsWallet.isERC20(asset)
+            ? Promise.resolve({ gasLimit: 21000 })  // vanilla eth payable() - known gas
+            : Promise.resolve({ gasLimit: 100000 }) // erc20 - dummy: overridden below... //self.ws_web3[wsSymbol].eth.estimateGas(params) // ##
+        )
         .then(gasLimit => {
             // use estimate if not erc20, otherwise use a reasonable static max gas value
             if (!utilsWallet.isERC20(asset)) {
@@ -104,7 +108,6 @@ module.exports = {
                 }
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
-
             return self.ws_web3[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value
         })
         .then(gasprice_Web3 => {

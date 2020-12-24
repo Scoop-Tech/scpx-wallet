@@ -88,6 +88,7 @@ describe('asset', function () {
                 return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
             })
             const results = await Promise.all(ops)
+            console.log('results', results)
             const countOk = results.filter(p => p.ok && p.ok.feeData &&
                 (p.ok.feeData.fast_satPerKB || (p.ok.feeData.gasLimit && p.ok.feeData.gasprice_fast))).length
             const countAssets = wallet.assets.length

@@ -4,6 +4,8 @@ const npmPackage = require('../package.json')
 const isNode = require('detect-node')
 const axios = require('axios')
 
+const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+
 //const utilsWallet = require('../utils')
 const configWalletExternal = require('./wallet-external')
 
@@ -59,7 +61,6 @@ const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this 
 //const API_DOMAIN =`http://localhost:3030/`
 const API_DOMAIN = `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
-
 //
 // RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
 //
@@ -468,7 +469,7 @@ var walletsMeta = {
     //     decimals: 18,
     //     tradingViewSymbol: "BITTREX:TUSDBTC",
     // },
-    'aircarbon(t)': {
+    'aircarbon(t)': { // (todo - remove, or move to dynamic)
         isErc20_Ropsten: true,
         isCashflowToken: true,
         name: 'aircarbon(t)',
@@ -489,28 +490,28 @@ var walletsMeta = {
         decimals: 0,
         tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
     },
-    'singdax(t)': {
-        isErc20_Ropsten: true,
-        isCashflowToken: true,
-        name: 'singdax(t)',
-        web: 'https://singdax.co/',
-        type: WALLET_TYPE_ACCOUNT,
-        addressType: ADDRESS_TYPE_ETH,
-        symbol: 'SD1A_TEST',
-        displayName: 'SingDax 1A#',
-        desc: 'ERC20 Ropsten Testnet',
-        displaySymbol: 'SD1A#',
-        imageUrl: 'img/asset-icon/SD3.png',
-        primaryColor: '#6eaffa',
-        sortOrder: 444,
-        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
-        erc20_transferGasLimit: 5000000,
-        erc20_gasEstimateMultiplier: 1.2,
-        erc20_gasMin: 300000,
-        decimals: 0,
-        tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
-    },
-    'ayondo(t)': {
+    // 'singdax(t)': { // removed: in preference for dynamic (API-driven) StMaster types
+    //     isErc20_Ropsten: true,
+    //     isCashflowToken: true,
+    //     name: 'singdax(t)',
+    //     web: 'https://singdax.co/',
+    //     type: WALLET_TYPE_ACCOUNT,
+    //     addressType: ADDRESS_TYPE_ETH,
+    //     symbol: 'SD1A_TEST',
+    //     displayName: 'SingDax 1A#',
+    //     desc: 'ERC20 Ropsten Testnet',
+    //     displaySymbol: 'SD1A#',
+    //     imageUrl: 'img/asset-icon/SD3.png',
+    //     primaryColor: '#6eaffa',
+    //     sortOrder: 444,
+    //     //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 0,
+    //     erc20_transferGasLimit: 5000000,
+    //     erc20_gasEstimateMultiplier: 1.2,
+    //     erc20_gasMin: 300000,
+    //     decimals: 0,
+    //     tradingViewSymbol: "BITTREX:TUSDBTC", // ### TODO...
+    // },
+    'ayondo(t)': { // (todo - remove, or move to dynamic)
         isErc20_Ropsten: true,
         isCashflowToken: true,
         name: 'ayondo(t)',
@@ -938,7 +939,7 @@ var walletsMeta = {
 // also update/augment their static configs...
 //
 var stm_ApiPayload = undefined
-function addDynamicSecTokens(stm_data) {
+function addDynamicSecTokens() {
     // semi-dynamic assets (dynamic at build time)
     if (WALLET_INCLUDE_ETH_TEST && !supportedWalletTypes.includes('eth(t)')) {
         supportedWalletTypes.push('eth(t)')
@@ -956,18 +957,21 @@ function addDynamicSecTokens(stm_data) {
         supportedWalletTypes.push('zcash(t)')
     }
 
+    // (todo - remove, or move to dynamic)
     if (WALLET_INCLUDE_AIRCARBON_TEST && !supportedWalletTypes.includes('aircarbon(t)')) {
         supportedWalletTypes.push('aircarbon(t)')
     }
+    // (todo - remove, or move to dynamic)
     if (WALLET_INCLUDE_AYONDO_TEST && !supportedWalletTypes.includes('ayondo(t)')) {
         supportedWalletTypes.push('ayondo(t)')
     }
+    // removed: in preference for dynamic (API-driven) StMaster types
     // if (WALLET_INCLUDE_SINGDAX_TEST && !supportedWalletTypes.includes('singdax(t)')) {
     //     supportedWalletTypes.push('singdax(t)')
     // }
     // SD - replaced with true dynamic assets:
     if (stm_ApiPayload === undefined) {
-        console.error('StMaster - addDynamicSecTokens - missing stm_ApiPayload')
+        console.warn('StMaster - addDynamicSecTokens - stm_ApiPayload not set:')
     }
     else {
         for (let i=0; i < stm_ApiPayload.base_types.length ; i++) {
@@ -1025,7 +1029,7 @@ function addDynamicSecTokens(stm_data) {
                 console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to walletExternal_config ok`)
             }
             
-            //...
+            // WIP...
             //      price.js (?)
             //      WalletDetailSend.js (?)
             //      common.cscc (?)
@@ -1039,12 +1043,12 @@ function addDynamicSecTokens(stm_data) {
 module.exports = {
 
       WALLET_VER
-    , IS_DEV: (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+    , IS_DEV
     , WALLET_COPYRIGHT
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: true
+    , CLI_LOG_CORE: false
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
@@ -1111,7 +1115,9 @@ module.exports = {
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
     //
     , getSupportedWalletTypes: async () => { 
-        if (stm_ApiPayload === undefined) {
+        if (stm_ApiPayload === undefined 
+            && IS_DEV // WIP: disable in prod for now...
+        ) {
             // StMaster - dynamic ERC20s: read from API (also would work for token lists)
             // call API and cache return value
             console.log('StMaster - await fetching stm_data...')
@@ -1146,7 +1152,7 @@ module.exports = {
             return new Promise((resolve) => resolve(supportedWalletTypes))
         }
         else {
-            console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
+            //console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
             addDynamicSecTokens()
 
             //console.log('StMaster - returning - already populated', supportedWalletTypes)
@@ -1162,7 +1168,7 @@ module.exports = {
         }
         stm_ApiPayload = val // set in var
     }
-    , addDynamicSecTokens: (stm_data) => addDynamicSecTokens(stm_data)
+    , addDynamicSecTokens: () => addDynamicSecTokens()
 
     , getMetaBySymbol: (symbol) => {
 

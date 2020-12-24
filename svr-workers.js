@@ -30,7 +30,7 @@ module.exports = {
                     if (msg !== undefined && msg.data !== undefined) {
                         msg.data.stm_ApiPayload = configWallet.get_stm_ApiPayload() // StMaster - pass through config/wallet.js::stm_ApiPayload
                     }
-                    console.log('cpuWorker.postMessageWrapped...', msg)
+                    //console.log('cpuWorker.postMessageWrapped...', msg)
                     return this.postMessage(msg)
                 }
 
