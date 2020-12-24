@@ -1,5 +1,5 @@
 # Scoop Core Wallet 
-Release Candidate 7
+v0.9
 
 [![NPM](https://nodei.co/npm/scpx-wallet.png)](https://nodei.co/npm/scpx-wallet/)
 
