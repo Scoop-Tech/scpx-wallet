@@ -140,7 +140,7 @@ module.exports = {
 
     terminate: () => {
         if (serverRpc) {
-            log.info(`Stopping RPC server...`)
+            log.info(`Terminating RPC server...`)
             serverRpc.close()
             serverRpc = undefined
         }

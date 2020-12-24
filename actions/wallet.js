@@ -485,7 +485,7 @@ module.exports = {
         // determine what wallets to generate, if any
         var supportWalletTypes = await configWallet.getSupportedWalletTypes() // StMaster: dynamically adds StMaster erc20 types
         const currentTypes = Object.keys(currentAssets)
-        console.log('StMaster - supportWalletTypes', supportWalletTypes)
+        //console.log('StMaster - supportWalletTypes', supportWalletTypes)
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
