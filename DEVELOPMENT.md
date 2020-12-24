@@ -8,7 +8,7 @@
 
 ## Building from Source
 
-The tested and recommended build environment is Node v13.14.0 and NPM v6.14.4
+The tested and recommended build environment is `node` v10.22.0 and `npm` v6.14.6
 
 ## Setup
  > All:

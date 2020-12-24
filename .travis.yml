@@ -3,7 +3,7 @@ install: travis_wait mvn install
 env: 
   - NODE_OPTIONS=--experimental-worker CODECOV_TOKEN=f65ece69-8be4-4cd8-bb6f-c397d2dbc967 NODE_ENV=test
 node_js:
-  - "11.10.1"
+  - "10.22.0"
 script:
   - npm run test
 before_install:
