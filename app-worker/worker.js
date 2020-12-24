@@ -86,9 +86,9 @@ utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER
 async function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
 
-    const eventData = e.data; //!workerThreads ? e.data : e
+    const eventData = !workerThreads ? e.data : e
     if (!eventData.msg || !eventData.data) { 
-        utilsWallet.error(`appWorker >> ${workerId} bad event, e=`, e);
+        utilsWallet.error(`appWorker >> ${workerId} bad event, e=`, e)
         return Promise.resolve()
     }
 

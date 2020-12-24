@@ -78,7 +78,7 @@
         "start": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 ./sw-cli.js --saveHistory=false",
         "rpc": "set NODE_ENV=production&& node --inspect=0.0.0.0:9229 ./sw-cli.js --rpc=true --rpcPort=4000 --rpcRemoteHosts=::ffff:127.0.0.1 --rpcUsername=scp --rpcPassword=123",
         "jestver": "set NODE_ENV=test&& jest --version",
-        "test": "set NODE_ENV=test&& jest --runInBand --forceExit --verbose --coverage --env=node"
+        "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-worker jest --runInBand --forceExit --verbose --coverage --env=node"
     },
     "jest": {
         "coverageDirectory": "./coverage/",
@@ -143,6 +143,7 @@
     },
     "devDependencies": {
         "codecov": "^3.3.0",
+        "cross-env": "^7.0.3",
         "jest": "21.2.1",
         "nodemon": "^1.19.0"
     }

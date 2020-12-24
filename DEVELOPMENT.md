@@ -7,7 +7,6 @@
   * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
 ## Building from Source
-
 The tested and recommended build environment is `node` v10.22.0 and `npm` v6.14.6
 
 ## Setup

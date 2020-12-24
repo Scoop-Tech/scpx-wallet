@@ -38,7 +38,7 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_BTC_TEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ZEC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_LTC_TEST = false
 
@@ -1048,7 +1048,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: false
+    , CLI_LOG_CORE: true
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
