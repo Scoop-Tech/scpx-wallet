@@ -38,9 +38,10 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTC_TEST = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_BTC_TEST = true //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ZEC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_LTC_TEST = false
+const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 
 const WALLET_INCLUDE_TUSD_TEST = false
 const WALLET_INCLUDE_AIRCARBON_TEST = true
@@ -115,7 +116,7 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
 
 var walletsMeta = {
     // utxo's
-    'btc(s2)': {
+    'btc(s2)': { // p2wpkh "native" Bech32 unwrapped segwit btc
         name: 'btc(s2)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -124,7 +125,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,
         symbol: 'BTC_SEG2',
         displayName: 'Bitcoin',
-        desc: 'Bech32', //'SegWit (P2WPKH) Bech32',
+        desc: 'Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -134,7 +135,7 @@ var walletsMeta = {
         tx_perInput_byteLength: 151,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(s)': {
+    'btc(s)': { // p2sh-wrapped segwit btc
         name: 'btc(s)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -143,7 +144,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_SEG',
         displayName: 'Bitcoin',
-        desc: 'P2SH', //'SegWit (P2SH)',
+        desc: 'Wrapped (P2SH)',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -153,7 +154,7 @@ var walletsMeta = {
         tx_perInput_byteLength: 174,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'bitcoin': {
+    'bitcoin': { // legacy p2pkh
         name: 'bitcoin',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -162,7 +163,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC',
         displayName: 'Bitcoin',
-        desc: undefined,
+        desc: 'Legacy (P2PKH)',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc.png',
         primaryColor: '#f2a235',
@@ -172,16 +173,17 @@ var walletsMeta = {
         tx_perInput_byteLength: 148, //147,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(t)': { // insight api - legacy
+    'btc(t)': {
         name: 'btc(t)',
-        use_Insightv2: true,
+        //use_Insightv2: true,
+        use_BBv3: true, // DM: Dec '20 - upgrading, for DMS...
         type: WALLET_TYPE_UTXO,
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_TEST',
         displayName: 'BTC#',
         desc: 'Testnet3',
         displaySymbol: 'BTC#',
-        imageUrl: 'img/asset-icon/btc_test2.png',
+        imageUrl: 'img/asset-icon/btc_test.png',
         primaryColor: '#f2a235',
         sortOrder: 888,
         bip44_index: 1, // ##
@@ -1056,6 +1058,7 @@ module.exports = {
     , WALLET_INCLUDE_BTC_TEST
     , WALLET_INCLUDE_LTC_TEST
     , WALLET_INCLUDE_ZEC_TEST
+    , WALLET_INCLUDE_DYNAMIC_STM_ASSETS
     , WALLET_DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
@@ -1116,7 +1119,7 @@ module.exports = {
     //
     , getSupportedWalletTypes: async () => { 
         if (stm_ApiPayload === undefined 
-            && IS_DEV // WIP: disable in prod for now...
+            && WALLET_INCLUDE_DYNAMIC_STM_ASSETS // WIP: disable in dev & prod for now...
         ) {
             // StMaster - dynamic ERC20s: read from API (also would work for token lists)
             // call API and cache return value

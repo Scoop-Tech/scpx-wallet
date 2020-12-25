@@ -87,15 +87,17 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                        : asset.symbol
 
+        // TODO: test this erc20's & eth...
         // note - params not used - anymore; we never need to actually call estimateGas()...
         // if (!utilsWallet.isERC20(asset)) {
         //     params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
         // }
 
         // update: use static/known gasLimits for the erc20/eth send tx
-        return (!utilsWallet.isERC20(asset)
-            ? Promise.resolve({ gasLimit: 21000 })  // vanilla eth payable() - known gas
-            : Promise.resolve({ gasLimit: 100000 }) // erc20 - dummy: overridden below... //self.ws_web3[wsSymbol].eth.estimateGas(params) // ##
+        return (
+            !utilsWallet.isERC20(asset)
+                ? Promise.resolve(21000)  // vanilla eth payable() - known gas
+                : Promise.resolve(100000) // erc20 - dummy: overridden below... //self.ws_web3[wsSymbol].eth.estimateGas(params) // ##
         )
         .then(gasLimit => {
             // use estimate if not erc20, otherwise use a reasonable static max gas value

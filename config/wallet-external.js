@@ -29,6 +29,7 @@ const ltcBlockbookApi     = 'https://ac-dev0.net:10001/api/'     // 'https://ltc
 
 const btcBlockbookApi     = 'https://ac-dev0.net:10002/api/'     // use different btc/btc_seg BB servers to minimize 429's on api/block calls
 //const btcSegBlockbookApi  = 'https://ac-dev0.net:10003/api/'     // TODO: setup proxy to btc2.trezor.io
+const btcTestBlockbookApi     = 'https://tbtc2.trezor.io/api/'
 
 const dashBlockbookApi    = 'https://ac-dev0.net:10004/api/'     // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
 const vtcBlockbookApi     = 'https://ac-dev0.net:10005/api/'     // 'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
@@ -131,6 +132,30 @@ const walletExternal_config = {
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
+    BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
+        donate: 'mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM', // testnets2@scoop.tech
+        explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
+        // (use_BBv3: true,)
+        api: {
+            utxo: (address) => { return `${btcTestBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+        // api: { // (insight-api -- active/fallback (use_Insightv2: true,))
+        //     baseUrl: () => { return btcTestInsightApi },
+        //     sync: () => { return btcTestInsightApi + 'sync' },
+        //     block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
+        //     v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
+        //     v2_addrData: (address, from, to) => { return `${btcTestInsightApi}addr/${address}?from=${from}&to=${to}` },
+        //     v2_addrBal: (address) => { return `${btcTestInsightApi}addr/${address}?noTxList=1` },
+        //     balance: (address) => { return btcTestInsightApi + 'addr/' + address + '/balance' },
+        //     unconfirmedBalance: (address) => { return btcTestInsightApi + 'addr/' + address + '/unconfirmedBalance' },
+        //     tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
+        //     txs: (address) => { return btcTestInsightApi + 'txs/?address=' + address },
+        //     utxo: (address) => { return btcTestInsightApi + 'addrs/' + address + '/utxo' },
+        //     push_tx: btcTestInsightApi + 'tx/send',
+        // }
+    },
     BTC_SEG2: {
         donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
         explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
@@ -186,25 +211,6 @@ const walletExternal_config = {
         }
     },
 
-    BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
-        donate: 'mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM', // testnets2@scoop.tech
-        explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
-        api: { // insight-api -- active/fallback
-            baseUrl: () => { return btcTestInsightApi },
-            sync: () => { return btcTestInsightApi + 'sync' },
-            block: (blockHash) => { return btcTestInsightApi + 'block/' + blockHash },
-            v2_tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
-            v2_addrData: (address, from, to) => { return `${btcTestInsightApi}addr/${address}?from=${from}&to=${to}` },
-            v2_addrBal: (address) => { return `${btcTestInsightApi}addr/${address}?noTxList=1` },
-            balance: (address) => { return btcTestInsightApi + 'addr/' + address + '/balance' },
-            unconfirmedBalance: (address) => { return btcTestInsightApi + 'addr/' + address + '/unconfirmedBalance' },
-            tx: (txid) => { return btcTestInsightApi + 'tx/' + txid },
-            txs: (address) => { return btcTestInsightApi + 'txs/?address=' + address },
-            utxo: (address) => { return btcTestInsightApi + 'addrs/' + address + '/utxo' },
-            push_tx: btcTestInsightApi + 'tx/send',
-        }
-    },
     LTC: {
         donate: 'LcTqsN3agVPA6EX2hhq2gtJBwjdpq2c6GC',
         explorerPath: (address) => { return 'https://live.blockcypher.com/ltc/address/' + address },

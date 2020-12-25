@@ -9,7 +9,6 @@ module.exports = {
     // note also: that insight doesn't support segwit mempool tx's at all - so BB v3 is a strong requirement for btc_seg
     //
     insightApi_ws_config: {
-        'BTC_TEST': { url: 'bitpay.com/insight/#/BTC/testnet',                               subBlocks: true  },
       //'BTC_TEST': { url: 'https://test-insight.bitpay.com',                                subBlocks: true  },
       //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         
@@ -40,24 +39,24 @@ module.exports = {
       //'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false },
       //'ZEC'     : { url: 'wss://scp-zec1.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
 
-        'DASH'    : { url: 'wss://insight.dash.org',                                         subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'DASH'    : { url: 'wss://insight.dash.org',                                         subBlocks: false },
 
-        'VTC'     : { url: 'wss://insight.vertcoin.org',                                     subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'VTC'     : { url: 'wss://insight.vertcoin.org',                                     subBlocks: false },
 
-        'QTUM'    : { url: 'wss://explorer.qtum.org',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'QTUM'    : { url: 'wss://explorer.qtum.org',                                        subBlocks: false },
 
-        'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false },
         
-      //'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false }, // BB v3 -- (insight only needed for lights)
-      //'BCHABC'  : { url: 'wss://bch-insight.bitpay.com',                                   subBlocks: false }, // BB v3 -- (insight only needed for lights)
-        'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false }, // BB v3 -- (insight only needed for lights)
-      //'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false }, // BB v3 -- (insight only needed for lights)
+      //'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false },
+      //'BCHABC'  : { url: 'wss://bch-insight.bitpay.com',                                   subBlocks: false },
+        'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false },
+      //'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false },
 
-        'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false },
 
-        'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false },
         
-        'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false }, // BB v3 -- (insight only needed for lights)
+        'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false },
     },
 
     //
@@ -65,6 +64,8 @@ module.exports = {
     // used for "bitcoind/addresstxid" sub, block sub, mempool tx queries and for BB v3 (tx detail, tx addr history, and pushes)
     //
     blockbook_ws_config: {
+        'BTC_TEST' : { url: 'wss://tbtc2.trezor.io',                                           subBlocks: true },
+
         'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
       //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
         'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true  },
@@ -102,7 +103,8 @@ module.exports = {
         'QTUM'     : { url: 'wss://ac-dev0.net:29188',                                         subBlocks: true },
       //'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
 
-        'ZEC_TEST' : { url: 'wss://ac-dev0.net:29132',                                         subBlocks: true },
+        'ZEC_TEST' : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
+      //'ZEC_TEST' : { url: 'wss://ac-dev0.net:29132',                                         subBlocks: true },
       //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
 
         'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },

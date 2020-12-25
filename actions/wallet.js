@@ -162,7 +162,7 @@ module.exports = {
             case configWallet.WALLET_TYPE_UTXO:
                 newPrivKey = generateUtxoBip44Wifs({
                     entropySeed: h_mpk, 
-                         symbol: genSymbol, //genSymbol === 'BTC_SEG' || genSymbol === 'BTC_TEST' ? 'BTC' : genSymbol,
+                         symbol: genSymbol,
                         addrNdx: genAccount.privKeys.length,
                        genCount: 1 })[0]
                 break
@@ -1064,12 +1064,16 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
             // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
             // return address
 
-            // p2sh-wrapped segwit -- p2sh(p2wpkh) addr -- w/ bitcoinjsLib (3 addr)
-            const { address } = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), network }), network })
+            // P2SH-WRAPPED SEGWIT -- p2sh(p2wpkh) addr -- w/ bitcoinjsLib (3 addr)
+            const { address } = bitcoinJsLib.payments.p2sh({ 
+                redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), 
+                                                       network }), 
+                network
+            })
             return address
         }
         else if (symbol === "BTC_SEG2") {
-            // unwrapped P2WPKH -- w/ bitgoUtxoLib -- native SW (b addr)
+            // unwrapped P2WPKH -- w/ bitgoUtxoLib -- NATIVE/UNWRAPPED SEGWIT (b addr) - Bech32
             var pubKey = keyPair.getPublicKeyBuffer()
             var scriptPubKey = bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(pubKey))
             var address = bitgoUtxoLib.address.fromOutputScript(scriptPubKey)

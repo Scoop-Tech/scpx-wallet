@@ -30,17 +30,17 @@ The tested and recommended build environment is `node` v10.22.0 and `npm` v6.14.
 
 The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
 
-  * **BTC_TEST** ```mju9idRjxM2JD8bzPkZpF1t68B1M4Pgn2Y``` (BTC Testnet3)
+  * **BTC_TEST** ```mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM``` (BTC Testnet3)
     * https://testnet-faucet.mempool.co/  
     * https://tbtc.bitaps.com/   
     * http://bitcoinfaucet.uo1.net/send.php/
 
-  * **ZEC_TEST** ```tmH76MkVHc1ZDyWvdY3RDnZzzmXoFpFtXt9``` (ZEC Testnet)
+  * **ZEC_TEST** ```tmAU27N3iHMeejD6GPHYiSnH8vit1XT9uEX``` (ZEC Testnet)
     * https://faucet.testnet.z.cash/
     * https://zcashfaucet.info/
     
-  * **ETH_TEST** ```0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20``` (ETH Ropsten)
-    * https://faucet.ropsten.be/ ```wget https://faucet.ropsten.be/donate/0x8443b1edf203f96d1a5ec98301cfebc4d3cf2b20```
+  * **ETH_TEST** ```0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e``` (ETH Ropsten)
+    * https://faucet.ropsten.be/ ```wget https://faucet.ropsten.be/donate/0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e```
     * https://faucet.metamask.io/  
 
 Core wallet functions are demonstrated as integration tests, many of which interact over HTTPS with 3rd Party Blockchain Providers (3PBPs) and/or the Scoop [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos). Pull requests are welcome, as are contributions for more fine-grained unit tests.

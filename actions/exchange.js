@@ -513,8 +513,8 @@ async function getMinAmount(store, fromSymbol, toSymbol) {
         console.error('XS - getMinAmount - invalid store state')
         return null
     }
-    const fromSymbolXs = toXsSymbol(fromSymbol) //fromSymbol === 'BTC_SEG' || fromSymbol === 'BTC_SEG2' ? 'BTC' : fromSymbol
-    const toSymbolXs = toXsSymbol(toSymbol) //toSymbol === 'BTC_SEG' || toSymbol === 'BTC_SEG2' ? 'BTC' : toSymbol
+    const fromSymbolXs = toXsSymbol(fromSymbol)
+    const toSymbolXs = toXsSymbol(toSymbol)
     const xsCcyFrom = storeState.userData.exchange.currencies.find((p) => p.name === fromSymbolXs.toLowerCase())
     const xsCcyTo = storeState.userData.exchange.currencies.find((p) => p.name === toSymbolXs.toLowerCase())
     if (xsCcyFrom === undefined || xsCcyTo === undefined) {
