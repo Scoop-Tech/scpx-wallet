@@ -22,7 +22,9 @@ module.exports = {
         utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
-            if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST) continue
+                   
+            if (assetSymbol === 'ETH_TEST') { if (!configWallet.WALLET_INCLUDE_ETH_TEST) continue }
+            else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue  
 
             setupCount += (function (x) {
 

@@ -197,13 +197,16 @@ describe('wallet', function () {
         var expectAssertions = 2
         if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 4
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 4
-        if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 2 // ## Travis failing - see below
+        if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 4
         expect.assertions(expectAssertions)
 
         const result = await new Promise(async (resolve, reject) => {
             const create = await svrWalletCreate.walletNew(appWorker, appStore)
             const mpk = create.ok.mpk
-            
+            const balancePrior = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            //console.log('balancePrior', balancePrior)
+
+            // import priv-keys
             const importBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
 
@@ -213,9 +216,9 @@ describe('wallet', function () {
             const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
 
-            //await Promise.resolve(setTimeout(() => {}, 2000))
-            const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
 
+            // remove priv-keys
             const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 BTC#' }, 'REMOVE-PRIV-KEYS')
 
@@ -225,12 +228,12 @@ describe('wallet', function () {
             const removeEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
 
-            //await Promise.resolve(setTimeout(() => {}, 2000))
-            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
 
             resolve({ create,
                       importBtcTest, importZecTest, importEthTest, balanceImported,
-                      removeBtcTest, removeZecTest, removeEthTest, balanceRemoved })
+                      removeBtcTest, removeZecTest, removeEthTest, balanceRemoved,
+                      balancePrior })
         })
 
         expect(result.create.ok).toBeDefined()
@@ -240,22 +243,21 @@ describe('wallet', function () {
             expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
             expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
-            expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toEqual(0)
+            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST')).toBeUndefined()
         }
 
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
             expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
             expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
-            expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toEqual(0)
+            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST')).toBeUndefined()
         }
 
         if (configWallet.WALLET_INCLUDE_ETH_TEST) {
             expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-            // ## failing in Travis, working on local dev cmdline - TODO
-            // expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
-            // expect(Number(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toEqual(0)
+            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
+            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST')).toBeUndefined()
         }
     })
 })

@@ -334,10 +334,12 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
     utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
-        if (assetSymbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST) continue
-        if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST) continue
-        if (assetSymbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST) continue
-        if (assetSymbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST) continue
+
+        if (assetSymbol === 'ETH_TEST') { if (!configWallet.WALLET_INCLUDE_ETH_TEST) continue }
+        else if (assetSymbol === 'LTC_TEST') { if (!configWallet.WALLET_INCLUDE_LTC_TEST) continue }
+        else if (assetSymbol === 'ZEC_TEST') { if (!configWallet.WALLET_INCLUDE_ZEC_TEST) continue }
+        else if (assetSymbol === 'BTC_TEST') { if (!configWallet.WALLET_INCLUDE_BTC_TEST) continue }
+        else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue      
 
         setupSymbols.push(
             (function (x) {
@@ -430,7 +432,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                                             else {
                                                                 //console.log(`BB ${x} -> ${erc20_symbol} -> ${meta.isErc20_Ropsten}`)
                                                                 if ((x === 'ETH'      && !meta.isErc20_Ropsten)
-                                                                || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
+                                                                 || (x === 'ETH_TEST' && meta.isErc20_Ropsten)) {
 
                                                                     // self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH',
                                                                     //     data: { dispatchActions: [{ 

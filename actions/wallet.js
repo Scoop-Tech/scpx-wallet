@@ -45,19 +45,28 @@ module.exports = {
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
+                if (!configWallet.getSupportedMetaKeyBySymbol(asset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
             // fetch eth[_test] first -- erc20 fetches will then use eth's cached tx data in the indexeddb
             const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
             ethAssets.forEach(ethAsset => {
+                if (!configWallet.getSupportedMetaKeyBySymbol(ethAsset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
                 //globalScope.loaderWorkers[0].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
             })
 
             // then fetch all others, except erc20s
-            var erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
-            var otherAssets = wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
+            var erc20Assets = wallet.assets.filter(p => 
+                utilsWallet.isERC20(p)
+                && configWallet.getSupportedMetaKeyBySymbol(p.symbol) !== undefined
+            )
+            var otherAssets = wallet.assets.filter(p => 
+                p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST'
+                && !utilsWallet.isERC20(p)
+                && configWallet.getSupportedMetaKeyBySymbol(p.symbol) !== undefined
+            )
             appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
             // otherAssets.forEach(otherAsset => {
             //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
@@ -635,7 +644,7 @@ module.exports = {
         // store local state: viewable asset data, e.g. last known balances: subset of currentAssets, persisted to browser storage, without privkeys
         // ***
         const displayableAssets = await displayableWalletAssets(currentAssets, userAccountName)
-        console.log('StMaster - displayableAssets', displayableAssets)
+        //console.log('StMaster - displayableAssets', displayableAssets)
         store.dispatch((action) => {
             action({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
         })
@@ -1064,7 +1073,7 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
             // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
             // return address
 
-            // P2SH-WRAPPED SEGWIT -- p2sh(p2wpkh) addr -- w/ bitcoinjsLib (3 addr)
+            // P2SH-WRAPPED SEGWIT -- P2SH(P2WPKH) addr -- w/ bitcoinjsLib (3 addr)
             const { address } = bitcoinJsLib.payments.p2sh({ 
                 redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), 
                                                        network }), 

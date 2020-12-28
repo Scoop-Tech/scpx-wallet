@@ -24,7 +24,9 @@ const utilsWallet = require('../utils')
 var workerThreads = undefined
 try {
     workerThreads = require('worker_threads') 
-} catch(err) {} // expected - when running in browser
+} catch(err) {
+    console.warn(`Failed to require(worker_threads): browser-env assumed...`)
+}
 const workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 if (workerThreads) { // server
     workerThreads.parentPort.onmessage = handler
@@ -84,13 +86,9 @@ if (configWallet.WALLET_ENV === "SERVER") {
 utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
 async function handler(e) {
-    if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return }
-
-    const eventData = !workerThreads ? e.data : e
-    if (!eventData.msg || !eventData.data) { 
-        utilsWallet.error(`appWorker >> ${workerId} bad event, e=`, e)
-        return Promise.resolve()
-    }
+    if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return Promise.resolve() }
+    const eventData = e.data !== undefined && e.data.data !== undefined ? e.data : e // node 10 experimental worker threads vs node 13 / brower env
+    if (!eventData.msg || !eventData.data) { utilsWallet.error(`appWorker >> ${workerId} bad event, workerThreads=${workerThreads} e=`, e); return Promise.resolve() }
 
     const msg = eventData.msg
     const data = eventData.data
@@ -150,6 +148,7 @@ async function handler(e) {
             utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && !p.use_BBv3).forEach(p => { 
+                if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
                 GetSyncInfo(p.symbol)
             })
             break
@@ -208,6 +207,7 @@ async function handler(e) {
                 }, 888)
             }
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && p.use_BBv3).forEach(p => { 
+                if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
                 GetSyncInfo(p.symbol) 
             })
             break
@@ -223,6 +223,7 @@ async function handler(e) {
                 //...
             }
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_ACCOUNT).forEach(p => { 
+                if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
                 GetSyncInfo(p.symbol)
             })
 
@@ -402,7 +403,9 @@ async function handler(e) {
 
         // get initial block/sync info 
         case 'GET_SYNC_INFO':
-            GetSyncInfo(data.symbol)
+            if (configWallet.getSupportedMetaKeyBySymbol(data.symbol)) {
+                GetSyncInfo(data.symbol)
+            }
             break
     }
     return Promise.resolve()

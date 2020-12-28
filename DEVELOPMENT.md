@@ -8,6 +8,7 @@
 
 ## Building from Source
 The tested and recommended build environment is `node` v10.22.0 and `npm` v6.14.6
+WARN: https://github.com/bitcoinjs/tiny-secp256k1/issues/38 still seems present in latest `bitcoinjs` - prevents install/exec on node >10.x...
 
 ## Setup
  > All:
@@ -73,7 +74,9 @@ Visual Studio Code is recommended. An example ./vscode/launch.json is:
         {
             "type": "node",
             "request": "launch",
+            "runtimeVersion": "10.22.0",
             "env": {
+                "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "development"
             },
             "name": "wallet-dev",

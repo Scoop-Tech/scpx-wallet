@@ -41,12 +41,12 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 const WALLET_INCLUDE_BTC_TEST = true //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_ZEC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 const WALLET_INCLUDE_LTC_TEST = false
-const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
-
 const WALLET_INCLUDE_TUSD_TEST = false
-const WALLET_INCLUDE_AIRCARBON_TEST = true
-const WALLET_INCLUDE_SINGDAX_TEST = true
-const WALLET_INCLUDE_AYONDO_TEST = true
+
+const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
+const WALLET_INCLUDE_AIRCARBON_TEST = false
+const WALLET_INCLUDE_AYONDO_TEST = false
+
 const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be available in prod for testnets2@scoop.tech
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
@@ -96,19 +96,21 @@ const API_URL = `${API_DOMAIN}api/`
 // augmented with dynamic (network fetched) ERC20's
 var supportedWalletTypes = [ // use walletsMeta keys for this list
     'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
-    'dash', 'vertcoin', 'qtum', 'digibyte', 'bchabc',
-    'raven',
+    'dash', 
+    //'vertcoin', 'qtum', // trim junk
+    'digibyte',
+    //'bchabc', 'raven', // trim junk
 
-    //'bnb', // erc20 old
-    'trueusd', 'bancor', '0x', 'bat',
-    'omg', 'snt', //'gto', 'ht', // retiring - not liked
-    //'btm', // on mainnet, erc20 deprecated
-    //'ven', // on mainnet, erc20 deprecated
-    'usdt', 'eurt',
-    'mkr', 'rep', 'hot', 'zil', 'link',
-    'nexo',
+    'trueusd', 
+    //'bancor', '0x', 'bat', 'omg', 'snt', // trim junk
+   
+    'usdt',
+    //'eurt', 'mkr', 'rep', 'hot', 'zil', // trim junk
+    'link',
+    //'nexo', // trim junk
 
-    'band', 'dos', 'ring', 'swap'
+    //'band', 'dos', 'ring',
+    'swap'
 
     // todo 
     //'tgbp' (new)
@@ -942,6 +944,7 @@ var walletsMeta = {
 //
 var stm_ApiPayload = undefined
 function addDynamicSecTokens() {
+
     // semi-dynamic assets (dynamic at build time)
     if (WALLET_INCLUDE_ETH_TEST && !supportedWalletTypes.includes('eth(t)')) {
         supportedWalletTypes.push('eth(t)')
@@ -973,7 +976,7 @@ function addDynamicSecTokens() {
     // }
     // SD - replaced with true dynamic assets:
     if (stm_ApiPayload === undefined) {
-        console.warn('StMaster - addDynamicSecTokens - stm_ApiPayload not set:')
+        //console.warn('StMaster - addDynamicSecTokens - stm_ApiPayload not set')
     }
     else {
         for (let i=0; i < stm_ApiPayload.base_types.length ; i++) {
@@ -1050,7 +1053,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: true
+    , CLI_LOG_CORE: false
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
@@ -1173,8 +1176,8 @@ module.exports = {
     }
     , addDynamicSecTokens: () => addDynamicSecTokens()
 
+    , walletsMeta
     , getMetaBySymbol: (symbol) => {
-
         // StMaster - re-add any dynamically added types, if we've lost JS local var state (e.g. on page refresh)
         if (stm_ApiPayload === undefined) { 
             if (WALLET_ENV === "BROWSER") { //** rehydrate stm_ApiPayload from state, then re-init the dynamic tokens
@@ -1186,7 +1189,7 @@ module.exports = {
             }
         }
 
-        // lookup & return meta for symbol
+        // lookup & return metadata for symbol
         var ret
         Object.keys(walletsMeta).map(p => {
             if (walletsMeta[p].symbol === symbol) // *A*
@@ -1194,8 +1197,19 @@ module.exports = {
         })
         return ret
     }
+    , getSupportedMetaKeyBySymbol: (symbol) => {
+        // (todo: StMaster - need to rehydrate the dynamic types, as above)
+        //...
 
-    , walletsMeta
+        var metaKey = undefined
+        Object.keys(walletsMeta).map(p => {
+            if (walletsMeta[p].symbol === symbol) // *A*
+                metaKey = p
+        })
+        if (!metaKey) return undefined // not known in global list
+        if (!supportedWalletTypes.includes(metaKey)) return undefined // not configured for inclusion
+        return metaKey // known & included
+    }
 
     // exchange
     , XS_CHANGELLY_VARRATE_MARKDOWN: 0.9 // changelly variable-rate api is wildly optimistic in its estimate: mark it down 10%
