@@ -72,13 +72,54 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             isosocket_send_Blockbook(symbol, 'getAccountUtxo', {
                 descriptor: address
             } , async (utxoData) => {
-
                 if (!utxoData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
 
                 utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxoData.length}`)
 
+                const getUtxoSpecificOps = utxoData.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
+                    isosocket_send_Blockbook(symbol, 'getTransactionSpecific', {
+                        txid: utxo.txid
+                    } , async (utxoSpecificData) => {
+                        if (!utxoSpecificData) { 
+                            debugger
+                            utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoSpecificData!`);
+                            resolveSpecificUtxoOp([])
+                            return
+                        }
+
+                        // DMS - add all UTXO for this TX that correspond to the query account
+                        const resolveSpecificUtxos = []
+                        for (var j = 0; j < utxoSpecificData.vout.length; j++) {
+                            const utxoSpecific = utxoSpecificData.vout[j]
+                            if (utxoSpecific.scriptPubKey.addresses.includes(address)) {
+                                resolveSpecificUtxos.push({
+                                    satoshis: Number(utxo.value), 
+                                    txid: utxo.txid, 
+                                    vout: utxo.vout,
+                                    scriptPubKey: { 
+                                        hex: utxoSpecific.scriptPubKey.hex,
+                                        type: utxoSpecific.scriptPubKey.type,
+                                    }
+                                })
+                            }
+                        }
+                        resolveSpecificUtxoOp(resolveSpecificUtxos)
+                    })
+                }) })
+                const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
+                const utxos = utxoSpecifics.flat()
+                if (utxos.length > 0) {
+                    console.log('blockbook_utxos', utxos)
+                }
+
                 // utxo's
-                const utxos = utxoData.map(p => { return { satoshis: Number(p.value), txid: p.txid, vout: p.vout, } })                
+                // console.log('blockbook_utxoData', utxoData)
+                // const utxos = utxoData.map(p => { return { 
+                //     satoshis: Number(p.value), 
+                //     txid: p.txid, 
+                //     vout: p.vout,
+                //     // TODO: *need* scriptPubKey.hex -- for new PSBT input...
+                // } })
 
                 // tx's
                 const totalTxCount = txData.txs
@@ -559,7 +600,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
                             
                             // map tx (prunes vins, drops vouts)
-                            const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses)[0]
+                            const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset.symbol)[0]
                             //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
                             // add to cache

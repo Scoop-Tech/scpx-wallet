@@ -1055,14 +1055,14 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
 
         const keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network) // bitgo ECPair, below: .getPublicKeyBuffer() instead of .publicKey in bitcoin-js
 
-        if (symbol === "BTC" || symbol === "LTC" || symbol === "BTC_TEST" || symbol === "LTC_TEST") {
+        if (symbol === "BTC" || symbol === "LTC" /*|| symbol === "BTC_TEST"*/ || symbol === "LTC_TEST") {
             // bitcoinjs-lib
 
             // legacy addr
             const { address } = bitcoinJsLib.payments.p2pkh({ pubkey: keyPair.getPublicKeyBuffer(), network }) // bitcoin-js payments (works with bitgo networks)
             return address
         }
-        else if (symbol === "BTC_SEG") {
+        else if (symbol === "BTC_SEG" || symbol === "BTC_TEST") { // P2SH-WRAPPED SEGWIT -- P2SH(P2WPKH) addr -- w/ bitcoinjsLib (3 addr)
             // bitcoinjs-lib
 
             // native segwit - BlockCypher throws errors on address_balance -- generated bc1 addr isn't viewable on any block explorers!
@@ -1073,7 +1073,6 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
             // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
             // return address
 
-            // P2SH-WRAPPED SEGWIT -- P2SH(P2WPKH) addr -- w/ bitcoinjsLib (3 addr)
             const { address } = bitcoinJsLib.payments.p2sh({ 
                 redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), 
                                                        network }), 
@@ -1081,8 +1080,7 @@ function getUtxoTypeAddressFromWif(wif, symbol) {
             })
             return address
         }
-        else if (symbol === "BTC_SEG2") {
-            // unwrapped P2WPKH -- w/ bitgoUtxoLib -- NATIVE/UNWRAPPED SEGWIT (b addr) - Bech32
+        else if (symbol === "BTC_SEG2") { // unwrapped P2WPKH -- w/ bitgoUtxoLib -- NATIVE/UNWRAPPED SEGWIT (b addr) - Bech32
             var pubKey = keyPair.getPublicKeyBuffer()
             var scriptPubKey = bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(pubKey))
             var address = bitgoUtxoLib.address.fromOutputScript(scriptPubKey)

@@ -411,7 +411,7 @@ async function handler(e) {
     return Promise.resolve()
 
     function GetSyncInfo(symbol) {
-        utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+        utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
 
         if ((symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST)
          || (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST)

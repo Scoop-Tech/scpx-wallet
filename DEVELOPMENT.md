@@ -31,7 +31,7 @@ WARN: https://github.com/bitcoinjs/tiny-secp256k1/issues/38 still seems present 
 
 The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
 
-  * **BTC_TEST** ```mzQVuwPW8QJxFGsso6kStdCWKhc9DeKZwM``` (BTC Testnet3)
+  * **BTC_TEST** ```2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv``` (BTC Testnet3 P2SH)
     * https://testnet-faucet.mempool.co/  
     * https://tbtc.bitaps.com/   
     * http://bitcoinfaucet.uo1.net/send.php/

@@ -52,7 +52,7 @@ module.exports = {
         var inputsNeeded = []
         for (var i = 0; i < utxos.length; i++) {
             inputsTotalValue = inputsTotalValue.plus(new BigNumber(utxos[i].satoshis))
-            inputsNeeded.push({ utxo: utxos[i], ndx: inputNdx })
+            inputsNeeded.push({ utxo: utxos[i], ndx: inputNdx,  })
             inputNdx++
             //utilsWallet.log(`utxo ndx ${i} (utxos[i].satoshis=${utxos[i].satoshis}), inputsTotalValue=${inputsTotalValue.toString()} of ${valueNeeded.toString()} (value) + ${feeSatoshisAssumed.toString()} (fee)...`)
             if (inputsTotalValue.gt(valueNeeded.plus(feeSatoshisAssumed))) {
@@ -74,7 +74,7 @@ module.exports = {
         }
 
         // format inputs and outputs
-        const inputs = inputsNeeded.map(input => { return { utxo: input.utxo, ndx: input.ndx } })
+        const inputs = inputsNeeded.map(input => { return { utxo: input.utxo, ndx: input.ndx,  } })
         var outputs = params.outputs.map(output => { return { address: output.receiver, value: output.value } })
 
         // unspent output - to self, if it's not dust 
@@ -143,7 +143,7 @@ module.exports = {
                 .then(txRes => {
                     // map and return local tx
                     const ownAddresses = asset.addresses.map(p => { return p.addr })
-                    const tx = map_insightTxs([txRes.data], ownAddresses)[0]
+                    const tx = map_insightTxs([txRes.data], ownAddresses, asset.symbol)[0]
                     callback({ tx })
                 })
             })
@@ -284,12 +284,12 @@ module.exports = {
         }
     },
 
-    map_insightTxs: (txs, ownAddresses) => {
-        return map_insightTxs(txs, ownAddresses)
+    map_insightTxs: (txs, ownAddresses, symbol) => {
+        return map_insightTxs(txs, ownAddresses, symbol)
     },
 }
 
-function map_insightTxs(txs, ownAddresses) {
+function map_insightTxs(txs, ownAddresses, symbol) {
     return txs.map(tx => {
 
         // if (tx.txid === '58b601fe28b55730630e372eccd42f1b4b9ea04a499a82d164b209eb44d47f70') {
@@ -360,24 +360,31 @@ function map_insightTxs(txs, ownAddresses) {
             }
         }
 
-        // prune vin -- only our own inputs
+        // prune vin to save space -- only keep our own inputs
         const pruned_vin = tx.vin
             .filter(p => { return ownAddresses.some(p2 => p2 == p.addr) })
             .map(p => { return {
-                // these two are directly used
                 addr: p.addr, valueSat: p.valueSat,
 
-                // these not used, but probably will be useful - could prune them further
                 txid: p.txid,
                 sequence: p.sequence,
                 vout: p.vout,
                 n: p.n,
                 
-                // note - p.scriptSig is the storage killer
+                // p.scriptSig is the storage killer!
             }} )
 
-        // prune vout completely -- not currently used
-        const pruned_vout = []
+        var vouts
+        if (symbol === 'BTC_SEG' || symbol === 'BTC_TEST') {
+            // DMS - P2SH addr-types: keep outputs, so we can use custom scriptPubKey hex;
+            //        (could also prune them, and read them from 3PBP at TX-construction time?)
+            //         or, could decode scriptPubKey and only save custom scripts?)
+            vouts = tx.vout
+        }
+        else {
+            // prune vouts to save space -- ## we make assumptions at tx-construction time re. these outputs...!
+            vouts = []
+        }
 
         return { // EXTERNAL_TX
             isMinimal: false,
@@ -390,7 +397,7 @@ function map_insightTxs(txs, ownAddresses) {
             block_no: tx.blockheight,
             fees: tx.fees,
             utxo_vin: pruned_vin, 
-            utxo_vout: pruned_vout, 
+            utxo_vout: vouts, 
             isFromShieldedAddr,
         }
     })
