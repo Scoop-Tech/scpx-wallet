@@ -779,7 +779,6 @@ async function createTxHex(params) {
                     console.log('pstx/inc_tx.toHex()', inc_tx.toHex())
 
                     if (!validationMode) { // exec mode
-                        debugger
                         hex = inc_tx.toHex()
                         utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2SH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
                     }
@@ -903,7 +902,6 @@ async function createTxHex(params) {
             }
             //console.timeEnd('ext-createTxHex-utxo-createSignTx')
             
-            debugger
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ 
                             hex, 
