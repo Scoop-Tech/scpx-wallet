@@ -108,9 +108,9 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 }) })
                 const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
                 const utxos = utxoSpecifics.flat()
-                if (utxos.length > 0) {
-                    console.log('blockbook_utxos', utxos)
-                }
+                //if (utxos.length > 0) {
+                //    console.log('blockbook_utxos', utxos)
+                //}
 
                 // utxo's
                 // console.log('blockbook_utxoData', utxoData)

@@ -14,6 +14,15 @@ const moment = require('moment')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
+// misc - object extensions
+Object.defineProperty(Array.prototype, 'flat', {
+    value: function(depth = 1) {
+      return this.reduce(function (flat, toFlatten) {
+        return flat.concat((Array.isArray(toFlatten) && (depth>1)) ? toFlatten.flat(depth-1) : toFlatten);
+      }, []);
+    }
+});
+
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {

@@ -263,9 +263,9 @@ describe('wallet', function () {
 })
 
 // testnet integration suite
-describe('testnets', function () {
+describe('transactions', function () {
 
-    it('can connect 3PBP (Insight REST API), create tx hex, compute tx fees and push a tx for UTXO-model BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WPKH) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
@@ -273,7 +273,7 @@ describe('testnets', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a tx for UTXO-model ZEC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2PKH ZEC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
@@ -281,7 +281,7 @@ describe('testnets', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a tx for account-model ETH_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a standard tx for account-based ETH_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ETH_TEST) {
             var serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
@@ -297,6 +297,14 @@ describe('testnets', function () {
             }
 
             await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
+        }
+    })
+
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a PROTECT_OP tx for P2SH(MSIG/CSV) BTC_TEST', async () => {
+        if (configWallet.WALLET_INCLUDE_BTC_TEST) {
+            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
+            await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
         }
     })
 
