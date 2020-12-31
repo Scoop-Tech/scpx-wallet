@@ -15,6 +15,10 @@ const configExternal = require('../config/wallet-external')
 
 const utilsWallet = require('../utils')
 
+const walletP2shBtc = require('./wallet-btc-p2sh')
+const walletP2pkhBtc = require('./wallet-btc-p2pkh')
+const walletP2pkhAlts = require('./wallet-alts-p2pkh')
+
 Array.prototype.extend = function (other_array) {
     if (other_array) {
         other_array.forEach(function (v) { this.push(v) }, this)
@@ -582,322 +586,30 @@ async function createTxHex(params) {
             || asset.symbol === 'ZEC_TEST'
             || asset.symbol === 'RVN')
             {
-                if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
-                    //network.consensusBranchId["4"] = 4122551051 // 0xf5b9230b -- Heartwood -- https://github.com/BitGo/bitgo-utxo-lib/releases/tag/1.7.1
-                    network.consensusBranchId["4"] = 3925833126 // 0xe9ff75a6 -- Canopy
-                }
-                utilsWallet.log(`createTxHex - network`, network)
-
                 //
-                // UTXO - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )
+                // UTXO - P2PKH - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )
                 //
-                const txb = new bitgoUtxoLib.TransactionBuilder(network)
-                if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
-                    txb.setVersion(bitgoUtxoLib.Transaction.ZCASH_SAPLING_VERSION) // sapling: v4
-                    txb.setVersionGroupId(2301567109) // sapling
-                    txb.setExpiryHeight(0) // if non-zero, will be removed from mempool at this block height, if not yet mined
-                }
-                
-                // add the outputs
-                txSkeleton.outputs.forEach(output => {
-                    //utilsWallet.log(output)
-
-                    var outputAddress = output.address
-
-                    // bcash - remove prefix from cash addr from inputs and outputs, and convert to legacy 1 addr's
-                    if (asset.symbol === 'BCHABC') {
-                        if (outputAddress.startsWith("bitcoincash:")) {
-                            outputAddress = bchAddr.toLegacyAddress(outputAddress.substring("bitcoincash:".length)) 
-                        }
-                        if (outputAddress.startsWith("q") || outputAddress.startsWith("C")) { // q or C - bch cash-addr or bch "bitpay" addr
-                            outputAddress = bchAddr.toLegacyAddress(outputAddress)
-                        }
-                    }
-
-                    txb.addOutput(outputAddress, Number(Number(output.value).toFixed(0)))
-                })
-                
-                // run faster when in validation mode (not sending for real) - skip signing, return incomplete tx and estimate final vsize
-                const inc_tx = txb.buildIncomplete()
-                const inc_vs = inc_tx.virtualSize()
-                const inc_bl = inc_tx.byteLength()
-                utilsWallet.log('inc_tx.virtualSize=', inc_vs)
-                utilsWallet.log('inc_tx.byteLength=', inc_bl)
-                if (validationMode && skipSigningOnValidation) { // validation mode
-                    vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
-                    byteLength = inc_bl + (asset.tx_perInput_byteLength * txSkeleton.inputs.length)
-                    tx = inc_tx
-                }
-                else { // exec mode
-
-                    // add the inputs
-                    for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                        utilsWallet.log(`${asset.symbol} TX input #${i} UTXO txid ${txSkeleton.inputs[i].utxo.txid} - input=`, txSkeleton.inputs[i])
-                        txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
-                    }
-
-                    // sign the inputs - SLOW!
-                    for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                        var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-                        var keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network)
-                        if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
-                            txb.sign(i, keyPair, '', bitgoUtxoLib.Transaction.SIGHASH_SINGLE, txSkeleton.inputs[i].utxo.satoshis) // zec requires more data to sign
-                        }
-                        else if (asset.symbol === 'BCHABC') {
-                            txb.sign(i,
-                                keyPair, '',
-                                bitgoUtxoLib.Transaction.SIGHASH_ALL | bitgoUtxoLib.Transaction.SIGHASH_BITCOINCASHBIP143,
-                                txSkeleton.inputs[i].utxo.satoshis) 
-                        }
-                        else { 
-                            txb.sign(i, keyPair)
-                        }
-                        
-                        utilsWallet.softNuke(keyPair)
-                        utilsWallet.softNuke(wif)
-                    }
-
-                    // complete tx
-                    tx = txb.build()
-                    const tx_vs = tx.virtualSize()
-                    vSize = tx_vs
-                    const tx_bl = tx.byteLength()
-                    byteLength = tx_bl
-                    utilsWallet.log('tx.virtualSize=', tx_vs)
-                    utilsWallet.log('tx.byteLength=', tx_bl)
-                    
-                    // dbg
-                    const delta_vs = tx_vs - inc_vs
-                    const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
-                    utilsWallet.log('dbg: delta_vs=', delta_vs)
-                    utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput)
-
-                    const delta_bl = tx_bl - inc_bl
-                    const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
-                    utilsWallet.log('dbg: delta_bl=', delta_bl)
-                    utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
-
-                    hex = tx.toHex()
-                    utilsWallet.log(`*** createTxHex (wallet-external UTXO bitgo-utxo) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
-                }
+                var { tx, hex, vSize, byteLength } = walletP2pkhAlts.createTxHex_Alts_P2PKH({ asset, validationMode, skipSigningOnValidation, addrPrivKeys, txSkeleton })
             }
             else {
                 if (asset.symbol === "BTC_SEG" || asset.symbol === "BTC_TEST") {
                     //
                     // UTXO - P2SH(...) - bitcoin-js PSBT (Partially Signed Bitcoin Transaction Format - BIP174)
                     //
-                    const pstx = new bitcoinJsLib.Psbt({ network })
-                    pstx.setVersion(2)
+                    var { tx, hex, vSize, byteLength } = walletP2shBtc.createTxHex_BTC_P2SH({ asset, validationMode, addrPrivKeys, txSkeleton })
 
-                    // add the outputs
-                    txSkeleton.outputs.forEach(output => { // TODO: seeing duplicate zero-value output here...
-                        utilsWallet.log(`pstx.addOutput`, output)
-                        pstx.addOutput({ 
-                            address: output.address, 
-                            value: Number(Number(output.value).toFixed(0))
-                        })
-                    })
-
-                    // add the inputs
-                    for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                        const input = txSkeleton.inputs[i]
-                        console.log(`pstx/addInput - input[${i}]`, input)
-
-                        if (input.utxo.scriptPubKey.type !== 'scripthash') throw 'Unexpected (non-P2SH) UTXO'
-
-                        var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
-                        console.log('wif', wif)
-                        var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-                        const p2wpkh = bitcoinJsLib.payments.p2wpkh({pubkey: keyPair.publicKey, network}) 
-                        const p2sh = bitcoinJsLib.payments.p2sh({redeem: p2wpkh, network}) 
-                        const redeemScript = p2sh.redeem.output.toString('hex')
-                        console.log('redeemScript', redeemScript)
-
-                        pstx.addInput({ 
-                            hash: input.utxo.txid, 
-                            index: input.utxo.vout,
-                            sequence: 0xfffffffe, // ????
-
-                            witnessUtxo: { // only for P2SH(P2WPKH) -- according to junderw witnessUtxo wouldn't be used for a P2SH() wrapping something other than a P2WPKH 
-                                // scriptPubKey (locking script) of prevout: 
-                                script: Buffer.from(input.utxo.scriptPubKey.hex, 'hex'), // e.g. OP_HASH160 f828d2054506c46bc81fcfd5cd1d410b8b408b2e OP_EQUAL
-
-                                // amount of satoshis in the prevout:
-                                value: input.utxo.satoshis
-                            },     
-                            
-                            // P2SH redeem output (redeemScript)
-                            redeemScript: Buffer.from(redeemScript, 'hex')
-
-                            // witnessScript: input.witnessScript // = p2wsh redeem output 
-                            // nonWitnessUtxo: Buffer.from(input.utxo.scriptPubKey.hex, 'hex')
-                        })
-
-                        utilsWallet.softNuke(keyPair)
-                        utilsWallet.softNuke(wif)
-                    }
-                    console.log('pstx/setup', pstx)
-
-                    // sign (todo: move validation path to use legacy txBuilder (for faster compute of virtualSize() & byteLength() without signing))
-                    for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                        const input = txSkeleton.inputs[i]
-                        console.log(`pstx/sign - input[${i}]`, input)
-
-                        //if (!input.redeemScript && !input.witnessScript) { //  i.e. if it's a "regular" input (not protected) 
-                            var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
-                            var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-
-                            pstx.signInput(i, keyPair)
-                            pstx.validateSignaturesOfInput(i)
-                            pstx.finalizeInput(i)
-
-                            utilsWallet.softNuke(keyPair)
-                            utilsWallet.softNuke(wif)
-                        //}
-                        //else { // i.e. if input.redeemScript || intput.witnessScript...
-                        //     psbt.finalizeInput(
-                        //          i, 
-                        //          getFinalScripts({    ==> ...csvGetFinalScripts() in csv.spec.ts example...
-                        //              inputScript: input.inputScript, 
-                        //              network 
-                        //     })
-                        //}
-                    }
-                    console.log('pstx/signed', pstx)
-
-                    // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
-                    const inc_tx = pstx.extractTransaction()
-                    console.log('pstx/inc_tx', inc_tx)
-                    const inc_vs = inc_tx.virtualSize()
-                    const inc_bl = inc_tx.byteLength()
-                    utilsWallet.log('inc_tx.virtualSize=', inc_vs)
-                    utilsWallet.log('inc_tx.byteLength=', inc_bl)
-
-                    vSize = inc_vs // tx is fully complete & signed; these are final values
-                    byteLength = inc_bl
-                    tx = inc_tx
-                    console.log('pstx/inc_tx.toHex()', inc_tx.toHex())
-
-                    if (!validationMode) { // exec mode
-                        hex = inc_tx.toHex()
-                        utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2SH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
-                    }
-
-                    // >>> create a P2SH(1/2 CSV) "protected" output...
                     //
-                    //     //      TODO: RETAIN utxo[i].script properties (don't `prune vout`) - (at least for BTC_SEG & BTC_TEST)
-                    //     //             and see if can pass in the raw script e.g. "a914b7d17513f0d3a8c51030506f6f723926caba999d87"
-                    //     //              (as seen from bitcoinjs-lib integration tests, for a P2SH testnet faucet output)
-                    //     //             into .addInput() [instead of synthetic scriptPubKey, as BTC_SEG2 above]
-                    //     //             this will surely be needed to consume an output protected with a CSV-locked complex script
-                    //     //          i.e. GET REGRESSION SEND WORKING WITH UNPRUNED OUTPUTS!!!
-                    //             TODO: then, see if get redeemScript & witnessScript on out INPUTS... need a non-standard TX output for this..., i.e. ...
-                    //     //      TODO: ** modify bitcoinjs-lib sample for 1/2 CSV...
+                    // TODO: 
+                    //        ** modify bitcoinjs-lib sample for 1/2 CSV... -- test spend from each party here...
                     //     //...
                     //     // DMS: new specific path for BTC_SEG/TC_TEST i.e. for P2SH 3-addr/2-addr (WAS: doing else() i.e. legacy P2PKH..., when btc_seg was 1 a-addr!)
+                    //
                 }
-                else
-                { // BTC || BTC_SEG2
+                else { // BTC || BTC_SEG2
                     //
                     // UTXO - P2PKH || P2WPKH - bitcoin-js tx builder
                     //
-                    const txb = new bitcoinJsLib.TransactionBuilder(network)
-
-                    // add the outputs
-                    txb.setVersion(1)
-                    txSkeleton.outputs.forEach(output => {
-                        utilsWallet.log(`txb.addOutput`, output)
-                        txb.addOutput(output.address, Number(Number(output.value).toFixed(0)))
-                    })
-
-                    // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
-                    const inc_tx = txb.buildIncomplete()
-                    const inc_vs = inc_tx.virtualSize()
-                    const inc_bl = inc_tx.byteLength()
-                    utilsWallet.log('inc_tx.virtualSize=', inc_vs)
-                    utilsWallet.log('inc_tx.byteLength=', inc_bl)
-                    if (validationMode && skipSigningOnValidation) { // validation mode
-                        vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
-                        byteLength = inc_bl + (asset.tx_perInput_byteLength * txSkeleton.inputs.length)
-                        tx = inc_tx
-                    }
-                    else { // exec mode
-                        // add the inputs
-                        for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                            utilsWallet.log(`${asset.symbol} UTXO TX - input=`, txSkeleton.inputs[i])
-
-                            if (asset.symbol === "BTC_SEG2") { // P2WPKH Bech32
-                                // https://github.com/bitcoinjs/bitcoinjs-lib/issues/999
-                                var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-                                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-                                const scriptPubKey = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey }).output
-                                txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout, null, scriptPubKey)
-                                utilsWallet.softNuke(keyPair)
-                                utilsWallet.softNuke(wif)
-                            }
-                            else { // legacy - P2PKH
-                                txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
-                            }
-                        }
-
-                        // sign
-                        // if (asset.symbol === "BTC_SEG" || asset.symbol === "BTC_TEST") { // P2SH(...)
-                        //     for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                        //         var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-                        //         var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-
-                        //         const p2wpkh = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
-                        //         const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wpkh, network })
-                        //         txb.sign(i, keyPair, p2sh.redeem.output, null, txSkeleton.inputs[i].utxo.satoshis)
-
-                        //         utilsWallet.softNuke(keyPair)
-                        //         utilsWallet.softNuke(wif)
-                        //     }
-                        // }
-                        // else
-                        if (asset.symbol === "BTC_SEG2") { // P2WPKH Bech32
-                            for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                                var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-                                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-
-                                txb.sign(i, keyPair, null, null, txSkeleton.inputs[i].utxo.satoshis)
-
-                                utilsWallet.softNuke(keyPair)
-                                utilsWallet.softNuke(wif)
-                            }
-                        }
-                        else { // legacy - P2PKH
-                            for (var i = 0; i < txSkeleton.inputs.length; i++) {
-                                var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-                                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-                                txb.sign(i, keyPair)
-                                utilsWallet.softNuke(keyPair)
-                                utilsWallet.softNuke(wif)
-                            }
-                        }
-
-                        // complete tx
-                        tx = txb.build()
-                        const tx_vs = tx.virtualSize()
-                        vSize = tx_vs
-                        const tx_bl = tx.byteLength()
-                        byteLength = tx_bl
-                        utilsWallet.log('tx.virtualSize=', tx_vs) 
-                        utilsWallet.log('tx.byteLength=', tx_bl) 
-
-                        // dbg - estimated final virtualSize & byteLen vs actual
-                        const delta_vs = tx_vs - inc_vs
-                        const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
-                        utilsWallet.log('dbg: delta_vs=', delta_vs)
-                        utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput) 
-                        const delta_bl = tx_bl - inc_bl
-                        const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
-                        utilsWallet.log('dbg: delta_bl=', delta_bl)
-                        utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
-                        
-                        hex = tx.toHex()
-                        utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2PKH || P2WPKH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
-                    }
+                    var { tx, hex, vSize, byteLength } = walletP2pkhBtc.createTxHex_BTC_P2PKH({ asset, validationMode, skipSigningOnValidation, addrPrivKeys, txSkeleton })
                 }
             }
             //console.timeEnd('ext-createTxHex-utxo-createSignTx')

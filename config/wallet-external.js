@@ -134,8 +134,8 @@ const walletExternal_config = {
     },
     BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
         donate: '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv', // testnets2@scoop.tech P2SH
-        explorerPath: (address) => { return 'https://live.blockcypher.com/btc-testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://live.blockcypher.com/btc-testnet/tx/' + txid },
+        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
         // (use_BBv3: true,)
         api: {
             utxo: (address) => { return `${btcTestBlockbookApi}v1/utxo/${address}` },
