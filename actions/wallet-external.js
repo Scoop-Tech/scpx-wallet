@@ -507,9 +507,10 @@ async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
             apk, h_mpk } = params
 
-    if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
-    if (payTo.length != 1) throw 'send-many is not supported'
     if (!asset) throw 'Invalid or missing asset'
+    if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
+    if (payTo.csvMsig2receiver !== undefined && asset !== 'BTC_TEST') throw 'Invalid csvMsig2receiver for asset'
+    if (payTo.length != 1) throw 'send-many is not supported'
     if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
     if (!apk || apk.length == 0) throw 'Invalid or missing apk'
@@ -519,9 +520,13 @@ async function createTxHex(params) {
     const validationMode = !sendMode
     const skipSigningOnValidation = true
 
-    // all utxos, across all wallet addresses
+    // source UTXOs - all utxos, across all wallet addresses
     var utxos = []
-    asset.addresses.forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
+    asset.addresses
+      //.filter(a_n => a_n.addr !== payTo[0].receiver) // exclude UTXOs from the receiver
+        .filter(a_n => a_n.addr !== payTo.csvMsig2receiver) // exclude any utxos from csvMsig receiver
+        .forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
+    utxos = _.uniqWith(utxos, _.isEqual)
     console.log('utxos', utxos)
 
     // get private keys

@@ -1,5 +1,6 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
 
+const _ = require('lodash')
 const axios = require('axios')
 const isoWs = require('isomorphic-ws')
 const BigNumber = require('bignumber.js')
@@ -107,7 +108,9 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     })
                 }) })
                 const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
-                const utxos = utxoSpecifics.flat()
+                //const utxos = utxoSpecifics.flat()
+                const utxos = _.uniqWith(_.flatten(utxoSpecifics), _.isEqual)
+                    
                 //if (utxos.length > 0) {
                 //    console.log('blockbook_utxos', utxos)
                 //}

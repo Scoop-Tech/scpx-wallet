@@ -43,12 +43,11 @@ module.exports = {
             if (input.utxo.scriptPubKey.type !== 'scripthash') throw 'Unexpected (non-P2SH) UTXO'
 
             var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
-            console.log('wif', wif)
             var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
             const p2wpkh = bitcoinJsLib.payments.p2wpkh({pubkey: keyPair.publicKey, network}) 
             const p2sh = bitcoinJsLib.payments.p2sh({redeem: p2wpkh, network}) 
             const redeemScript = p2sh.redeem.output.toString('hex')
-            console.log('redeemScript', redeemScript)
+            //console.log(''redeemScript, redeemScript)
 
             pstx.addInput({ 
                 hash: input.utxo.txid, 

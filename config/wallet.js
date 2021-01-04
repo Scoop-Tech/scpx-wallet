@@ -1053,7 +1053,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: process.env.NODE_ENV === "test"
+    , CLI_LOG_CORE: false //process.env.NODE_ENV === "test"
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core

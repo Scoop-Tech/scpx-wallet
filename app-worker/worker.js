@@ -403,9 +403,9 @@ async function handler(e) {
 
         // get initial block/sync info 
         case 'GET_SYNC_INFO':
-            if (configWallet.getSupportedMetaKeyBySymbol(data.symbol)) {
+            //if (configWallet.getSupportedMetaKeyBySymbol(data.symbol)) {
                 GetSyncInfo(data.symbol)
-            }
+            //}
             break
     }
     return Promise.resolve()

@@ -45,7 +45,7 @@ module.exports = {
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
-                if (!configWallet.getSupportedMetaKeyBySymbol(asset.symbol)) return
+                //if (!configWallet.getSupportedMetaKeyBySymbol(asset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 

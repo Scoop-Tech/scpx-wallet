@@ -22,12 +22,12 @@ const configWallet = require('../config/wallet')
 
 // testnets 
 const serverTestWallet = {
-      mpk: process.env.TESTNETS_MPK,
-    email: process.env.TESTNETS_EMAIL,
+      mpk: process.env.TESTNETS2_MPK,
+    email: process.env.TESTNETS2_EMAIL,
      keys: { 
-        BTC_TEST: process.env.TESTNETS_KEYS_BTC_TEST,
-        ZEC_TEST: process.env.TESTNETS_KEYS_ZEC_TEST,
-        ETH_TEST: process.env.TESTNETS_KEYS_ETH_TEST,
+        BTC_TEST: process.env.TESTNETS2_KEYS_BTC_TEST,
+        ZEC_TEST: process.env.TESTNETS2_KEYS_ZEC_TEST,
+        ETH_TEST: process.env.TESTNETS2_KEYS_ETH_TEST,
     }
 }
 
@@ -300,13 +300,67 @@ describe('transactions', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a PROTECT_OP tx for P2SH(MSIG/CSV) BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(1/2 MSIG+CSV) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
-            await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
+            await sendTestnetMsigCsvTx(appStore, serverLoad, 'BTC_TEST', )
         }
     })
+
+    async function sendTestnetMsigCsvTx(store, serverLoad, testSymbol) {
+        expect.assertions(7)
+        const mpk = serverLoad.ok.walletInit.ok.mpk
+        
+        const result = await new Promise(async (resolve, reject) => {
+            // setup
+            const wallet = store.getState().wallet
+            if (testSymbol !== 'BTC_TEST') throw `${testSymbol} is not supported` 
+            const asset = wallet.assets.find(p => p.symbol === testSymbol)
+            if (!asset) throw `${testSymbol} is not configured`
+            const bal = walletExternal.get_combinedBalance(asset)
+            if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
+            if (asset.addresses.length < 3) throw 'Invalid test asset address setup - test protect op needs 3 addresses setup'
+
+            // configure protect tx (utxo only)
+            //  == send-to-self, w/ consolidation on the higher balance of addr index 1 or 2
+            //     + P2SH CSV script output to define addr index 3 as the beneficiary of the protect op
+            const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
+            const receiveAddrNdx = sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
+            const beneficiaryAddrNdx = 2 // beneficiary - secondary output spender, timelocked -- TODO: could use separate account, i.e. process.env.TESTNETS3_ADDRS_BTC_TEST[0]...
+            var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
+            const sendValue = (du_sendBalance * 0.5).toFixed(6) // consolidate & protect half the source coin
+            if (sendValue < 0.00001) throw 'Insufficient test currency'
+
+            // push p2sh(1/2 msig+csv) tx (WIP...)
+            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
+            console.log('sendValue', sendValue)
+            console.log('txGetFee', txGetFee)
+            const txFee = txGetFee.ok.txFee
+            const consolidateAddr = asset.addresses[receiveAddrNdx].addr
+            const beneficiaryAddr = asset.addresses[beneficiaryAddrNdx].addr
+            const txPush = await svrRouter.fn(appWorker, appStore,
+                { mpk, symbol: testSymbol,
+                        value: sendValue,
+                           to: consolidateAddr, // send to self; to = benefactor = consolidation addr
+                  beneficiary: beneficiaryAddr,
+                }, 'TX-PUSH')
+
+            console.log(`DONE: PROTECT_OP ${sendValue} BTC consolidate => ${consolidateAddr} (beneficiary: ${beneficiaryAddr})`)
+            resolve({ serverLoad, txFee, txPush })
+        })
+
+        
+        expect(result.serverLoad.ok).toBeDefined()
+        expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
+        expect(result.txFee).toBeDefined()
+        expect(Number(result.txFee.fee)).toBeGreaterThan(0)
+        expect(result.txFee.inputsCount).toBeGreaterThan(0)
+        expect(Number(result.txFee.utxo_satPerKB)).toBeGreaterThan(0)
+        expect(Number(result.txFee.utxo_vsize)).toBeGreaterThan(0)
+        console.log('txPush', result.txPush)
+        //expect(result.txid).toBeDefined()
+    }
 
     async function sendTestnetTx(store, serverLoad, testSymbol) {
         expect.assertions(8)
@@ -323,7 +377,7 @@ describe('transactions', function () {
             // validate test asset state
             const bal = walletExternal.get_combinedBalance(asset)
             if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
-            if (asset.addresses.length < 2) throw 'Invalid test asset address setup'
+            if (asset.addresses.length < 2) throw 'Invalid test asset address setup - testnet tx needs 2 addresses setup'
 
             // send testnet tx from the higher balance address to the lower
             const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1

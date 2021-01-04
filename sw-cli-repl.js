@@ -100,8 +100,9 @@ const txPushHelp = `${helpBanner}` +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
     `\t--value (--v)  [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\t--from (--f)   [string]              <optional>  the address to send from; mandatory for account-type assets, e.g. ETH and ERC20s\n` +
-    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n`
+    `\t--from (--f)   [string]              <optional>  the address to send from (account-type assets)\n` +
+    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
+    `\t--beneficiary  [string]              <optional>  allow the UTXO to also be spent by this address (BTC_TEST: P2SH(1/2 MSIG+CSV))\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold

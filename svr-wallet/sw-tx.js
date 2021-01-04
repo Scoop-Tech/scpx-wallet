@@ -20,7 +20,7 @@ module.exports = {
 
     // creates and broadcasts the specified tx
     txPush: async (appWorker, store, p) => {
-        var { mpk, apk, symbol, value, to, from } = p
+        var { mpk, apk, symbol, value, to, from, beneficiary } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txPush')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -28,6 +28,7 @@ module.exports = {
         log.param('value', value)
         log.param('to', to)
         log.param('from', from)
+        log.param('beneficiary', beneficiary)
 
         // validate from addr
         const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
@@ -36,20 +37,32 @@ module.exports = {
 
         // account-type: map supplied from-addr to addr-index
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
-        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { // account: use specific address index
+        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
+            // account: use specific address index
             if (utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is required` })
             sendFromAddrNdx = asset.addresses.findIndex(p => p.addr.toLowerCase() === from.toLowerCase())
             if (sendFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
+
+            // account: disallow protect_op
+            if (!utilsWallet.isParamEmpty(beneficiary)) return Promise.resolve({ err: `Invalid op for account-type asset` })
+        }
+        else {
+            // utxo: validate 
+            if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })
+            if (!utilsWallet.isParamEmpty(beneficiary) && symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid op for UTXO-type asset` })
         }
 
         // validate to addr
         const toAddr = to
-        const addrIsValid = opsWallet.validateAssetAddress({ 
-                 testSymbol: asset.symbol,
-            testAddressType: asset.addressType,
-               validateAddr: toAddr
-        })
-        if (!addrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} to address` })
+        const toAddrIsValid = opsWallet.validateAssetAddress({ testSymbol: asset.symbol, testAddressType: asset.addressType, validateAddr: toAddr })
+        if (!toAddrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} to address` })
+
+        // validate beneficiary addr
+        if (!utilsWallet.isParamEmpty(beneficiary)) {
+            const beneficiaryAddr = beneficiary
+            const beneficiaryAddrIsValid = opsWallet.validateAssetAddress({ testSymbol: asset.symbol, testAddressType: asset.addressType, validateAddr: beneficiaryAddr })
+            if (!beneficiaryAddrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} beneficiary address` })
+        }
 
         // get fee
         const txGetFee = await module.exports.txGetFee(appWorker, store, p)
@@ -67,7 +80,9 @@ module.exports = {
 
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
-        const payTo = [{ receiver: toAddr, value: du_sendValue }]
+        const payTo = [{ receiver: toAddr, value: du_sendValue, csvMsig2receiver: beneficiary }]
+        //return Promise.resolve({ ok: `dummy...` })
+
         return new Promise((resolve) => {
             walletExternal.createAndPushTx( {
                             store: store,
