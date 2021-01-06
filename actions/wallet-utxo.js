@@ -75,7 +75,7 @@ module.exports = {
 
         // format inputs and outputs
         const inputs = inputsNeeded.map(input => { return { utxo: input.utxo, ndx: input.ndx,  } })
-        var outputs = params.outputs.map(output => { return { address: output.receiver, value: output.value } })
+        var outputs = params.outputs.map(output => { return { address: output.receiver, value: output.value, change: false } })
 
         // unspent output - to self, if it's not dust 
         var unspentValue = inputsTotalValue.minus(valueNeeded).minus(feeSatoshisAssumed)
@@ -83,7 +83,8 @@ module.exports = {
         if (unspentValue.gt(feeSatoshisAssumed)) { // the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust
             outputs.push({
                 address: params.changeAddress, // multi-addr: fixing change to addr0 for now
-                  value: unspentValue.toString()
+                  value: unspentValue.toString(),
+                 change: true
             })
         }
 
@@ -160,9 +161,16 @@ module.exports = {
 
         var ret = {} // { fastest_satPerKB, fast_satPerKB, slow_satPerKB } // from oracle(s)
 
-        // BTC - Bitpay recommended: https://www.bitgo.com/api/v1/tx/fee?numBlocks=2 
-        if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_TEST' || symbol === 'BTC_SEG2' ) {
-            return axios.get(configExternal.btcFeeOracle_BitGo)
+        if (symbol === 'BTC_TEST') {
+            return new Promise((resolve, reject) => {
+                ret.fastest_satPerKB = 1024  * 3
+                ret.fast_satPerKB = 1024 * 2
+                ret.slow_satPerKB = 1024
+                resolve(ret)
+            })        
+        }
+        else if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ) {
+            return axios.get(configExternal.btcFeeOracle_BitGo) // BTC - Bitpay recommended: https://www.bitgo.com/api/v1/tx/fee?numBlocks=2 
             .then(res => {
                 if (res && res.data && res.data.feeByBlockTarget) {
                     // {"feePerKb":10096,"cpfpFeePerKb":10096,"numBlocks":2,"confidence":80,"multiplier":1,
@@ -190,7 +198,7 @@ module.exports = {
         }
         else if (symbol === 'ZEC' || symbol === 'ZEC_TEST') {
             return new Promise((resolve, reject) => {
-                ret.fastest_satPerKB = Math.floor(0.0001 * 100000000)
+                ret.fastest_satPerKB = 1024 //Math.floor(0.0001 * 100000000)
                 ret.fast_satPerKB = ret.fastest_satPerKB
                 ret.slow_satPerKB = ret.fastest_satPerKB
                 resolve(ret)
@@ -207,30 +215,30 @@ module.exports = {
                 }
             })
         }
-        else if (symbol === 'VTC') {
-            return axios.get(configExternal.vtcFeeOracle_Blockbook)
-            .then(res => {
-                if (res && res.data && res.data.result) {
-                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
-                    ret.fastest_satPerKB = satPerByte.toString()
-                    ret.fast_satPerKB = ret.fastest_satPerKB 
-                    ret.slow_satPerKB = ret.fastest_satPerKB 
-                    return ret
-                }
-            })
-        }
-        else if (symbol === 'QTUM') {
-            return axios.get(configExternal.qtumFeeOracle_Blockbook)
-            .then(res => {
-                if (res && res.data && res.data.result) {
-                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
-                    ret.fastest_satPerKB = satPerByte.toString()
-                    ret.fast_satPerKB = ret.fastest_satPerKB 
-                    ret.slow_satPerKB = ret.fastest_satPerKB 
-                    return ret
-                }
-            })
-        }
+        // else if (symbol === 'VTC') {
+        //     return axios.get(configExternal.vtcFeeOracle_Blockbook)
+        //     .then(res => {
+        //         if (res && res.data && res.data.result) {
+        //             const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+        //             ret.fastest_satPerKB = satPerByte.toString()
+        //             ret.fast_satPerKB = ret.fastest_satPerKB 
+        //             ret.slow_satPerKB = ret.fastest_satPerKB 
+        //             return ret
+        //         }
+        //     })
+        // }
+        // else if (symbol === 'QTUM') {
+        //     return axios.get(configExternal.qtumFeeOracle_Blockbook)
+        //     .then(res => {
+        //         if (res && res.data && res.data.result) {
+        //             const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+        //             ret.fastest_satPerKB = satPerByte.toString()
+        //             ret.fast_satPerKB = ret.fastest_satPerKB 
+        //             ret.slow_satPerKB = ret.fastest_satPerKB 
+        //             return ret
+        //         }
+        //     })
+        // }
         else if (symbol === 'DGB') {
             return axios.get(configExternal.dgbFeeOracle_Blockbook)
             .then(res => {
@@ -243,30 +251,30 @@ module.exports = {
                 }
             })
         }
-        else if (symbol === 'BCHABC') {
-            return axios.get(configExternal.bchabcFeeOracle_Blockbook)
-            .then(res => {
-                if (res && res.data && res.data.result) {
-                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
-                    ret.fastest_satPerKB = satPerByte.toString() * 10
-                    ret.fast_satPerKB =  satPerByte.toString() * 5
-                    ret.slow_satPerKB = satPerByte.toString()
-                    return ret
-                }
-            })
-        }
-        else if (symbol === 'RVN') {
-            return axios.get(configExternal.rvnFeeOracle_Blockbook)
-            .then(res => {
-                if (res && res.data && res.data.result) {
-                    const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
-                    ret.fastest_satPerKB = satPerByte.toString()
-                    ret.fast_satPerKB =  satPerByte.toString()
-                    ret.slow_satPerKB = satPerByte.toString()
-                    return ret
-                }
-            })
-        }
+        // else if (symbol === 'BCHABC') {
+        //     return axios.get(configExternal.bchabcFeeOracle_Blockbook)
+        //     .then(res => {
+        //         if (res && res.data && res.data.result) {
+        //             const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+        //             ret.fastest_satPerKB = satPerByte.toString() * 10
+        //             ret.fast_satPerKB =  satPerByte.toString() * 5
+        //             ret.slow_satPerKB = satPerByte.toString()
+        //             return ret
+        //         }
+        //     })
+        // }
+        // else if (symbol === 'RVN') {
+        //     return axios.get(configExternal.rvnFeeOracle_Blockbook)
+        //     .then(res => {
+        //         if (res && res.data && res.data.result) {
+        //             const satPerByte = Math.ceil(Number(utilsWallet.toCalculationUnit(res.data.result, { type: configWallet.WALLET_TYPE_UTXO } )) * 1.1)
+        //             ret.fastest_satPerKB = satPerByte.toString()
+        //             ret.fast_satPerKB =  satPerByte.toString()
+        //             ret.slow_satPerKB = satPerByte.toString()
+        //             return ret
+        //         }
+        //     })
+        // }
         else if (symbol === 'LTC_TEST') {
             return axios.get(configExternal.ltcTestFeeOracle_Blockbook)
             .then(res => {

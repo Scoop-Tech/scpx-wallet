@@ -265,7 +265,7 @@ describe('wallet', function () {
 // testnet integration suite
 describe('transactions', function () {
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WPKH) BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
@@ -273,7 +273,7 @@ describe('transactions', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2PKH ZEC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) ZEC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
@@ -300,15 +300,15 @@ describe('transactions', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(1/2 MSIG+CSV) BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(P2WSH(DSIG/CSV)) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
-            await sendTestnetMsigCsvTx(appStore, serverLoad, 'BTC_TEST', )
+            await sendTestnetDsigCsvTx(appStore, serverLoad, 'BTC_TEST', )
         }
     })
 
-    async function sendTestnetMsigCsvTx(store, serverLoad, testSymbol) {
+    async function sendTestnetDsigCsvTx(store, serverLoad, testSymbol) {
         expect.assertions(7)
         const mpk = serverLoad.ok.walletInit.ok.mpk
         
@@ -324,12 +324,11 @@ describe('transactions', function () {
 
             // configure protect tx (utxo only)
             //  == send-to-self, w/ consolidation on the higher balance of addr index 1 or 2
-            //     + P2SH CSV script output to define addr index 3 as the beneficiary of the protect op
-            const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
-            const receiveAddrNdx = sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
-            const beneficiaryAddrNdx = 2 // beneficiary - secondary output spender, timelocked -- TODO: could use separate account, i.e. process.env.TESTNETS3_ADDRS_BTC_TEST[0]...
+            //     w/ P2SH CSV script output to define an additional time-locked (CSV) "beneficiary" address
+            const sendAddrNdx = 0 //asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
+            const receiveAddrNdx = 0 //sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
             var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
-            const sendValue = (du_sendBalance * 0.5).toFixed(6) // consolidate & protect half the source coin
+            const sendValue = 0.0047//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
             if (sendValue < 0.00001) throw 'Insufficient test currency'
 
             // push p2sh(1/2 msig+csv) tx (WIP...)
@@ -338,15 +337,14 @@ describe('transactions', function () {
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee
             const consolidateAddr = asset.addresses[receiveAddrNdx].addr
-            const beneficiaryAddr = asset.addresses[beneficiaryAddrNdx].addr
             const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,
                         value: sendValue,
-                           to: consolidateAddr, // send to self; to = benefactor = consolidation addr
-                  beneficiary: beneficiaryAddr,
+                           to: consolidateAddr, // send to self; to = consolidation addr = "benefactor"
+                dsigCsvPubKey: '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667', // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
                 }, 'TX-PUSH')
 
-            console.log(`DONE: PROTECT_OP ${sendValue} BTC consolidate => ${consolidateAddr} (beneficiary: ${beneficiaryAddr})`)
+            console.log(`...PROTECT_OP ${sendValue} BTC consolidate => ${consolidateAddr}`)
             resolve({ serverLoad, txFee, txPush })
         })
 
@@ -391,13 +389,15 @@ describe('transactions', function () {
             const txFee = txGetFee.ok.txFee
 
             // push tx
-            const txPush = await svrRouter.fn(appWorker, appStore,
-                { mpk, symbol: testSymbol,
-                        value: sendValue,
-                           to: asset.addresses[receiveAddrNdx].addr,
-                         from: asset.addresses[sendAddrNdx].addr
-                }, 'TX-PUSH')
+            const txPush = await svrRouter.fn(appWorker, appStore,{ 
+                    mpk, 
+                 symbol: testSymbol,
+                  value: sendValue,
+                     to: asset.addresses[receiveAddrNdx].addr,
+                   from: asset.symbol === 'ETH_TEST' ? asset.addresses[sendAddrNdx].addr : undefined
+            }, 'TX-PUSH')
 
+            console.log('txPush', txPush)
             const txid = txPush.ok.txid
            
             resolve({ serverLoad, txFee, txid })

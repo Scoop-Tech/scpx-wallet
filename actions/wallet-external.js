@@ -137,6 +137,7 @@ module.exports = {
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, apk, h_mpk } = p
 
+        console.log('createAndPushTx/payTo.dsigCsvSpenderPubKey', payTo.dsigCsvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
         createTxHex({ payTo,
@@ -507,10 +508,12 @@ async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
             apk, h_mpk } = params
 
+    console.log('createTxHex/payTo.dsigCsvSpenderPubKey', payTo.dsigCsvSpenderPubKey)
+
     if (!asset) throw 'Invalid or missing asset'
     if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
-    if (payTo.csvMsig2receiver !== undefined && asset !== 'BTC_TEST') throw 'Invalid csvMsig2receiver for asset'
     if (payTo.length != 1) throw 'send-many is not supported'
+    if (payTo[0].dsigCsvSpenderPubKey !== undefined && asset.symbol !== 'BTC_TEST') throw 'Invalid dsigCsvSpenderPubKey for asset'
     if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
     if (!apk || apk.length == 0) throw 'Invalid or missing apk'
@@ -523,10 +526,12 @@ async function createTxHex(params) {
     // source UTXOs - all utxos, across all wallet addresses
     var utxos = []
     asset.addresses
-      //.filter(a_n => a_n.addr !== payTo[0].receiver) // exclude UTXOs from the receiver
-        .filter(a_n => a_n.addr !== payTo.csvMsig2receiver) // exclude any utxos from csvMsig receiver
+      //.filter(a_n => a_n.addr !== payTo.dsigCsvReceiver) // todo: (edgecase) - exclude any UTXOs from the dsigCsvReceiverAddr (for same-account testing...)
         .forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
-    utxos = _.uniqWith(utxos, _.isEqual)
+    
+    utxos = _.uniqWith(
+                utxos.filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
+            _.isEqual)
     console.log('utxos', utxos)
 
     // get private keys
@@ -601,7 +606,10 @@ async function createTxHex(params) {
                     //
                     // UTXO - P2SH(...) - bitcoin-js PSBT (Partially Signed Bitcoin Transaction Format - BIP174)
                     //
-                    var { tx, hex, vSize, byteLength } = walletP2shBtc.createTxHex_BTC_P2SH({ asset, validationMode, addrPrivKeys, txSkeleton })
+                    var { tx, hex, vSize, byteLength } = walletP2shBtc.createTxHex_BTC_P2SH({ 
+                        asset, validationMode, addrPrivKeys, txSkeleton, 
+                        dsigCsvSpenderPubKey: payTo[0].dsigCsvSpenderPubKey
+                    })
 
                     //
                     // TODO: 

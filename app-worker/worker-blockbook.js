@@ -70,34 +70,52 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             // axiosRetry(axios, CONST.AXIOS_RETRY_EXTERNAL)
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
             // .then(async (utxoData) => {
-            isosocket_send_Blockbook(symbol, 'getAccountUtxo', {
-                descriptor: address
-            } , async (utxoData) => {
-                if (!utxoData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
+            isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxos) => {
+                
+                if (!utxos) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
+                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxos.length}`)
 
-                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxoData.length}`)
+                const getUtxoSpecificOps = utxos.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
+                    
+                    isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid } , async (utxoSpecificData) => {
 
-                const getUtxoSpecificOps = utxoData.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
-                    isosocket_send_Blockbook(symbol, 'getTransactionSpecific', {
-                        txid: utxo.txid
-                    } , async (utxoSpecificData) => {
-                        if (!utxoSpecificData) { 
-                            debugger
-                            utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoSpecificData!`);
-                            resolveSpecificUtxoOp([])
-                            return
-                        }
+                        // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483' && address === '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv') {
+                        //     debugger
+                        // }
+                        // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483' && address === '2NF6NQ7QeL7fYCWmhZZ6VKRzWnvccUcRLQd') {
+                        //     debugger
+                        // }
 
-                        // DMS - add all UTXO for this TX that correspond to the query account
+                        console.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
+                        if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
+
+                        // DMS - add all UTXOs for this TX that correspond to the query account
+                        //       (or, that are cross-address/account OP_RETURN embeded data UTXOs)
                         const resolveSpecificUtxos = []
                         for (var j = 0; j < utxoSpecificData.vout.length; j++) {
                             const utxoSpecific = utxoSpecificData.vout[j]
-                            if (utxoSpecific.scriptPubKey.addresses.includes(address)) {
+                          
+                            // 
+                            // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
+                            //      for the "protected" non-standard P2SH(DSIG/CSV) outputs...
+                            //
+                            if ((utxo.vout == utxoSpecific.n && (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)))
+                                || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
+                                
+                                // tmp/dbg - WIP - hardcode to include test p2sh(p2wsh(dsigCsv)) output (to test unlocking, ahead of synthesizing the MSIG address, as above...)
+                                //|| ((utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes('2N3YWaoFjVUbPkWtneeHiYXtxQrmUtG45Wo')))
+                            ) { 
+                                //console.log(`utxo.vout=${utxo.vout} utxoSpecific.n=${utxoSpecific.n} :: utxo.value=${Number(utxo.value)} / utxoSpecific.value=${Number(new BigNumber(utxoSpecific.value).times(1e8).toString())}`)
+                                // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483') {
+                                //     console.log(`${address} ${utxo.txid} - adding utxo @${utxoSpecific.n} / utxoSpecific.satoshis=${utxoSpecific.satoshis}`, utxoSpecific)
+                                // }
+    
                                 resolveSpecificUtxos.push({
-                                    satoshis: Number(utxo.value), 
+                                    satoshis: Number(new BigNumber(utxoSpecific.value).times(1e8).toString()), //Number(utxo.value),
                                     txid: utxo.txid, 
-                                    vout: utxo.vout,
-                                    scriptPubKey: { 
+                                    vout: utxoSpecific.n, //utxo.vout
+                                    scriptPubKey: {
+                                        addresses: utxoSpecific.scriptPubKey.addresses,
                                         hex: utxoSpecific.scriptPubKey.hex,
                                         type: utxoSpecific.scriptPubKey.type,
                                     }
@@ -108,12 +126,14 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     })
                 }) })
                 const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
+
                 //const utxos = utxoSpecifics.flat()
-                const utxos = _.uniqWith(_.flatten(utxoSpecifics), _.isEqual)
-                    
-                //if (utxos.length > 0) {
-                //    console.log('blockbook_utxos', utxos)
-                //}
+                const utxosFlattened = //_.uniqWith(
+                    _.flatten(utxoSpecifics)
+                //, _.isEqual)
+                if (utxosFlattened.length > 0 && asset.symbol === 'BTC_TEST') {
+                    console.log(`blockbook_utxos de-duped, utxoFlattened for addr ${address}`, utxosFlattened)
+                }
 
                 // utxo's
                 // console.log('blockbook_utxoData', utxoData)
@@ -140,7 +160,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 const res = {
                     balance: txData.balance,
                     unconfirmedBalance: txData.unconfirmedBalance,
-                    utxos,
+                    utxos: utxosFlattened,
                     totalTxCount,
                     cappedTxs: addrTxs.length < totalTxCount, 
                 }

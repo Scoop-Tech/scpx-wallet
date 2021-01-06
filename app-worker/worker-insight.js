@@ -288,7 +288,7 @@ module.exports = {
                         //confirmations,
                         //height,
                         satoshis: p.satoshis,
-                        scriptPubKey, // DMS -- test this!!!
+                        scriptPubKey, // DMS -- test this!!! -- needs to hold .addresses[], .hex, & .type...
                         txid: p.txid,
                         vout: p.vout,
                     }
