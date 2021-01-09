@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const Buffer = require('buffer').Buffer
 const _ = require('lodash')
@@ -11,11 +11,15 @@ const ethereumJsUtil = require('ethereumjs-util')
 const bchAddr = require('bchaddrjs')
 
 const actionsWallet = require('.')
-const actionsWalletUtxo = require('./wallet-utxo')
-const actionsWalletAccount = require('./wallet-account')
+const walletUtxo = require('./wallet-utxo')
+const walletAccount = require('./wallet-account')
+const walletValidate = require('./wallet-validation')
+const walletShared = require('./wallet-shared')
 
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
+
+const walletP2shBtc = require('./wallet-btc-p2sh')
 
 const apiDataContract = require('../api/data-contract')
 
@@ -102,7 +106,7 @@ module.exports = {
                         clearInterval(eth_intId)
 
                         // now wait for all erc20 - and all other types - to finish
-                        const allRemaining_intId = setInterval(() => {
+                        const allRemaining_intId = setInterval(async () => {
                             storeState = store.getState()
                             if (storeState && storeState.wallet && storeState.wallet.assets) {
 
@@ -110,6 +114,21 @@ module.exports = {
                                 otherAssets = storeState.wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
                                 if (!erc20Assets.some(p => p.lastAssetUpdateAt === undefined)
                                 && !otherAssets.some(p => p.lastAssetUpdateAt === undefined)) {
+
+                                    // test: add non-std addr...
+                                //     await walletShared.addNonStdAddress_DsigCltv({
+                                //   dsigCltvP2shAddr: '2MuhFgcpt4TQoka6zSYqwtYdbkapGcubjey',
+                                //             store,
+                                //   userAccountName: utilsWallet.getStorageContext().owner,
+                                //   eosActiveWallet: undefined,
+                                //         assetName: 'btc(t)',
+                                //               apk: utilsWallet.getStorageContext().apk,
+                                //           e_email: utilsWallet.getStorageContext().e_email,
+                                //             h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
+                                //     })
+
+                                    // all assets fully loaded - now scan for non-standard outputs, and add any associated dynamic addresses
+                                    walletP2shBtc.scan_NonStdOutputs({ asset: otherAssets.find(p => p.symbol === 'BTC_TEST'), store })
 
                                     // done
                                     clearInterval(allRemaining_intId)
@@ -209,7 +228,7 @@ module.exports = {
                 const newDisplayableAssets = _.cloneDeep(displayableAssets)
                 const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
 
-                const newDisplayableAddr = newWalletAddressFromPrivKey( {
+                const newDisplayableAddr = walletShared.newWalletAddressFromPrivKey( {
                           assetName: assetName.toLowerCase(),
                         accountName: genAccount.name,
                                 key: newPrivKey,
@@ -223,19 +242,13 @@ module.exports = {
 
                 if (configWallet.WALLET_ENV === "BROWSER") {
                     const globalScope = utilsWallet.getMainThreadGlobalScope()
-                    const appWorker = globalScope.appWorker    
-
-                    // update addr monitors
-                    appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                    appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-                    // refresh asset balance
-                    appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                    const appWorker = globalScope.appWorker
                 }
-                else {
-                    ; // nop
-                    // server is better placed to than here handle addr-monitor connection better 
-                }
+
+                // update addr monitors & refresh balance
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
                 
                 // ret ok
                 utilsWallet.logMajor('green','white', `generateNewAddress - complete`, null, { logServerConsole: true })
@@ -245,134 +258,6 @@ module.exports = {
             else { // ret fail
                 return { err: 'Failed to generate private key', newAddr: undefined }
             }
-        }
-        finally {
-            utilsWallet.softNuke(rawAssets)
-            utilsWallet.softNuke(genAsset)
-            pt_rawAssets = null
-        }
-    },
-
-    //
-    // adds (does not persist) a single dynamic (non-standard derivation) address into the singleton "dynamic" account (non-std HD deriv path: "d/...")
-    // specifically, adds a P2SH(P2WPSH(DSIG/CSV))-derived address
-    //
-    addDynamicAddress_DsigCsv: async (p) => {
-        var { store, apk, h_mpk, assetName, dsigCsvP2shAddr, // required - browser & server
-              userAccountName, e_email,                      // required - browser 
-              eosActiveWallet } = p
-
-        // validation
-        if (!store) throw 'store is required'
-        if (!apk) throw 'apk is required'
-        if (!assetName) throw 'assetName is required'
-        if (!h_mpk) throw 'h_mpk is required'        
-        if (!dsigCsvP2shAddr) throw 'dsigCsvP2shAddr required'
-        if (configWallet.WALLET_ENV === "BROWSER") {
-            if (!userAccountName) throw 'userAccountName is required'
-            if (!e_email) throw 'e_email is required'
-        }
-
-        const storeState = store.getState()
-        if (!storeState || !storeState.wallet || !storeState.wallet.assets || !storeState.wallet.assetsRaw) throw 'Invalid store state'
-        const wallet = storeState.wallet
-        const e_rawAssets = storeState.wallet.assetsRaw
-        const displayableAssets = wallet.assets
-
-        utilsWallet.logMajor('green','white', `addDynamicAddress_DsigCsv...`, null, { logServerConsole: true })
-
-        // decrypt raw assets
-        var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
-        var rawAssets = JSON.parse(pt_rawAssets)
-        var genAsset = rawAssets[assetName.toLowerCase()]
-        try {
-            // get asset 
-            if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw 'Invalid assetName'
-            const meta = configWallet.walletsMeta[assetName.toLowerCase()]
-            const genSymbol = meta.symbol
-
-            // remove already imported 
-        //     var existingPrivKeys = []
-        //     genAsset.accounts.forEach(account => {
-        //         existingPrivKeys = existingPrivKeys.concat(account.privKeys)
-        //     })
-        //     addrKeyPairs = addrKeyPairs.filter(toImport => !existingPrivKeys.some(existing => existing.privKey === toImport.privKey))
-        //     if (addrKeyPairs.length == 0) {
-        //         utilsWallet.warn(`All supplied keys already imported`, null, { logServerConsole: true })
-        //         return { importedAddrCount: 0 }
-        //     }
-
-        //     // make new HD account for import
-        //     const existingImports = genAsset.importCount || 0 //genAsset.accounts.length - 1 // first account is default Scoop addresses
-        //     const importAccount = { // new import account
-        //         imported: true,
-        //             name: `Import #${existingImports+1} ${meta.displayName}`,
-        //         privKeys: []
-        //     }
-        //     genAsset.accounts.push(importAccount)
-        //     const accountNdx = existingImports + 1 // imported accounts start at our HD index 1 (scoop default is 0)
-        //     genAsset.importCount = accountNdx
-
-        //     // map raw suplied priv keys to our internal format; note -- there is no "real" HD path for imported keys (they're not derived keys)
-        //     // we use custom path prefix 'i' for imported to denote this
-        //     const privKeys = []
-        //     for (var i=0 ; i < addrKeyPairs.length ; i++) {
-        //         const privKey = addrKeyPairs[i].privKey
-        //         var chainNdx = 0 // bip44: 0=external chain, 1=internal chain (change addresses)
-        //         privKeys.push({ privKey, path: `i/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}` })
-        //     }
-
-        //     // add new priv keys
-        //     privKeys.forEach(privKey => {
-        //         importAccount.privKeys.push(privKey)
-        //     })
-
-        //     // update local persisted raw assets
-        //     var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
-        //     const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
-        //     store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_rawAssetsUpdated })
-        //     rawAssetsJsonUpdated = null
-
-        //     // add to displayable asset addresses - this fails inside .then() below; no idea why
-        //     const newDisplayableAssets = _.cloneDeep(displayableAssets)
-        //     const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
-        //     for (var i=0 ; i < addrKeyPairs.length ; i++) {
-        //         const addr = addrKeyPairs[i].addr
-        //         var newDisplayableAddr = newWalletAddressFromPrivKey( {
-        //               assetName: assetName.toLowerCase(),
-        //             accountName: importAccount.name,
-        //                     key: privKeys.find(p => p.privKey == addrKeyPairs[i].privKey),
-        //         eosActiveWallet: eosActiveWallet,
-        //               knownAddr: addr,
-        //                  symbol: newDisplayableAsset.symbol
-        //         })
-        //         if (newDisplayableAddr.addr === null) {
-        //             return { err: "Invalid private key" }
-        //         }
-        //         newDisplayableAsset.addresses.push(newDisplayableAddr)
-        //     }
-        //     store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
-            
-        //     if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-        //         // raw assets: post encrypted
-        //         await apiDataContract.updateAssetsJsonApi({  
-        //                     owner: userAccountName, 
-        //    encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
-        //                   e_email: e_email,
-        //          showNotification: true
-        //         })
-
-        //         // update addr monitors
-        //         window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-        //         window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-        //         // refresh asset balance
-        //         window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
-        //     }
-            
-        //     // ret ok
-        //     utilsWallet.logMajor('green','white', `importPrivKeys - complete`, addrKeyPairs.length, { logServerConsole: true })
-        //     return { importedAddrCount: privKeys.length, accountName: importAccount.name }
         }
         finally {
             utilsWallet.softNuke(rawAssets)
@@ -465,7 +350,7 @@ module.exports = {
         const newDisplayableAsset = newDisplayableAssets.find(p => { return p.symbol === genSymbol })
         for (var i=0 ; i < addrKeyPairs.length ; i++) {
             const addr = addrKeyPairs[i].addr
-            var newDisplayableAddr = newWalletAddressFromPrivKey( {
+            var newDisplayableAddr = walletShared.newWalletAddressFromPrivKey( {
                     assetName: assetName.toLowerCase(),
                   accountName: importAccount.name,
                           key: privKeys.find(p => p.privKey == addrKeyPairs[i].privKey),
@@ -488,14 +373,12 @@ module.exports = {
                    e_email: e_email,
           showNotification: true
             })
-
-            // update addr monitors
-            window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-            window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-            // refresh asset balance
-            window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
         }
+
+        // update addr monitors & refresh balance
+        utilsWallet.getAppWorker().postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+        utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+        utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
         
         // ret ok
         utilsWallet.logMajor('green','white', `importPrivKeys - complete`, addrKeyPairs.length, { logServerConsole: true })
@@ -578,15 +461,13 @@ module.exports = {
             encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
                            e_email: e_email,
                   showNotification: true
-                })
-
-                // update addr monitors
-                window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-                window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-                // refresh asset balance
-                window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+                })                
             }
+
+            // update addr monitors & refresh balance
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
 
             // ret ok
             utilsWallet.logMajor('green','white', `removeImportedAccounts - complete`, removedAddrCount, { logServerConsole: true })
@@ -823,7 +704,7 @@ module.exports = {
         switch (asset.type) {
 
             case configWallet.WALLET_TYPE_UTXO:
-                return actionsWalletUtxo.estimateFees_Utxo(asset.symbol)
+                return walletUtxo.estimateFees_Utxo(asset.symbol)
                 .then(res => {
                     utilsWallet.log(`fees - (UTXO) getAssetFeeData - ${asset.symbol}, res=`, res)
                     return res
@@ -869,59 +750,22 @@ module.exports = {
     //
     // Get bitcoin-js / bitgo-utxo-lib network object for supplied
     //
-    getUtxoNetwork: (symbol) => {
-        return getUtxoNetwork(symbol)
-    },
+    getUtxoNetwork: (symbol) => { return walletShared.getUtxoNetwork(symbol) },
 
     //
     // PrivKey -> Address (all types)
     //
-    getAddressFromPrivateKey: (p) => {
-        return getAddressFromPrivateKey(p)
-    },
+    getAddressFromPrivateKey: (p) => { return walletShared.getAddressFromPrivateKey(p) },
 
     //
     // for safe mapping to displayable wallet assets - keyed by path on underlying encrypted privKey
     //
-    newWalletAddressFromPrivKey: (p) => {
-        return newWalletAddressFromPrivKey(p)
-    },
+    newWalletAddressFromPrivKey: (p) => { return walletShared.newWalletAddressFromPrivKey(p) },
 
     //
     // address validation
     //
-    validateAssetAddress: (p) => {
-        var { testSymbol, testAddressType, validateAddr } = p
-        if (!testSymbol || testSymbol.length == 0) throw 'testSymbol is required'
-        if (!testAddressType || testAddressType.length == 0) throw 'testAddressType is required'
-        if (testAddressType === 'BECH32') testAddressType = 'BTC'
-
-        if (testSymbol === 'BCHABC') { // BCH: to legacy addr for validation
-            if (validateAddr && validateAddr.length > 0) {
-                try {
-                    if (bchAddr.isCashAddress(validateAddr) || bchAddr.isBitpayAddress(validateAddr)) {
-                        validateAddr = bchAddr.toLegacyAddress(validateAddr)
-                    }
-                }
-                catch(err) {
-                    console.warn(`## bchAddr.toLegacyAddress, err=`, err)
-                }
-            }
-        }
-
-        const isValid = WAValidator(validateAddr, testAddressType, testSymbol.includes('TEST') ? 'testnet' : 'prod')
-
-        // fixed in scp-address-validator
-        // if (testSymbol === 'VTC') { // WAValidator doesnt' recognize VTC 3-addresses
-        //     if (!isValid) {
-        //         if (validateAddr.startsWith('3') && validateAddr.length == 34) { // gross hack -- need to do this properly
-        //             return true
-        //         }
-        //     }
-        // }
-
-        return isValid
-    }
+    validateAssetAddress: (p) => { return walletValidate.validateAssetAddress(p) }
 }
 
 //
@@ -1038,79 +882,7 @@ async function displayableWalletAssets(assets) {
 //
 // general
 //
-function newWalletAddressFromPrivKey(p) {
-    const { assetName, accountName, key, eosActiveWallet, knownAddr, symbol } = p
-    
-    //console.log(`newWalletAddressFromPrivKey, symbol=${symbol}, assetName=${assetName} configWallet.walletsMeta=`, configWallet.walletsMeta)
 
-    var addr = !knownAddr ? getAddressFromPrivateKey(
-                    { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }
-                )
-              : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
-
-    return {
-        symbol,
-        addr, 
-        accountName, 
-        path: key.path, // see config/wallet -- we don't have completely unique HD paths (e.g. BTC/SW, and testnets), but seems not to matter too much (?)
-        txs: [],
-        utxos: [],
-        lastAddrFetchAt: undefined,
-    }
-}
-
-function getAddressFromPrivateKey(p) {
-    const { assetMeta, privKey, eosActiveWallet } = p
-
-    if (assetMeta.type === configWallet.WALLET_TYPE_UTXO) {
-        return getUtxoTypeAddressFromWif(privKey, assetMeta.symbol)
-    }
-
-    else if (assetMeta.type === configWallet.WALLET_TYPE_ACCOUNT) {
-        return getAccountTypeAddress(privKey, assetMeta.symbol, eosActiveWallet)
-    }
-
-    else utilsWallet.warn('### Wallet type ' + assetMeta.type + ' not supported!')
-}
-
-function getUtxoNetwork(symbol) {
-
-    // https://github.com/BitGo/bitgo-utxo-lib/blob/master/src/networks.js
-    // https://www.npmjs.com/package/@upincome/coininfo
-    // https://github.com/libbitcoin/libbitcoin-system/wiki/Altcoin-Version-Mappings
-    // https://github.com/libbitcoin/libbitcoin-system/issues/319
-
-    // https://github.com/bitcoinjs/bitcoinjs-lib/issues/1067
-
-    const coininfo = require('coininfo')
-    switch (symbol) { 
-        case "BTC":      return bitgoUtxoLib.networks.bitcoin
-        case "BTC_SEG":  return bitgoUtxoLib.networks.bitcoin
-        case "BTC_SEG2": return bitgoUtxoLib.networks.bitcoin
-        case "BTC_TEST": return bitgoUtxoLib.networks.testnet
-
-        case "LTC":      return bitgoUtxoLib.networks.litecoin
-        case "LTC_TEST": return coininfo('LTC-TEST').toBitcoinJS()
-
-        case "ZEC":      return bitgoUtxoLib.networks.zcash
-        case "ZEC_TEST": return bitgoUtxoLib.networks.zcashTest
-
-        case "DASH":     return bitgoUtxoLib.networks.dash
-        case "BCHABC":   return bitgoUtxoLib.networks.bitcoincash
-        case "VTC":      return coininfo('VTC').toBitcoinJS()
-        case "QTUM":     return coininfo('QTUM').toBitcoinJS()
-        case "DGB":
-            var ret = coininfo('DGB')
-            ret.versions.bip32 = { public: 0x0488B21E, private: 0x0488ADE4 }
-            var ret_js = ret.toBitcoinJS()
-            return ret_js
-
-        case "RVN":      return coininfo('RVN').toBitcoinJS()
-
-        default:
-            return undefined
-    }
-}
 
 //
 // account types
@@ -1138,28 +910,6 @@ function generateEthereumWallet(p) {
     }
 }
 
-function getAccountTypeAddress(privKey, symbol, eosActiveWallet) {
-    //utilsWallet.log(`getAccountTypeAddress privKey=${privKey} symbol=${symbol}...`)
-    try {
-        if (symbol === "EOS") {
-            if (eosActiveWallet !== undefined && eosActiveWallet !== null) {
-                return eosActiveWallet.address
-            }
-            else {
-                utilsWallet.warn(`## getAccountTypeAddress - eosActiveWallet undefined!`)
-                return undefined
-            }
-        }
-        else {
-            return "0x" + ethereumJsUtil.privateToAddress(Buffer.from(utilsWallet.hextoba(privKey), 'hex')).toString('hex')
-        }
-    }
-    catch (err) {
-        utilsWallet.error(`getAccountTypeAddress - FAIL: ${err.message}`, err)
-        return null
-    }
-}
-
 //
 // utxo types
 //
@@ -1167,7 +917,7 @@ function generateUtxoBip44Wifs(p) {
     const { entropySeed, symbol, addrNdx = 0, genCount = configWallet.WALLET_DEFAULT_ADDRESSES } = p
 
     var keyPairs = []
-    const network = getUtxoNetwork(symbol) // bitgo
+    const network = walletShared.getUtxoNetwork(symbol) // bitgo
     if (network === undefined) throw 'generateUtxoBip44Wifs - unsupported type'
 
     var meta = configWallet.getMetaBySymbol(symbol)
@@ -1189,59 +939,4 @@ function generateUtxoBip44Wifs(p) {
         keyPairs.push({ privKey: wif, path })
     }
     return keyPairs
-}
-
-function getUtxoTypeAddressFromWif(wif, symbol) {
-    try {
-        const network = getUtxoNetwork(symbol) // bitgo networks: supports ZEC UInt16 pubKeyHash || scriptHash
-
-        const keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network) // bitgo ECPair, below: .getPublicKeyBuffer() instead of .publicKey in bitcoin-js
-
-        if (symbol === "BTC" || symbol === "LTC" /*|| symbol === "BTC_TEST"*/ || symbol === "LTC_TEST") {
-            // bitcoinjs-lib
-
-            // legacy addr
-            const { address } = bitcoinJsLib.payments.p2pkh({ pubkey: keyPair.getPublicKeyBuffer(), network }) // bitcoin-js payments (works with bitgo networks)
-            return address
-        }
-        else if (symbol === "BTC_SEG" || symbol === "BTC_TEST") { // P2SH-WRAPPED SEGWIT -- P2SH(P2WPKH) addr -- w/ bitcoinjsLib (3 addr)
-            // bitcoinjs-lib
-
-            // native segwit - BlockCypher throws errors on address_balance -- generated bc1 addr isn't viewable on any block explorers!
-            //const { address } = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
-            //return address
-
-            // p2sh-wrapped segwit -- need to generate tx json entirely, blockcypher doesn't support
-            // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
-            // return address
-
-            const { address } = bitcoinJsLib.payments.p2sh({ 
-                redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), 
-                                                       network }), 
-                network
-            })
-            return address
-        }
-        else if (symbol === "BTC_SEG2") { // unwrapped P2WPKH -- w/ bitgoUtxoLib -- NATIVE/UNWRAPPED SEGWIT (b addr) - Bech32
-            var pubKey = keyPair.getPublicKeyBuffer()
-            var scriptPubKey = bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(pubKey))
-            var address = bitgoUtxoLib.address.fromOutputScript(scriptPubKey)
-            return address
-        }
-        else { 
-            // bitgo-utxo-lib (note - can't use bitcoin-js payment.p2pkh with ZEC UInt16 pubKeyHash || scriptHash)
-
-            var addr = keyPair.getAddress()
-            if (symbol === 'BCHABC') {
-                if (addr.startsWith('1')) {
-                    addr = bchAddr.toCashAddress(addr)
-                }
-            }
-            return addr
-        }
-    }
-    catch (err) { 
-        utilsWallet.error(`getUtxoTypeAddressFromWif - FAIL: ${err.message}`, err)
-        return null
-    }
 }

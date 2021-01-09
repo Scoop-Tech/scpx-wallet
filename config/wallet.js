@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
@@ -11,7 +11,7 @@ const configWalletExternal = require('./wallet-external')
 
 // static - license, copyright, env
 const WALLET_VER = 'RC-' + require('../package.json').version
-const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.`
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types
@@ -183,6 +183,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_TEST',
         displayName: 'BTC#',
+        ccySymbol: '฿', //₿', 
         desc: 'Testnet3',
         displaySymbol: 'BTC#',
         imageUrl: 'img/asset-icon/btc_test.png',
@@ -427,6 +428,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_ETH,
         symbol: 'ETH_TEST',
         displayName: 'ETH#',
+        ccySymbol: 'Ξ',
         desc: 'Ropsten Testnet',
         displaySymbol: 'ETH#',
         imageUrl: 'img/asset-icon/eth_test.png',

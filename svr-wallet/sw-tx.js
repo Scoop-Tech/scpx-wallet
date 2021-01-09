@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const Keygen = require('eosjs-keygen').Keygen
 const bitcoinJsLib = require('bitcoinjs-lib')
@@ -21,7 +21,7 @@ module.exports = {
 
     // creates and broadcasts the specified tx
     txPush: async (appWorker, store, p) => {
-        var { mpk, apk, symbol, value, to, from, dsigCsvPubKey } = p
+        var { mpk, apk, symbol, value, to, from, dsigCltvPubKey } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txPush')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -29,9 +29,7 @@ module.exports = {
         log.param('value', value)
         log.param('to', to)
         log.param('from', from)
-        log.param('dsigCsvPubKey', dsigCsvPubKey) 
-
-        //log.param('dsigCsvReceiverAddr', dsigCsvReceiverAddr)
+        log.param('dsigCltvPubKey', dsigCltvPubKey) 
 
         // validate from addr
         const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
@@ -47,13 +45,12 @@ module.exports = {
             if (sendFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
 
             // account: disallow protect_op
-            if (!utilsWallet.isParamEmpty(dsigCsvPubKey)) return Promise.resolve({ err: `Invalid op for account-type asset` })
-            //if (!utilsWallet.isParamEmpty(dsigCsvReceiverAddr)) return Promise.resolve({ err: `Invalid op for account-type asset` })
+            if (!utilsWallet.isParamEmpty(dsigCltvPubKey)) return Promise.resolve({ err: `Invalid op for account-type asset` })
         }
         else {
             // utxo: validate 
             if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })
-            if ((!utilsWallet.isParamEmpty(dsigCsvPubKey))
+            if ((!utilsWallet.isParamEmpty(dsigCltvPubKey))
                 && symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid op for UTXO-type asset` })
         }
 
@@ -63,9 +60,9 @@ module.exports = {
         if (!toAddrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} to address` })
 
         // validate beneficiary public 
-        if (!utilsWallet.isParamEmpty(dsigCsvPubKey)) { //  && !utilsWallet.isParamEmpty(dsigCsvReceiverAddr)) {
-            const dsigCsvPubKeyValid = true // TODO...
-            if (!dsigCsvPubKeyValid) return Promise.resolve({ err: `Invalid ${asset.symbol} MSIG CSV-spender public key` })
+        if (!utilsWallet.isParamEmpty(dsigCltvPubKey)) {
+            const dsigCltvPubKeyValid = true // TODO...
+            if (!dsigCltvPubKeyValid) return Promise.resolve({ err: `Invalid ${asset.symbol} DSIG CLTV-spender public key` })
         }
 
         // get fee
@@ -84,7 +81,7 @@ module.exports = {
 
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
-        const payTo = [{ receiver: toAddr, value: du_sendValue, dsigCsvSpenderPubKey: dsigCsvPubKey }]
+        const payTo = [{ receiver: toAddr, value: du_sendValue, dsigCltvSpenderPubKey: dsigCltvPubKey }]
         console.log('sw-tx/payTo', payTo)
 
         return new Promise((resolve) => {

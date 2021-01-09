@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const Keygen = require('eosjs-keygen').Keygen
 
@@ -21,7 +21,10 @@ module.exports = {
 
     // general functions: for a loaded wallet
     fn: async (appWorker, store, p, fn) => {
-        if (!appWorker) throw 'No app worker'
+        if (!appWorker) { 
+            debugger
+            throw 'No app worker'
+        }
 
         const mpkRequired =
             (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'ADD-PRIV-KEYS' || fn === 'REMOVE-PRIV-KEYS'

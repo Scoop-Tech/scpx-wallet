@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const _ = require('lodash')
 const axios = require('axios')
@@ -97,12 +97,12 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                           
                             // 
                             // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
-                            //      for the "protected" non-standard P2SH(DSIG/CSV) outputs...
+                            //      for the "protected" non-standard P2SH(DSIG/CLTV) outputs...
                             //
                             if ((utxo.vout == utxoSpecific.n && (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)))
                                 || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
                                 
-                                // tmp/dbg - WIP - hardcode to include test p2sh(p2wsh(dsigCsv)) output (to test unlocking, ahead of synthesizing the MSIG address, as above...)
+                                // tmp/dbg - WIP - hardcode to include test p2sh(p2wsh(dsigCltv)) output (to test unlocking, ahead of synthesizing the MSIG address, as above...)
                                 //|| ((utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes('2N3YWaoFjVUbPkWtneeHiYXtxQrmUtG45Wo')))
                             ) { 
                                 //console.log(`utxo.vout=${utxo.vout} utxoSpecific.n=${utxoSpecific.n} :: utxo.value=${Number(utxo.value)} / utxoSpecific.value=${Number(new BigNumber(utxoSpecific.value).times(1e8).toString())}`)

@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
 const axios = require('axios')
@@ -384,9 +384,7 @@ function map_insightTxs(txs, ownAddresses, symbol) {
 
         var vouts
         if (symbol === 'BTC_SEG' || symbol === 'BTC_TEST') {
-            // DMS - P2SH addr-types: keep outputs, so we can use custom scriptPubKey hex;
-            //        (could also prune them, and read them from 3PBP at TX-construction time?)
-            //         or, could decode scriptPubKey and only save custom scripts?)
+            // DMS - P2SH addr-types: keep outputs - we use them in scan_NonStdOutputs() to detect our dsigCltv tx's...
             vouts = tx.vout
         }
         else {

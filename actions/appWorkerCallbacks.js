@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const batchActions = require('redux-batched-actions').batchActions
 
@@ -6,6 +6,8 @@ const walletExternal = require('./wallet-external')
 
 const configExternal = require('../config/wallet-external')
 const configWallet = require('../config/wallet')
+
+const walletP2shBtc = require('../actions/wallet-btc-p2sh')
 
 const utilsWallet = require('../utils')
 
@@ -89,15 +91,20 @@ module.exports = {
                                     //console.log(`REQUEST_DISPATCH_BATCH: WCORE_SET_ENRICHED_TXS_MULTI / enrichTx=`, enrichTx)
                                     
                                     if (assetTxs.some(p => p.txid === enrichTx.txid && p.block_no == -1 && enrichTx.block_no != -1)) {
+                                        //
+                                        // TX CONFIRMATION
+                                        //
+                                        var skipNotify = false
 
+                                        // eth - handle erc20's
                                         if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
                                             if (enrichTx.erc20 !== undefined) {
                                                 // erc20 tx
+                                                skipNotify = true
                                                 ;  // nop - just notify for the corresponding eth tx
                                             }
                                             else {
                                                 // eth tx
-
                                                 // is the tx to a known erc20 (e.g. a transfer() or a payable() CFT issuance)
                                                 // for CFT tokens: trigger full asset refresh on the erc20 asset
                                                 // (could also do this here for non-CFT erc20's, but the erc20 local_tx path covers this already)
@@ -110,25 +117,35 @@ module.exports = {
                                                     const erc20Asset = storeState.wallet.assets.find(p => p.symbol === erc20Symbol)
                                                     utilsWallet.getAppWorker().postMessage({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: erc20Asset, wallet: storeState.wallet } })
                                                 }
-    
-                                                // notify user 
-                                                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: {
-                                                    type: 'success',
-                                                headline: `${asset.displaySymbol}: Confirmed TX`,
-                                                    info: `${asset.displayName} mined`, //${/*utilsWallet.EMOJI_HAPPY_KITTY*/utilsWallet.EMOJI_TICK}`,
-                                                    txid: enrichTx.txid
-                                                }})
                                             }
+                                        }
+
+                                        // notify user 
+                                        if (!skipNotify) {
+                                            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: {
+                                                type: 'success',
+                                            headline: `${asset.displaySymbol}: Confirmed TX`,
+                                                info: `${asset.displayName} mined`, 
+                                                txid: enrichTx.txid
+                                            }})
                                         }
                                     }
                                 })
                             })
                         }
                     })
-                }
 
-                // update store, batched
-                store.dispatch(batchActions(dispatchActions))
+                    // update store, batched
+                    store.dispatch(batchActions(dispatchActions))
+
+                    // btc p2sh - scan for non-standard outputs, and add any associated dynamic addresses
+                    enrichTxOps.forEach(enrichTxOp => {
+                        const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
+                        if (asset.symbol === 'BTC_TEST') {
+                            walletP2shBtc.scan_NonStdOutputs({ asset, store })
+                        }
+                    })
+                }
             }
         }
     }

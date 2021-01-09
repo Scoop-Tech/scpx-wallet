@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const configExternal = require('../config/wallet-external')
 
@@ -112,6 +112,8 @@ function subAddr_Blockbook(wallet, asset) {
 
                         // query blockbook for full tx details (see https://btc1.trezor.io/static/test.html for full blockbook socket interface)
                         socket.send({ method: 'getDetailedTransaction', params: [txid] }, (bb_txData) => {
+                            //utilsWallet.log('bb_txData', bb_txData) // DMS: bb_txData contains UTXO data... we sould put into local_tx's
+
                             if (bb_txData && bb_txData.result) {
                                 // trigger refresh: we will walk the mempool utxo list and record the mempool tx in local_txs[]
                                 //postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
@@ -129,7 +131,7 @@ function subAddr_Blockbook(wallet, asset) {
                 }
             }
         })
-    }
+    }   
     catch (err) {
         utilsWallet.error(`### appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, err=`, err)
         utilsWallet.trace()

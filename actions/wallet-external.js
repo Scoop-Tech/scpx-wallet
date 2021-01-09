@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bitgoUtxoLib = require('bitgo-utxo-lib')
@@ -137,7 +137,7 @@ module.exports = {
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, apk, h_mpk } = p
 
-        console.log('createAndPushTx/payTo.dsigCsvSpenderPubKey', payTo.dsigCsvSpenderPubKey)
+        console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
         createTxHex({ payTo,
@@ -508,12 +508,12 @@ async function createTxHex(params) {
     const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
             apk, h_mpk } = params
 
-    console.log('createTxHex/payTo.dsigCsvSpenderPubKey', payTo.dsigCsvSpenderPubKey)
+    console.log('createTxHex/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
 
     if (!asset) throw 'Invalid or missing asset'
     if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
     if (payTo.length != 1) throw 'send-many is not supported'
-    if (payTo[0].dsigCsvSpenderPubKey !== undefined && asset.symbol !== 'BTC_TEST') throw 'Invalid dsigCsvSpenderPubKey for asset'
+    if (payTo[0].dsigCltvSpenderPubKey !== undefined && asset.symbol !== 'BTC_TEST') throw 'Invalid dsigCltvSpenderPubKey for asset'
     if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
     if (!apk || apk.length == 0) throw 'Invalid or missing apk'
@@ -526,7 +526,7 @@ async function createTxHex(params) {
     // source UTXOs - all utxos, across all wallet addresses
     var utxos = []
     asset.addresses
-      //.filter(a_n => a_n.addr !== payTo.dsigCsvReceiver) // todo: (edgecase) - exclude any UTXOs from the dsigCsvReceiverAddr (for same-account testing...)
+      //.filter(a_n => a_n.addr !== payTo.dsigCltvReceiver) // todo: (edgecase) - exclude any UTXOs from the dsigCltvReceiverAddr (for same-account testing...)
         .forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
     
     utxos = _.uniqWith(
@@ -608,15 +608,8 @@ async function createTxHex(params) {
                     //
                     var { tx, hex, vSize, byteLength } = walletP2shBtc.createTxHex_BTC_P2SH({ 
                         asset, validationMode, addrPrivKeys, txSkeleton, 
-                        dsigCsvSpenderPubKey: payTo[0].dsigCsvSpenderPubKey
+                        dsigCltvSpenderPubKey: payTo[0].dsigCltvSpenderPubKey
                     })
-
-                    //
-                    // TODO: 
-                    //        ** modify bitcoinjs-lib sample for 1/2 CSV... -- test spend from each party here...
-                    //     //...
-                    //     // DMS: new specific path for BTC_SEG/TC_TEST i.e. for P2SH 3-addr/2-addr (WAS: doing else() i.e. legacy P2PKH..., when btc_seg was 1 a-addr!)
-                    //
                 }
                 else { // BTC || BTC_SEG2
                     //
@@ -768,7 +761,7 @@ function testPadTxs(res) {
             txid: `TEST_TX_${i}`,
             value: "0.42424242",
             utxo_vin: [],
-            utxo_vout: [],
+            //utxo_vout: [],
         } )
     }
 }

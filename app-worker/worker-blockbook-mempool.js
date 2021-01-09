@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
 const InputDataDecoder = require('ethereum-input-data-decoder')
@@ -146,6 +146,8 @@ module.exports = {
 function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
     
     // send to self - all inputs and outputs are ours
+    
+    //debugger
     const sendToSelf = 
         tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
     && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
@@ -204,7 +206,9 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                 .filter(p => { return p.address === ownAddr })
                 .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
 
-            if (valueToAddr.isGreaterThan(0)) {
+            if (valueToAddr.isGreaterThan(0) 
+                || tx.outputs.some(p => p.address === ownAddr) // DMS: we want to pick up by-design zero-value dsigCltv outputs immediately
+            ) {
                 if (!asset.local_txs.some(p => p.txid === txid) &&
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
                     const inbound_tx = { // LOCAL_TX (UTXO) IN

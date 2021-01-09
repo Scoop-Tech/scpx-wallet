@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const repl = require('repl')
 const colors = require('colors')
@@ -102,7 +102,7 @@ const txPushHelp = `${helpBanner}` +
     `\t--value (--v)  [number]              <required>  the amount to send, e.g. 0.01\n` +
     `\t--from (--f)   [string]              <optional>  the address to send from (account-type assets)\n` +
     `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
-    `\t--dsigCsvPubKey[string]  <optional>  creates a non-standard output (P2SH(P2WSH((DSIG/CSV))) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n`
+    `\t--dsigCltvPubKey[string]  <optional>  creates a non-standard output (P2SH(P2WSH((DSIG/CLTV))) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold

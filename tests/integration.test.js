@@ -50,9 +50,6 @@ afterAll(async () => {
 })
 
 describe('asset', function () {
-    it('test1', async () => {
-        console.log('test1')
-    })
 
     it('can create a new receive address for all asset types', async () => {
         expect.assertions(3)
@@ -300,15 +297,15 @@ describe('transactions', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(P2WSH(DSIG/CSV)) BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(P2WSH(DSIG/CLTV)) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
-            await sendTestnetDsigCsvTx(appStore, serverLoad, 'BTC_TEST', )
+            await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
         }
     })
 
-    async function sendTestnetDsigCsvTx(store, serverLoad, testSymbol) {
+    async function sendTestnetDsigCltvTx(store, serverLoad, testSymbol) {
         expect.assertions(7)
         const mpk = serverLoad.ok.walletInit.ok.mpk
         
@@ -324,14 +321,14 @@ describe('transactions', function () {
 
             // configure protect tx (utxo only)
             //  == send-to-self, w/ consolidation on the higher balance of addr index 1 or 2
-            //     w/ P2SH CSV script output to define an additional time-locked (CSV) "beneficiary" address
+            //     w/ P2SH CLTV script output to define an additional time-locked (OP_CHECKLOCKTIMEVERIFY) "beneficiary" address
             const sendAddrNdx = 0 //asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
             const receiveAddrNdx = 0 //sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
             var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
-            const sendValue = 0.0047//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
+            const sendValue = 0.0048//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
             if (sendValue < 0.00001) throw 'Insufficient test currency'
 
-            // push p2sh(1/2 msig+csv) tx (WIP...)
+            // push p2sh(1/2 dsig+cltv) tx (WIP...)
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
             console.log('sendValue', sendValue)
             console.log('txGetFee', txGetFee)
@@ -341,14 +338,13 @@ describe('transactions', function () {
                 { mpk, symbol: testSymbol,
                         value: sendValue,
                            to: consolidateAddr, // send to self; to = consolidation addr = "benefactor"
-                dsigCsvPubKey: '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667', // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
+               dsigCltvPubKey: '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667', // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC consolidate => ${consolidateAddr}`)
             resolve({ serverLoad, txFee, txPush })
         })
 
-        
         expect(result.serverLoad.ok).toBeDefined()
         expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
         expect(result.txFee).toBeDefined()
@@ -389,7 +385,7 @@ describe('transactions', function () {
             const txFee = txGetFee.ok.txFee
 
             // push tx
-            const txPush = await svrRouter.fn(appWorker, appStore,{ 
+            const txPush = await svrRouter.fn(appWorker, appStore, { 
                     mpk, 
                  symbol: testSymbol,
                   value: sendValue,
