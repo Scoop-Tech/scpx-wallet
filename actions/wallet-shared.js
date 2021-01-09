@@ -117,12 +117,10 @@ module.exports = {
         //         })
         //     }
 
-            // update addr monitors
-            window.appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
-            window.appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
-
-            // refresh asset balance
-            window.appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
+            // update addr monitors & refresh balance
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
             
             // ret ok
             utilsWallet.logMajor('green','white', `addNonStdAddress_DsigCltv - complete`, dsigCltvP2shAddr, { logServerConsole: true })

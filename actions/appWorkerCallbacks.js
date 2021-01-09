@@ -74,6 +74,7 @@ module.exports = {
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
                     const enrichTxOps = dispatchActions.filter(p => { return p.type === 'WCORE_SET_ENRICHED_TXS_MULTI' })
 
+                    var txConfirmed = false
                     enrichTxOps.forEach(enrichTxOp => {
                         const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
                         //console.log(`REQUEST_DISPATCH_BATCH: WCORE_SET_ENRICHED_TXS_MULTI / asset=`, asset)
@@ -95,6 +96,7 @@ module.exports = {
                                         // TX CONFIRMATION
                                         //
                                         var skipNotify = false
+                                        txConfirmed = true
 
                                         // eth - handle erc20's
                                         if (asset.symbol === 'ETH' || asset.symbol === 'ETH_TEST') {
@@ -138,13 +140,16 @@ module.exports = {
                     // update store, batched
                     store.dispatch(batchActions(dispatchActions))
 
-                    // btc p2sh - scan for non-standard outputs, and add any associated dynamic addresses
-                    enrichTxOps.forEach(enrichTxOp => {
-                        const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
-                        if (asset.symbol === 'BTC_TEST') {
-                            walletP2shBtc.scan_NonStdOutputs({ asset, store })
-                        }
-                    })
+                    // btc p2sh - on tx confirmation, scan for non-standard outputs (and add any associated dynamic addresses)
+                    if (txConfirmed) {
+                        enrichTxOps.forEach(enrichTxOp => {
+                            const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
+                            if (asset.symbol === 'BTC_TEST') {
+                                utilsWallet.log(`TX mined - will scan for non-std outputs...`)
+                                walletP2shBtc.scan_NonStdOutputs({ asset, store })
+                            }
+                        })
+                    }
                 }
             }
         }

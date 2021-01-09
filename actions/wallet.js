@@ -127,13 +127,15 @@ module.exports = {
                                 //             h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
                                 //     })
 
-                                    // all assets fully loaded - now scan for non-standard outputs, and add any associated dynamic addresses
-                                    walletP2shBtc.scan_NonStdOutputs({ asset: otherAssets.find(p => p.symbol === 'BTC_TEST'), store })
-
                                     // done
                                     clearInterval(allRemaining_intId)
                                     utilsWallet.logMajor('green','white', `loadAllAssets - complete`, null, { logServerConsole: true })
                                     console.timeEnd('loadAllAssets')
+
+                                    // all assets fully loaded - now scan for non-standard outputs (and add any associated dynamic addresses)
+                                    utilsWallet.log(`Load complete - will scan for non-std outputs...`)
+                                    walletP2shBtc.scan_NonStdOutputs({ asset: otherAssets.find(p => p.symbol === 'BTC_TEST'), store })
+
                                     resolve()
                                 }
                                 else {

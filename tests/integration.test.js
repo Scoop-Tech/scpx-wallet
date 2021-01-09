@@ -192,9 +192,9 @@ describe('wallet', function () {
 
     it('can import and remove private keys', async () => {
         var expectAssertions = 2
-        if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 4
-        if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 4
-        if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 4
+        if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 3
+        if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 3
+        if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 3
         expect.assertions(expectAssertions)
 
         const result = await new Promise(async (resolve, reject) => {
@@ -240,21 +240,18 @@ describe('wallet', function () {
             expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
             expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
-            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'BTC_TEST')).toBeUndefined()
         }
 
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
             expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
             expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
-            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ZEC_TEST')).toBeUndefined()
         }
 
         if (configWallet.WALLET_INCLUDE_ETH_TEST) {
             expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
             expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
             expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
-            expect(result.balanceRemoved.ok.balances.find(p => p.symbol === 'ETH_TEST')).toBeUndefined()
         }
     })
 })
