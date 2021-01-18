@@ -5,20 +5,25 @@ const bitcoinJsLib = require('bitcoinjs-lib')
 const bip65 = require('bip65')
 const _ = require('lodash')
 
-const walletShared = require('./wallet-shared')
+const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
 const { syslog } = require('winston/lib/winston/config')
 
-const DSIGCTLV_ID_v1 = "PROTECT_OP:CLTV:v1.0" //Buffer.from('PROTECT_OP:CLTV:v1.0', 'utf8')
+//const DSIGCTLV_ID_vCur = "PROTECT_OP:CLTV:v0.1" // max 6 bytes
+const DSIGCTLV_ID_vCur = Buffer.from( // (max 6 bytes)
+    `12100504` + // protect_op ID stamp (4 bytes)
+    `ab01`,      // flags/version
+'hex') 
 
 module.exports = {
 
     scan_NonStdOutputs: (params) => {
-        const { asset, store } = params
+        const { asset, dispatchActions, nonStdAddresses } = params
         if (!asset) throw 'asset is required'
-        if (!store) throw 'store is required'
+        if (!nonStdAddresses) throw 'nonStdAddresses is required'
+        if (!dispatchActions) throw 'dispatchActions is required'
 
-        const ownStdAddresses = asset.addresses.filter(p => !p.accountNonStd).map(p => { return p.addr })
+        const ownStdAddresses = asset.addresses.filter(p => !p.isNonStdAddr).map(p => { return p.addr })
         utilsWallet.log(`scan_NonStdOutputs, asset=`, asset)
 
         // scan tx's, look for ones that conform to our v1 PROTECT_OP -- i.e. 4 outputs:
@@ -29,7 +34,8 @@ module.exports = {
         //   * vout=3 p2sh change output (benefactor) - ID by: matching one of our own addresses
         //
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
-        asset.addresses.filter(p => !p.accountNonStd).forEach(a => { 
+        asset.addresses.filter(p => !p.isNonStdAddr)
+        .forEach(a => { 
             a.txs.forEach(async tx => { // DMS: todo - change mempool_process_BB_UtxoTx() to pass UTXO data into local_tx structs; can then include/combine pending tx's here, to detect faster
                 
                 // if already parsed this TX and determined that it is a protect_op, skip it
@@ -50,21 +56,29 @@ module.exports = {
                      && utxo.scriptPubKey.addresses.length == 1)) return 
 
                 var txProtectOpDateTime = undefined
+                var pubKeyBeneficiary = undefined
+                var pubKeyBenefactor = undefined
                 tx.utxo_vout.forEach(utxo => { // look for our protect_op version id in an op_return output at index vout=1 
                     if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) {
                         const firstOp = parseInt('0x' + utxo.scriptPubKey.hex.substring(0,2))
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
-                            if (asm && asm.length == 2) {
-                                const data = asm[1].toString()
-                                //if (Buffer.compare(data, DSIGCTLV_ID_v1) == 0) {
-                                //if (data.compare(DSIGCTLV_ID_v1, 0, DSIGCTLV_ID_v1.length, 0) == 0) {
-                                if (data.startsWith(DSIGCTLV_ID_v1)) {
-                                    console.log('OP_RETURN data=', data)
-                                    const ss = data.split('|')
-                                    console.log('ss', ss)
-                                    if (ss && ss.length == 2 && isNumeric(ss[1])) {
-                                        txProtectOpDateTime = new Date(Number(ss[1]) * 1000)
+                            if (asm && asm.length == 2 && asm[1].buffer !== undefined) {
+                                //const data = asm[1].toString()
+
+                                const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
+                                if (buf_idVer) {
+                                    // console.log('buf_idVer', buf_idVer.toString('hex'))
+                                    // console.log('DSIGCTLV_ID_vCur', DSIGCTLV_ID_vCur.toString('hex'))
+                                    // console.log('Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur)', Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur))
+                                    // console.log('buf_pubKeyA', buf_pubKeyA.toString('hex'))
+                                    // console.log('buf_pubKeyB', buf_pubKeyB.toString('hex'))
+                                    // console.log('lockTime', lockTime)
+                                    if (Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur) == 0) {
+                                        txProtectOpDateTime = new Date(Number(lockTime) * 1000)
+                                        pubKeyBeneficiary = buf_pubKeyA
+                                        pubKeyBenefactor = buf_pubKeyB
+                                        //console.log('txProtectOpDateTime=', txProtectOpDateTime)
                                     }
                                 }
                             }   
@@ -76,44 +90,42 @@ module.exports = {
                 if (txProtectOpDateTime) {
                     utilsWallet.log(`scan_NonStdOutputs found: txid=${tx.txid} - txProtectOpDateTime=${txProtectOpDateTime} tx.utxo_vout=`, tx.utxo_vout)
 
-                    // DMS - todo(?) - need to push these state changes through a reducer, and persist them?
-                    Object.defineProperty(tx, 'p_op_addrNonStd', { get: () => { return tx.utxo_vout[0].scriptPubKey.addresses[0] }})
-                    Object.defineProperty(tx, 'p_op_addrBeneficiary', {  get: () => { return tx.utxo_vout[2].scriptPubKey.addresses[0] }})
-                    Object.defineProperty(tx, 'p_op_addrBenefactor', { get: () => { return tx.utxo_vout[3].scriptPubKey.addresses[0] }})
-                    Object.defineProperty(tx, 'p_op_valueProtected', { get: () => { return tx.utxo_vout[0].value }})
+                    const _tx = _.cloneDeep(tx)
+                    _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
+                    _tx.p_op_addrBeneficiary = tx.utxo_vout[2].scriptPubKey.addresses[0]
+                    _tx.p_op_addrBenefactor = tx.utxo_vout[3].scriptPubKey.addresses[0]
+                    _tx.p_op_valueProtected = tx.utxo_vout[0].value
+                    _tx.p_op_weAreBeneficiary = ownStdAddresses.some(p => p == _tx.p_op_addrBeneficiary)
+                    _tx.p_op_weAreBenefactor = ownStdAddresses.some(p => p == _tx.p_op_addrBenefactor)
+                    _tx.p_op_unlockDateTime = txProtectOpDateTime
+                    _tx.p_op_pubKeyBeneficiary = pubKeyBeneficiary.toString('hex')
+                    _tx.p_op_pubKeyBenefactor = pubKeyBenefactor.toString('hex')
 
-                    // how are we - benefactor or beneficiary
-                    Object.defineProperty(tx, 'p_op_weAreBeneficiary', { get: () => { return ownStdAddresses.some(p => p == tx.p_op_addrBeneficiary) }})
-                    Object.defineProperty(tx, 'p_op_weAreBenefactor', { get: () => { return ownStdAddresses.some(p => p == tx.p_op_addrBenefactor) }})
+                    const dispatchAction = {
+                        type: actionsWallet.WCORE_SET_ENRICHED_TXS,
+                     payload: { updateAt: new Date(), 
+                                  symbol: asset.symbol,
+                                    addr: a.addr,
+                                     txs: [_tx],
+                                     res: undefined }
+                    }
+                    dispatchActions.push(dispatchAction)
 
-                    // grab the locktime out of the op_return
-                    Object.defineProperty(tx, 'p_op_unlockDateTime', { get: () => { return txProtectOpDateTime }})
-                    
-                    utilsWallet.log(`p_op_valueProtected=${tx.p_op_valueProtected}`)
-                    utilsWallet.log(`p_op_addrNonStd=${tx.p_op_addrNonStd}`)
-                    utilsWallet.log(`p_op_addrBeneficiary=${tx.p_op_addrBeneficiary}`)
-                    utilsWallet.log(`p_op_addrBenefactor=${tx.p_op_addrBenefactor}`)
-                    utilsWallet.log(`p_op_weAreBeneficiary=${tx.p_op_weAreBeneficiary}`)
-                    utilsWallet.log(`p_op_weAreBenefactor=${tx.p_op_weAreBenefactor}`)
-                    utilsWallet.log(`p_op_unlockDateTime=${tx.p_op_unlockDateTime}`)
-                    utilsWallet.log(`p_op_unlockDateTime.toLocaleString()=`, tx.p_op_unlockDateTime.toLocaleString()) // show on history...
+                    utilsWallet.log(`p_op_valueProtected=${_tx.p_op_valueProtected}`)
+                    utilsWallet.log(`p_op_addrNonStd=${_tx.p_op_addrNonStd}`)
+                    utilsWallet.log(`p_op_addrBeneficiary=${_tx.p_op_addrBeneficiary}`) // show on history...
+                    utilsWallet.log(`p_op_addrBenefactor=${_tx.p_op_addrBenefactor}`) // show on history...
+                    utilsWallet.log(`p_op_weAreBeneficiary=${_tx.p_op_weAreBeneficiary}`)
+                    utilsWallet.log(`p_op_weAreBenefactor=${_tx.p_op_weAreBenefactor}`)
+                    utilsWallet.log(`p_op_unlockDateTime=${_tx.p_op_unlockDateTime}`)
+                    utilsWallet.log(`p_op_unlockDateTime.toLocaleString()=`, _tx.p_op_unlockDateTime.toLocaleString()) // show on history...
+                    utilsWallet.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
+                    utilsWallet.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
 
-                    // add the non-standard output address to the wallet
-                    await walletShared.addNonStdAddress_DsigCltv({
-                     dsigCltvP2shAddr: tx.p_op_addrNonStd,
-                                store,
-                      userAccountName: utilsWallet.getStorageContext().owner,
-                      eosActiveWallet: undefined,
-                            assetName: asset.name,
-                                  apk: utilsWallet.getStorageContext().apk,
-                              e_email: utilsWallet.getStorageContext().e_email,
-                                h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                    })
+                    if (!nonStdAddresses.includes(_tx.p_op_addrNonStd)) {
+                        nonStdAddresses.push({ nonStdAddr: _tx.p_op_addrNonStd, protect_op_txid: tx.txid})
+                    }
                 }
-
-                //const hasOpReturn = tx.utxo_vout.filter(p => p.scriptPubKey.type)
-                //if (
-                //tx.utxo_vout.forEach(vout => {})
             })
         })
     },
@@ -134,17 +146,18 @@ module.exports = {
                 console.log(`pstx/addOutput PROTECT_OP [P2SH(DSIG/CLTV)] (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`, output)
                 
                 //const sequence = bip68.encode({ blocks: 10 }) // 10 blocks from now
-                const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * 24 * 1) }); // 1 hr from now
+                const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * 1) }); // 1 hr from now
                 console.log('lockTime', new Date(lockTime).toString())
 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
+                console.log('cltvSpender.publicKey.length=', cltvSpender.publicKey.length)
 
                 var wif = addrPrivKeys.find(p => { return p.addr === output.address }).privKey
                 const nonCltvSpender = bitcoinJsLib.ECPair.fromWIF(wif, network)
                 utilsWallet.softNuke(keyPair)
                 utilsWallet.softNuke(wif)
     
-                function dsigCltv(spenderWithCltv, spenderWithoutCltv, lockTime) {
+                function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
                     return bitcoinJsLib.script.fromASM(
                       `
                       OP_IF
@@ -152,30 +165,36 @@ module.exports = {
                           OP_CHECKLOCKTIMEVERIFY
                           OP_DROP
                       OP_ELSE
-                          ${spenderWithoutCltv.publicKey.toString('hex')}
+                          ${nonCltvSpender.publicKey.toString('hex')}
                           OP_CHECKSIGVERIFY
                       OP_ENDIF
-                      ${spenderWithCltv.publicKey.toString('hex')}
+                      ${cltvSpender.publicKey.toString('hex')}
                       OP_CHECKSIG
                     `.trim().replace(/\s+/g, ' ')
                 )}
 
                 // P2SH(P2WSH(MSIG/CLTV))
-                const p2wsh = bitcoinJsLib.payments.p2wsh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
-                const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wsh, network: network })
-                //or, seems also can do unwrapped p2sh (???) i.e. 
-                //     ...const p2sh = bitcoinJsLib.payments.p2sh({redeem: { output: dsigCltv(spenderWithCltv, spenderWithoutCltv, sequence), network }, network: network })
+                //const p2wsh = bitcoinJsLib.payments.p2wsh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
+                //const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wsh, network: network })
+                
+                // or, unwrapped P2SH (MSIG/CLTV)
+                const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network: network })
                 
                 pstx.addOutput({
                     script: p2sh.output,
                     value: Number(Number(output.value).toFixed(0))
                 })
 
-                // embed data
-                const data = Buffer.from(`${DSIGCTLV_ID_v1}|${lockTime}`, 'utf8') //DSIGCTLV_ID_v1 
-                console.log(`OP_RETURN data.length=`, data.length) // max 80 bytes (node defaults; not consensus rule)
+                //
+                // embed data -- 
+                //   TODO: for unlocking...
+                //   OMG! it's v. tight!! --- 2x compressed pubKeys (33) = 66 bytes + 8 bytes (64-bit) for lockTime = 6 bytes for ID...
+                // https://stackoverflow.com/questions/14730980/nodejs-write-64bit-unsigned-integer-to-buffer/14731148
+                //
+                const data = assembleDsigCsvOpReturnBuffer(lockTime, cltvSpender.publicKey, nonCltvSpender.publicKey) // Buffer.from(`${DSIGCTLV_ID_vCur}|${lockTime}`, 'utf8')
+                console.log(`OP_RETURN data.length=`, data.length) // max 80 bytes, and max 1 op_return (node defaults - not consensus rules)
                 const embed = bitcoinJsLib.payments.embed({data: [data]})
-                pstx.addOutput({script: embed.output, value: 0, })
+                pstx.addOutput({script: embed.output, value: 0 })
 
                 // & reference the beneficiary address (so it can retrieve this TX and parse the embedded data)
                 const ctlvSpenderP2sh = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: Buffer.from(dsigCltvSpenderPubKey, 'hex'), network }), network })
@@ -197,12 +216,44 @@ module.exports = {
 
             if (input.utxo.scriptPubKey.type !== 'scripthash') throw 'Unexpected (non-P2SH) UTXO'
 
-            var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
-            var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-            const p2wpkh = bitcoinJsLib.payments.p2wpkh({pubkey: keyPair.publicKey, network}) 
-            const p2sh = bitcoinJsLib.payments.p2sh({redeem: p2wpkh, network}) 
-            const redeemScript = p2sh.redeem.output.toString('hex')
-            //console.log(''redeemScript, redeemScript)
+            // create p2sh redeem script
+            const assetAddress = asset.addresses.find(p => p.addr == input.utxo.address)
+            if (!assetAddress) throw `Couldn't look up UTXO address in wallet`
+            //const assetTx = assetAddress.txs.find(p => p.txid == input.utxo.txid)
+            const inputTx = utilsWallet.getAll_txs(asset).find(p => p.txid == input.utxo.txid)
+            if (!inputTx) throw `Couldn't look up UTXO TX in wallet`
+            //console.log('inputTx', inputTx)
+            if (inputTx.utxo_vout[input.utxo.vout].scriptPubKey.hex != input.utxo.scriptPubKey.hex) throw `scriptPubKey hex sanity check failed`
+            const isDsigCltvInput = input.utxo.address == inputTx.p_op_addrNonStd 
+            //console.log('input', input)
+            //console.log('assetAddress', assetAddress)
+            //console.log('isDsigCltvInput', isDsigCltvInput)
+            var redeemScript 
+            if (isDsigCltvInput) { // DSIG/CLTV input - construct custom redeem script
+                //...
+                // todo: psbt.setLocktime(lockTime) >> needs same value as in redeemScript...?? 
+                // todo: we need to reconstruct the entire redeemScript here, no question: we need BOTH PUB KEYS, and LOCKTIME
+                //       how to encode?!!?! store ONE of the pubkeys in OP_RETURN (deduce the other!), + LOCKTIME?
+                //
+
+                // NEED: redeem.output... from non-std utxo???
+            }
+            else { // normal P2SH output - construct standard OP_EQUAL redeem script from the public key
+                var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
+                var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
+                try {
+                    const p2wpkh = bitcoinJsLib.payments.p2wpkh({pubkey: keyPair.publicKey, network}) 
+                    const p2sh = bitcoinJsLib.payments.p2sh({redeem: p2wpkh, network}) 
+                    redeemScript = p2sh.redeem.output.toString('hex')
+                }
+                finally {
+                    utilsWallet.softNuke(keyPair)
+                    utilsWallet.softNuke(wif)
+                }
+            }
+            const asmRedeemScript = bitcoinJsLib.script.decompile(Buffer.from(redeemScript, 'hex'))
+            console.log('redeemScript', redeemScript)
+            console.dir(asmRedeemScript)
 
             pstx.addInput({ 
                 hash: input.utxo.txid, 
@@ -223,9 +274,6 @@ module.exports = {
                 // witnessScript: input.witnessScript // = p2wsh redeem output 
                 // nonWitnessUtxo: Buffer.from(input.utxo.scriptPubKey.hex, 'hex')
             })
-
-            utilsWallet.softNuke(keyPair)
-            utilsWallet.softNuke(wif)
         }
         //console.log('pstx/setup', pstx)
 
@@ -237,13 +285,15 @@ module.exports = {
             //if (!input.redeemScript && !input.witnessScript) { //  i.e. if it's a "regular" input (not protected) 
                 var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
                 var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-
-                pstx.signInput(i, keyPair)
-                pstx.validateSignaturesOfInput(i)
-                pstx.finalizeInput(i)
-
-                utilsWallet.softNuke(keyPair)
-                utilsWallet.softNuke(wif)
+                try {
+                    pstx.signInput(i, keyPair)
+                    pstx.validateSignaturesOfInput(i)
+                    pstx.finalizeInput(i)
+                }
+                finally {
+                    utilsWallet.softNuke(keyPair)
+                    utilsWallet.softNuke(wif)
+                }
             //}
             //else { // i.e. if input.redeemScript || intput.witnessScript...
             //     psbt.finalizeInput(
@@ -279,4 +329,29 @@ module.exports = {
 
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function assembleDsigCsvOpReturnBuffer(lockTime, buf_pubKeyA, buf_pubKeyB) {
+    const buf_lockTime = write64bitToBuf(lockTime)
+    const buf_combined = Buffer.concat([DSIGCTLV_ID_vCur, buf_pubKeyA, buf_pubKeyB, buf_lockTime])
+    return buf_combined
+}
+function disassembleDsigCsvOpReturnBuffer(buf) {
+    if (buf.length != 80) return {}
+    const buf_idVer = buf.slice(0, 6)
+    const buf_pubKeyA = buf.slice(6, 6 + 33)
+    const buf_pubKeyB = buf.slice(39, 39 + 33)
+    const buf_lockTime = buf.slice(72, 72 + 8)
+    const lockTime = read64bitFromBuf(buf_lockTime)
+    return { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime } 
+}
+function write64bitToBuf(i) {
+    const buf = Buffer.alloc(8)
+    buf.writeUInt32BE(i >> 8, 0)     // write the high order bits (shifted over)
+    buf.writeUInt32BE(i & 0x00ff, 4) // write the low order bits
+    return buf
+}
+function read64bitFromBuf(buf) {
+    var bufInt = (buf.readUInt32BE(0) << 8) + buf.readUInt32BE(4)
+    return bufInt
 }

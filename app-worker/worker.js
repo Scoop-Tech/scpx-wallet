@@ -17,6 +17,7 @@ const workerUtxo = require('./worker-insight')
 const configWS = require('../config/websockets')
 const configWallet = require('../config/wallet')
 const walletExternal = require('../actions/wallet-external')
+const walletP2shBtc = require('../actions/wallet-btc-p2sh')
 const utilsWallet = require('../utils')
 //import SubWorker_GetAddrFull from 'worker-loader!./subworker-get-addr-full.js'
 
@@ -85,6 +86,9 @@ if (configWallet.WALLET_ENV === "SERVER") {
 
 utilsWallet.logMajor('green','white', `... appWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
+//
+// handler: for main-thread postMessage ==> app-worker
+//
 async function handler(e) {
     if (!e) { utilsWallet.error(`appWorker >> ${workerId} no event data`); return Promise.resolve() }
     const eventData = e.data !== undefined && e.data.data !== undefined ? e.data : e // node 10 experimental worker threads vs node 13 / brower env
@@ -407,6 +411,21 @@ async function handler(e) {
                 GetSyncInfo(data.symbol)
             //}
             break
+
+        // scan for non-standard addresses, and add any found to our address-monitor list
+        case 'SCAN_NON_STANDARD_ADDRESSES':
+            utilsWallet.debug(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... asset=`, data.asset)
+            const dispatchActions = []
+            const nonStdAddresses = [] // { nonStdAddr, protect_op_txid }
+            walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddresses })
+            var mergedDispatchActions = mergeDispatchActions(data.asset, dispatchActions)
+            if (mergedDispatchActions.length > 0) {
+                self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: mergedDispatchActions } })
+            }
+            if (nonStdAddresses.length > 0) {
+                self.postMessage({ msg: 'ADD_NON_STANDARD_ADDRESSES', status: 'EXEC', data: { asset: data.asset, nonStdAddresses } })
+            }
+            break
     }
     return Promise.resolve()
 
@@ -524,7 +543,6 @@ async function handler(e) {
     }
 
     function refreshAssetBalance(asset, wallet) {
-
         workerAddressMempool.mempool_get_BB_txs(asset, wallet) //, (utxo_mempool_spentTxIds) => {
 
         utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
@@ -559,7 +577,7 @@ async function handler(e) {
         })
     }
 
-    // perf - transmogrify multiple WCORE_SET_ADDRESS_FULL actions into a single WCORE_SET_ADDRESSES_FULL_MULTI
+    // perf - transmogrify multiple WCORE_SET_ADDRESS_FULL / WCORE_SET_ENRICHED_TXS actions into a single WCORE_SET_ADDRESSES_FULL_MULTI / WCORE_SET_ENRICHED_TXS_MULTI
     //        (results in one store update instead of thousands)
     function mergeDispatchActions(asset, allDispatchActions) {
        

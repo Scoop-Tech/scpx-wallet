@@ -7,6 +7,7 @@ const _ = require('lodash')
 
 const walletActions = require('../actions')
 const opsWallet = require('../actions/wallet')
+const walletShared = require('../actions/wallet-shared')
 
 const configWallet = require('../config/wallet')
 const configEos = require('../config/eos')
@@ -52,7 +53,7 @@ module.exports = {
         // post
         return apiDataContract.updateAssetsJsonApi({ 
             owner, 
-            encryptedAssetsJSONRaw: opsWallet.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk),
+            encryptedAssetsJSONRaw: walletShared.encryptPrunedAssets(pt_rawAssetsObj, apk, h_mpk),
             e_email,
             showNotification: false
         })

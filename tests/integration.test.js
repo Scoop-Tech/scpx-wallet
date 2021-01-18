@@ -294,7 +294,7 @@ describe('transactions', function () {
         }
     })
 
-    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(P2WSH(DSIG/CLTV)) BTC_TEST', async () => {
+    it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(DSIG/CLTV) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
             await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
@@ -316,29 +316,32 @@ describe('transactions', function () {
             if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
             if (asset.addresses.length < 3) throw 'Invalid test asset address setup - test protect op needs 3 addresses setup'
 
-            // configure protect tx (utxo only)
-            //  == send-to-self, w/ consolidation on the higher balance of addr index 1 or 2
+            // configure protected UTXO tx, aka "protect_op"
+            //  == send-to-self, std-addr index 0
             //     w/ P2SH CLTV script output to define an additional time-locked (OP_CHECKLOCKTIMEVERIFY) "beneficiary" address
             const sendAddrNdx = 0 //asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
             const receiveAddrNdx = 0 //sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
             var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
-            const sendValue = 0.0048//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
-            if (sendValue < 0.00001) throw 'Insufficient test currency'
+            console.log('du_sendBalance', du_sendBalance)
+            const sendValue = 0.0050//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
+            //if (sendValue < 0.00001) throw 'Insufficient test currency'
 
-            // push p2sh(1/2 dsig+cltv) tx (WIP...)
+            // push p2sh(1/2 dsig+cltv) tx
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
             console.log('sendValue', sendValue)
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee
-            const consolidateAddr = asset.addresses[receiveAddrNdx].addr
+            const nonCltvSpender = asset.addresses[receiveAddrNdx].addr
+            const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
             const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,
                         value: sendValue,
-                           to: consolidateAddr, // send to self; to = consolidation addr = "benefactor"
-               dsigCltvPubKey: '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667', // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
+                           to: nonCltvSpender, // "benefactor" - send to self (the non-change output to this addr gets overriden in createTxHex_BTC_P2SH()...)
+               dsigCltvPubKey, 
+               // todo: add param singleUtxo { txid, vout } -- for spend specific UTXO (DMS reset/reclaim)
                 }, 'TX-PUSH')
 
-            console.log(`...PROTECT_OP ${sendValue} BTC consolidate => ${consolidateAddr}`)
+            console.log(`...PROTECT_OP ${sendValue} BTC... nonDsigCltvAddr=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
             resolve({ serverLoad, txFee, txPush })
         })
 

@@ -86,7 +86,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                         //     debugger
                         // }
 
-                        console.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
+                        //console.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
                         if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
 
                         // DMS - add all UTXOs for this TX that correspond to the query account
@@ -101,9 +101,6 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                             //
                             if ((utxo.vout == utxoSpecific.n && (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)))
                                 || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
-                                
-                                // tmp/dbg - WIP - hardcode to include test p2sh(p2wsh(dsigCltv)) output (to test unlocking, ahead of synthesizing the MSIG address, as above...)
-                                //|| ((utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes('2N3YWaoFjVUbPkWtneeHiYXtxQrmUtG45Wo')))
                             ) { 
                                 //console.log(`utxo.vout=${utxo.vout} utxoSpecific.n=${utxoSpecific.n} :: utxo.value=${Number(utxo.value)} / utxoSpecific.value=${Number(new BigNumber(utxoSpecific.value).times(1e8).toString())}`)
                                 // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483') {
@@ -131,9 +128,9 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 const utxosFlattened = //_.uniqWith(
                     _.flatten(utxoSpecifics)
                 //, _.isEqual)
-                if (utxosFlattened.length > 0 && asset.symbol === 'BTC_TEST') {
-                    console.log(`blockbook_utxos de-duped, utxoFlattened for addr ${address}`, utxosFlattened)
-                }
+                // if (utxosFlattened.length > 0 && asset.symbol === 'BTC_TEST') {
+                //     console.log(`blockbook_utxos de-duped, utxoFlattened for addr ${address}`, utxosFlattened)
+                // }
 
                 // utxo's
                 // console.log('blockbook_utxoData', utxoData)

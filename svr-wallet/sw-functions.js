@@ -84,7 +84,7 @@ module.exports = {
 
     // dumps current wallet asset data
     walletDump: (appWorker, store, p) => {
-        var { mpk, apk, symbol, txs, keys } = p
+        var { mpk, apk, symbol, txs, keys, txid } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         const state = store.getState()
         const wallet = state.wallet
@@ -95,6 +95,12 @@ module.exports = {
         const filterSymbol = symbol && symbol.length > 0 ? symbol : undefined
         const dumpTxs = utilsWallet.isParamTrue(txs)
         const dumpPrivKeys = utilsWallet.isParamTrue(keys)
+        const dumpTxid = txid && txid.length > 0 ? txid : undefined
+        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('symbol', filterSymbol)
+        log.param('txs', dumpTxs)
+        log.param('keys', dumpPrivKeys)
+        log.param('txid', dumpTxid)
 
         // decrypt raw assets (private keys) from the store
         var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, wallet.assetsRaw)
@@ -114,31 +120,37 @@ module.exports = {
                 accounts: null,
                 syncInfo: syncInfo[meta.symbol],
 
-                addresses: walletAsset.addresses.map(p => { 
+                // addresses
+                addresses: walletAsset.addresses.map(a_n => { 
                     const addrBal = walletExternal.get_combinedBalance(walletAsset, addrNdx)
+                    //const all_txs = walletExternal.getAll_txs(walletAsset)
+                    //const protect_op_tx = a_n.nonStd_protectOp_txid ? all_txs.find(p2 => p2.txid == a_n.nonStd_protectOp_txid) : undefined
                     return { 
                                ndx: addrNdx++,
-                              addr: p.addr, 
+                              addr: a_n.addr, 
+                              path: a_n.path,
+                   protect_op_txid: a_n.nonStd_protectOp_txid,
+                   //protect_op_tx,
                         du_balConf: utilsWallet.toDisplayUnit(addrBal.conf, walletAsset),
                       du_balUnconf: utilsWallet.toDisplayUnit(addrBal.unconf, walletAsset),
                 }}),
                 
                 countAll_txs: walletExternal.getAll_txs(walletAsset).length,
-                all_txs: walletExternal.getAll_txs(walletAsset),
+                all_txs: dumpTxs || dumpTxid ? walletExternal.getAll_txs(walletAsset) : undefined,
                 
                 countAll_local_txs: walletExternal.getAll_local_txs(walletAsset).length,
-                local_txs: walletExternal.getAll_local_txs(walletAsset),
+                local_txs: dumpTxs || dumpTxid ? walletExternal.getAll_local_txs(walletAsset) : undefined,
                 
                 countAll_unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset).length,
-                unconfirmed_txs: walletExternal.getAll_unconfirmed_txs(walletAsset),
+                unconfirmed_txs: dumpTxs || dumpTxid ? walletExternal.getAll_unconfirmed_txs(walletAsset) : undefined,
 
                 du_balConf: utilsWallet.toDisplayUnit(bal.conf, walletAsset),
                 du_balUnconf: utilsWallet.toDisplayUnit(bal.unconf, walletAsset),
             }
-            if (!dumpTxs) {
-                delete assetOut.all_txs
-                delete assetOut.local_txs
-                delete assetOut.unconfirmed_txs
+            if (dumpTxid) {
+                assetOut.all_txs = assetOut.all_txs.filter(p => p.txid == dumpTxid)
+                assetOut.local_txs = assetOut.local_txs.filter(p => p.txid == dumpTxid)
+                assetOut.all_txs = assetOut.all_txs.filter(p => p.txid == dumpTxid)
             }
             
             const accountsOut = []
@@ -148,7 +160,7 @@ module.exports = {
                 }
 
                 var keysOut = []
-                account.privKeys.forEach(privKey => {
+                account.privKeys.forEach(privKey => { // ##
                     const pathKeyAddr = {
                              path: privKey.path,
                           privKey: privKey.privKey,

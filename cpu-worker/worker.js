@@ -39,6 +39,9 @@ if (configWallet.WALLET_ENV === "SERVER") {
 
 utilsWallet.logMajor('magenta','white', `... cpuWorker - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV}) >> ${workerId} - workerThreads(node): ${workerThreads !== undefined} - init ...`, null, { logServerConsole: true })
 
+//
+// handler: for main-thread postMessage ==> cpu-worker
+//
 async function handler(e) {
     if (!e) { utilsWallet.error(`cpuWorker >> ${workerId} no event data`); return Promise.resolve() }
     const eventData = e.data !== undefined && e.data.data !== undefined ? e.data : e // node 10 experimental worker threads vs node 13 / brower env

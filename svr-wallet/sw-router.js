@@ -22,7 +22,6 @@ module.exports = {
     // general functions: for a loaded wallet
     fn: async (appWorker, store, p, fn) => {
         if (!appWorker) { 
-            debugger
             throw 'No app worker'
         }
 

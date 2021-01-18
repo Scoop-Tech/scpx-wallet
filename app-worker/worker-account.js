@@ -181,7 +181,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                                 if (dispatchTxs_Top_toUpdate.length > 0) {
                                     const dispatchAction = {
                                         type: actionsWallet.WCORE_SET_ENRICHED_TXS,
-                                     payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res } 
+                                     payload: { updateAt: new Date(), symbol: asset.symbol, addr: pollAddress, txs: dispatchTxs_Top_toUpdate, res }
                                     }
                                     allDispatchActions.push(dispatchAction)
                                 }
@@ -446,7 +446,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
 
                         // we can fail to produce a mappedTx if we are excluding one specific erc20 in generateWallets() fn.
                         if (!mappedTx) {
-                            debugger
+                            //debugger
                             utilsWallet.warn(`** enrichTx - ${symbol} ${tx.txid} IGNORE-TX (no mappedTx)`)
                             resolve(null) // ### - perf: never gets cached -- TODO: return a minimal dodgy mappedTx, with a flag to exclude it from propagation to UI?
                             return
@@ -469,38 +469,38 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                             }
                         })
                         .catch((err) => {
-                            debugger
+                            //debugger
                             utilsWallet.logErr(err)
                             utilsWallet.error('## enrichTx - error writing cache=', err)
                             resolve(null)
                         })
                     }
                     else {
-                        debugger
+                        //debugger
                         utilsWallet.error(`enrichTx - no block data from web3`)
                         resolve(null)
                     }
                 }) // getBlock 
                 .catch(err => {
-                    debugger
+                    //debugger
                     utilsWallet.error(`## getBlock FAIL 1 - tx.txid=${tx.txid}, err=`, err)
                     resolve(null)
                 })
             }) // getTransactionReceipt
             .catch(err => {
-                debugger
+                //debugger
                 utilsWallet.error(`## getTransactionReceipt FAIL 1 - tx.txid=${tx.txid}, err=`, err)
                 resolve(null)
             })
         }
         else {
-            debugger
+            //debugger
             utilsWallet.error(`enrichTx - no tx data from web3`)
             resolve(null)
         }
     }) // getTransaction
     .catch(err => {
-        debugger
+        //debugger
         utilsWallet.error(`## getTransaction FAIL 1 - tx.txid=${tx.txid}, err=`, err)
         resolve(null)
     })

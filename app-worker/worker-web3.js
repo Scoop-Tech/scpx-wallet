@@ -138,27 +138,21 @@ module.exports = {
 
     createTxHex_Eth: async (asset, params, privateKey) => {
         if (!params) {
-            debugger
             throw 'Invalid or missing parameters'
         }
         if (!params.gasLimit) {
-            debugger
             throw 'Invalid or missing parameters'
         }
         if (!params.gasPrice) {
-            debugger
             throw 'Invalid or missing parameters'
         }
         if (params.value === undefined) {
-            debugger
             throw 'Invalid or missing parameters'
         }
         if (!params.from) {
-            debugger
             throw 'Invalid or missing parameters'
         }
         if (!params.to) {
-            debugger
             throw 'Invalid or missing parameters'
         }
 

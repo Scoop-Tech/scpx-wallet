@@ -135,7 +135,7 @@ module.exports = {
 
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
-        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, apk, h_mpk } = p
+        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, spendSingleUtxo, apk, h_mpk, } = p
 
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
@@ -146,6 +146,7 @@ module.exports = {
                   feeParams,
                    sendMode: true,
             sendFromAddrNdx,
+            spendSingleUtxo,
                         apk: apk,
                       h_mpk: h_mpk,
         })
@@ -185,15 +186,9 @@ module.exports = {
     //
     // Combines all txs and local_txs across all addresses
     //
-    getAll_txs: (asset) => {
-        return getAll_txs(asset)
-    },
-    getAll_local_txs: (asset) => {
-        return getAll_local_txs(asset)
-    },
-    getAll_unconfirmed_txs: (asset) => {
-        return getAll_unconfirmed_txs(asset)
-    },
+    getAll_txs: (asset) => { return getAll_txs(asset) },
+    getAll_local_txs: (asset) => { return getAll_local_txs(asset) },
+    getAll_unconfirmed_txs: (asset) => { return getAll_unconfirmed_txs(asset) },
 
     //
     // Combines local_tx data with tx and balance fields ; two distinct sets of balance data: 
@@ -396,7 +391,7 @@ module.exports = {
                                 fee: du_fee }
             }
             else {
-                utilsWallet.warn(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
+                utilsWallet.error(`Failed to construct tx hex for ${asset.symbol}, payTo=`, payTo)
                 throw 'Failed to construct tx - ensure you have sufficient inputs for the specified value'
             }
         }
@@ -505,10 +500,10 @@ module.exports = {
 // create tx hex - all assets
 //
 async function createTxHex(params) {
-    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1,
+    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1, spendSingleUtxo,
             apk, h_mpk } = params
 
-    console.log('createTxHex/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
+    //console.log('createTxHex/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
 
     if (!asset) throw 'Invalid or missing asset'
     if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
@@ -532,7 +527,13 @@ async function createTxHex(params) {
     utxos = _.uniqWith(
                 utxos.filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
-    console.log('utxos', utxos)
+    if (sendMode) {
+        if (spendSingleUtxo !== undefined) { // spend a single UTXO?
+            utxos = utxos.filter(p => p.txid == spendSingleUtxo.txid && p.vout == spendSingleUtxo.vout) // spendTxid, spendVout
+        }   
+        console.log('utxos', utxos)
+        if (utxos.length == 0) throw 'Insufficient UTXOs'
+    }
 
     // get private keys
     var pt_AssetsJson = utilsWallet.aesDecryption(apk, h_mpk, encryptedAssetsRaw)
@@ -584,7 +585,9 @@ async function createTxHex(params) {
                 else          return undefined           // we're estimating fees for a tx: the error will be handled internally
             }
             if (!txSkeleton) throw 'Failed parsing tx skeleton'
-            console.log('txSkeleton', txSkeleton)
+            if (sendMode) {
+                console.log('txSkeleton', txSkeleton)
+            }
 
             //console.time('ext-createTxHex-utxo-createSignTx')
             const opsWallet = require('./wallet')
@@ -704,45 +707,14 @@ function pushTransactionHex(store, payTo, wallet, asset, txHex, callback) {
     }
 }
 
-//
-// consolidated tx's (across all addresses)
-//
 function getAll_txs(asset) {
-    
-    // dedupe send-to-self tx's (present against >1 address)
-    var all_txs = []
-    for(var i=0 ; i < asset.addresses.length ; i++) {
-        const addr = asset.addresses[i]
-        var existing_txids = all_txs.map(p2 => { return p2.txid } )
-        if (addr.txs) {
-            var deduped = addr.txs
-                //.filter(p => { return p.value !== 0 })
-                .filter(p => { return !existing_txids.some(p2 => p2 === p.txid) }) // dedupe
-            all_txs.extend(deduped)
-        }
-    }
-    all_txs.sort((a,b) => { 
-        // sort by block desc, except unconfirmed tx's on top
-        const a_block_no = a.block_no !== -1 ? a.block_no : Number.MAX_SAFE_INTEGER
-        const b_block_no = b.block_no !== -1 ? b.block_no : Number.MAX_SAFE_INTEGER
-        return b_block_no - a_block_no
-    })
-    return all_txs 
+    return utilsWallet.getAll_txs(asset)
 }
-
 function getAll_local_txs(asset) {
-    var all_local_txs = asset.local_txs
-    all_local_txs.sort((a,b) => { return b.block_no - new Date(a.date) })
-    return all_local_txs 
+    return utilsWallet.getAll_local_txs(asset)
 }
-
 function getAll_unconfirmed_txs(asset) {
-    const all_txs = getAll_txs(asset)
-    const unconfirmed_txs = all_txs.filter(p => { 
-        return (p.block_no === -1 || p.block_no === undefined || p.block_no === null)
-            && p.isMinimal === false
-    })
-    return unconfirmed_txs
+    return utilsWallet.getAll_unconfirmed_txs(asset)
 }
 
 //

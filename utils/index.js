@@ -179,6 +179,47 @@ module.exports = {
     },
 
     //
+    // TX helpers
+    //
+    // consolidated tx's (across all addresses)
+    //
+    getAll_txs: (asset) => {
+        // dedupe send-to-self tx's (present against >1 address)
+        //  DMS: ordering of addresses will pick  "p_op_"-enriched TX's from the addresses in the primary account
+        //        (in preference to TX's on non-standard addresses, which aren't enriched)
+        var all_txs = []
+        for(var i=0 ; i < asset.addresses.length ; i++) { // assuming std-addresses (main/primary account - 'm/' addresses) are first...
+            const addr = asset.addresses[i]
+            var existing_txids = all_txs.map(p2 => { return p2.txid } )
+            if (addr.txs) {
+                var deduped = addr.txs //... then we'll pick p_op_ enriched TX's in preference to un-enriched TX's on the latter non-std accounts
+                    .filter(p => { return !existing_txids.some(p2 => p2 === p.txid) }) // dedupe
+                all_txs.extend(deduped)
+            }
+        }
+        all_txs.sort((a,b) => { 
+            // sort by block desc, except unconfirmed tx's on top
+            const a_block_no = a.block_no !== -1 ? a.block_no : Number.MAX_SAFE_INTEGER
+            const b_block_no = b.block_no !== -1 ? b.block_no : Number.MAX_SAFE_INTEGER
+            return b_block_no - a_block_no
+        })
+        return all_txs 
+    },
+    getAll_local_txs: (asset) => {
+        var all_local_txs = asset.local_txs
+        all_local_txs.sort((a,b) => { return b.block_no - new Date(a.date) })
+        return all_local_txs 
+    },
+    getAll_unconfirmed_txs: (asset) => {
+        const all_txs = module.exports.getAll_txs(asset)
+        const unconfirmed_txs = all_txs.filter(p => { 
+            return (p.block_no === -1 || p.block_no === undefined || p.block_no === null)
+                && p.isMinimal === false
+        })
+        return unconfirmed_txs
+    },
+
+    //
     // erc20
     //
     isERC20: (assetOrSymbolOrAddress) => {

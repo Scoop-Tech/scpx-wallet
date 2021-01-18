@@ -31,7 +31,7 @@ module.exports = {
         if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         // exec
-        return opsWallet.generateNewAddress({
+        return opsWallet.generateNewStandardAddress({
                     store: store,
                       apk: apk,
                     h_mpk: h_mpk,

@@ -73,7 +73,9 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
             })
 
             // updated timestamp
-            asset.lastAssetUpdateAt = updateAt
+            if (updateAt !== undefined) {
+                asset.lastAssetUpdateAt = updateAt
+            }
         }
     }
     return { ...state, assets }
@@ -97,19 +99,21 @@ const handlers = {
         const assetNdx = state.assets.findIndex((p) => p.symbol == symbol)
         var assets = _.cloneDeep(state.assets)
 
+        const allTxs = _.flatten(addrTxs.map(p => p.txs))
+        utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} #addrTxs=${addrTxs.length} #allTxs=${allTxs.length}`, null, { logServerConsole: true })
+
         const mergedNewAddresses = []
         addrTxs.forEach((addrTx) => {
             const addr = addrTx.addr
             const txs = addrTx.txs
             const res = addrTx.res
 
-            utilsWallet.logMajor('red','white', `WCORE_SET_ENRICHED_TXS_MULTI ${symbol} ${addr}, txs.len=`, txs.length, { logServerConsole: true })
-
             const addrNdx = state.assets[assetNdx].addresses.findIndex(p => p.addr == addr)
-            if (addrNdx == -1) { return {...state} }
+            if (addrNdx == -1) return {...state}
 
             txs.forEach((tx) => {
-                
+                utilsWallet.log(`WCORE_SET_ENRICHED_TXS_MULTI txid=${tx.txid}, tx=`, tx)
+
                 if (!assets[assetNdx].addresses[addrNdx] // observed - race condition across logins??
                     || assets[assetNdx].addresses[addrNdx].addr !== addr) { 
                     return {...state}

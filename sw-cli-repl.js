@@ -31,7 +31,8 @@ const walletDumpHelp = `${helpBanner}` +
     `(wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
-    `\t--txs          [bool]                [optional]  dump address transactions (default: false)\n` +
+    `\t--txs          [bool]                [optional]  dump all address transactions (default: false)\n` +
+    `\t--txid         [string]              [optional]  seach & dump specific TXID\n` +
     `\t--keys         [bool]                [optional]  dump private keys (default: false)\n`
 
 const walletAddAddrHelp = `${helpBanner}` +
@@ -44,13 +45,13 @@ const walletImportPrivKeysHelp = `${helpBanner}` +
     `(wallet-import-priv-keys) - adds one or more private keys to a new import account in the loaded wallet\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\t--privKeys     [string]              <required>  comma-separated list of WIF privkeys (UXO assets) or 64 hex char (ETH assets)"\n`
+    `\t--privKeys     [string]              <required>  comma-separated list of WIF privkeys (UTXO assets) or 64 hex char (ETH assets)"\n`
 
 const walletRemovePrivKeysHelp = `${helpBanner}` +
     `(wallet-remove-priv-keys) - removes an import account and its associated private keys from the loaded wallet\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              <required>  the asset for which to add an address, e.g. "ETH" or "BTC"\n` +
-    `\t--accountName  [string]              <required>  the import account name to remove e.g. "Import #1 Bitcoin Cash"\n`
+    `\t--accountName  [string]              <required>  the import account name to remove e.g. "Import #1 Bitcoin"\n`
 
 const walletSaveHelp = `${helpBanner}` +
     `(wallet-save) - saves the loaded wallet in encrypted form to file\n`.cyan.bold +
@@ -97,12 +98,13 @@ const txGetFeeHelp = `${helpBanner}` +
 
 const txPushHelp = `${helpBanner}` +
     `(tx-push) - broadcasts the specified single-recipient transaction\n`.cyan.bold +
-    `\t--mpk          <master private key>  <required>  \n` +
-    `\t--symbol (--s) [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
-    `\t--value (--v)  [number]              <required>  the amount to send, e.g. 0.01\n` +
-    `\t--from (--f)   [string]              <optional>  the address to send from (account-type assets)\n` +
-    `\t--to (--t)     [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
-    `\t--dsigCltvPubKey[string]  <optional>  creates a non-standard output (P2SH(P2WSH((DSIG/CLTV))) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n`
+    `\t--mpk            <master private key>  <required>  \n` +
+    `\t--symbol (--s)   [string]              <required>  the asset to use for the transaction, e.g. "ZEC"\n` +
+    `\t--value (--v)    [number]              <required>  the amount to send, e.g. 0.01\n` +
+    `\t--from (--f)     [string]              <optional>  the address to send from (account-type assets)\n` +
+    `\t--to (--t)       [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
+    `\t--dsigCltvPubKey [string]  <optional>  creates a non-standard output (P2SH(DSIG/CLTV)) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n` +
+    `\t--spendFullUtxo  [string]  <optional>  spend (in full) a specifc UTXO - format "txid:vout"\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold

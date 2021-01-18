@@ -8,9 +8,13 @@ const configExternal = require('../config/wallet-external')
 const configWallet = require('../config/wallet')
 
 const walletP2shBtc = require('../actions/wallet-btc-p2sh')
+const walletShared = require('../actions/wallet-shared')
 
 const utilsWallet = require('../utils')
 
+//
+// callback handler: for app-worker postMessage ==> main-thread
+//
 module.exports = {
     appWorkerHandler: (store, event) => {
         
@@ -50,6 +54,23 @@ module.exports = {
             const dispatchType = postback.dispatchType
             const dispatchPayload = postback.dispatchPayload
             store.dispatch({ type: dispatchType, payload: dispatchPayload })
+        }
+
+        // add non-standard address(es)
+        else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
+            const nonStdAddresses = postback.nonStdAddresses
+            const asset = postback.asset
+
+            walletShared.addNonStdAddress_DsigCltv({
+       dsigCltvP2sh_addr_txid: nonStdAddresses,
+                        store,
+              userAccountName: utilsWallet.getStorageContext().owner,
+              eosActiveWallet: undefined,
+                    assetName: asset.name,
+                          apk: utilsWallet.getStorageContext().apk,
+                      e_email: utilsWallet.getStorageContext().e_email,
+                        h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
+            })
         }
     
         // asset store updates
@@ -146,7 +167,8 @@ module.exports = {
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
                             if (asset.symbol === 'BTC_TEST') {
                                 utilsWallet.log(`TX mined - will scan for non-std outputs...`)
-                                walletP2shBtc.scan_NonStdOutputs({ asset, store })
+                                //walletP2shBtc.scan_NonStdOutputs({ asset, store })
+                                appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset }})
                             }
                         })
                     }

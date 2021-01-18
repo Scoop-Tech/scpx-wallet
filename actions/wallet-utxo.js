@@ -1,5 +1,6 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
+const _ = require('lodash')
 const BigNumber = require('bignumber.js')
 const axios = require('axios')
 //const axiosRetry = require('axios-retry')
@@ -82,13 +83,15 @@ module.exports = {
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue, unspentValue, feeSatoshisAssumed=`, inputsTotalValue.toString(), unspentValue.toString(), feeSatoshisAssumed.toString())
         if (unspentValue.gt(feeSatoshisAssumed)) { // the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust
             outputs.push({
-                address: params.changeAddress, // multi-addr: fixing change to addr0 for now
+                address: params.changeAddress,
                   value: unspentValue.toString(),
                  change: true
             })
         }
 
         const txSkeleton = { inputs, outputs }
+        const distinctAddresses = _.uniq(_.flatten(inputs.map(p => p.utxo.scriptPubKey.addresses)))
+        console.log('distinctAddresses', distinctAddresses)
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, txSkeleton=`, txSkeleton)
 
         return Promise.resolve(txSkeleton)

@@ -182,7 +182,7 @@ var walletsMeta = {
         type: WALLET_TYPE_UTXO,
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_TEST',
-        displayName: 'BTC#',
+        displayName: 'Bitcoin#',
         ccySymbol: '฿', //₿', 
         desc: 'Testnet3',
         displaySymbol: 'BTC#',
@@ -1068,7 +1068,7 @@ module.exports = {
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
     , WALLET_DEFAULT_ADDRESSES: 1                                        // no. of address slots to (re)gen by default
     , WALLET_MAX_UNUSED_ADDRESSES: 2                                     // max. no. of unused (zero-tx) addresses - don't allow add beyond this
-    , WALLET_MAX_ADDRESSES: 10                                           // hard cap max. no. addresses per asset, used or otherwise
+    , WALLET_MAX_ADDRESSES: -1                                           // hard cap max. no. addresses per asset, used or otherwise
 
     // large values (e.g. 10000): load-perf is acceptable, limiting factor is browser-render performance (not react render() fn!)
     // of very large txlists (WalletDetailTxHistory) -- e.g. scoop admin wallet
