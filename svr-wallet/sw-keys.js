@@ -126,7 +126,7 @@ module.exports = {
         if (!asset) return Promise.resolve({ err: `Invalid asset symbol "${symbol}"` })
 
         if (utilsWallet.isParamEmpty(accountName)) return Promise.resolve({ err: `Account name is required` })
-        if (!asset.addresses.some(addr => addr.accountName === accountName && addr.path.startsWith("i"))) { // "i" for non-BIP44 (imported) acount
+        if (!asset.addresses.some(addr => addr.accountName === accountName && addr.path.startsWith("~i"))) { // "~i" for non-BIP44 (imported) acount
             return Promise.resolve({ err: `Import account not found` })
         }
 

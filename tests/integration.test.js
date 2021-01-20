@@ -217,7 +217,7 @@ describe('wallet', function () {
 
             // remove priv-keys
             const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 BTC#' }, 'REMOVE-PRIV-KEYS')
+                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Bitcoin#' }, 'REMOVE-PRIV-KEYS')
 
             const removeZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')

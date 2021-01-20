@@ -13,50 +13,19 @@ module.exports = {
       //'BTC_TEST': { url: 'wss://scp-btct.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
         
         'BTC_SEG' : { url: 'https://btc.com',                                                subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
-      //'BTC_SEG' : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
-
         'BTC_SEG2': { url: 'https://btc.com',                                                subBlocks: false },
-      //'BTC_SEG2': { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-      //'BTC_SEG2': { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
-      //'BTC_SEG2'     : { url: 'wss://insight.bitcore.io',                                  subBlocks: false },
-
         'BTC'     : { url: 'https://btc.com',                                                subBlocks: false },
-      //'BTC'     : { url: 'wss://bitcoinblockexplorers.com',                                subBlocks: false },
-      //'BTC'     : { url: 'wss://insight.bitpay.com',                                       subBlocks: false },
-      //'BTC'     : { url: 'wss://scp-btc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: false },
-      //'BTC'     : { url: 'wss://insight.bitcore.io',                                       subBlocks: false },
-      //'BTC'     : { url: 'wss://blockexplorer.com',                                        subBlocks: false },
         
         'LTC'     : { url: 'wss://insight.litecore.io',                                      subBlocks: false },
-      //'LTC'     : { url: 'wss://scp-ltc2.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
-    
         'ZEC'     : { url: 'wss://explorer.zecmate.com',                                     subBlocks: false },
-      //'ZEC'     : { url: 'wss://explorer.z.cash',                                          subBlocks: false },
-      //'ZEC'     : { url: 'wss://zcashnetwork.info',                                        subBlocks: false },
-      //'ZEC'     : { url: 'wss://scp-zec1.southeastasia.cloudapp.azure.com:4001',           subBlocks: true  },
-
         'DASH'    : { url: 'wss://insight.dash.org',                                         subBlocks: false },
-
-        'VTC'     : { url: 'wss://insight.vertcoin.org',                                     subBlocks: false },
-
-        'QTUM'    : { url: 'wss://explorer.qtum.org',                                        subBlocks: false },
-
+      //'VTC'     : { url: 'wss://insight.vertcoin.org',                                     subBlocks: false },
+      //'QTUM'    : { url: 'wss://explorer.qtum.org',                                        subBlocks: false },
         'DGB'     : { url: 'wss://digiexplorer.info',                                        subBlocks: false },
-        
-      //'BCHABC'  : { url: 'wss://cashexplorer.bitcoin.com',                                 subBlocks: false },
-      //'BCHABC'  : { url: 'wss://bch-insight.bitpay.com',                                   subBlocks: false },
-        'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false },
-      //'BCHABC'  : { url: 'wss://blockdozer.com',                                           subBlocks: false },
-
-        'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false },
-
-        'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false },
-        
-        'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false },
+      //'BCHABC'  : { url: 'wss://bch.btc.com',                                              subBlocks: false },
+      //'RVN'     : { url: 'wss://explorer.rvn.zelcore.io',                                  subBlocks: false },
+      //'LTC_TEST': { url: 'wss://testnet.litecore.io',                                      subBlocks: false },
+      //'ZEC_TEST': { url: 'wss://explorer.testnet.z.cash',                                  subBlocks: false },
     },
 
     //
@@ -65,51 +34,22 @@ module.exports = {
     //
     blockbook_ws_config: {
         'BTC_TEST' : { url: 'wss://tbtc2.trezor.io',                                           subBlocks: true },
-
         'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
-      //'BTC'      : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true },
         'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true  },
-      //'BTC_SEG'  : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10130',          subBlocks: true  },
-      //'BTC_SEG'  : { url: 'wss://btc1.trezor.io',                                            subBlocks: true  },
         'BTC_SEG2' : { url: 'wss://btc3.trezor.io',                                            subBlocks: true },
-  
         'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-      //'ZEC'      : { url: 'wss://node0.scoop.tech:10000',                                    subBlocks: true },
-      //'ZEC'      : { url: 'wss://scp-bb-zec01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-        
         'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
-      //'LTC'      : { url: 'wss://scp-bb-ltc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-
         'ETH'      : { url: 'wss://eth1.trezor.io',                                            subBlocks: false },
-      //'ETH'      : { url: 'wss://scp-bb-eth01.southeastasia.cloudapp.azure.com:8888',        subBlocks: false },
-      //'ETH'      : { url: 'wss://eth1.trezor.io',                                            subBlocks: false },
-
         'DASH'     : { url: 'wss://dash1.trezor.io',                                           subBlocks: true },
-      //'DASH'     : { url: 'wss://scp-bb-dash01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
-      //'DASH'     : { url: 'wss://scp-btcsw.southeastasia.cloudapp.azure.com:10133',          subBlocks: true },
-
-        'VTC'      : { url: 'wss://vtc1.trezor.io',                                            subBlocks: true },
-      //'VTC'      : { url: 'wss://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-
+      //'VTC'      : { url: 'wss://vtc1.trezor.io',                                            subBlocks: true },
         'DGB'      : { url: 'wss://dgb1.trezor.io',                                            subBlocks: true },
-      //'DGB'      : { url: 'wss://scp-bb-dgb01.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-
-        'BCHABC'   : { url: 'wss://bch1.trezor.io',                                            subBlocks: true },
-      //'BCHABC'   : { url: 'wss://scp-bb-bch02.southeastasia.cloudapp.azure.com:8888',        subBlocks: true },
-
-        'RVN'      : { url: 'wss://blockbook.ravencoin.org',                                   subBlocks: true },
+      //'BCHABC'   : { url: 'wss://bch1.trezor.io',                                            subBlocks: true },
+      //'RVN'      : { url: 'wss://blockbook.ravencoin.org',                                   subBlocks: true },
 
         // ### -- no public BB nodes: self-hosted on scp-dm-0
-        'QTUM'     : { url: 'wss://ac-dev0.net:29188',                                         subBlocks: true },
-      //'QTUM'     : { url: 'wss://scp-bb-qtum01.southeastasia.cloudapp.azure.com:8888',       subBlocks: true },
-
-        'ZEC_TEST' : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-      //'ZEC_TEST' : { url: 'wss://ac-dev0.net:29132',                                         subBlocks: true },
-      //'ZEC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29132',      subBlocks: true },
-
+      //'QTUM'     : { url: 'wss://ac-dev0.net:29188',                                         subBlocks: true },
+      //'ZEC_TEST' : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
         'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
-      //'ETH_TEST' : { url: 'wss://node0.scoop.tech:29136',                                    subBlocks: true },
-      //'ETH_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29136',      subBlocks: true },
 
       // (not used) -- issues with addr formats/creation iirc
       //'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
