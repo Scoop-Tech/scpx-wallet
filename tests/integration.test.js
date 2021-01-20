@@ -331,7 +331,7 @@ describe('transactions', function () {
             console.log('sendValue', sendValue)
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee
-            const nonCltvSpender = asset.addresses[receiveAddrNdx].addr
+            const nonCltvSpender = asset.addresses[receiveAddrNdx].addr 
             const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // "beneficiary" - testnets3, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
             const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,

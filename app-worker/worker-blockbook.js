@@ -617,7 +617,22 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             resolve(null)
                         }
                         else {
+                            // todo: bbTx.hex... (only for protect_op tx's...)
+                            // if (tx.txid == 'e96ad034850d723a52fa93194e6c5318477503df823596cbb0d6bb8927e2c5db') {
+                            //     debugger
+                            // }
+
                             const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
+
+                            // DMS - detect protect_op TX's, and save txhex for these
+                            if (bbTx.version == 2 && bbTx.vout.length == 4 
+                                    && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
+                                    && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
+                                    && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
+                                    && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
+                            ) {
+                                insightTx.hex = bbTx.hex
+                            }
                             
                             // map tx (prunes vins, drops vouts)
                             const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset.symbol)[0]

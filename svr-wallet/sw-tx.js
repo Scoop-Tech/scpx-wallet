@@ -34,7 +34,7 @@ module.exports = {
         log.param('spendFullUtxo', spendFullUtxo)
 
         // validate from addr
-        const { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
+        var { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
         if (err) return Promise.resolve({ err })
         if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
 
@@ -76,11 +76,18 @@ module.exports = {
                 const cu_sendValue = new BigNumber(utilsWallet.toCalculationUnit(value, asset))
                 const cu_utxoValue = new BigNumber(utilsWallet.toCalculationUnit(spendUtxo.value, asset))
                 const cu_fee = new BigNumber(utilsWallet.toCalculationUnit(du_fee, asset))
-                if (cu_sendValue.plus(cu_fee).isEqualTo(cu_utxoValue) == false) {
-                    const fullSpendAmt = cu_utxoValue.minus(cu_fee)
-                    //log.info('fullSpendAmt', fullSpendAmt)
-                    return Promise.resolve({ err: `Invalid TX value for full UTXO spend (UTXO value ${spendUtxo.value}); specify the full UTXO value minus the fee (= ${utilsWallet.toDisplayUnit(fullSpendAmt, asset)}` }) 
-                }
+
+                // override sendvalue - we will spend the entire UTXO in full
+                du_sendValue = utilsWallet.toDisplayUnit(cu_utxoValue.minus(cu_fee), asset)
+                log.info('du_sendValue(overriden)', du_sendValue)
+
+                // //if (cu_sendValue.isEqualTo(cu_utxoValue) == false) {
+                // if (cu_sendValue.plus(cu_fee).isEqualTo(cu_utxoValue) == false) {
+                //     const fullSpendAmt = cu_utxoValue.minus(cu_fee)
+                //     log.info('fullSpendAmt', fullSpendAmt)
+                //     return Promise.resolve({ err: `Invalid TX value for full UTXO spend (UTXO value ${spendUtxo.value}); specify the full UTXO value minus the fee (= ${utilsWallet.toDisplayUnit(fullSpendAmt, asset)})` }) 
+                //     //return Promise.resolve({ err: `Invalid TX value for full UTXO spend; specify the full UTXO value (= ${utilsWallet.toDisplayUnit(cu_utxoValue, asset)}` }) 
+                // }
             }
 
             if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })

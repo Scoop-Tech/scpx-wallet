@@ -528,7 +528,7 @@ async function createTxHex(params) {
                 utxos.filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
     if (sendMode) {
-        if (spendSingleUtxo !== undefined) { // spend a single UTXO?
+        if (spendSingleUtxo !== undefined && spendSingleUtxo.txid !== undefined && spendSingleUtxo.vout !== undefined) { // spend a single UTXO?
             utxos = utxos.filter(p => p.txid == spendSingleUtxo.txid && p.vout == spendSingleUtxo.vout) // spendTxid, spendVout
         }   
         console.log('utxos', utxos)

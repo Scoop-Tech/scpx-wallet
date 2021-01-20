@@ -408,6 +408,7 @@ function map_insightTxs(txs, ownAddresses, symbol) {
             utxo_vin: pruned_vin, 
             utxo_vout: vouts, 
             isFromShieldedAddr,
+            hex: tx.hex, // DMS - only supplied for protect_op tx's (worker-blockbook::enrichTx())
         }
     })
 }

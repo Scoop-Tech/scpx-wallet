@@ -56,21 +56,36 @@ module.exports = {
             store.dispatch({ type: dispatchType, payload: dispatchPayload })
         }
 
-        // add non-standard address(es)
+        // add non-standard address(es) (if balance > 0)
         else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
-            const nonStdAddresses = postback.nonStdAddresses
+            const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
             const asset = postback.asset
-
-            walletShared.addNonStdAddress_DsigCltv({
-       dsigCltvP2sh_addr_txid: nonStdAddresses,
-                        store,
-              userAccountName: utilsWallet.getStorageContext().owner,
-              eosActiveWallet: undefined,
-                    assetName: asset.name,
-                          apk: utilsWallet.getStorageContext().apk,
-                      e_email: utilsWallet.getStorageContext().e_email,
-                        h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-            })
+            function handleAddrBalancePostback(addrBalEvent) {
+                const addrBalRes = utilsWallet.unpackWorkerResponse(addrBalEvent)
+                if (addrBalRes) {
+                    if (addrBalRes.msg === 'ADDRESS_BALANCE_RESULT' && addrBalRes.data !== undefined) {
+                        addrBalRes.data.forEach(result => {
+                            if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
+                                if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
+                                    walletShared.addNonStdAddress_DsigCltv({
+                                    dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
+                                                     store,
+                                           userAccountName: utilsWallet.getStorageContext().owner,
+                                           eosActiveWallet: undefined,
+                                                 assetName: asset.name,
+                                                       apk: utilsWallet.getStorageContext().apk,
+                                                   e_email: utilsWallet.getStorageContext().e_email,
+                                                     h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
+                                    })                                    
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+            utilsWallet.getAppWorker().removeEventListener('message', handleAddrBalancePostback)
+            utilsWallet.getAppWorker().addEventListener('message', handleAddrBalancePostback)
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'GET_ANY_ADDRESS_BALANCE', data: { asset, addrs: nonStdAddrs_Txs.map(p => p.nonStdAddr) } })
         }
     
         // asset store updates
@@ -167,7 +182,6 @@ module.exports = {
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
                             if (asset.symbol === 'BTC_TEST') {
                                 utilsWallet.log(`TX mined - will scan for non-std outputs...`)
-                                //walletP2shBtc.scan_NonStdOutputs({ asset, store })
                                 appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset }})
                             }
                         })

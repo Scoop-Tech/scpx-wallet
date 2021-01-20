@@ -25,7 +25,7 @@ module.exports = {
         var { store, apk, h_mpk, assetName, dsigCltvP2sh_addr_txid, // required - browser & server
               userAccountName, e_email,                             // required - browser 
               eosActiveWallet } = p
-
+        
         // validation
         if (!store) throw 'store is required'
         if (!apk) throw 'apk is required'

@@ -134,7 +134,6 @@ module.exports = {
 
                                     // all assets fully loaded - now scan for non-standard outputs (and add any associated dynamic addresses)
                                     utilsWallet.log(`Load complete - will scan for non-std outputs...`)
-                                    //walletP2shBtc.scan_NonStdOutputs({ asset: otherAssets.find(p => p.symbol === 'BTC_TEST'), store })
                                     appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset: otherAssets.find(p => p.symbol === 'BTC_TEST') }})
 
                                     resolve()

@@ -361,10 +361,9 @@ async function handler(e) {
         // arbitrary address balances -- used by privkey import; consolidated return format, unlike wallet-external
         case 'GET_ANY_ADDRESS_BALANCE': {
             const addrs = data.addrs
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
+            utilsWallet.logMajor(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
             //debugger
             if (data.asset.symbol === 'ETH' || data.asset.symbol === 'ETH_TEST' || utilsWallet.isERC20(data.asset.symbol)) {
-                
                 const ops = data.addrs.map(addr => { return workerAccount.getAddressBalance_Account(data.asset.symbol, addr, false) })
                 Promise.all(ops)
                 .then(results => {
@@ -416,14 +415,14 @@ async function handler(e) {
         case 'SCAN_NON_STANDARD_ADDRESSES':
             utilsWallet.debug(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... asset=`, data.asset)
             const dispatchActions = []
-            const nonStdAddresses = [] // { nonStdAddr, protect_op_txid }
-            walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddresses })
+            const nonStdAddrs_Txs = [] // { nonStdAddr, protect_op_txid }
+            walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddrs_Txs },)
             var mergedDispatchActions = mergeDispatchActions(data.asset, dispatchActions)
             if (mergedDispatchActions.length > 0) {
                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: mergedDispatchActions } })
             }
-            if (nonStdAddresses.length > 0) {
-                self.postMessage({ msg: 'ADD_NON_STANDARD_ADDRESSES', status: 'EXEC', data: { asset: data.asset, nonStdAddresses } })
+            if (nonStdAddrs_Txs.length > 0) {
+                self.postMessage({ msg: 'ADD_NON_STANDARD_ADDRESSES', status: 'EXEC', data: { asset: data.asset, nonStdAddrs_Txs } })
             }
             break
     }
