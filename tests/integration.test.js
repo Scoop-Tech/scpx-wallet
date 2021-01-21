@@ -213,7 +213,20 @@ describe('wallet', function () {
             const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
 
+            const dumpAfter = await svrRouter.fn(appWorker, appStore, { mpk, txs: true, keys: true }, 'DUMP')
+            const btcTest = dumpAfter.ok.find(p => p.assetName === 'btc(t)')
+            console.dir(btcTest)
+            if (btcTest.accounts.length != 2) {
+                console.error('unexpected no. of accounts...') 
+            }
+            // TODO: ## we're getting ~p.. from the imports, so count is off...
+            if (btcTest.addresses.filter(p => p.path.startsWith("~i/")).length != 2) {
+                console.error('unexpected no. of addresses in import account...')
+            }
+            console.dir('btcTest.accounts.len', btcTest.accounts.length)
+
             const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
+            console.dir(balanceImported)
 
             // remove priv-keys
             const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
@@ -225,7 +238,7 @@ describe('wallet', function () {
             const removeEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
                 await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
 
-            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
+            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
 
             resolve({ create,
                       importBtcTest, importZecTest, importEthTest, balanceImported,
