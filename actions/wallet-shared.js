@@ -47,7 +47,12 @@ module.exports = {
 
         // decrypt raw assets
         var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
+        if (!pt_rawAssets) {
+            utilsWallet.warn(`addNonStdAddress_DsigCltv - failed decrypting e_rawAssets; probably using stale store/mpk combination from previous wallet load - aborting.`)
+            return
+        }
         var rawAssets = JSON.parse(pt_rawAssets)
+        if (!rawAssets) throw 'null rawAssets'
         var genAsset = rawAssets[assetName.toLowerCase()]
         try {
             // get asset 

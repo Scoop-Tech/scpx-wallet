@@ -20,6 +20,8 @@ const configWallet = require('../config/wallet')
 // todo: https://github.com/Scoop-Tech/scpx-wallet/issues/22
 // note: for manual coverage upload:  "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
 
+const PAUSE_MS = 5000
+
 // testnets 
 const serverTestWallet = {
       mpk: process.env.TESTNETS2_MPK,
@@ -49,8 +51,8 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-describe('asset', function () {
 
+describe('asset', function () {
     it('can create a new receive address for all asset types', async () => {
         expect.assertions(3)
         const result = await new Promise(async (resolve, reject) => {
@@ -219,7 +221,6 @@ describe('wallet', function () {
             if (btcTest.accounts.length != 2) {
                 console.error('unexpected no. of accounts...') 
             }
-            // TODO: ## we're getting ~p.. from the imports, so count is off...
             if (btcTest.addresses.filter(p => p.path.startsWith("~i/")).length != 2) {
                 console.error('unexpected no. of addresses in import account...')
             }
@@ -275,7 +276,7 @@ describe('transactions', function () {
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
+            //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
             await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
         }
     })
@@ -283,7 +284,7 @@ describe('transactions', function () {
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) ZEC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+            //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
             await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
         }
     })
@@ -291,7 +292,7 @@ describe('transactions', function () {
     it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a standard tx for account-based ETH_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_ETH_TEST) {
             var serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
+            //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
 
             // ## ETH_TEST on DSR-saved testnets2@scoop.tech is sometimes dropping second address...
             // no idea why (no repro in wallet front end)... suspected: some side-effect of automated tests?
@@ -310,7 +311,7 @@ describe('transactions', function () {
     it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a non-standard tx for P2SH(DSIG/CLTV) BTC_TEST', async () => {
         if (configWallet.WALLET_INCLUDE_BTC_TEST) {
             const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
+            //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
             await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
         }
     })
