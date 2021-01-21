@@ -303,7 +303,7 @@ module.exports = {
 function map_insightTxs(txs, ownAddresses, symbol) {
     return txs.map(tx => {
 
-        // if (tx.txid === '58b601fe28b55730630e372eccd42f1b4b9ea04a499a82d164b209eb44d47f70') {
+        // if (tx.txid === '7e3c943758c6373cd5299bad47352ddfea90f7eaceffca7192463a5be3b6cd33') {
         //     debugger
         // }
 
@@ -344,7 +344,8 @@ function map_insightTxs(txs, ownAddresses, symbol) {
                 })
             })) {
 
-                value = 0
+                //value = 0
+                value = Number(tx.vout.reduce((sum,p) => { return sum.plus(new BigNumber(p.value)) }, new BigNumber(0)))
                 toOrFrom = tx.vin[0].addr
                 sendToSelf = true
             }
@@ -400,7 +401,7 @@ function map_insightTxs(txs, ownAddresses, symbol) {
             isIncoming,
             sendToSelf,
             date: new Date(tx.time * 1000),
-            value: value,
+            value,
             txid: tx.txid,
             toOrFrom,
             block_no: tx.blockheight,

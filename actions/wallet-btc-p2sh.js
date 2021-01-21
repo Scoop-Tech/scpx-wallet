@@ -11,11 +11,11 @@ const { syslog } = require('winston/lib/winston/config')
 
 const DSIGCTLV_ID_vCur = Buffer.from( // (max 6 bytes)
     `12100504` + // protect_op ID stamp (4 bytes)
-    `ab03`,      // flags/version
+    `ab04`,      // flags/version
 'hex') 
 
 function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
-    return bitcoinJsLib.script.fromASM( // ...??
+    return bitcoinJsLib.script.fromASM(
       `
       OP_IF
           ${bitcoinJsLib.script.number.encode(lockTime).toString('hex')}
@@ -242,19 +242,19 @@ module.exports = {
             //console.log('isDsigCltvInput', isDsigCltvInput)
             var p2shRedeemScript 
             if (isDsigCltvInput) { // DSIG/CLTV input - construct custom redeem script
-                if (!validationMode) {
-                    debugger
-                }
+                // if (!validationMode) {
+                //     debugger
+                // }
                 if (inputTx.p_op_lockTime === undefined || inputTx.hex === undefined
                     || inputTx.p_op_pubKeyBeneficiary === undefined || inputTx.p_op_pubKeyBenefactor === undefined) throw `inputTx sanity check(s) failed`
 
                 pstx.setLocktime(inputTx.p_op_lockTime)
+                //pstx.setLocktime(1575158400) // 12/01/2019 // ****
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(inputTx.p_op_pubKeyBeneficiary, 'hex'))
                 const nonCltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(inputTx.p_op_pubKeyBenefactor, 'hex'))
                 const redeemScript = dsigCltv(cltvSpender, nonCltvSpender, inputTx.p_op_lockTime)
                 pstx.addInput({
-                    // ## "nLocktime lock is not in effect, because all sequence numbers are set to 0xFFFFFFFF....""
-                    hash: input.utxo.txid, index: input.utxo.vout, sequence: 0xffffffff, // ### ?!!
+                    hash: input.utxo.txid, index: input.utxo.vout, sequence: 0xfffffffe, // ****
                     nonWitnessUtxo: Buffer.from(inputTx.hex,'hex'),
                     redeemScript: Buffer.from(redeemScript, 'hex')
                 })
