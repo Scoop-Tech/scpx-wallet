@@ -355,7 +355,7 @@ describe('transactions', function () {
                // todo: add param singleUtxo { txid, vout } -- for spend specific UTXO (DMS reset/reclaim)
                 }, 'TX-PUSH')
 
-            console.log(`...PROTECT_OP ${sendValue} BTC... nonDsigCltvAddr=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
+            console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
             resolve({ serverLoad, txFee, txPush })
         })
 

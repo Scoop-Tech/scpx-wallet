@@ -525,7 +525,8 @@ async function createTxHex(params) {
         .forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
     
     utxos = _.uniqWith(
-                utxos.filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
+                utxos.filter(utxo_n => utxo_n.satoshis > 0)                      // required: we don't explicitly prune outputs when they are spent (only a cache-clear drops them)
+                     .filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
     if (/*sendMode &&*/ asset.type === configWallet.WALLET_TYPE_UTXO) {
         if (spendSingleUtxo !== undefined && spendSingleUtxo.txid !== undefined && spendSingleUtxo.vout !== undefined) { // spend a single UTXO?

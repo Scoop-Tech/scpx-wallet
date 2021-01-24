@@ -14,6 +14,7 @@ const utilsWallet = require('../utils')
 module.exports = {
         
     // rest interface - takes prices from bitfinex & cryptocompare rest api's, per asset config
+    // Jan '21 - not using, getting rate-limited (back to WS)
     fetch: () => {
         const fxApi = 'https://api.exchangeratesapi.io/latest?base=USD'
 
@@ -142,7 +143,7 @@ module.exports = {
         })
     },
 
-    // not used -- no HT prices on cryptocompare socket (others missing too)
+    // Jan '21: reinstated (after cleaup WS has prices for all required assets, & rest api is getting rate-limited)
     priceSocket_Disconnect: () => {
         if (self.priceSocket) {
             utilsWallet.debug('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)
@@ -207,7 +208,7 @@ module.exports = {
 
                                     // don't push prices too frequently; it's surprisingly expensive
                                     if (lastPriceAt[fromCurrency] === undefined
-                                        || (flag != 4 &&  ((new Date().getTime() - lastPriceAt[fromCurrency]) / 1000) > CONST.PRICE_UPDATE_INTERVAL_SECS)) {
+                                        || (flag != 4 && ((new Date().getTime() - lastPriceAt[fromCurrency]) / 1000) > 10/*seconds*/)) {
 
                                         utilsWallet.log(`price update ccy=${fromCurrency}, price=${price}`)
                                         
