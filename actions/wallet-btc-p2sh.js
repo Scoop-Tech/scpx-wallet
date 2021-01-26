@@ -241,8 +241,8 @@ module.exports = {
                     || inputTx.p_op_pubKeyBeneficiary === undefined || inputTx.p_op_pubKeyBenefactor === undefined) throw `inputTx sanity check(s) failed`
 
                 if (inputTx.p_op_weAreBeneficiary) {
-                   //pstx.setLocktime(inputTx.p_op_lockTime)
-                   pstx.setLocktime(1609286400) // Dec '20
+                   pstx.setLocktime(inputTx.p_op_lockTime)
+                   //pstx.setLocktime(1609286400) // Dec '20
                 }
 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(inputTx.p_op_pubKeyBeneficiary, 'hex'))

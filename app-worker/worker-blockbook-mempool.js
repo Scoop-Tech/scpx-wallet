@@ -217,7 +217,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                         date: new Date(),
                         value: Number(valueToAddr),
                         txid,
-                        toOrFrom: tx.inputs[0].address, // there is no spoon bro
+                        toOrFrom: tx.inputs[0].address, // there is no spoon
                         block_no: -1,
                         fees: Number(new BigNumber(tx.feeSatoshis).div(100000000))
                     }
@@ -235,6 +235,11 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
             }
         })
     }
+
+    // DMS TODO - we need to enrich the local_tx w/ p_op data;
+    //      (to do this, we trigger getAddressFull_Blockbook_v3() ... ... 'REFRESH_ASSET_FULL')
+    //  OR, maybe this should happen after the non-std address has been added...
+    //postMessage({ msg: 'REQUEST_REFRESH_ASSET_FULL', status: 'REFRESH', data: { symbol: asset.symbol } })
 }
 
 function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20) {

@@ -181,7 +181,10 @@ module.exports = {
                                 //const sinceLastTx = new Date().getTime() - self.lastTx[x]
                                 //if (isNaN(sinceLastTx) || sinceLastTx > 500) {
                                 //    self.lastTx[x] = new Date().getTime()
-                                    networkStatusChanged(x, { txid: tx.txid, mempool_tps: mempool_tps_avg, insight_url: configWS.insightApi_ws_config[x].url })
+
+                                // Jan '21 - don't call this at all for tx's (perf)
+                                //    networkStatusChanged(x, { txid: tx.txid, mempool_tps: mempool_tps_avg, insight_url: configWS.insightApi_ws_config[x].url })
+                                
                                 //}
                             })
                             socket.on('block', (blockHash) => {
@@ -280,7 +283,7 @@ module.exports = {
                 var addrData = addrInfo.data
 
                 // prune unused utxo data
-                console.log('insight_utxos', utxos)
+                //console.log('insight_utxos', utxos)
                 utxos = utxos.map(p => {
                     return {
                         //address: p.address, 

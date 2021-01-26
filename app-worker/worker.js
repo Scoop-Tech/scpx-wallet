@@ -411,19 +411,19 @@ async function handler(e) {
             //}
             break
 
-        // scan for non-standard addresses, and add any found to our address-monitor list
+        // scan for non-standard addresses - add any found to our address-monitor list
         case 'SCAN_NON_STANDARD_ADDRESSES':
-            utilsWallet.debug(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... asset=`, data.asset)
+            utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... asset=`, data.asset)
             const dispatchActions = []
             const nonStdAddrs_Txs = [] // { nonStdAddr, protect_op_txid }
             walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddrs_Txs },)
             var mergedDispatchActions = mergeDispatchActions(data.asset, dispatchActions)
             if (mergedDispatchActions.length > 0) {
                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: mergedDispatchActions } })
-            }
+            } else utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... no dispatch actions found`)
             if (nonStdAddrs_Txs.length > 0) {
                 self.postMessage({ msg: 'ADD_NON_STANDARD_ADDRESSES', status: 'EXEC', data: { asset: data.asset, nonStdAddrs_Txs } })
-            }
+            } else utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... no new non-std addr's found`)
             break
     }
     return Promise.resolve()

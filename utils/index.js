@@ -218,6 +218,21 @@ module.exports = {
         })
         return unconfirmed_txs
     },
+    getAll_protect_op_txs: (p) => {
+        const { asset, weAreBeneficiary, weAreBenefactor } = p
+        if (!weAreBeneficiary && !weAreBenefactor) throw 'Must include at least one type of protect_op TX'
+        if (asset.symbol !== 'BTC_TEST') return []
+        const all_txs = module.exports.getAll_txs(asset)
+        var ret = []
+        const nonStdTxs = all_txs.filter(p => p.p_op_addrNonStd !== undefined)
+        if (weAreBeneficiary) {
+            ret = ret.concat(nonStdTxs.filter(p => p.p_op_weAreBeneficiary == true))
+        }
+        if (weAreBenefactor) {
+            ret = ret.concat(nonStdTxs.filter(p => p.p_op_weAreBenefactor == true))
+        }
+        return ret
+    },
 
     //
     // erc20

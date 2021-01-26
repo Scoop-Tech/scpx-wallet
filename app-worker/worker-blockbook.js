@@ -52,7 +52,7 @@ module.exports = {
 // BB v3
 function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentTxIds, allDispatchActions) {
     const symbol = asset.symbol
-    utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol}...`)
+    utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol}...`)
 
     return new Promise((resolve, reject) => {
         isosocket_send_Blockbook(symbol, 'getAccountInfo',  {
@@ -448,7 +448,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                 networkStatusChanged(x, { bb_url: configWS.blockbook_ws_config[x].url })
 
                                 if (configWS.blockbook_ws_config[x].subBlocks === true) {
+                                    //
                                     // subscribe new block from BB -- note, no new TX subscription in BB 
+                                    //
                                     const method = 'subscribeNewBlock'
                                     const params = {}
                                     if (self.blockbookIsoSockets_subId_NewBlock[x]) {
@@ -626,10 +628,10 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 
                             // DMS - detect protect_op TX's, and save txhex for these
                             if (bbTx.version == 2 && bbTx.vout.length == 4 
-                                    && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
-                                    && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
-                                    && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
-                                    && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
+                                && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
+                                && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
+                                && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
+                                && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
                             ) {
                                 insightTx.hex = bbTx.hex
                             }

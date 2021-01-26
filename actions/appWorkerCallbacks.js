@@ -89,16 +89,14 @@ module.exports = {
         }
     
         // asset store updates
-        else if (msg === 'ASSET_UPDATE_FULL_INSIGHT') {
-            const dispatchAction = walletExternal.getAddressFull_ProcessResult(postback.res, postback.asset, postback.addrNdx)
-            if (dispatchAction !== null) {
-                store.dispatch(dispatchAction)
-            }
-        }
-        else if (msg === 'ASSET_UPDATE_FULL_ACCOUNT') { 
-            const dispatchAction = walletExternal.getAddressFull_ProcessResult(postback.res, postback.asset, postback.addrNdx)
-            if (dispatchAction !== null) {
-                store.dispatch(dispatchAction)
+        else if (msg === 'REQUEST_REFRESH_ASSET_FULL') {
+            const storeState = store.getState()
+            if (postback.symbol) {
+                // DMS - todo... OR, can refresh_asset_full *after* we've added the new non-std addr?
+                // const dispatchAction = walletExternal.getAddressFull_ProcessResult(postback.res, postback.asset, postback.addrNdx)
+                // if (dispatchAction !== null) {
+                //     store.dispatch(dispatchAction)
+                // }
             }
         }
         else if (msg === 'REQUEST_DISPATCH_BATCH') {
@@ -106,7 +104,7 @@ module.exports = {
             if (dispatchActions) {
 
                 // main client-side callback point for new tx's
-                const storeState = store.getState()
+                var storeState = store.getState()
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
                     const enrichTxOps = dispatchActions.filter(p => { return p.type === 'WCORE_SET_ENRICHED_TXS_MULTI' })
 
@@ -179,6 +177,7 @@ module.exports = {
                     // btc p2sh - on tx confirmation, scan for non-standard outputs (and add any associated dynamic addresses)
                     if (txConfirmed) {
                         enrichTxOps.forEach(enrichTxOp => {
+                            storeState = store.getState() // DMS - ### not detecting new-addr reliably...
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
                             if (asset.symbol === 'BTC_TEST') {
                                 utilsWallet.log(`TX mined - will scan for non-std outputs...`)

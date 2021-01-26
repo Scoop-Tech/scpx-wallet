@@ -179,10 +179,12 @@ module.exports = {
 
                                                     // ## the rate calc'd above is the streaming rate of all txpool to client; it's not rate of newly
                                                     // added to txpool - behaviour is confusing/different compared to insight mempool subscription
-                                                    networkStatusChanged(x, { txid, 
-                                                        mempool_tps: -1, // N/A
-                                                        geth_url: configWS.geth_ws_config[x].url
-                                                    })
+
+                                                    // Jan '21 - don't call this at all for tx's (perf)
+                                                    // networkStatusChanged(x, { txid, 
+                                                    //     mempool_tps: -1, // N/A
+                                                    //     geth_url: configWS.geth_ws_config[x].url
+                                                    // })
                                                 //}
                                             //}
                                         }

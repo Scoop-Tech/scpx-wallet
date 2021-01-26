@@ -35,11 +35,33 @@ module.exports = {
 
         // validate from addr
         var { err, wallet, asset, du_sendValue } = await utilsWallet.validateSymbolValue(store, symbol, value)
+        //log.info('du_sendValue', du_sendValue)
         if (err) return Promise.resolve({ err })
         if (utilsWallet.isParamEmpty(to)) return Promise.resolve({ err: `To address is required` })
 
+        // if spending single UTXO, ensure that supplied value is exactly the value of the UTXO
+        var spendTxid, spendVout, spendUtxo, cu_utxoValue
+        if (!utilsWallet.isParamEmpty(spendFullUtxo) && asset.symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid spendFullUtxo for ${asset.symbol}` })
+        if (asset.type === configWallet.WALLET_TYPE_UTXO && !utilsWallet.isParamEmpty(spendFullUtxo)) {
+            const ss = spendFullUtxo.split(':')
+            if (ss.length != 2) return Promise.resolve({ err: `Invalid spendFullUtxo format (txid:vout)` })
+            spendTxid = ss[0]
+            spendVout = Number(ss[1])
+            //log.info('spendTxid', spendTxid)
+            //log.info('spendVout', spendVout)
+            if (Number.isInteger(spendVout) == false) return Promise.resolve({ err: `Invalid vout` })
+            const tx = walletExternal.getAll_txs(asset).find(p => p.txid == spendTxid)
+            if (!tx) return Promise.resolve({ err: `Invalid txid` })
+            if (spendVout > tx.utxo_vout.length) return Promise.resolve({ err: `Bad vout` })
+            spendUtxo = tx.utxo_vout[spendVout]
+            //log.info('spendUtxo', spendUtxo)
+            const cu_sendValue = new BigNumber(utilsWallet.toCalculationUnit(value, asset))
+            cu_utxoValue = new BigNumber(utilsWallet.toCalculationUnit(spendUtxo.value, asset))
+            if (!cu_sendValue.isEqualTo(cu_utxoValue)) return Promise.resolve({ err: `Invalid spendFullUtxo value: expected full UTXO value ${spendUtxo.value}, got ${value}` })
+        }
+
         // get fee
-        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value: 0.00001 /* FIXME - gross hack */ })
+        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value/*: 0.00001 FIXME - gross hack */ })
         if (txGetFee.err) return Promise.resolve({ err: txGetFee.err })
         if (!txGetFee.ok || !txGetFee.ok.txFee || txGetFee.ok.txFee.fee === undefined) return Promise.resolve({ err: `Error computing TX fee` })
         const du_fee = Number(txGetFee.ok.txFee.fee)
@@ -47,7 +69,6 @@ module.exports = {
 
         // account-type: map supplied from-addr to addr-index
         var sendFromAddrNdx = -1 // utxo: use all available address indexes
-        var spendTxid, spendVout, spendUtxo
         if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
             // account: use specific address index
             if (!utilsWallet.isParamEmpty(spendFullUtxo)) return Promise.resolve({ err: `Invalid spendFullUtxo for account-type asset` })
@@ -61,33 +82,17 @@ module.exports = {
         else {
             // utxo: validate 
             if (!utilsWallet.isParamEmpty(spendFullUtxo)) {
-                const ss = spendFullUtxo.split(':')
-                if (ss.length != 2) return Promise.resolve({ err: `Invalid spendFullUtxo format` })
-                spendTxid = ss[0]
-                spendVout = Number(ss[1])
-                log.info('spendTxid', spendTxid)
-                log.info('spendVout', spendVout)
-                if (Number.isInteger(spendVout) == false) return Promise.resolve({ err: `Invalid vout` })
-                const tx = walletExternal.getAll_txs(asset).find(p => p.txid == spendTxid)
-                if (!tx) return Promise.resolve({ err: `Invalid txid` })
-                if (spendVout > tx.utxo_vout.length) return Promise.resolve({ err: `Bad vout` })
-                spendUtxo = tx.utxo_vout[spendVout]
-                log.info('spendUtxo', spendUtxo)
-                const cu_sendValue = new BigNumber(utilsWallet.toCalculationUnit(value, asset))
-                const cu_utxoValue = new BigNumber(utilsWallet.toCalculationUnit(spendUtxo.value, asset))
                 const cu_fee = new BigNumber(utilsWallet.toCalculationUnit(du_fee, asset))
 
-                // override sendvalue - we will spend the entire UTXO in full
+                // override send value - we will spend the entire UTXO in full, less the fee
                 du_sendValue = utilsWallet.toDisplayUnit(cu_utxoValue.minus(cu_fee), asset)
                 log.info('du_sendValue(overriden)', du_sendValue)
 
-                // //if (cu_sendValue.isEqualTo(cu_utxoValue) == false) {
-                if (cu_sendValue.plus(cu_fee).isEqualTo(cu_utxoValue) == false) {
-                    const fullSpendAmt = cu_utxoValue.minus(cu_fee)
-                    log.info('fullSpendAmt', fullSpendAmt)
-                    return Promise.resolve({ err: `Invalid TX value for full UTXO spend (UTXO value ${spendUtxo.value}); specify the full UTXO value minus the fee (= ${utilsWallet.toDisplayUnit(fullSpendAmt, asset)})` }) 
-                    //return Promise.resolve({ err: `Invalid TX value for full UTXO spend; specify the full UTXO value (= ${utilsWallet.toDisplayUnit(cu_utxoValue, asset)}` }) 
-                }
+                // if (cu_sendValue.plus(cu_fee).isEqualTo(cu_utxoValue) == false) {
+                //     const fullSpendAmt = cu_utxoValue.minus(cu_fee)
+                //     log.info('fullSpendAmt', fullSpendAmt)
+                //     return Promise.resolve({ err: `Invalid TX value for full UTXO spend (UTXO value ${spendUtxo.value}); specify the full UTXO value minus the fee (= ${utilsWallet.toDisplayUnit(fullSpendAmt, asset)})` }) 
+                // }
             }
 
             if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })

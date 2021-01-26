@@ -189,6 +189,7 @@ module.exports = {
     getAll_txs: (asset) => { return getAll_txs(asset) },
     getAll_local_txs: (asset) => { return getAll_local_txs(asset) },
     getAll_unconfirmed_txs: (asset) => { return getAll_unconfirmed_txs(asset) },
+    getAll_protect_op_txs: (p) => { return getAll_protect_op_txs(p) },
 
     //
     // Combines local_tx data with tx and balance fields ; two distinct sets of balance data: 
@@ -201,6 +202,7 @@ module.exports = {
     get_combinedBalance: (asset, addrNdx = -1) => {
         
         if (asset === undefined || asset.addresses === undefined) return 
+
         const meta = configWallet.walletsMeta[asset.name.toLowerCase()] 
         var ret = {
                         conf: new BigNumber(0),
@@ -290,7 +292,25 @@ module.exports = {
         // available balance: deduct any pending out, don't credit any pending in
         ret.avail = ret.conf.minus(cu_local_txs_pendingOut.abs())                                    // net off any pending local_tx out value
                             .minus(totalUnconfirmed < 0 ? new BigNumber(totalUnconfirmed).abs() : 0) // net off any address (3PBP) pending out value
-        
+
+        // available balance: DMS - deduct any balances that arise from protect_op/weAreBeneficiary tx's
+        //  (each such utxo needs a different locktime to be spent, so they must be spent one by one...)
+        if (asset.type === configWallet.WALLET_TYPE_UTXO) {
+            if (asset.symbol === 'BTC_TEST') {
+                const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
+                if (p_op_txs.length > 0) {
+                    const beneficiary_addrs = asset.addresses.filter(p => p_op_txs.some(p2 => p2.p_op_addrNonStd == p.addr))
+                    if (beneficiary_addrs.length > 0) {
+                        const beneficiaryConfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
+                        const beneficiaryUnconfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.unconfirmedBalance || 0).plus(new BigNumber(sum)) }, 0)
+                        if (beneficiaryConfirmed.isGreaterThan(0) || beneficiaryUnconfirmed.isGreaterThan(0)) {
+                            ret.avail = ret.avail.minus(beneficiaryConfirmed).minus(beneficiaryUnconfirmed)
+                        }
+                    }
+                }
+            }
+        }
+
         // total balance: confirmed and unconfirmed
         ret.total = ret.conf.plus(ret.unconf)
 
@@ -307,6 +327,7 @@ module.exports = {
         }
 
         // TODO -- should also be rounding ERC20 dust values - observed (sometimes) - "1e-20" or similar on send all erc20
+        //...
 
         // utxo balance
         /*if (asset.type === configWallet.WALLET_TYPE_UTXO) {
@@ -332,11 +353,6 @@ module.exports = {
         }*/
 
         // get total # of pending tx's -- external and local
-        // const all_txs = getAll_txs(asset)
-        // const unconfirmed_txs = all_txs.filter(p => { 
-        //     return (p.block_no === -1 || p.block_no === undefined || p.block_no === null)
-        //         && p.isMinimal === false
-        // })
         const unconfirmed_txs = getAll_unconfirmed_txs(asset)
         ret.unconfirmed_tx_count = asset.local_txs.length + unconfirmed_txs.length 
 
@@ -529,10 +545,19 @@ async function createTxHex(params) {
                      .filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
     if (/*sendMode &&*/ asset.type === configWallet.WALLET_TYPE_UTXO) {
-        if (spendSingleUtxo !== undefined && spendSingleUtxo.txid !== undefined && spendSingleUtxo.vout !== undefined) { // spend a single UTXO?
-            utxos = utxos.filter(p => p.txid == spendSingleUtxo.txid && p.vout == spendSingleUtxo.vout) // spendTxid, spendVout
-        }   
-        console.log('utxos', utxos)
+
+        if (asset.symbol === 'BTC_TEST') {
+            if (spendSingleUtxo !== undefined && spendSingleUtxo.txid !== undefined && spendSingleUtxo.vout !== undefined) { 
+                // spending a single UTXO (a single protect_op) - filter out all other UTXOs
+                utxos = utxos.filter(p => p.txid == spendSingleUtxo.txid && p.vout == spendSingleUtxo.vout) // spendTxid, spendVout
+            }   
+            else {
+                // spending regular outputs - filter out all protected beneficiary UTXOs (they require specific locktimes, so must be spent individually)
+                const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
+                utxos = utxos.filter(p => !p_op_txs.some(p2 => p2.txid == p.txid))
+            }
+        }
+        //console.log('utxos', utxos)
         if (utxos.length == 0) throw 'Insufficient UTXOs'
     }
 
@@ -716,6 +741,9 @@ function getAll_local_txs(asset) {
 }
 function getAll_unconfirmed_txs(asset) {
     return utilsWallet.getAll_unconfirmed_txs(asset)
+}
+function getAll_protect_op_txs(p) {
+    return utilsWallet.getAll_protect_op_txs(p)
 }
 
 //
