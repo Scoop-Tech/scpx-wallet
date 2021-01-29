@@ -135,7 +135,7 @@ module.exports = {
 
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
-        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, spendSingleUtxo, apk, h_mpk, } = p
+        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, spendFullUtxo, apk, h_mpk, } = p
 
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
@@ -146,7 +146,7 @@ module.exports = {
                   feeParams,
                    sendMode: true,
             sendFromAddrNdx,
-            spendSingleUtxo,
+            spendFullUtxo,
                         apk: apk,
                       h_mpk: h_mpk,
         })
@@ -366,7 +366,7 @@ module.exports = {
     // Compute a specific tx fee, for the supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, apk, h_mpk } = p
+        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, spendFullUtxo, apk, h_mpk } = p
         if (!feeData) { throw 'Invalid parameter - feeData' }
         if (!asset) { throw 'Invalid parameter - asset' }
         if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
@@ -392,7 +392,7 @@ module.exports = {
             const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
 
             const res = await createTxHex({ 
-                payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1,
+                payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1, spendFullUtxo,
                          apk: apk, 
                        h_mpk: h_mpk,
             })
@@ -516,7 +516,7 @@ module.exports = {
 // create tx hex - all assets
 //
 async function createTxHex(params) {
-    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1, spendSingleUtxo,
+    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1, spendFullUtxo,
             apk, h_mpk } = params
 
     //console.log('createTxHex/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
@@ -547,9 +547,9 @@ async function createTxHex(params) {
     if (/*sendMode &&*/ asset.type === configWallet.WALLET_TYPE_UTXO) {
 
         if (asset.symbol === 'BTC_TEST') {
-            if (spendSingleUtxo !== undefined && spendSingleUtxo.txid !== undefined && spendSingleUtxo.vout !== undefined) { 
+            if (spendFullUtxo !== undefined && spendFullUtxo.txid !== undefined && spendFullUtxo.vout !== undefined) { 
                 // spending a single UTXO (a single protect_op) - filter out all other UTXOs
-                utxos = utxos.filter(p => p.txid == spendSingleUtxo.txid && p.vout == spendSingleUtxo.vout) // spendTxid, spendVout
+                utxos = utxos.filter(p => p.txid == spendFullUtxo.txid && p.vout == spendFullUtxo.vout) // spendTxid, spendVout
             }   
             else {
                 // spending regular outputs - filter out all protected beneficiary UTXOs (they require specific locktimes, so must be spent individually)

@@ -272,7 +272,7 @@ function getAddressBalance_Blockbook_v3(asset, address) {
 
 // called for initial block-sync state - and new blocks
 function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
-    utilsWallet.log(`getSyncInfo_Blockbook_v3 ${symbol}...`)
+    utilsWallet.debug(`getSyncInfo_Blockbook_v3 ${symbol}...`)
     
     // cache BB rest data so we can reuse across tests (across wallet load/worker load cycles) - we get 429's otherwise
     async function bb_getBlock(blockNo, page) {

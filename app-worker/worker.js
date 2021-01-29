@@ -429,7 +429,7 @@ async function handler(e) {
     return Promise.resolve()
 
     function GetSyncInfo(symbol) {
-        utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+        utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
 
         if ((symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST)
          || (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST)
@@ -700,7 +700,7 @@ self.get_BlockbookSocketIo = function(asset) {
         }
         else {
             try {
-                utilsWallet.log(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
+                utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
                 socket = io(configWS.blockbook_ws_config[socketToUse].url, { transports: ['websocket'] })
                 self.blockbookSocketIos[socketToUse] = socket
                 

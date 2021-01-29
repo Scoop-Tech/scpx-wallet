@@ -61,7 +61,7 @@ module.exports = {
         }
 
         // get fee
-        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value/*: 0.00001 FIXME - gross hack */ })
+        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value,  spendFullUtxo: { txid: spendTxid, vout: spendVout }, })
         if (txGetFee.err) return Promise.resolve({ err: txGetFee.err })
         if (!txGetFee.ok || !txGetFee.ok.txFee || txGetFee.ok.txFee.fee === undefined) return Promise.resolve({ err: `Error computing TX fee` })
         const du_fee = Number(txGetFee.ok.txFee.fee)
@@ -135,7 +135,7 @@ module.exports = {
                             asset: asset,
                         feeParams: feeParams,
                   sendFromAddrNdx,
-                  spendSingleUtxo: { txid: spendTxid, vout: spendVout },
+                  spendFullUtxo: { txid: spendTxid, vout: spendVout },
                               apk: apk,
                             h_mpk: h_mpk,
             }, (res, err) => {
@@ -157,7 +157,7 @@ module.exports = {
 
     // gets network fee for the specified tx
     txGetFee: async (appWorker, store, p) => {
-        var { mpk, apk, symbol, value } = p
+        var { mpk, apk, symbol, value, spendFullUtxo } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txGetFee')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -173,6 +173,7 @@ module.exports = {
         try {
             const txFee = await walletExternal.computeTxFee({
                         asset: asset,
+                spendFullUtxo,
                       feeData,
                     sendValue: du_sendValue,
            encryptedAssetsRaw: wallet.assetsRaw, 
