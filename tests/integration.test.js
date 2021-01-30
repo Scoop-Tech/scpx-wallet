@@ -319,7 +319,7 @@ describe('transactions', function () {
         it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', ) // need to get back: the p2sh non-std addr...
+                const p2shAddr = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
 
                 //
                 // txp --v = full 
@@ -336,7 +336,7 @@ describe('transactions', function () {
 
     // PROTECT_OP
     async function sendTestnetDsigCltvTx(store, serverLoad, testSymbol) {
-        expect.assertions(7)
+        expect.assertions(7 + 5)
         const mpk = serverLoad.ok.walletInit.ok.mpk
         
         const result = await new Promise(async (resolve, reject) => {
@@ -367,7 +367,7 @@ describe('transactions', function () {
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
-            resolve({ serverLoad, txFee, txPush })
+            resolve({ serverLoad, txFee, txPush, p2shAddr })
         })
 
         expect(result.serverLoad.ok).toBeDefined()
@@ -377,7 +377,17 @@ describe('transactions', function () {
         expect(result.txFee.inputsCount).toBeGreaterThan(0)
         expect(Number(result.txFee.utxo_satPerKB)).toBeGreaterThan(0)
         expect(Number(result.txFee.utxo_vsize)).toBeGreaterThan(0)
-        console.log('txPush', result.txPush)
+        
+        expect(result.txPush.ok).toBeDefined()
+        expect(result.txPush.ok.psbt).toBeDefined()
+        const txOutputs = result.txPush.ok.psbt.txOutputs
+        expect(txOutputs).toBeDefined()
+        expect(Number(txOutputs.length)).toBeGreaterThan(0)
+        expect(txOutputs[0].address).toBeDefined()
+        
+        const p2shAddr = txOutputs[0].address
+        console.log('p2shAddr', p2shAddr)
+        return p2shAddr
         //expect(result.txid).toBeDefined()
     }
 

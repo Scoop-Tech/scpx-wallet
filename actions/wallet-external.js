@@ -150,17 +150,17 @@ module.exports = {
                         apk: apk,
                       h_mpk: h_mpk,
         })
-        .then(res => {
-            const txHex = res.hex
-            pushTransactionHex(store, payTo, wallet, asset, txHex, (res, err) => {
+        .then(resCreateTxHex => {
+            const txHex = resCreateTxHex.hex
+            pushTransactionHex(store, payTo, wallet, asset, txHex, (resPushTxHex, err) => {
                 if (err) {
                     utilsWallet.error(`## createAndPushTx (wallet-external) ${asset.symbol}, err=`, err)
                     callback(null, err)
                 }
                 else {
-                    utilsWallet.logMajor('green','white', `Broadcast txid=${res.tx.txid}`, txHex, { logServerConsole: true })
-                    store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX, payload: { symbol: asset.symbol, tx: res.tx } }) 
-                    callback(res)
+                    utilsWallet.logMajor('green','white', `Broadcast txid=${resPushTxHex.tx.txid}`, txHex, { logServerConsole: true })
+                    store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX, payload: { symbol: asset.symbol, tx: resPushTxHex.tx } }) 
+                    callback({ tx: resPushTxHex.tx, psbt: resCreateTxHex.psbt })
                 }
             })
         })
