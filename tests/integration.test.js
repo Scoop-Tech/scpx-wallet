@@ -344,10 +344,15 @@ describe('transactions', function () {
             //     w/ P2SH CLTV script output to define an additional time-locked (OP_CHECKLOCKTIMEVERIFY) "beneficiary" address
             const sendAddrNdx = 0 //asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1 // benefactor's source coin
             const receiveAddrNdx = 0 //sendAddrNdx == 1 ? 0 : 1 // benefactor's output consolidated (protected) coin - primary output spender, no timelock
-            var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
-            console.log('du_sendBalance', du_sendBalance)
-            const sendValue = 0.0050//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
+            //var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
+            //console.log('du_sendBalance', du_sendBalance)
+            const sendValue = 0.0001//(du_sendBalance * 0.5).toFixed(6) // consolidate & protect % of the source coin
             //if (sendValue < 0.00001) throw 'Insufficient test currency'
+            
+            const avail = utilsWallet.toDisplayUnit(bal.avail, asset)
+            //console.log('avail', avail)
+            //console.log('sendValue', sendValue)
+            if (avail < sendValue) throw 'Insufficient test currency'
 
             // push p2sh(1/2 dsig+cltv) tx
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
