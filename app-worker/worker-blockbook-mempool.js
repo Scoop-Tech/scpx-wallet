@@ -180,7 +180,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                 {
                     const outbound_tx = { // LOCAL_TX (UTXO) OUT
                         sendToSelf,
-                        isIncoming: false,
+                        isIncoming: false, // ###
                         date: new Date(),
                         value: Number(netValueSent),
                         txid,
@@ -188,6 +188,8 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                         block_no: -1,
                         fees: du_fee
                     }
+
+                    utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... outbound_tx=`, outbound_tx)
                     postMessage({
                         msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
                         data: {
@@ -211,6 +213,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
             ) {
                 if (!asset.local_txs.some(p => p.txid === txid) &&
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
+                
                     const inbound_tx = { // LOCAL_TX (UTXO) IN
                         sendToSelf,
                         isIncoming: true,
@@ -222,8 +225,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
                         fees: Number(new BigNumber(tx.feeSatoshis).div(100000000))
                     }
 
-                    utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX...`)
-
+                    utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... inbound_tx=`, inbound_tx)
                     postMessage({
                          msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
                         data: {

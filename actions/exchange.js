@@ -221,7 +221,7 @@ module.exports = {
                             }
                             store.dispatch({ type: XS_UPDATE_EXCHANGE_TX, 
                                           payload: { data: xsTx,
-                                                    owner, //: utils.getBrowserStorage().owner 
+                                                     owner, //: utils.getBrowserStorage().owner 
                             } })
 
                             // poll for exchange status

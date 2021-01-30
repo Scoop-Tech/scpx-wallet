@@ -234,9 +234,9 @@ module.exports = {
             //var setLocktime
             if (isDsigCltvInput) { // DSIG/CLTV input - construct custom redeem script
                 utilsWallet.log(`pstx/addInput - DSIG/CLTV input[${i}]`, input)
-                if (!validationMode) {
-                    debugger
-                }
+                // if (!validationMode) {
+                //     debugger
+                // }
                 if (inputTx.p_op_lockTime === undefined || inputTx.hex === undefined
                     || inputTx.p_op_pubKeyBeneficiary === undefined || inputTx.p_op_pubKeyBenefactor === undefined) throw `inputTx sanity check(s) failed`
 
@@ -318,9 +318,9 @@ module.exports = {
             const inputTx = utilsWallet.getAll_txs(asset).find(p => p.txid == input.utxo.txid)
             const isDsigCltvInput = input.utxo.address == inputTx.p_op_addrNonStd 
             if (isDsigCltvInput) {
-                if (!validationMode) {
-                    debugger
-                }
+                // if (!validationMode) {
+                //     debugger
+                // }
     
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(inputTx.p_op_pubKeyBeneficiary, 'hex'))
                 const nonCltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(inputTx.p_op_pubKeyBenefactor, 'hex'))
