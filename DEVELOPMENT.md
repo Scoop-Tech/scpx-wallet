@@ -26,10 +26,11 @@ WARN: https://github.com/bitcoinjs/tiny-secp256k1/issues/38 still seems present 
   * ```npm start``` - runs with prod flags
 
 ## Running Tests
-  * ```npm run test``` to run the the CI test suite.
-  * ```npm run test -- -t "BTC_TEST"``` - to run individual tests, filtered by ```it()``` description.
+  * See: `.env.example` to run the entire integration test suite (you'll need to make a server test account, and fund it with test assets)
+  * ```npm run test``` to run the the CI test suite; if no .env value(s) found, it will skip some tests
+  * ```npm run test -- -t "BTC_TEST"``` - to run individual tests, filtered by ```it()``` description
 
-The test script executes full integration tests that transact on testnets - these incur testnet network fees! If you can, please help to keep these testnet account topped up.
+The full test suite executes full integration tests that transact on testnets - these incur testnet network fees. The Travis integration suite uses a server account for this. If you can help keep it topped up, the testnet addresses are:
 
   * **BTC_TEST** ```2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv``` (BTC Testnet3 P2SH)
     * https://testnet-faucet.mempool.co/  
