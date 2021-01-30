@@ -366,7 +366,6 @@ describe('transactions', function () {
                         value: sendValue,
                            to: nonCltvSpender, // "benefactor" - send to self (the non-change output to this addr gets overriden in createTxHex_BTC_P2SH()...)
                dsigCltvPubKey, 
-               // todo: add param singleUtxo { txid, vout } -- for spend specific UTXO (DMS reset/reclaim)
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
