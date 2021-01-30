@@ -635,7 +635,7 @@ async function createTxHex(params) {
                     //
                     // UTXO - P2SH(...) - bitcoin-js PSBT (Partially Signed Bitcoin Transaction Format - BIP174)
                     //
-                    var { tx, hex, vSize, byteLength } = walletP2shBtc.createTxHex_BTC_P2SH({ 
+                    var { tx, hex, vSize, byteLength, psbt } = walletP2shBtc.createTxHex_BTC_P2SH({ 
                         asset, validationMode, addrPrivKeys, txSkeleton, 
                         dsigCltvSpenderPubKey: payTo[0].dsigCltvSpenderPubKey
                     })
@@ -656,12 +656,9 @@ async function createTxHex(params) {
                      byteLength,
                     inputsCount: txSkeleton.inputs.length, 
                   _cu_sendValue: cu_sendValue.toString(),
-                   get cu_sendValue() {
-                       return this._cu_sendValue;
-                   },
-                   set cu_sendValue(value) {
-                       this._cu_sendValue = value;
-                   },
+              get cu_sendValue() { return this._cu_sendValue },
+         set cu_sendValue(value) { this._cu_sendValue = value },
+                           psbt,
             }) }) 
         }
 

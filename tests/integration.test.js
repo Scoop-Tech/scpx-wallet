@@ -319,9 +319,10 @@ describe('transactions', function () {
         it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
+                await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', ) // need to get back: the p2sh non-std addr...
 
                 //
+                // txp --v = full 
                 // TODO: test - "benefactor can reclaim immediately"...
                 //  (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
                 //
@@ -357,11 +358,12 @@ describe('transactions', function () {
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee
             const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // beneficiary - testnets3@scoop.tech, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
+            const nonCltvSpender = asset.addresses[0].addr
             const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,
                         value: sendValue,
-                           to: asset.addresses[0].addr, // PROTECT_OP = benefactor (aka nonCltvSpender)...
-               dsigCltvPubKey,                          //            + beneficiary pubKey -- see: createTxHex_BTC_P2SH()
+                           to: nonCltvSpender, // PROTECT_OP = benefactor (aka nonCltvSpender)...
+               dsigCltvPubKey,                 //            + beneficiary pubKey -- see: createTxHex_BTC_P2SH()
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)

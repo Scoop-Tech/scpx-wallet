@@ -145,10 +145,10 @@ module.exports = {
                 else {
                     setTimeout(() => {
                         appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } })
-                    }, 3000)
+                    }, 500) //TX_REFRESH_PAUSE_MSECS
 
                     setTimeout(() => {
-                        resolve({ ok: { txid: res.tx.txid, txGetFee } })    
+                        resolve({ ok: { txid: res.tx.txid, txGetFee, psbt: res.psbt } })    
                     }, 1000)
                 }
             })
