@@ -65,16 +65,16 @@ Please see the [Contribution Guide](./CONTRIBUTING.md) for more info.
 
 ## Debugging
 
-Visual Studio Code is recommended. An example ./vscode/launch.json is: 
+Visual Studio Code is recommended. A template ./vscode/launch.json with some common launch actions: 
 
 ```
 {
     "version": "0.2.0",
     "configurations": [
+        // LOAD SERVER WALLET
         {
             "type": "node",
             "request": "launch",
-            "runtimeVersion": "10.22.0",
             "env": {
                 "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "development"
@@ -82,9 +82,13 @@ Visual Studio Code is recommended. An example ./vscode/launch.json is:
             "name": "wallet-dev",
             "cwd": "${workspaceFolder}/ext/wallet",
             "program": "${workspaceFolder}/ext/wallet/sw-cli.js",
-            "args": [//"--mpk=...", 
-                     //"--apk=...",
-                     //"--loadFile=...",
+            "args": ["--rpc=true",
+                     "--rpcPort=4000",
+                     "--rpcRemoteHosts=::ffff:127.0.0.1",
+                     "--rpcUsername=scp",
+                     "--rpcPassword=123",
+                     //"--mpk=...", 
+                     //"--loadServer=...",
                      "--saveHistory=true"
                     ],
             "console": "externalTerminal",
@@ -92,6 +96,58 @@ Visual Studio Code is recommended. An example ./vscode/launch.json is:
             "runtimeArgs": ["--nolazy"],
             "autoAttachChildProcesses": true
         },
+
+        // NEW LOCAL EMPTY WALLET, OR LOAD FILE WALLET
+        {
+            "name": "local: new",
+            "type": "node",
+            "runtimeVersion": "10.22.0",
+            "request": "launch",
+            "env": {
+                "NODE_OPTIONS": "--experimental-worker",
+                "NODE_ENV": "development"
+            },
+            "cwd": "${workspaceFolder}/ext/wallet",
+            "program": "${workspaceFolder}/ext/wallet/sw-cli.js",
+            "args": [//"--mpk=...", 
+                     //"--loadFile=...",
+                     "--rpc=true",
+                     "--rpcPort=4000",
+                     "--rpcRemoteHosts=::ffff:127.0.0.1",
+                     "--rpcUsername=scp",
+                     "--rpcPassword=.....",
+                     "--saveHistory=true"
+                    ],
+                    
+            "console": "externalTerminal",
+            "runtimeExecutable": "node",
+            "runtimeArgs": ["--nolazy"],
+            "autoAttachChildProcesses": true
+        },
+
+        // RUN TESTS
+        {
+            "name": "tests: integration",
+            "type": "node",
+            "runtimeVersion": "10.22.0",
+            "request": "launch",    
+            "env": {
+                "NODE_OPTIONS": "--experimental-worker",
+                "NODE_ENV": "test"
+            },
+            "cwd": "${workspaceFolder}/ext/wallet",
+            "program": "${workspaceFolder}/ext/wallet/node_modules/.bin/jest",
+            "args": ["--runInBand", "--verbose", "--forceExit", "--env=node", "--coverage", 
+                   //"-t=DSIG"
+                    ], 
+            "autoAttachChildProcesses": true,
+            "console": "externalTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "windows": {
+              "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+            }        
+        }
     ]
 }
 ```
