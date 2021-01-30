@@ -101,25 +101,128 @@ describe('asset', function () {
 })
 
 describe('wallet', function () {
+    if (!serverTestWallet.mpk) { 
+        console.warn(`Missing config: see .env.example, and populate all fields - skipping some tests...`)
+    }
+    else {
+        it('can dump a wallet', async () => {
+            expect.assertions(3)
+            const result = await new Promise(async (resolve, reject) => {
+                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
+                const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
+                const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, keys: true }, 'DUMP')
+                resolve( { init, connect, dump })
+            })
+            expect(result.init.ok).toBeDefined()
+            expect(result.connect.ok).toBeDefined()
+            expect(result.dump.ok).toBeDefined()
+        })
+
+        it('can persist a wallet to and from the Data Storage Contract', async function () {
+            expect.assertions(2)
+            const result = await new Promise(async (resolve, reject) => {
+                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+                const serverSave = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
+                resolve({ serverLoad, serverSave })
+            })
+            expect(result.serverLoad.ok).toBeDefined()
+            expect(result.serverSave.ok).toBeDefined()
+        })
+
+        it('can connect a wallet to 3PBPs', async () => {
+            expect.assertions(2)
+            const result = await new Promise(async (resolve, reject) => {
+                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
+                resolve({ init })
+            })
+            expect(result.init.ok).toBeDefined()
+            expect(result.init.ok.walletConnect.ok).toBeDefined()
+        })
+
+        it('can import and remove private keys', async () => {
+            var expectAssertions = 2
+            if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 3
+            if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 3
+            if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 3
+            expect.assertions(expectAssertions)
+    
+            const result = await new Promise(async (resolve, reject) => {
+                const create = await svrWalletCreate.walletNew(appWorker, appStore)
+                const mpk = create.ok.mpk
+                const balancePrior = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+                //console.log('balancePrior', balancePrior)
+    
+                // import priv-keys
+                const importBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
+    
+                const importZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
+    
+                const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
+    
+                const dumpAfter = await svrRouter.fn(appWorker, appStore, { mpk, txs: true, keys: true }, 'DUMP')
+                const btcTest = dumpAfter.ok.find(p => p.assetName === 'btc(t)')
+                console.dir(btcTest)
+                if (btcTest.accounts.length != 2) {
+                    console.error('unexpected no. of accounts...') 
+                }
+                if (btcTest.addresses.filter(p => p.path.startsWith("~i/")).length != 2) {
+                    console.error('unexpected no. of addresses in import account...')
+                }
+                console.dir('btcTest.accounts.len', btcTest.accounts.length)
+    
+                const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
+                console.dir(balanceImported)
+    
+                // remove priv-keys
+                const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Bitcoin#' }, 'REMOVE-PRIV-KEYS')
+    
+                const removeZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
+    
+                const removeEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
+    
+                const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+    
+                resolve({ create,
+                          importBtcTest, importZecTest, importEthTest, balanceImported,
+                          removeBtcTest, removeZecTest, removeEthTest, balanceRemoved,
+                          balancePrior })
+            })
+    
+            expect(result.create.ok).toBeDefined()
+            expect(result.create.ok.walletConnect.ok).toBeDefined()
+    
+            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
+                expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+                expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
+            }
+    
+            if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
+                expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+                expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
+            }
+    
+            if (configWallet.WALLET_INCLUDE_ETH_TEST) {
+                expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
+                expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
+            }
+        })
+    }
+
     it('can create a new in-memory wallet', async () => {
         expect.assertions(1)
         const result = await new Promise(async (resolve, reject) => {
             resolve(await svrWalletCreate.walletNew(appWorker, appStore))
         })
         expect(result.ok).toBeDefined()
-    })
-    
-    it('can dump a wallet', async () => {
-        expect.assertions(3)
-        const result = await new Promise(async (resolve, reject) => {
-            const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
-            const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
-            const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, keys: true }, 'DUMP')
-            resolve( { init, connect, dump })
-        })
-        expect(result.init.ok).toBeDefined()
-        expect(result.connect.ok).toBeDefined()
-        expect(result.dump.ok).toBeDefined()
     })
 
     it('can reinitialize a known wallet in-memory', async () => {
@@ -169,104 +272,6 @@ describe('wallet', function () {
         expect(btc.addresses.length).toEqual(2)
         expect(btcSeg.addresses.length).toEqual(2)
         expect(zec.addresses.length).toEqual(2)
-    })
-
-    it('can persist a wallet to and from the Data Storage Contract', async function () {
-        expect.assertions(2)
-        const result = await new Promise(async (resolve, reject) => {
-            const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-            const serverSave = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
-            resolve({ serverLoad, serverSave })
-        })
-        expect(result.serverLoad.ok).toBeDefined()
-        expect(result.serverSave.ok).toBeDefined()
-    })
-
-    it('can connect a wallet to 3PBPs', async () => {
-        expect.assertions(2)
-        const result = await new Promise(async (resolve, reject) => {
-            const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
-            resolve({ init })
-        })
-        expect(result.init.ok).toBeDefined()
-        expect(result.init.ok.walletConnect.ok).toBeDefined()
-    })
-
-    it('can import and remove private keys', async () => {
-        var expectAssertions = 2
-        if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 3
-        if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 3
-        if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 3
-        expect.assertions(expectAssertions)
-
-        const result = await new Promise(async (resolve, reject) => {
-            const create = await svrWalletCreate.walletNew(appWorker, appStore)
-            const mpk = create.ok.mpk
-            const balancePrior = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
-            //console.log('balancePrior', balancePrior)
-
-            // import priv-keys
-            const importBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
-
-            const importZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
-
-            const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
-
-            const dumpAfter = await svrRouter.fn(appWorker, appStore, { mpk, txs: true, keys: true }, 'DUMP')
-            const btcTest = dumpAfter.ok.find(p => p.assetName === 'btc(t)')
-            console.dir(btcTest)
-            if (btcTest.accounts.length != 2) {
-                console.error('unexpected no. of accounts...') 
-            }
-            if (btcTest.addresses.filter(p => p.path.startsWith("~i/")).length != 2) {
-                console.error('unexpected no. of addresses in import account...')
-            }
-            console.dir('btcTest.accounts.len', btcTest.accounts.length)
-
-            const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
-            console.dir(balanceImported)
-
-            // remove priv-keys
-            const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Bitcoin#' }, 'REMOVE-PRIV-KEYS')
-
-            const removeZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
-
-            const removeEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
-                await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
-
-            const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
-
-            resolve({ create,
-                      importBtcTest, importZecTest, importEthTest, balanceImported,
-                      removeBtcTest, removeZecTest, removeEthTest, balanceRemoved,
-                      balancePrior })
-        })
-
-        expect(result.create.ok).toBeDefined()
-        expect(result.create.ok.walletConnect.ok).toBeDefined()
-
-        if (configWallet.WALLET_INCLUDE_BTC_TEST) {
-            expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-            expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
-        }
-
-        if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
-            expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-            expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
-        }
-
-        if (configWallet.WALLET_INCLUDE_ETH_TEST) {
-            expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-            expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-            expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
-        }
     })
 })
 
