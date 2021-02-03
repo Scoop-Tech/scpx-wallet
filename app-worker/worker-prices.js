@@ -14,7 +14,8 @@ const utilsWallet = require('../utils')
 module.exports = {
         
     // rest interface - takes prices from bitfinex & cryptocompare rest api's, per asset config
-    // Jan '21 - not using, getting rate-limited (back to WS)
+    //  (cryptocompare has rate limit, shouldn't poll too fast)
+    // see: configWallet.PRICE_USE_SOCKETS
     fetch: () => {
         const fxApi = 'https://api.exchangeratesapi.io/latest?base=USD'
 
@@ -143,7 +144,8 @@ module.exports = {
         })
     },
 
-    // Jan '21: reinstated (after cleaup WS has prices for all required assets, & rest api is getting rate-limited)
+    // has some tickers missing (e.g. SWAP) compared to REST
+    // see: configWallet.PRICE_USE_SOCKETS
     priceSocket_Disconnect: () => {
         if (self.priceSocket) {
             utilsWallet.debug('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)

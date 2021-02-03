@@ -90,36 +90,34 @@ module.exports = {
             '5~CCCAGG~LTC~USD',
             '5~CCCAGG~ZEC~USD',
             '5~CCCAGG~ETH~USD', 
-            '5~CCCAGG~EOS~USD',
+            //'5~CCCAGG~EOS~USD',
             '5~CCCAGG~TUSD~USD',
-            '5~CCCAGG~ZRX~USD',
-            '5~CCCAGG~BNT~USD',
-            '5~CCCAGG~BAT~USD',
-            '5~CCCAGG~BNB~USD',
-            '5~CCCAGG~OMG~USD',
-            '5~CCCAGG~GTO~USD',      //# bitfinex missing
-            '5~CCCAGG~SNT~USD',
-            //'5~CCCAGG~BTM~USD',
-            //'5~CCCAGG~VEN~USD',
-            '5~CCCAGG~HT~USD',       //# bitfinex missing
-            '5~CCCAGG~DASH~USD',     //  bitfinex "tDSHUSD"
-            '5~CCCAGG~VTC~USD',      //# bitfinex missing
-            '5~CCCAGG~QTUM~USD',     //  bitfinex "tQTMUSD"
+            //'5~CCCAGG~ZRX~USD',
+            //'5~CCCAGG~BNT~USD',
+            //'5~CCCAGG~BAT~USD',
+            //'5~CCCAGG~BNB~USD',
+            //'5~CCCAGG~OMG~USD',
+            //'5~CCCAGG~GTO~USD',      //# bitfinex missing
+            //'5~CCCAGG~SNT~USD',
+            //'5~CCCAGG~HT~USD',       //# bitfinex missing
+            '5~CCCAGG~DASH~USD',       //  bitfinex "tDSHUSD"
+            //'5~CCCAGG~VTC~USD',      //# bitfinex missing
+            //'5~CCCAGG~QTUM~USD',     //  bitfinex "tQTMUSD"
             '5~CCCAGG~DGB~USD',
-            '5~CCCAGG~USDT~USD',     //  bitfinex "tUSTUSD"
-            '5~CCCAGG~EURT~USD',     //  bitfinex "tEUTUSD"
+            '5~CCCAGG~USDT~USD',       //  bitfinex "tUSTUSD"
+            //'5~CCCAGG~EURT~USD',     //  bitfinex "tEUTUSD"
             '5~CCCAGG~LINK~USD',     
-            '5~CCCAGG~ZIL~USD',     
-            '5~CCCAGG~HOT~USD',     
-            '5~CCCAGG~REP~USD',     
-            '5~CCCAGG~MKR~USD',     
-            '5~CCCAGG~BCH~USD',
-            '5~CCCAGG~NEXO~USD',
-            '5~CCCAGG~RVN~USD',
+            //'5~CCCAGG~ZIL~USD',     
+            //'5~CCCAGG~HOT~USD',     
+            //'5~CCCAGG~REP~USD',     
+            //'5~CCCAGG~MKR~USD',     
+            //'5~CCCAGG~BCH~USD',
+            //'5~CCCAGG~NEXO~USD',
+            //'5~CCCAGG~RVN~USD',
 
-            '5~CCCAGG~BAND~USD',
-            '5~CCCAGG~DOS~USD',
-            '5~CCCAGG~RING~USD',
+            //'5~CCCAGG~BAND~USD',
+            //'5~CCCAGG~DOS~USD',
+            //'5~CCCAGG~RING~USD',
             '5~CCCAGG~SWAP~USD',
         ]
     },

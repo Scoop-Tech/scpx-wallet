@@ -15,8 +15,9 @@ const {
     RVN_PRICE_UPDATE,
 
     ETH_PRICE_UPDATE, 
-            ZRX_PRICE_UPDATE, TUSD_PRICE_UPDATE, BNT_PRICE_UPDATE, BAT_PRICE_UPDATE, BNB_PRICE_UPDATE,
-            OMG_PRICE_UPDATE, GTO_PRICE_UPDATE, SNT_PRICE_UPDATE, HT_PRICE_UPDATE, //VEN_PRICE_UPDATE, BTM_PRICE_UPDATE, 
+            ZRX_PRICE_UPDATE, 
+            TUSD_PRICE_UPDATE, BNT_PRICE_UPDATE, BAT_PRICE_UPDATE, BNB_PRICE_UPDATE,
+            OMG_PRICE_UPDATE, GTO_PRICE_UPDATE, SNT_PRICE_UPDATE, HT_PRICE_UPDATE,
             USDT_PRICE_UPDATE, EURT_PRICE_UPDATE,
             LINK_PRICE_UPDATE, ZIL_PRICE_UPDATE, HOT_PRICE_UPDATE, REP_PRICE_UPDATE, MKR_PRICE_UPDATE, 
             NEXO_PRICE_UPDATE,
@@ -37,7 +38,7 @@ const initialState = {
 
         ETH: 0, ETH_TEST: 0,
             TUSD: 0, ZRX: 0, BNT: 0, BAT: 0, BNB: 0,
-             OMG: 0, GTO: 0, SNT: 0,  HT: 0, //VEN: 0, BTM: 0,
+             OMG: 0, GTO: 0, SNT: 0,  HT: 0, 
             USDT: 0, EURT: 0,
             LINK: 0, ZIL: 0, HOT: 0, REP: 0, MKR: 0,
             BAND: 0,
@@ -124,12 +125,6 @@ const handlers = {
     [HT_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, HT: action.payload.price} }
     },
-    // [BTM_PRICE_UPDATE]: (state, action) => {
-    //     return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, BTM: action.payload.price} }
-    // },
-    // [VEN_PRICE_UPDATE]: (state, action) => {
-    //     return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, VEN: action.payload.price} }
-    // },
 
     [USDT_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, USDT: action.payload.price} }

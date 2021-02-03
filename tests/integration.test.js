@@ -110,7 +110,7 @@ describe('wallet', function () {
             const result = await new Promise(async (resolve, reject) => {
                 const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
                 const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
-                const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, keys: true }, 'DUMP')
+                const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, }, 'DUMP')
                 resolve( { init, connect, dump })
             })
             expect(result.init.ok).toBeDefined()
@@ -319,11 +319,20 @@ describe('transactions', function () {
         it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const p2shAddr = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
+                const { p2shAddr, txid } = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
+                console.log('txid', txid)
+                console.log('p2shAddr', p2shAddr)
+
+                const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
+                console.dir(dump)
+                // got latest TX, pending? manually added local_tx...? NOT got any non-std addr ~p...., can still spend local_tx?
+                // getting mempool callback, can enrich/augment local_tx there????
 
                 //
-                // txp --v = full 
                 // TODO: test - "benefactor can reclaim immediately"...
+                //  (1) ./wd... find 
+                //   ./ptx spendFullUtxo=... -v... 
+                //
                 //  (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
                 //
             }
@@ -351,7 +360,7 @@ describe('transactions', function () {
 
             // push p2sh(1/2 dsig+cltv) tx
             const avail = utilsWallet.toDisplayUnit(bal.avail, asset)
-            const sendValue = 0.0001
+            const sendValue = 0.0000042
             if (avail < sendValue) throw 'Insufficient test currency'
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
             console.log('sendValue', sendValue)
@@ -367,7 +376,7 @@ describe('transactions', function () {
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
-            resolve({ serverLoad, txFee, txPush, p2shAddr })
+            resolve({ serverLoad, txFee, txPush })
         })
 
         expect(result.serverLoad.ok).toBeDefined()
@@ -385,10 +394,7 @@ describe('transactions', function () {
         expect(Number(txOutputs.length)).toBeGreaterThan(0)
         expect(txOutputs[0].address).toBeDefined()
         
-        const p2shAddr = txOutputs[0].address
-        console.log('p2shAddr', p2shAddr)
-        return p2shAddr
-        //expect(result.txid).toBeDefined()
+        return { p2shAddr: txOutputs[0].address, txid: result.txPush.ok.txid }
     }
 
     async function sendTestnetTx(store, serverLoad, testSymbol) {

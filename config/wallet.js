@@ -1118,6 +1118,8 @@ module.exports = {
     , PRICE_SOURCE_BITFINEX
     , PRICE_SOURCE_SYNTHETIC_FIAT
 
+    , PRICE_USE_SOCKETS: false                                           // will poll REST if false
+
     //
     // StMaster - dynamic supported assets
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation

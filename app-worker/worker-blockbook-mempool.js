@@ -144,10 +144,10 @@ module.exports = {
 }
 
 function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
+    console.log('mempool_process_BB_UtxoTx txid=', txid)
+    //debugger
     
     // send to self - all inputs and outputs are ours
-    
-    //debugger
     const sendToSelf = 
         tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
     && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
