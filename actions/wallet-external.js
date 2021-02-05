@@ -256,10 +256,8 @@ module.exports = {
         var cu_local_txs_pendingOut = 
             asset.local_txs
             .filter(p => p.isIncoming === false || p.sendToSelf === true)
-
-            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_ETH
-                    || (addresses.some(p2 => p2.addr.toLowerCase() === p.account_from.toLowerCase() )))
-
+            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_ETH || (addresses.some(p2 => p2.addr.toLowerCase() === p.account_from.toLowerCase() )))
+            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_BTC || (addresses.some(p2 => p2.addr === p.toOrFrom )))
             .reduce((sum,p) => {
                 var cu_value = utilsWallet.toCalculationUnit(p.value, asset)
                 var cu_fees = utilsWallet.toCalculationUnit(p.fees, asset)
@@ -270,10 +268,8 @@ module.exports = {
         var cu_local_txs_pendingIn = 
             asset.local_txs
             .filter(p => p.isIncoming === true || p.sendToSelf === true)
-
-            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_ETH
-                    || (addresses.some(p2 => p2.addr.toLowerCase() === p.account_to.toLowerCase() )))
-
+            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_ETH || (addresses.some(p2 => p2.addr.toLowerCase() === p.account_to.toLowerCase() )))
+            .filter(p => meta.addressType !== configWallet.ADDRESS_TYPE_BTC || (addresses.some(p2 => p2.addr === p.toOrFrom )))
             .reduce((sum,p) => { 
                 var cu_value = utilsWallet.toCalculationUnit(p.value, asset)
                 return sum.plus(new BigNumber(cu_value))

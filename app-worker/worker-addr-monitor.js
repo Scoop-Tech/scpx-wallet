@@ -62,7 +62,7 @@ function subAddr_Blockbook(wallet, asset) {
         
         // subscribe addr monitor
         socket.emit('subscribe', "bitcoind/addresstxid", ownAddresses, (result) => {})
-        utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
+        //utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on("bitcoind/addresstxid", function (data) {
@@ -177,7 +177,7 @@ function subAddr_Insight(asset) {
 }
 
 function unsubAddr_Blockbook(assetSymbol) {
-    utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
+    //utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
     var socket = self.blockbookSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}: no socket setup!`); return }
     else {

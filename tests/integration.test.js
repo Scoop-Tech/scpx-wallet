@@ -316,6 +316,7 @@ describe('transactions', function () {
             }
         })
 
+        // WIP... ## complication is the pending p_op TX: it doesn't trigger the new non-std addr detection...
         it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
@@ -323,11 +324,38 @@ describe('transactions', function () {
                 console.log('txid', txid)
                 console.log('p2shAddr', p2shAddr)
 
-                const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
-                console.dir(dump)
-                // got latest TX, pending? manually added local_tx...? NOT got any non-std addr ~p...., can still spend local_tx?
-                // getting mempool callback, can enrich/augment local_tx there????
+                const opPause = new Promise((resolve) => {
+                    setTimeout(async () => {
+                        const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
+                        console.log(dump) // looking for the new non-std addr to be here... d
 
+
+                        //
+                        //  >>> local_tx contains all the vout data!!!!!!?
+                        //
+                        // NEED TO TRIGGER A getAddressFull_Blockbook_v3() ... this will pick up the pending_tx from BB
+                        //  (overwrites pending????) ... 
+                        //
+                        // >>>>
+                        //  TODO >>> make new CLI cmd to RefreshAssetFull: test effect calling this immediately after doing P_OP...
+                        // >>>>
+                        //
+                        //  AND PROCESS IT TO INCLUDE THE p_op FIELDS,
+                        // THEN NEED TO TRIGGER A NEW_NON_STD_SCAN...?
+                        // 
+                        // CONFIRMED FLOW... 
+                        //  (1) "PUSH DONE - BTC_TEST"... a4ae5de9065f34c2174e717e62f49d3bbee303c32ff304448db7f8aae9590b1e
+                        //  (2) "bitcoind/addresstxid"...  (>> getDetailedTransaction)
+                        //  (3) "mempool_process_BB_UtxoTx"... (txInLocalTxs=true)
+                        //    >> NEED TO ENRICH LOCAL_TX W/ EXACT SAME FIELDS AS IN worker-blockbook::enrichTx()
+                        //    >>   .hex
+                        //    >>   
+                        //
+                        resolve('paused')
+                    }, 3000)
+                })
+                const data = await opPause
+                console.log('data', data)
                 //
                 // TODO: test - "benefactor can reclaim immediately"...
                 //  (1) ./wd... find 

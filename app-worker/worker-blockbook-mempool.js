@@ -144,8 +144,8 @@ module.exports = {
 }
 
 function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
-    console.log('mempool_process_BB_UtxoTx txid=', txid)
-    //debugger
+    const txInLocalTxs = asset.local_txs.some(p => p.txid === txid)
+    console.log(`mempool_process_BB_UtxoTx txInLocalTxs=${txInLocalTxs} txid=`, txid)
     
     // send to self - all inputs and outputs are ours
     const sendToSelf = 
@@ -175,7 +175,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
             const netValueSent = Number(valueFromAddr.minus(valueChange).minus(new BigNumber(du_fee)))
 
             if (valueFromAddr.isGreaterThan(0)) {
-                if (!asset.local_txs.some(p => p.txid === txid) && // not in local_txs
+                if (!txInLocalTxs && // not in local_txs
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) // not in external txs
                 {
                     const outbound_tx = { // LOCAL_TX (UTXO) OUT
@@ -211,7 +211,7 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
             if (valueToAddr.isGreaterThan(0) 
                 || tx.outputs.some(p => p.address === ownAddr) // DMS: we want to pick up by-design zero-value dsigCltv outputs immediately
             ) {
-                if (!asset.local_txs.some(p => p.txid === txid) &&
+                if (!txInLocalTxs &&
                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
                 
                     const inbound_tx = { // LOCAL_TX (UTXO) IN
@@ -238,6 +238,10 @@ function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddr
         })
     }
 
+    //
+    // TEST THIS -- does it overwrite the local_tx (with p_op enriched data?)
+    //              do we surely not still need to scan for new non-std addr's after this refresh??
+    //
     // DMS TODO - we need to enrich the local_tx w/ p_op data;
     //      (to do this, we trigger getAddressFull_Blockbook_v3() ... ... 'REFRESH_ASSET_FULL')
     //  OR, maybe this should happen after the non-std address has been added...
@@ -259,6 +263,7 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
     const ownAddresses = asset.addresses.map(p => p.addr)
 
     utilsWallet.log('mempool_process_BB_EthTx: erc20=', erc20)
+    debugger
     if (erc20 !== undefined) { // ERC20
         inboundSymbol = erc20.symbol
 

@@ -58,8 +58,10 @@ module.exports = {
 
         // add non-standard address(es) (if balance > 0)
         else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
+            //utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... postback=`, postback)
             const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
             const asset = postback.asset
+            // handle addr-balance postback, n ops
             function handleAddrBalancePostback(addrBalEvent) {
                 const addrBalRes = utilsWallet.unpackWorkerResponse(addrBalEvent)
                 if (addrBalRes) {
@@ -67,6 +69,7 @@ module.exports = {
                         addrBalRes.data.forEach(result => {
                             if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
                                 if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
+                                    // n ops
                                     walletShared.addNonStdAddress_DsigCltv({
                                     dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
                                                      store,
@@ -83,6 +86,8 @@ module.exports = {
                     }
                 }
             }
+
+            // query n addr balances, 1 op
             utilsWallet.getAppWorker().removeEventListener('message', handleAddrBalancePostback)
             utilsWallet.getAppWorker().addEventListener('message', handleAddrBalancePostback)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'GET_ANY_ADDRESS_BALANCE', data: { asset, addrs: nonStdAddrs_Txs.map(p => p.nonStdAddr) } })
@@ -175,16 +180,16 @@ module.exports = {
                     store.dispatch(batchActions(dispatchActions))
 
                     // btc p2sh - on tx confirmation, scan for non-standard outputs (and add any associated dynamic addresses)
-                    if (txConfirmed) {
+                    //if (txConfirmed) {
                         enrichTxOps.forEach(enrichTxOp => {
-                            storeState = store.getState() // DMS - ### not detecting new-addr reliably...
+                            storeState = store.getState()
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
                             if (asset.symbol === 'BTC_TEST') {
-                                utilsWallet.log(`TX mined - will scan for non-std outputs...`)
+                                utilsWallet.log(`REQUEST_DISPATCH_BATCH - will scan for non-std outputs...`)
                                 appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset }})
                             }
                         })
-                    }
+                    //}
                 }
             }
         }
