@@ -40,7 +40,7 @@ module.exports = {
         if (!dispatchActions) throw 'dispatchActions is required'
 
         const ownStdAddresses = asset.addresses.filter(p => !p.isNonStdAddr).map(p => { return p.addr })
-        console.log(`scan_NonStdOutputs ${asset.symbol}`)
+        utilsWallet.log(`scan_NonStdOutputs ${asset.symbol}`)
 
         // scan tx's, look for ones that conform to our v1 PROTECT_OP -- i.e. 4 outputs:
         //
@@ -61,8 +61,8 @@ module.exports = {
             ))
             // if (include_localTxs.length > 0) {
             //     console.dir(include_localTxs)
-            //     console.log('include_localTxs[0].utxo_vin', include_localTxs[0].utxo_vin)
-            //     console.log('include_localTxs[0].utxo_vout', include_localTxs[0].utxo_vout)
+            //     utilsWallet.log('include_localTxs[0].utxo_vin', include_localTxs[0].utxo_vin)
+            //     utilsWallet.log('include_localTxs[0].utxo_vout', include_localTxs[0].utxo_vout)
             // }
 
             const txs = a.txs.concat(include_localTxs)
@@ -71,13 +71,13 @@ module.exports = {
 
                 // if already parsed this TX and determined that it is a protect_op, skip it
                 if (tx.p_op_addrNonStd !== undefined) { 
-                    //console.log(`scan_NonStdOutputs already defined tx.p_op_addrNonStd txid=${tx.txid}, nop.`, tx.utxo_vout)
+                    //utilsWallet.log(`scan_NonStdOutputs already defined tx.p_op_addrNonStd txid=${tx.txid}, nop.`, tx.utxo_vout)
                     return
                 }
 
                 // see also: worker-blockbook::enrichTx()...
                 if (!tx.utxo_vout) { 
-                    //console.log(`1, txid=${tx.txid} nop.`, tx)
+                    //utilsWallet.log(`1, txid=${tx.txid} nop.`, tx)
                     return
                 }
                 if (tx.utxo_vout.length != 4) return    // required anatomy...
@@ -89,7 +89,7 @@ module.exports = {
                 if (!tx.utxo_vout.every(utxo => utxo.scriptPubKey !== undefined // sanity checks
                      && utxo.scriptPubKey.addresses !== undefined 
                      && utxo.scriptPubKey.addresses.length == 1)) { 
-                        //console.log(`2, txid=${tx.txid} nop.`, tx)
+                        //utilsWallet.log(`2, txid=${tx.txid} nop.`, tx)
                         return 
                      }
 
@@ -99,40 +99,40 @@ module.exports = {
                 var pubKeyBenefactor = undefined
                 tx.utxo_vout.forEach(utxo => { // look for our protect_op version id in an op_return output at index vout=1 
                     if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) {
-                        //console.log(`3.0 txid=${tx.txid}`)
+                        //utilsWallet.log(`3.0 txid=${tx.txid}`)
                         const firstOp = parseInt('0x' + utxo.scriptPubKey.hex.substring(0,2))
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
-                            //console.log(`3.1 txid=${tx.txid}`)
+                            //utilsWallet.log(`3.1 txid=${tx.txid}`)
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
                             if (asm && asm.length == 2 && asm[1].buffer !== undefined) {
-                                //console.log(`3.2 txid=${tx.txid}`)
+                                //utilsWallet.log(`3.2 txid=${tx.txid}`)
                                 const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
                                 if (buf_idVer) {
-                                    //console.log(`3.3 txid=${tx.txid}`)
-                                    // console.log('buf_idVer', buf_idVer.toString('hex'))
-                                    // console.log('DSIGCTLV_ID_vCur', DSIGCTLV_ID_vCur.toString('hex'))
-                                    // console.log('Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur)', Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur))
-                                    // console.log('buf_pubKeyA', buf_pubKeyA.toString('hex'))
-                                    // console.log('buf_pubKeyB', buf_pubKeyB.toString('hex'))
-                                    // console.log('lockTime', lockTime)
+                                    //utilsWallet.log(`3.3 txid=${tx.txid}`)
+                                    // utilsWallet.log('buf_idVer', buf_idVer.toString('hex'))
+                                    // utilsWallet.log('DSIGCTLV_ID_vCur', DSIGCTLV_ID_vCur.toString('hex'))
+                                    // utilsWallet.log('Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur)', Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur))
+                                    // utilsWallet.log('buf_pubKeyA', buf_pubKeyA.toString('hex'))
+                                    // utilsWallet.log('buf_pubKeyB', buf_pubKeyB.toString('hex'))
+                                    // utilsWallet.log('lockTime', lockTime)
                                     if (Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur) == 0) {
-                                        console.log(`3.4 txid=${tx.txid}`)
+                                        //utilsWallet.log(`3.4 txid=${tx.txid}`)
                                         txProtectOpTimelock = lockTime
                                         txProtectOpDateTime = new Date(Number(lockTime) * 1000)
                                         pubKeyBeneficiary = buf_pubKeyA
                                         pubKeyBenefactor = buf_pubKeyB
-                                        //console.log('txProtectOpDateTime=', txProtectOpDateTime)
+                                        //utilsWallet.log('txProtectOpDateTime=', txProtectOpDateTime)
                                     }
                                 }
                             }   
-                            //console.log(`tx=${tx.txid}, asm=`, asm)
+                            //utilsWallet.log(`tx=${tx.txid}, asm=`, asm)
                         }
                     }
                 })
 
                 if (txProtectOpDateTime) {
-                    //console.log(`4.0 txid=${tx.txid}`)
-                    //console.log(`scan_NonStdOutputs found: txid=${tx.txid} - txProtectOpDateTime=${txProtectOpDateTime} tx.utxo_vout=`, tx.utxo_vout)
+                    //utilsWallet.log(`4.0 txid=${tx.txid}`)
+                    //utilsWallet.log(`scan_NonStdOutputs found: txid=${tx.txid} - txProtectOpDateTime=${txProtectOpDateTime} tx.utxo_vout=`, tx.utxo_vout)
 
                     const _tx = _.cloneDeep(tx)
                     _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
@@ -156,16 +156,16 @@ module.exports = {
                     }
                     dispatchActions.push(dispatchAction)
 
-                    console.log(`p_op_valueProtected=${_tx.p_op_valueProtected}`)
-                    console.log(`p_op_addrNonStd=${_tx.p_op_addrNonStd}`)
-                    console.log(`p_op_addrBeneficiary=${_tx.p_op_addrBeneficiary}`)
-                    console.log(`p_op_addrBenefactor=${_tx.p_op_addrBenefactor}`)
-                    console.log(`p_op_weAreBeneficiary=${_tx.p_op_weAreBeneficiary}`)
-                    console.log(`p_op_weAreBenefactor=${_tx.p_op_weAreBenefactor}`)
-                    console.log(`p_op_unlockDateTime=${_tx.p_op_unlockDateTime}`)
-                    console.log(`p_op_unlockDateTime.toLocaleString()=`, _tx.p_op_unlockDateTime.toLocaleString())
-                    console.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
-                    console.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
+                    utilsWallet.log(`p_op_valueProtected=${_tx.p_op_valueProtected}`)
+                    utilsWallet.log(`p_op_addrNonStd=${_tx.p_op_addrNonStd}`)
+                    utilsWallet.log(`p_op_addrBeneficiary=${_tx.p_op_addrBeneficiary}`)
+                    utilsWallet.log(`p_op_addrBenefactor=${_tx.p_op_addrBenefactor}`)
+                    utilsWallet.log(`p_op_weAreBeneficiary=${_tx.p_op_weAreBeneficiary}`)
+                    utilsWallet.log(`p_op_weAreBenefactor=${_tx.p_op_weAreBenefactor}`)
+                    utilsWallet.log(`p_op_unlockDateTime=${_tx.p_op_unlockDateTime}`)
+                    utilsWallet.log(`p_op_unlockDateTime.toLocaleString()=`, _tx.p_op_unlockDateTime.toLocaleString())
+                    utilsWallet.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
+                    utilsWallet.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
 
                     if (!nonStdAddrs_Txs.some(p => p.protect_op_txid == tx.txid)) { //if (!nonStdAddrs_Txs.includes(_tx.p_op_addrNonStd)) {
                         nonStdAddrs_Txs.push({ nonStdAddr: _tx.p_op_addrNonStd, protect_op_txid: tx.txid})
@@ -183,20 +183,20 @@ module.exports = {
     
         const psbt = new bitcoinJsLib.Psbt({ network })
         psbt.setVersion(2)
-        console.log(`createTxHex_BTC_P2SH (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`)
+        utilsWallet.log(`createTxHex_BTC_P2SH (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`)
 
         //
         // add the outputs
         //
         txSkeleton.outputs.forEach(output => {
             if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // non-standard output
-                //console.log(`psbt/addOutput PROTECT_OP [P2SH(DSIG/CLTV)] (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`, output)
+                //utilsWallet.log(`psbt/addOutput PROTECT_OP [P2SH(DSIG/CLTV)] (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`, output)
                 
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * 1) }); // 1 hr from now
-                //console.log('lockTime', new Date(lockTime).toString())
+                //utilsWallet.log('lockTime', new Date(lockTime).toString())
 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
-                //console.log('cltvSpender.publicKey.length=', cltvSpender.publicKey.length)
+                //utilsWallet.log('cltvSpender.publicKey.length=', cltvSpender.publicKey.length)
                 var nonCltvSpender
                 var wif = addrPrivKeys.find(p => { return p.addr === output.address }).privKey
                 try {
@@ -218,7 +218,7 @@ module.exports = {
 
                 // embed data
                 const data = assembleDsigCsvOpReturnBuffer(lockTime, cltvSpender.publicKey, nonCltvSpender.publicKey)
-                //console.log(`OP_RETURN data.length=`, data.length) // max 80 bytes, and max 1 op_return (node defaults - not consensus rules)
+                //utilsWallet.log(`OP_RETURN data.length=`, data.length) // max 80 bytes, and max 1 op_return (node defaults - not consensus rules)
                 const embed = bitcoinJsLib.payments.embed({data: [data]})
                 psbt.addOutput({script: embed.output, value: 0 })
 
@@ -227,7 +227,7 @@ module.exports = {
                 psbt.addOutput({ address: ctlvSpenderP2sh.address, value: Number(Number(0).toFixed(0)) })
             }
             else { // standard NP2WPKH
-                //console.log(`psbt/addOutput [P2SH(P2WPKH)]`, output)
+                //utilsWallet.log(`psbt/addOutput [P2SH(P2WPKH)]`, output)
                 psbt.addOutput({ 
                     address: output.address, 
                     value: Number(Number(output.value).toFixed(0))
@@ -248,12 +248,12 @@ module.exports = {
             if (!assetAddress) throw `Couldn't look up UTXO address in wallet`
             const inputTx = utilsWallet.getAll_txs(asset).find(p => p.txid == input.utxo.txid)
             if (!inputTx) throw `Couldn't look up UTXO TX in wallet`
-            //console.log('inputTx', inputTx)
+            //utilsWallet.log('inputTx', inputTx)
 
             if (inputTx.utxo_vout[input.utxo.vout].scriptPubKey.hex != input.utxo.scriptPubKey.hex) throw `scriptPubKey hex sanity check failed`
             const isDsigCltvInput = input.utxo.address == inputTx.p_op_addrNonStd 
             if (isDsigCltvInput) { // DSIG/CLTV input - construct custom redeem script
-                console.log(`psbt/addInput - DSIG/CLTV input[${i}]`, input)
+                utilsWallet.log(`psbt/addInput - DSIG/CLTV input[${i}]`, input)
                 // if (!validationMode) {
                 //     debugger
                 // }
@@ -274,7 +274,7 @@ module.exports = {
                 })
             }
             else { // normal P2SH output - construct standard OP_EQUAL redeem script from the public key
-                console.log(`psbt/addInput - P2SH input[${i}]`, input)
+                utilsWallet.log(`psbt/addInput - P2SH input[${i}]`, input)
                 var wif = addrPrivKeys.find(p => { return p.addr === input.utxo.address }).privKey
                 var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
                 try {
@@ -290,7 +290,7 @@ module.exports = {
                 finally { utilsWallet.softNuke(keyPair); utilsWallet.softNuke(wif) }
             }
         }
-        //console.log('psbt/setup', psbt)
+        //utilsWallet.log('psbt/setup', psbt)
 
         //
         // sign
@@ -341,23 +341,23 @@ module.exports = {
                 finally { utilsWallet.softNuke(keyPair); utilsWallet.softNuke(wif) }
             }
         }
-        console.log('psbt/signed', psbt)
+        utilsWallet.log('psbt/signed', psbt)
 
         // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
         const inc_tx = psbt.extractTransaction(true)
         const inc_vs = inc_tx.virtualSize()
         const inc_bl = inc_tx.byteLength()
-        //console.log('inc_tx.virtualSize=', inc_vs)
-        //console.log('inc_tx.byteLength=', inc_bl)
+        //utilsWallet.log('inc_tx.virtualSize=', inc_vs)
+        //utilsWallet.log('inc_tx.byteLength=', inc_bl)
         vSize = inc_vs // tx is fully complete & signed; these are final values
         byteLength = inc_bl
         tx = inc_tx
-        //console.log('psbt/inc_tx', inc_tx)
-        console.log('psbt/inc_tx.toHex()', inc_tx.toHex())
+        //utilsWallet.log('psbt/inc_tx', inc_tx)
+        utilsWallet.log('psbt/inc_tx.toHex()', inc_tx.toHex())
 
         if (!validationMode) { // exec mode
             hex = inc_tx.toHex()
-            console.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2SH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+            utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2SH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
         }
 
         return { tx, hex, vSize, byteLength, psbt }

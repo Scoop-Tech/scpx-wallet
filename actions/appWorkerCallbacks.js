@@ -61,7 +61,7 @@ module.exports = {
   
             //utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... postback=`, postback)
             const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
-            utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
+            //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
             const asset = postback.asset
             // handle addr-balance postback, n ops
             function handleAddrBalancePostback(addrBalEvent) {
@@ -71,9 +71,9 @@ module.exports = {
                         addrBalRes.data.forEach(async result => {
                             if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
                                 if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
-                                    // n ops
-                                    utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES calling addNonStdAddress_DsigCltv, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
+                                    //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES calling addNonStdAddress_DsigCltv, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
 
+                                    // n ops
                                     const ret = await walletShared.addNonStdAddress_DsigCltv({
                                     dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
                                                      store,
@@ -83,8 +83,9 @@ module.exports = {
                                                        apk: utilsWallet.getStorageContext().apk,
                                                    e_email: utilsWallet.getStorageContext().e_email,
                                                      h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                                    })           
-                                    utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES called addNonStdAddress_DsigCltv, ret=`, ret, { logServerConsole: true })
+                                    })
+
+                                    //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES called addNonStdAddress_DsigCltv, ret=`, ret, { logServerConsole: true })
                                 }
                             }
                         })

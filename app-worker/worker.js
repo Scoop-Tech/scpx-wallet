@@ -421,13 +421,13 @@ async function handler(e) {
           
             
             if (mergedDispatchActions.length > 0) {
-                utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}, mergedDispatchActions=`, mergedDispatchActions, { logServerConsole: true })
+                //utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}, mergedDispatchActions=`, mergedDispatchActions, { logServerConsole: true })
                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: mergedDispatchActions } })
             }
             else utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... no dispatch actions found`)
             
             if (nonStdAddrs_Txs.length > 0) {
-                utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
+                //utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
                 self.postMessage({ msg: 'ADD_NON_STANDARD_ADDRESSES', status: 'EXEC', data: { asset: data.asset, nonStdAddrs_Txs } })
             }
             else utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... no new non-std addr's found`)
