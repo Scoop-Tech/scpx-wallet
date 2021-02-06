@@ -336,17 +336,17 @@ describe('transactions', function () {
                         //  >>> local_tx on GUI (mempool-tx path)... contains NO utxo_vin / vout... 
                         //          TODO:....
 
-                                        // block_no: -1
-                                        // date: Sat Feb 06 2021 07:55:18 GMT+0000 (Greenwich Mean Time) {}
-                                        // fees: 0.00000496
-                                        // isIncoming: false
-                                        // sendToSelf: false
-                                        // toOrFrom: "2NFxmbtNGUbuMEahEY2EkKcNHU1mPfGoNvn"
-                                        // txid: "c643c7872b58918344b69eaad907b853041747cfa7091559af235728001fa07b"
-                                        // value:
-                                        // 5
-                                        // e-7
-                        //
+                                // block_no: -1
+                                // date: Sat Feb 06 2021 07:55:18 GMT+0000 (Greenwich Mean Time) {}
+                                // fees: 0.00000496
+                                // isIncoming: false
+                                // sendToSelf: false
+                                // toOrFrom: "2NFxmbtNGUbuMEahEY2EkKcNHU1mPfGoNvn"
+                                // txid: "c643c7872b58918344b69eaad907b853041747cfa7091559af235728001fa07b"
+                                // value:
+                                // 5
+                                // e-7
+                    //
                         // NEED TO TRIGGER A getAddressFull_Blockbook_v3() ... this will pick up the pending_tx from BB
                         //  (overwrites pending????) ... 
                         //
