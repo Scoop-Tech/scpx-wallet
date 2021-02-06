@@ -144,7 +144,6 @@ module.exports = {
                 }
                 else {
                     setTimeout(() => {
-
                         // to refresh UTXOs
                         appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } }) 
                         
@@ -155,11 +154,9 @@ module.exports = {
                             appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset: refreshedAsset }})
                         }
                         
-                    }, 500) //TX_REFRESH_PAUSE_MSECS
-
-                    setTimeout(() => {
                         resolve({ ok: { txid: res.tx.txid, txGetFee, psbt: res.psbt } })    
-                    }, 1000)
+
+                    }, 1500) //TX_REFRESH_PAUSE_MSECS
                 }
             })
         })

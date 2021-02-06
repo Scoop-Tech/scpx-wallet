@@ -58,19 +58,23 @@ module.exports = {
 
         // add non-standard address(es) (if balance > 0)
         else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
+  
             //utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... postback=`, postback)
             const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
+            utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
             const asset = postback.asset
             // handle addr-balance postback, n ops
             function handleAddrBalancePostback(addrBalEvent) {
                 const addrBalRes = utilsWallet.unpackWorkerResponse(addrBalEvent)
                 if (addrBalRes) {
                     if (addrBalRes.msg === 'ADDRESS_BALANCE_RESULT' && addrBalRes.data !== undefined) {
-                        addrBalRes.data.forEach(result => {
+                        addrBalRes.data.forEach(async result => {
                             if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
                                 if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
                                     // n ops
-                                    walletShared.addNonStdAddress_DsigCltv({
+                                    utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES calling addNonStdAddress_DsigCltv, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
+
+                                    const ret = await walletShared.addNonStdAddress_DsigCltv({
                                     dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
                                                      store,
                                            userAccountName: utilsWallet.getStorageContext().owner,
@@ -79,7 +83,8 @@ module.exports = {
                                                        apk: utilsWallet.getStorageContext().apk,
                                                    e_email: utilsWallet.getStorageContext().e_email,
                                                      h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                                    })                                    
+                                    })           
+                                    utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES called addNonStdAddress_DsigCltv, ret=`, ret, { logServerConsole: true })
                                 }
                             }
                         })
@@ -177,6 +182,7 @@ module.exports = {
                     })
 
                     // update store, batched
+                    //utilsWallet.logMajor('magenta','blue', `REQUEST_DISPATCH_BATCH dispatchActions=`, dispatchActions, { logServerConsole: true })
                     store.dispatch(batchActions(dispatchActions))
 
                     // btc p2sh - on tx confirmation, scan for non-standard outputs (and add any associated dynamic addresses)
