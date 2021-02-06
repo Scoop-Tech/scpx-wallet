@@ -343,7 +343,7 @@ async function handler(e) {
             break
         }
         case 'REFRESH_ASSET_FULL': {
-            utilsWallet.logMajor('yellow','black', `appWorker >> ${self.workerId} REFRESH_ASSET_FULL ${data.asset.symbol}...`, null, { logServerConsole: true })
+            utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} REFRESH_ASSET_FULL ${data.asset.symbol}...`, null, { logServerConsole: true })
             refreshAssetsFull([data.asset], data.wallet)
             break
         }
@@ -413,7 +413,7 @@ async function handler(e) {
 
         // scan for non-standard addresses - add any found to our address-monitor list
         case 'SCAN_NON_STANDARD_ADDRESSES':
-            utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... asset=`, data.asset)
+            utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}...`, null, { logServerConsole: true })
             const dispatchActions = []
             const nonStdAddrs_Txs = [] // { nonStdAddr, protect_op_txid }
             walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddrs_Txs },)

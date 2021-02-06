@@ -331,7 +331,23 @@ describe('transactions', function () {
 
 
                         //
-                        //  >>> local_tx contains all the vout data!!!!!!?
+                        // after p_op...
+                        //  >>> local_tx on CLI SNDER (what path?)... contains ALL of the 4 utxo_vout... :)
+                        //                  BUT... no additional non-std address while pending... no SCAN_NON_STANDARD_ADDRESSES triggered, or not using local_tx??
+                        //                      TODO (1) - add another call to SCAN_NON_STANDARD_ADDRESSES when pushing a local_tx's...
+                        //                      TODO (2) - change scan_NonStdOutputs() to work with local_tx's...
+                        //
+                        //               on GUI (mempool-tx path?)... contains NO utxo_vin / vout... (different path...)
+                                            // block_no: -1
+                                            // date: Sat Feb 06 2021 07:55:18 GMT+0000 (Greenwich Mean Time) {}
+                                            // fees: 0.00000496
+                                            // isIncoming: false
+                                            // sendToSelf: false
+                                            // toOrFrom: "2NFxmbtNGUbuMEahEY2EkKcNHU1mPfGoNvn"
+                                            // txid: "c643c7872b58918344b69eaad907b853041747cfa7091559af235728001fa07b"
+                                            // value:
+                                            // 5
+                                            // e-7
                         //
                         // NEED TO TRIGGER A getAddressFull_Blockbook_v3() ... this will pick up the pending_tx from BB
                         //  (overwrites pending????) ... 

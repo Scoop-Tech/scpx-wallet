@@ -92,8 +92,10 @@ const API_URL = `${API_DOMAIN}api/`
 // ** use cryptocompare symbol in displaySymbol field, (or in priceSource_CC_symbol) **
 //
 
+//
 // default static assets
 // augmented with dynamic (network fetched) ERC20's
+//
 var supportedWalletTypes = [ // use walletsMeta keys for this list
     'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
     'dash', 

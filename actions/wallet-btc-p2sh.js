@@ -8,6 +8,7 @@ const _ = require('lodash')
 const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
 const { syslog } = require('winston/lib/winston/config')
+const { getAll_txs, getAll_local_txs } = require('../utils')
 
 const DSIGCTLV_ID_vCur = Buffer.from( // (max 6 bytes)
     `12100504` + // protect_op ID stamp (4 bytes)
@@ -51,18 +52,29 @@ module.exports = {
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
         asset.addresses.filter(p => !p.isNonStdAddr)
         .forEach(a => { 
-            a.txs.forEach(async tx => { // DMS: todo - change mempool_process_BB_UtxoTx() to pass UTXO data into local_tx structs; can then include/combine pending tx's here, to detect faster
-                
+            // WIP...
+            // DMS: todo - change mempool_process_BB_UtxoTx() to pass UTXO data into local_tx structs; can then include/combine pending tx's here, to detect faster
+            //const all_txs = getAll_txs(asset) 
+            const include_localTxs = asset.local_txs.filter(p => 
+                p.utxo_vin.some(p2 => p2.addr == a.addr) || 
+                p.utxo_vout.some(p2 => p2.scriptPubKey.addresses.includes(a.addr)
+            ))
+            if (include_localTxs.length > 0) {
+                console.dir(include_localTxs)
+                console.log('include_localTxs[0].utxo_vin', include_localTxs[0].utxo_vin)
+                console.log('include_localTxs[0].utxo_vout', include_localTxs[0].utxo_vout)
+            }
+
+            const txs = a.txs.concat(include_localTxs)
+            txs //a.txs
+            .forEach(async tx => { 
+
                 // if already parsed this TX and determined that it is a protect_op, skip it
                 if (tx.p_op_addrNonStd !== undefined) { 
                     utilsWallet.log(`scan_NonStdOutputs already defined tx.p_op_addrNonStd txid=${tx.txid}, nop.`, tx.utxo_vout)
                     return
                 }
 
-                // if (tx.txid === 'dfe0b28deea5d88585868ea3d8de3d89818ba32f549ab776cca9118a7208d405') {
-                //     debugger
-                // }
-                
                 // see also: worker-blockbook::enrichTx()...
                 if (!tx.utxo_vout) return
                 if (tx.utxo_vout.length != 4) return    // required anatomy...

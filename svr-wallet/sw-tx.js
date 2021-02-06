@@ -97,7 +97,7 @@ module.exports = {
 
             if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })
             if ((!utilsWallet.isParamEmpty(dsigCltvPubKey))
-                && symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid op for UTXO-type asset` })
+                && symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid op for UTXO-type asset` })
         }
 
         // validate to addr
@@ -123,7 +123,7 @@ module.exports = {
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
         const payTo = [{ receiver: toAddr, value: du_sendValue, dsigCltvSpenderPubKey: dsigCltvPubKey }]
-        //console.log('sw-tx/payTo', payTo)
+        console.log('sw-tx/payTo', payTo)
         log.info('sw-tx/spendTxid', spendTxid)
         log.info('sw-tx/spendVout', spendVout)
 
@@ -144,7 +144,17 @@ module.exports = {
                 }
                 else {
                     setTimeout(() => {
-                        appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } })
+
+                        // to refresh UTXOs
+                        appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset, wallet } }) 
+                        
+                         // DMS - to pickup any new non-std addr from local_tx's
+                        const storeState = store.getState()
+                        const refreshedAsset = storeState.wallet.assets.find((p) => p.symbol === asset.symbol )
+                        if (storeState && storeState.wallet && storeState.wallet.assets) {
+                            appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset: refreshedAsset }})
+                        }
+                        
                     }, 500) //TX_REFRESH_PAUSE_MSECS
 
                     setTimeout(() => {

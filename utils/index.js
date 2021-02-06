@@ -128,10 +128,10 @@ module.exports = {
     // calculation/Display units conversion
     //
     toDisplayUnit: (value, asset) => {
-        if (value === null || value === undefined || isNaN(value)) return NaN
+        if (value === null || value === undefined || isNaN(value) || asset === undefined) return NaN
         switch (asset.type) {
             case configWallet.WALLET_TYPE_UTXO:
-                return value.dividedBy(100000000).toString()
+                return value.dividedBy(100000000).toFixed()
 
             case configWallet.WALLET_TYPE_ACCOUNT:
                 if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
@@ -139,14 +139,14 @@ module.exports = {
 
                     // eth, erc20
                     if (value.isNegative()) {
-                        return "-" + ret.toString()
+                        return "-" + ret.toFixed()
                     }
                     else {
-                        return ret.toString()
+                        return ret.toFixed()
                     }
                 }
                 else { // eos -- todo
-                    return value.toString()
+                    return value.toFixed()
                 }
 
             default:
