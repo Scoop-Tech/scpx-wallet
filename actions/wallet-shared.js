@@ -114,7 +114,7 @@ module.exports = {
                     utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
                 }
                 else { 
-                    utilsWallet.warn(`addNonStdAddress_DsigCltv - supplied address ${addr_txid.nonStdAddr} already added`, null, { logServerConsole: true })
+                    utilsWallet.log(`addNonStdAddress_DsigCltv - supplied address ${addr_txid.nonStdAddr} already added`, null, { logServerConsole: true })
                 }
             })
             //console.log('newDisplayableAssets', newDisplayableAssets)
@@ -135,7 +135,7 @@ module.exports = {
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
             
             // ret ok
-            utilsWallet.logMajor('green','white', `addNonStdAddress_DsigCltv - complete`, addedCount, { logServerConsole: true })
+            //utilsWallet.logMajor('green','white', `addNonStdAddress_DsigCltv - complete`, addedCount, { logServerConsole: true })
             return { addedCount, accountName: nonStdAccount.name }
         }
         finally {
