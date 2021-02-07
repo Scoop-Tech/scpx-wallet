@@ -111,7 +111,7 @@ function subAddr_Blockbook(wallet, asset) {
                         utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - BB getDetailedTransaction... txid=`, txid, { logServerConsole: true })
 
                         // trigger refresh: we will walk the mempool utxo list and record the mempool tx in local_txs[]
-                        // DMS - try: revert to this path, (no mempool_process_BB_UtxoTx at all... target: remove it...)
+                        // DMS - reverting to this path, (deprecate mempool_process_BB_UtxoTx)
                         utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid UTXO data - requesting ASSET_REFRESH_ADDR_MONITOR`)
                         postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
 

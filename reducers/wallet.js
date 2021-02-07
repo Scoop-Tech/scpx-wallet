@@ -119,7 +119,7 @@ const handlers = {
                     return {...state}
                 }
                 
-                // txs - insert or update 
+                // txs - insert or update
                 const txNdx = assets[assetNdx].addresses[addrNdx].txs.findIndex(p => p.txid == tx.txid)
                 if (txNdx !== -1) {
                     //console.log(`WCORE_SET_ENRICHED_TXS_MULTI UPDATE/MERGING txid=${tx.txid}, tx=`, tx)
