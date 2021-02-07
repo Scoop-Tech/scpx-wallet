@@ -52,9 +52,6 @@ module.exports = {
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
         asset.addresses.filter(p => !p.isNonStdAddr)
         .forEach(a => { 
-            // WIP...
-            // DMS: todo - change mempool_process_BB_UtxoTx() to pass UTXO data into local_tx structs; can then include/combine pending tx's here, to detect faster
-            //const all_txs = getAll_txs(asset) 
             const include_localTxs = asset.local_txs.filter(p => 
                 p.utxo_vin.some(p2 => p2.addr == a.addr) || 
                 p.utxo_vout.some(p2 => p2.scriptPubKey.addresses.includes(a.addr)

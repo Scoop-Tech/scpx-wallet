@@ -130,123 +130,101 @@ module.exports = {
         }
     },
 
-    //
-    // these blockbook processors are shared: used by the by direct mempool query (above) and also
-    // used by the worker-addr-monitor on receipt of bitcoind/addresstxid data
-    //
-    mempool_process_BB_UtxoTx: (web3, wallet, asset, txid, tx, weAreSender, erc20) => {
-        return mempool_process_BB_UtxoTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
-    },
+    // mempool_process_BB_UtxoTx: (web3, wallet, asset, txid, tx, weAreSender, erc20) => {
+    //     return mempool_process_BB_UtxoTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
+    // },
 
     mempool_process_BB_EthTx: (web3, wallet, asset, txid, tx, weAreSender, erc20) => {
         return mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20)
     }
 }
 
-function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
-    const txInLocalTxs = asset.local_txs.some(p => p.txid === txid)
-    console.log(`mempool_process_BB_UtxoTx txInLocalTxs=${txInLocalTxs} txid=`, txid)
-    
-    // send to self - all inputs and outputs are ours
-    const sendToSelf = 
-        tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
-    && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
-
-    if (weAreSender) {
-
-        // keep track of utxos input txids, for removal from the lagging insight-api utxo list
-        tx.inputs.map(p => { return p.txid }).forEach(txid => {
-            mempool_spent_txids.push(txid)
-        })
-
-        // push local_tx - outbound
-        ownAddresses.forEach(ownAddr => {
-
-            const du_fee = Number(new BigNumber(tx.feeSatoshis).div(100000000))
-
-            const valueFromAddr = tx.inputs
-                .filter(input => { return input.address === ownAddr })
-                .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
-
-            const valueChange = tx.outputs
-                .filter(output => { return ownAddresses.some(addr => { return addr === output.address }) })
-                .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
-
-            const netValueSent = Number(valueFromAddr.minus(valueChange).minus(new BigNumber(du_fee)))
-
-            if (valueFromAddr.isGreaterThan(0)) {
-                if (!txInLocalTxs && // not in local_txs
-                    !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) // not in external txs
-                {
-                    const outbound_tx = { // LOCAL_TX (UTXO) OUT
-                        sendToSelf,
-                        isIncoming: false, // ###
-                        date: new Date(),
-                        value: Number(netValueSent),
-                        txid,
-                        toOrFrom: tx.outputs[0].address,
-                        block_no: -1,
-                        fees: du_fee
-                    }
-
-                    utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... outbound_tx=`, outbound_tx)
-                    postMessage({
-                        msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
-                        data: {
-                            dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                         dispatchPayload: { symbol: asset.symbol, tx: outbound_tx }
-                        }
-                    })
-                }
-            }
-        })
-    }
-    else {
-        // push local_tx - inbound
-        ownAddresses.forEach(ownAddr => {
-            const valueToAddr = tx.outputs
-                .filter(p => { return p.address === ownAddr })
-                .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
-
-            if (valueToAddr.isGreaterThan(0) 
-                || tx.outputs.some(p => p.address === ownAddr) // DMS: we want to pick up by-design zero-value dsigCltv outputs immediately
-            ) {
-                if (!txInLocalTxs &&
-                    !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
-                
-                    const inbound_tx = { // LOCAL_TX (UTXO) IN
-                        sendToSelf,
-                        isIncoming: true,
-                        date: new Date(),
-                        value: Number(valueToAddr),
-                        txid,
-                        toOrFrom: tx.inputs[0].address, // there is no spoon
-                        block_no: -1,
-                        fees: Number(new BigNumber(tx.feeSatoshis).div(100000000))
-                    }
-
-                    utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... inbound_tx=`, inbound_tx)
-                    postMessage({
-                         msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
-                        data: {
-                            dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
-                         dispatchPayload: { symbol: asset.symbol, tx: inbound_tx }
-                        }
-                    })
-                }
-            }
-        })
-    }
-
-    //
-    // TEST THIS -- does it overwrite the local_tx (with p_op enriched data?)
-    //              do we surely not still need to scan for new non-std addr's after this refresh??
-    //
-    // DMS TODO - we need to enrich the local_tx w/ p_op data;
-    //      (to do this, we trigger getAddressFull_Blockbook_v3() ... ... 'REFRESH_ASSET_FULL')
-    //  OR, maybe this should happen after the non-std address has been added...
-    //postMessage({ msg: 'REQUEST_REFRESH_ASSET_FULL', status: 'REFRESH', data: { symbol: asset.symbol } })
-}
+// function mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids) {
+//     const txInLocalTxs = asset.local_txs.some(p => p.txid === txid)
+//     console.log(`mempool_process_BB_UtxoTx txInLocalTxs=${txInLocalTxs} txid=`, txid)
+//     // send to self - all inputs and outputs are ours
+//     const sendToSelf = 
+//         tx.inputs.every(p => ownAddresses.some(p2 => p2 === p.address))
+//     && tx.outputs.every(p => ownAddresses.some(p2 => p2 === p.address))
+//     if (weAreSender) {
+//         // keep track of utxos input txids, for removal from the lagging insight-api utxo list
+//         tx.inputs.map(p => { return p.txid }).forEach(txid => {
+//             mempool_spent_txids.push(txid)
+//         })
+//         // push local_tx - outbound
+//         ownAddresses.forEach(ownAddr => {
+//             const du_fee = Number(new BigNumber(tx.feeSatoshis).div(100000000))
+//             const valueFromAddr = tx.inputs
+//                 .filter(input => { return input.address === ownAddr })
+//                 .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
+//             const valueChange = tx.outputs
+//                 .filter(output => { return ownAddresses.some(addr => { return addr === output.address }) })
+//                 .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
+//             const netValueSent = Number(valueFromAddr.minus(valueChange).minus(new BigNumber(du_fee)))
+//             if (valueFromAddr.isGreaterThan(0)) {
+//                 if (!txInLocalTxs && // not in local_txs
+//                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) // not in external txs
+//                 {
+//                     const outbound_tx = { // LOCAL_TX (UTXO) OUT
+//                         sendToSelf,
+//                         isIncoming: false, // ###
+//                         date: new Date(),
+//                         value: Number(netValueSent),
+//                         txid,
+//                         toOrFrom: tx.outputs[0].address,
+//                         block_no: -1,
+//                         fees: du_fee
+//                     }
+//                     utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... outbound_tx=`, outbound_tx)
+//                     postMessage({
+//                         msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
+//                         data: {
+//                             dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
+//                          dispatchPayload: { symbol: asset.symbol, tx: outbound_tx }
+//                         }
+//                     })
+//                 }
+//             }
+//         })
+//     }
+//     else {
+//         // push local_tx - inbound
+//         ownAddresses.forEach(ownAddr => {
+//             const valueToAddr = tx.outputs
+//                 .filter(p => { return p.address === ownAddr })
+//                 .reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis).div(100000000)) }, new BigNumber(0))
+//             if (valueToAddr.isGreaterThan(0) 
+//                 || tx.outputs.some(p => p.address === ownAddr) // DMS: we want to pick up by-design zero-value dsigCltv outputs immediately
+//             ) {
+//                 if (!txInLocalTxs &&
+//                     !asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))) {
+//                     const inbound_tx = { // LOCAL_TX (UTXO) IN
+//                         sendToSelf,
+//                         isIncoming: true,
+//                         date: new Date(),
+//                         value: Number(valueToAddr),
+//                         txid,
+//                         toOrFrom: tx.inputs[0].address, // there is no spoon
+//                         block_no: -1,
+//                         fees: Number(new BigNumber(tx.feeSatoshis).div(100000000))
+//                     }
+//                     utilsWallet.log(`mempool_process_BB_UtxoTx - ${txid} REQUEST_DISPATCH: WCORE_PUSH_LOCAL_TX... inbound_tx=`, inbound_tx)
+//                     postMessage({
+//                          msg: 'REQUEST_DISPATCH', status: 'DISPATCH',
+//                         data: {
+//                             dispatchType: actionsWallet.WCORE_PUSH_LOCAL_TX,
+//                          dispatchPayload: { symbol: asset.symbol, tx: inbound_tx }
+//                         }
+//                     })
+//                 }
+//             }
+//         })
+//     }
+//     // DMS TODO - we need to enrich the local_tx w/ p_op data;
+//     //      (to do this, we trigger getAddressFull_Blockbook_v3() ... ... 'REFRESH_ASSET_FULL')
+//     //  OR, maybe this should happen after the non-std address has been added...
+//     //postMessage({ msg: 'REQUEST_REFRESH_ASSET_FULL', status: 'REFRESH', data: { symbol: asset.symbol } })
+// }
 
 function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, erc20) {
     var new_local_tx

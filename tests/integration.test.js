@@ -332,9 +332,13 @@ describe('transactions', function () {
                         //
                         // after p_op...
                         //  >>> local_tx on CLI SENDER... FIXED THIS PATH... # non-std addr's updates ok.
+                        //      BUT... local_tx doesn't have the p_op fields added - WCORE_SET_ENRICHED_TXS only looking at addr-tx's ?
                         //
                         //  >>> local_tx on GUI (mempool-tx path)... contains NO utxo_vin / vout... 
-                        //          TODO:....
+                        //          worker-addr-monitor.subAddr_Blockbook
+                        //            getDetailedTransaction
+                        //              worker-blockbook-mempool.mempool_process_BB_UtxoTx
+                        //               ( INSTEAD OF (e.g. eth) "ASSET_REFRESH_ADDR_MONITOR" >>> refreshAssetsFull]... can just use this instead?
 
                                 // block_no: -1
                                 // date: Sat Feb 06 2021 07:55:18 GMT+0000 (Greenwich Mean Time) {}

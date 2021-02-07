@@ -110,23 +110,24 @@ function subAddr_Blockbook(wallet, asset) {
                     else {
                         utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - BB getDetailedTransaction... txid=`, txid, { logServerConsole: true })
 
+                        // trigger refresh: we will walk the mempool utxo list and record the mempool tx in local_txs[]
+                        // DMS - try: revert to this path, (no mempool_process_BB_UtxoTx at all... target: remove it...)
+                        utilsWallet.log(`appWorker >> ${self.workerId} bitcoind/addresstxid UTXO data - requesting ASSET_REFRESH_ADDR_MONITOR`)
+                        postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
+
                         // query blockbook for full tx details (see https://btc1.trezor.io/static/test.html for full blockbook socket interface)
-                        socket.send({ method: 'getDetailedTransaction', params: [txid] }, (bb_txData) => {
-                            //utilsWallet.log('bb_txData', bb_txData) // DMS: bb_txData contains UTXO data... we sould put into local_tx's
-
-                            if (bb_txData && bb_txData.result) {
-                                // trigger refresh: we will walk the mempool utxo list and record the mempool tx in local_txs[]
-                                //postMessage({ msg: 'REQUEST_STATE', status: 'REQ', data: { stateItem: 'ASSET', stateKey: asset.symbol, context: 'ASSET_REFRESH_ADDR_MONITOR' } })
-
-                                // this works much more reliably, i.e. writing the local_tx directly instead of 
-                                // requesting a full asset refresh and requiring its mempool read to pick up the tx
-                                const tx = bb_txData.result
-                                const ownAddresses = asset.addresses.map(p => { return p.addr })
-                                const weAreSender = tx.inputs.some(p => { return ownAddresses.some(p2 => p2 === p.address) })
-                                const mempool_spent_txids = []
-                                workerAddrMemPool.mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids)
-                            }
-                        })
+                        // socket.send({ method: 'getDetailedTransaction', params: [txid] }, (bb_txData) => {
+                        //     //utilsWallet.log('bb_txData', bb_txData) // DMS: bb_txData contains UTXO data... we sould put into local_tx's
+                        //     if (bb_txData && bb_txData.result) {
+                        //         // this works much more reliably, i.e. writing the local_tx directly instead of 
+                        //         // requesting a full asset refresh and requiring its mempool read to pick up the tx
+                        //         // const tx = bb_txData.result
+                        //         // const ownAddresses = asset.addresses.map(p => { return p.addr })
+                        //         // const weAreSender = tx.inputs.some(p => { return ownAddresses.some(p2 => p2 === p.address) })
+                        //         // const mempool_spent_txids = []
+                        //         // workerAddrMemPool.mempool_process_BB_UtxoTx(wallet, asset, txid, tx, weAreSender, ownAddresses, mempool_spent_txids)
+                        //     }
+                        // })
                     }
                 }
             }

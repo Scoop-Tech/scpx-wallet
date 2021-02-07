@@ -112,7 +112,7 @@ const handlers = {
             if (addrNdx == -1) return {...state}
 
             txs.forEach((tx) => {
-                utilsWallet.log(`WCORE_SET_ENRICHED_TXS_MULTI txid=${tx.txid}, tx=`, tx)
+                //console.log(`WCORE_SET_ENRICHED_TXS_MULTI txid=${tx.txid}, tx=`, tx)
 
                 if (!assets[assetNdx].addresses[addrNdx] // observed - race condition across logins??
                     || assets[assetNdx].addresses[addrNdx].addr !== addr) { 
@@ -122,9 +122,12 @@ const handlers = {
                 // txs - insert or update 
                 const txNdx = assets[assetNdx].addresses[addrNdx].txs.findIndex(p => p.txid == tx.txid)
                 if (txNdx !== -1) {
-                    assets[assetNdx].addresses[addrNdx].txs[txNdx] = tx
+                    //console.log(`WCORE_SET_ENRICHED_TXS_MULTI UPDATE/MERGING txid=${tx.txid}, tx=`, tx)
+                    assets[assetNdx].addresses[addrNdx].txs[txNdx] = //tx
+                        Object.assign(assets[assetNdx].addresses[addrNdx].txs[txNdx], tx) // merge
                 }
                 else {
+                    //console.log(`WCORE_SET_ENRICHED_TXS_MULTI INSERTING txid=${tx.txid}, tx=`, tx)
                     assets[assetNdx].addresses[addrNdx].txs.push(tx)
                 }
             })
