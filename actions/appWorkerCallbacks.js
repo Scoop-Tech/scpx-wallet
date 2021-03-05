@@ -59,11 +59,12 @@ module.exports = {
         // add non-standard address(es) (if balance > 0)
         else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
   
-            //utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... postback=`, postback)
             const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
+            utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... addrs=`, nonStdAddrs_Txs.map(p => p.nonStdAddr))
             //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
             const asset = postback.asset
-            // handle addr-balance postback, n ops
+
+            // handle addr-balance postback, PERF ## n ops
             function handleAddrBalancePostback(addrBalEvent) {
                 const addrBalRes = utilsWallet.unpackWorkerResponse(addrBalEvent)
                 if (addrBalRes) {
@@ -73,7 +74,8 @@ module.exports = {
                                 if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
                                     //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES calling addNonStdAddress_DsigCltv, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
 
-                                    // n ops
+                                    // PERF ## n ops
+                                    // TODO: we should queue these ops, and batch up store/state changes...
                                     const ret = await walletShared.addNonStdAddress_DsigCltv({
                                     dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
                                                      store,
