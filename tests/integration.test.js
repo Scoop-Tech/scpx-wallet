@@ -317,7 +317,7 @@ describe('transactions', function () {
         })
 
         // WIP... ## complication is the pending p_op TX: it doesn't trigger the new non-std addr detection...
-        it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
+        /*it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
                 const { p2shAddr, txid } = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
@@ -382,7 +382,7 @@ describe('transactions', function () {
                 //  (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
                 //
             }
-        })
+        })*/
 
         //
         // TODO: test - beneficiary can't claim early...
