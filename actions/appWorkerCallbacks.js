@@ -71,34 +71,34 @@ module.exports = {
                     if (addrBalRes.msg === 'ADDRESS_BALANCE_RESULT' && addrBalRes.data !== undefined) {
 
                         // ## causing .length intermitant load errors on CLI...?
-                        const positiveBalanceAddresses = addrBalRes.data.filter(p => p.bal.balance > 0 || p.bal.unconfirmedBalance > 0)
-                        await walletShared.addNonStdAddress_DsigCltv({
-                            dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => positiveBalanceAddresses.some(p2 => p2.addr == p.nonStdAddr)),
-                                             store,
-                                   userAccountName: utilsWallet.getStorageContext().owner,
-                                   eosActiveWallet: undefined,
-                                         assetName: asset.name,
-                                               apk: utilsWallet.getStorageContext().apk,
-                                           e_email: utilsWallet.getStorageContext().e_email,
-                                             h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                        })
-
-                        // addrBalRes.data.forEach(async result => { // PERF ## n ops
-                        //     if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
-                        //         if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
-                        //             const ret = await walletShared.addNonStdAddress_DsigCltv({
-                        //             dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
-                        //                              store,
-                        //                    userAccountName: utilsWallet.getStorageContext().owner,
-                        //                    eosActiveWallet: undefined,
-                        //                          assetName: asset.name,
-                        //                                apk: utilsWallet.getStorageContext().apk,
-                        //                            e_email: utilsWallet.getStorageContext().e_email,
-                        //                              h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                        //             })
-                        //         }
-                        //     }
+                        // const positiveBalanceAddresses = addrBalRes.data.filter(p => p.bal.balance > 0 || p.bal.unconfirmedBalance > 0)
+                        // await walletShared.addNonStdAddress_DsigCltv({
+                        //     dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => positiveBalanceAddresses.some(p2 => p2.addr == p.nonStdAddr)),
+                        //                      store,
+                        //            userAccountName: utilsWallet.getStorageContext().owner,
+                        //            eosActiveWallet: undefined,
+                        //                  assetName: asset.name,
+                        //                        apk: utilsWallet.getStorageContext().apk,
+                        //                    e_email: utilsWallet.getStorageContext().e_email,
+                        //                      h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
                         // })
+
+                        addrBalRes.data.forEach(async result => { // PERF ## n ops
+                            if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
+                                if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
+                                    const ret = await walletShared.addNonStdAddress_DsigCltv({
+                                    dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
+                                                     store,
+                                           userAccountName: utilsWallet.getStorageContext().owner,
+                                           eosActiveWallet: undefined,
+                                                 assetName: asset.name,
+                                                       apk: utilsWallet.getStorageContext().apk,
+                                                   e_email: utilsWallet.getStorageContext().e_email,
+                                                     h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
+                                    })
+                                }
+                            }
+                        })
                     }
                 }
             }
