@@ -64,38 +64,46 @@ module.exports = {
             //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
             const asset = postback.asset
 
-            // handle addr-balance postback, PERF ## n ops
-            function handleAddrBalancePostback(addrBalEvent) {
+            // handle addr-balance postback
+            async function handleAddrBalancePostback(addrBalEvent) {
                 const addrBalRes = utilsWallet.unpackWorkerResponse(addrBalEvent)
                 if (addrBalRes) {
                     if (addrBalRes.msg === 'ADDRESS_BALANCE_RESULT' && addrBalRes.data !== undefined) {
-                        addrBalRes.data.forEach(async result => {
-                            if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
-                                if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
-                                    //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES calling addNonStdAddress_DsigCltv, nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
 
-                                    // PERF ## n ops
-                                    // TODO: we should queue these ops, and batch up store/state changes...
-                                    const ret = await walletShared.addNonStdAddress_DsigCltv({
-                                    dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
-                                                     store,
-                                           userAccountName: utilsWallet.getStorageContext().owner,
-                                           eosActiveWallet: undefined,
-                                                 assetName: asset.name,
-                                                       apk: utilsWallet.getStorageContext().apk,
-                                                   e_email: utilsWallet.getStorageContext().e_email,
-                                                     h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                                    })
-
-                                    //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES called addNonStdAddress_DsigCltv, ret=`, ret, { logServerConsole: true })
-                                }
-                            }
+                        // ## causing .length intermitant load errors on CLI...?
+                        const positiveBalanceAddresses = addrBalRes.data.filter(p => p.bal.balance > 0 || p.bal.unconfirmedBalance > 0)
+                        await walletShared.addNonStdAddress_DsigCltv({
+                            dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => positiveBalanceAddresses.some(p2 => p2.addr == p.nonStdAddr)),
+                                             store,
+                                   userAccountName: utilsWallet.getStorageContext().owner,
+                                   eosActiveWallet: undefined,
+                                         assetName: asset.name,
+                                               apk: utilsWallet.getStorageContext().apk,
+                                           e_email: utilsWallet.getStorageContext().e_email,
+                                             h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
                         })
+
+                        // addrBalRes.data.forEach(async result => { // PERF ## n ops
+                        //     if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {
+                        //         if (result.bal.balance > 0 || result.bal.unconfirmedBalance > 0) {
+                        //             const ret = await walletShared.addNonStdAddress_DsigCltv({
+                        //             dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => p.nonStdAddr == result.addr),
+                        //                              store,
+                        //                    userAccountName: utilsWallet.getStorageContext().owner,
+                        //                    eosActiveWallet: undefined,
+                        //                          assetName: asset.name,
+                        //                                apk: utilsWallet.getStorageContext().apk,
+                        //                            e_email: utilsWallet.getStorageContext().e_email,
+                        //                              h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
+                        //             })
+                        //         }
+                        //     }
+                        // })
                     }
                 }
             }
 
-            // query n addr balances, 1 op
+            // query n addr balances
             utilsWallet.getAppWorker().removeEventListener('message', handleAddrBalancePostback)
             utilsWallet.getAppWorker().addEventListener('message', handleAddrBalancePostback)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'GET_ANY_ADDRESS_BALANCE', data: { asset, addrs: nonStdAddrs_Txs.map(p => p.nonStdAddr) } })

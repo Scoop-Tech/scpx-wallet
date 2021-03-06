@@ -19,7 +19,7 @@ module.exports = {
     fetch: () => {
         const fxApi = 'https://api.exchangeratesapi.io/latest?base=USD'
 
-        utilsWallet.debug('appWorker >> prices fetch...')
+        //utilsWallet.debug('appWorker >> prices fetch...')
 
         // get cryptocompare prices
         var symbols_cc = Object
@@ -148,7 +148,7 @@ module.exports = {
     // see: configWallet.PRICE_USE_SOCKETS
     priceSocket_Disconnect: () => {
         if (self.priceSocket) {
-            utilsWallet.debug('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)
+            //utilsWallet.debug('appWorker >> priceSocket_Disconnect - DISCONNECTING: socket=', self.priceSocket)
             try {
                 self.priceSocket.disconnect()
                 postMessage({ msg: 'REQUEST_DISPATCH', status: 'DISPATCH', data: { dispatchType: actionsWallet.PRICE_SOCKET_DISCONNECTED } })

@@ -8,6 +8,7 @@ const filePersist = require('./sw-file-persist')
 const serverPersist = require('./sw-server-persist')
 const asset = require('./sw-asset')
 const tx = require('./sw-tx')
+const claimable = require('./sw-claimable')
 
 const log = require('../sw-cli-log')
 
@@ -29,7 +30,8 @@ module.exports = {
             (fn === 'DUMP' || fn === 'ADD-ADDR' || fn === 'ADD-PRIV-KEYS' || fn === 'REMOVE-PRIV-KEYS'
           || fn === 'LOAD' || fn === 'SAVE' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH'
-          || fn === 'ASSET-CONVERT')
+          || fn === 'ASSET-CONVERT'
+          || fn === 'CLAMABLE-SPEND')
         
         const loadedWalletRequired =
             (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
@@ -37,7 +39,8 @@ module.exports = {
         const connectedWalletRequired =
             (fn === 'BALANCE' || fn === 'ASSET-GET-FEES' 
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH' 
-          || fn === 'ASSET-CONVERT')
+          || fn === 'ASSET-CONVERT'
+          || fn === 'CLAIMABLE-LIST' || fn === 'CLAIMABLE-CLAIM')
     
         // param/state check - store is valid and wallet is loaded, if supplied and applicable
         var storeState = undefined
@@ -102,6 +105,9 @@ module.exports = {
             
             case 'TX-GET-FEE':        walletFn = tx.txGetFee; break;
             case 'TX-PUSH':           walletFn = tx.txPush; break;
+
+            case 'CLAIMABLE-LIST':    walletFn = claimable.claimableList; break;
+            case 'CLAIMABLE-CLAIM':   walletFn = claimable.claimableClaim; break;
 
             default: return Promise.resolve({ err: 'Invalid wallet function' })
         }

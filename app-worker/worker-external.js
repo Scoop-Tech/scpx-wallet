@@ -28,7 +28,7 @@ module.exports = {
 
 function getAddressFull_Cleanup(p) {
     const { wallet, asset, addrNdx } = p
-    utilsWallet.debug(`getAddressFull_Cleanup(ext) - ${asset.symbol} addrNdx=${addrNdx}...`)
+    //utilsWallet.debug(`getAddressFull_Cleanup(ext) - ${asset.symbol} addrNdx=${addrNdx}...`)
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
             break // NOP
@@ -43,7 +43,7 @@ function getAddressFull_Cleanup(p) {
 
 function getAddressFull_External(p, callback) { // todo: accept already fetched balanceData, from getAddressBalance_External, so we don't query it twice
     const { wallet, asset, addrNdx, /*utxo_mempool_spentTxIds,*/ bbSocket } = p
-    utilsWallet.debug(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
+    //utilsWallet.debug(`getAddressFull_External - ${asset.symbol} addrNdx=${addrNdx}...`)
 
     var allDispatchActions = []
     switch (asset.type) {
@@ -89,7 +89,7 @@ function getAddressFull_External(p, callback) { // todo: accept already fetched 
 
 function getAddressBalance_External(p, callback) {
     const { wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket } = p
-    utilsWallet.debug(`getAddressBalance - EXTERNAL - ${asset.symbol} addrNdx=${addrNdx}...`)
+    //utilsWallet.debug(`getAddressBalance - EXTERNAL - ${asset.symbol} addrNdx=${addrNdx}...`)
 
     switch (asset.type) {
         case configWallet.WALLET_TYPE_UTXO:
@@ -107,7 +107,7 @@ function getAddressBalance_External(p, callback) {
 
                     if (configWallet.TEST_LARGE_BALANCE > 0) res.balance = configWallet.TEST_LARGE_BALANCE
 
-                    utilsWallet.debug(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx}`)
+                    //utilsWallet.debug(`getAddressBalance - UTXO - ${asset.symbol} addrNdx=${addrNdx}`)
 
                     // refresh tx history for address, if balance changed
                     if (asset.addresses[addrNdx].balance !== res.balance
@@ -143,7 +143,7 @@ function getAddressBalance_External(p, callback) {
                 }
 
                 if (configWallet.TEST_LARGE_BALANCE > 0) res = configWallet.TEST_LARGE_BALANCE
-                utilsWallet.debug(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx}`)
+                //utilsWallet.debug(`getAddressBalance - ACCOUNT - ${asset.symbol} addrNdx=${addrNdx}`)
 
                 // refresh tx history for address, if balance changed 
                 if (asset.addresses[addrNdx].balance !== balanceData.balance || 

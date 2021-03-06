@@ -19,19 +19,13 @@ const walletP2shBtc = require('./wallet-btc-p2sh')
 const walletP2pkhBtc = require('./wallet-btc-p2pkh')
 const walletP2pkhAlts = require('./wallet-alts-p2pkh')
 
-Array.prototype.extend = function (other_array) {
-    if (other_array) {
-        other_array.forEach(function (v) { this.push(v) }, this)
-    }
-}
-
 module.exports = {
 
     //
     // process asset full state updates
     //
     getAddressFull_ProcessResult: (res, asset, addrNdx) => {
-        utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} addrNdx=${addrNdx}...`)
+        //utilsWallet.debug(`getAddressFull_ProcessResult - ${asset.symbol} addrNdx=${addrNdx}...`)
         
         if (!res || !res.txs) return null
         if (configWallet.TEST_PAD_TXS) testPadTxs(res)
@@ -739,9 +733,6 @@ function getAll_protect_op_txs(p) {
     return utilsWallet.getAll_protect_op_txs(p)
 }
 
-//
-// test/dbg
-//
 function testPadTxs(res) {
     for (let i=0 ; i < configWallet.TEST_PAD_TXS ; i++) {
         res.txs.push( { 
@@ -757,5 +748,11 @@ function testPadTxs(res) {
             utxo_vin: [],
             //utxo_vout: [],
         } )
+    }
+}
+
+Array.prototype.extend = function (other_array) {
+    if (other_array) {
+        other_array.forEach(function (v) { this.push(v) }, this)
     }
 }

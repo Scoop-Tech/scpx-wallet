@@ -22,7 +22,7 @@ module.exports = {
 
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
-        utilsWallet.debug(`appWorker >> blockbook_pushTx - ${asset.symbol}...`)
+        //utilsWallet.debug(`appWorker >> blockbook_pushTx - ${asset.symbol}...`)
         socket.send({ method: 'sendTransaction', params: [ txhex ] }, (data) => {
             if (data && data.result) {
                 const txid = data.result

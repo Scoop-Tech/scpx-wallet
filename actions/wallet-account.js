@@ -13,7 +13,7 @@ module.exports = {
     // },
     
     createTxHex_Account: async ({ asset, params, privateKey }) => {
-        utilsWallet.debug(`*** createTxHex_Account ${asset.symbol}...`, params)
+        //utilsWallet.debug(`*** createTxHex_Account ${asset.symbol}...`, params)
         switch (asset.symbol) {
             case 'ETH':
             case 'ETH_TEST':
@@ -24,7 +24,7 @@ module.exports = {
     },
 
     estimateTxGas_Account: async ({ asset, params }) => {
-        utilsWallet.debug(`*** estimateTxGas_Account ${asset.symbol}...`, params)
+        //utilsWallet.debug(`*** estimateTxGas_Account ${asset.symbol}...`, params)
         const op = new Promise((resolve, reject) => {
             const appWorker = utilsWallet.getAppWorker()
             const listener = function(event) {

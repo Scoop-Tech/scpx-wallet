@@ -73,7 +73,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxos) => {
                 
                 if (!utxos) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
-                utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxos.length}`)
+                //utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxos.length}`)
 
                 const getUtxoSpecificOps = utxos.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
                     
@@ -171,7 +171,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
+                            //utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
     
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,
@@ -245,7 +245,7 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
 function getAddressBalance_Blockbook_v3(asset, address) {
     const symbol = asset.symbol
 
-    utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address}...`)
+    //utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address}...`)
     
     return new Promise((resolve, reject) => {
         const params = {
@@ -254,7 +254,7 @@ function getAddressBalance_Blockbook_v3(asset, address) {
         }
 
         isosocket_send_Blockbook(symbol, 'getAccountInfo', params, (data) => {
-            utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address} - data=`, data)
+            //utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address} - data=`, data)
             if (data) {
                 resolve({
                     symbol,
@@ -272,7 +272,7 @@ function getAddressBalance_Blockbook_v3(asset, address) {
 
 // called for initial block-sync state - and new blocks
 function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
-    utilsWallet.debug(`getSyncInfo_Blockbook_v3 ${symbol}...`)
+    //utilsWallet.debug(`getSyncInfo_Blockbook_v3 ${symbol}...`)
     
     // cache BB rest data so we can reuse across tests (across wallet load/worker load cycles) - we get 429's otherwise
     async function bb_getBlock(blockNo, page) {
@@ -392,7 +392,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
 // considered VOLATILE -- no built-in reconnect
 function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker) {
     const setupSymbols = []
-    utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
+    //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
 
@@ -418,7 +418,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     // networkConnected(x, true) // init UI
                     // networkStatusChanged(x, null)
     
-                    utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
+                    //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
 
                     self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket") 
                     var socket = self.blockbookIsoSockets[x]
@@ -429,7 +429,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
                     // socket lifecycle
                     socket.onopen = () => {
-                        utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
+                        //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
                         try {
 
                             // setup (exactly once) a keep-alive timer; needed for direct Trezor WS connections to stop server idle drops
@@ -462,7 +462,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
                                             if (result) {
                                                 if (result.subscribed === true) {
-                                                    utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
+                                                    //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
                                                 }
                                                 else {
                                                     const receivedBlockNo = result.height
@@ -607,7 +607,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         .then((cachedTx) => {
             if (cachedTx && cachedTx.block_no != -1) { // requery unconfirmed tx's
                 cachedTx.fromCache = true
-                utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
+                //utilsWallet.debug(`** enrichTx - ${asset.symbol} ${tx.txid} RET-CACHE`)
 
                 resolve(cachedTx) // return from cache
             }

@@ -19,7 +19,7 @@ module.exports = {
     web3_SetupSocketProvider: () => {
 
         var setupCount = 0
-        utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
                    
@@ -288,7 +288,7 @@ module.exports = {
                 else {
                     web3.eth.getTransaction(txHash)
                     .then((txData) => {
-                        utilsWallet.debug(`push local_tx ${symbol}`, txData)
+                        //utilsWallet.debug(`push local_tx ${symbol}`, txData)
 
                         if (symbol === 'ETH' || symbol === 'ETH_TEST') {
                             const sendToSelf = ownAddresses.some(p => p === txData.to.toLowerCase())

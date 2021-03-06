@@ -44,6 +44,8 @@ cli
     .option('--v', 'display software version')
     .parse(process.argv)
     if (cli.about) {
+        console.log('about...')
+        utilsWallet.logMajor('green','white', `About...`, null, { logServerConsole: true })
         // about
         fs.readFile('./LICENSE.md', 'utf8', (err1, license) => {
             if (err1) throw(`Failed to read license file: ${err1}`)
@@ -77,8 +79,9 @@ console.log()
 utilsWallet.logMajor('green','white', `... scpx-wallet - ${configWallet.WALLET_VER} (${configWallet.WALLET_ENV})  - init ...`, null, { logServerConsole: true })
 console.log(configWallet.WALLET_COPYRIGHT.gray)
 console.log()
-                          log.info('NODE_ENV:'.padEnd(30), process.env.NODE_ENV || '-')
-                          log.info('configWallet.CLI_SAVE_KEY:'.padEnd(30), configWallet.CLI_SAVE_KEY || '-')
+console.log(`${process.title} ${process.version}`)
+log.info('NODE_ENV:'.padEnd(30), process.env.NODE_ENV || '-')
+log.info('configWallet.CLI_SAVE_KEY:'.padEnd(30), configWallet.CLI_SAVE_KEY || '-')
 if (cli.mpk)              log.info(`cli.mpk:`.padEnd(30), cli.mpk)
 if (cli.loadFile)         log.info(`cli.loadFile:`.padEnd(30), cli.loadFile)
 if (cli.loadServer)       log.info(`cli.loadServer:`.padEnd(30), cli.loadServer)

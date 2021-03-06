@@ -119,6 +119,7 @@ module.exports = {
             //'5~CCCAGG~DOS~USD',
             //'5~CCCAGG~RING~USD',
             '5~CCCAGG~SWAP~USD',
+            '5~CCCAGG~UNI~USD',
         ]
     },
 

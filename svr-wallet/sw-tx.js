@@ -41,7 +41,7 @@ module.exports = {
 
         // if spending single UTXO, ensure that supplied value is exactly the value of the UTXO
         var spendTxid, spendVout, spendUtxo, cu_utxoValue
-        if (!utilsWallet.isParamEmpty(spendFullUtxo) && asset.symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid spendFullUtxo for ${asset.symbol}` })
+        if (!utilsWallet.isParamEmpty(spendFullUtxo) && asset.symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op (spendFullUtxo) for ${asset.symbol}` })
         if (asset.type === configWallet.WALLET_TYPE_UTXO && !utilsWallet.isParamEmpty(spendFullUtxo)) {
             const ss = spendFullUtxo.split(':')
             if (ss.length != 2) return Promise.resolve({ err: `Invalid spendFullUtxo format (txid:vout)` })
@@ -97,7 +97,7 @@ module.exports = {
 
             if (!utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is not supported for UTXO-types` })
             if ((!utilsWallet.isParamEmpty(dsigCltvPubKey))
-                && symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid op for UTXO-type asset` })
+                && symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op for UTXO-type asset` })
         }
 
         // validate to addr

@@ -20,7 +20,7 @@ module.exports = {
     // considered VOLATILE -- no built-in reconnect
     isosocket_Setup_Geth: (networkConnected, networkStatusChanged, loaderWorker) => {
         var setupCount = 0
-        utilsWallet.debug(`appWorker >> ${self.workerId} geth_Setup...`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} geth_Setup...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
 
@@ -51,7 +51,7 @@ module.exports = {
                         // networkConnected(x, true) // init UI
                         // networkStatusChanged(x, null)
     
-                        utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x}, wsUrl=`, configWS.geth_ws_config[x].url, { logServerConsole: true })
+                        //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x}, wsUrl=`, configWS.geth_ws_config[x].url, { logServerConsole: true })
 
                         //debugger
                         self.geth_Sockets[x] = new isoWs(configWS.geth_ws_config[x].url) //, { origin: 'https://x.scoop.tech' } 
@@ -61,7 +61,7 @@ module.exports = {
                         // socket lifecycle
                         //
                         socket.onopen = () => {
-                            utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
+                            //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, true)
@@ -119,11 +119,11 @@ module.exports = {
                                     if (o_data.id) {
                                         if (o_data.id == 1) { // tx sub ID
                                             tx_subId = o_data.result
-                                            utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - tx sub setup, id=`, tx_subId)
+                                            //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - tx sub setup, id=`, tx_subId)
                                         }
                                         else if (o_data.id == 2) { // block sub ID
                                             block_subId = o_data.result
-                                            utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - block sub setup, id=`, block_subId)
+                                            //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - block sub setup, id=`, block_subId)
                                         }
                                         // else if (o_data.id == 3) { // test sub TUSD
                                         //     tusd_subId = o_data.result
@@ -192,7 +192,7 @@ module.exports = {
                                             if (!configWallet.WALLET_DISABLE_BLOCK_UPDATES) {
 
                                                 if (configWS.geth_ws_config[x].subBlocks === false) {
-                                                    utilsWallet.debug(`appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ignoring block: subBlocks=false`)
+                                                    //utilsWallet.debug(`appWorker >> ${self.workerId} GETH BLOCK WS ${x} - ignoring block: subBlocks=false`)
                                                 }
                                                 else {
                                                     const blockData = o_data.params.result

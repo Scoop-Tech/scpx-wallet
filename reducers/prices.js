@@ -22,6 +22,7 @@ const {
             LINK_PRICE_UPDATE, ZIL_PRICE_UPDATE, HOT_PRICE_UPDATE, REP_PRICE_UPDATE, MKR_PRICE_UPDATE, 
             NEXO_PRICE_UPDATE,
             BAND_PRICE_UPDATE, DOS_PRICE_UPDATE, RING_PRICE_UPDATE, SWAP_PRICE_UPDATE,
+            UNI_PRICE_UPDATE,
  
     EOS_PRICE_UPDATE, 
 
@@ -162,6 +163,9 @@ const handlers = {
     },
     [SWAP_PRICE_UPDATE]: (state, action) => {
         return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, SWAP: action.payload.price} }
+    },
+    [UNI_PRICE_UPDATE]: (state, action) => {
+        return { ...state, lastPriceUpdateAt: action.payload.lastPriceUpdateAt, price: { ...state.price, UNI: action.payload.price} }
     },
     
     // eos

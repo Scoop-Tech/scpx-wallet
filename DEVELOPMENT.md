@@ -6,9 +6,8 @@
   * https://github.com/bitpay/insight-api - secondary 3PBP interface: BTC_TEST uses this codepath, and is retained as fallback interface for additional assets.
   * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
-## Building from Source
-The tested and recommended build environment is `node` v10.22.0 and `npm` v6.14.6
-WARN: https://github.com/bitcoinjs/tiny-secp256k1/issues/38 still seems present in latest `bitcoinjs` - prevents install/exec on node >10.x...
+## Platform
+`nvm install lts/fermium` tested: "node": "14.16.0", "npm": "6.14.11"
 
 ## Setup
  > All:
@@ -21,9 +20,13 @@ WARN: https://github.com/bitcoinjs/tiny-secp256k1/issues/38 still seems present 
  > All:
   * ```npm install``` - Windows: see also [here](https://github.com/nodejs/node-gyp/issues/671) re. node-gyp rebuild failures
 
-## Running Core Wallet CLI
+## Running Core Wallet CLI - through NPM
   * ```npm run dev``` - runs with dev flags (saves CLI history to file, caches MPK in memory, activates test assets)
   * ```npm start``` - runs with prod flags
+
+## Running Core Wallet CLI - directly with Node, e.g:
+ * ```node --experimental-worker ./sw-cli.js --help``` to view CLI options
+ * ```export NODE_OPTIONS=development &&node --experimental-worker ./sw-cli.js --saveHistory=true --mpk=... --loadServer=...``` e.g. to load a server-wallet, e.g. one created from www.scoop.tech
 
 ## Running Tests
   * See: `.env.example` to run the entire integration test suite (you'll need to make a server test account, and fund it with test assets)

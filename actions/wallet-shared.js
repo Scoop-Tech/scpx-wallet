@@ -714,7 +714,7 @@ module.exports = {
             var keyPair = child.keyPair // bitgo
 
             var wif = keyPair.toWIF()
-            utilsWallet.debug(`generateUtxoBip44Wifs - ${symbol} @ BIP44 path ${path}`)
+            //utilsWallet.debug(`generateUtxoBip44Wifs - ${symbol} @ BIP44 path ${path}`)
             keyPairs.push({ privKey: wif, path })
         }
         return keyPairs
@@ -730,7 +730,7 @@ module.exports = {
             for (var i = addrNdx; i < addrNdx + genCount; i++) {
                 const path = `m/44'/${meta.bip44_index}'/${accountNdx}'/${chainNdx}/${i}`
                 const child = root.derivePath(path)
-                utilsWallet.debug(`generateEthereumWallet - ETH @ BIP44 path ${path}`)
+                //utilsWallet.debug(`generateEthereumWallet - ETH @ BIP44 path ${path}`)
                 privKeys.push({ privKey: utilsWallet.batohex(child.privateKey), path })
             }
             return privKeys

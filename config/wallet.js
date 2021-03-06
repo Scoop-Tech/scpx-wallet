@@ -112,7 +112,8 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
     //'nexo', // trim junk
 
     //'band', 'dos', 'ring',
-    'swap'
+    'swap',
+    'uni'
 
     // todo 
     //'tgbp' (new)
@@ -937,6 +938,24 @@ var walletsMeta = {
         erc20_transferGasLimit: 120000,
         decimals: 18,
         tradingViewSymbol: "POLONIEX:SWAPBTC",
+    },
+    'uni': {
+        name: 'uni',
+        web: 'https://uniswap.org/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'UNI',
+        displayName: 'Uniswap',
+        desc: 'ERC20',
+        displaySymbol: 'UNI',
+        imageUrl: 'img/asset-icon/uni.png',
+        primaryColor: '#80437C',
+        sortOrder: 64,
+        //bip44_index: WALLET_BIP44_COINTYPE_UNREGISTERED + 17,  
+        erc20_transferGasLimit: 120000,
+        decimals: 18,
+        tradingViewSymbol: "BINANCE:UNIBTC",
     },
 }
 

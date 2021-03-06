@@ -36,12 +36,12 @@ module.exports = {
 
         try {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
-            utilsWallet.debug(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
 
             const mempool_spent_txids = []
             socket.send({ method: 'getAddressTxids', params: [ownAddresses, { /*start: 20000000, end: 0,*/ queryMempoolOnly: true }] }, (data) => {
                 
-                utilsWallet.debug(`${asset.symbol} - getAddressTxids data`, data)
+                //utilsWallet.debug(`${asset.symbol} - getAddressTxids data`, data)
 
                 if (data && data.result) {
                     var mempool_txids = data.result

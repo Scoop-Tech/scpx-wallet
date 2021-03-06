@@ -88,7 +88,7 @@ async function handler(e) {
             break
 
         case 'WALLET_ADDR_FROM_PRIVKEY':
-            utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY...`)
+            //utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY...`)
             if (data) {
                 const params = data.params
                 const reqId = data.reqId
@@ -103,7 +103,7 @@ async function handler(e) {
                     utilsWallet.error(`## cpuWorker >> ${workerId} - WALLET_ADDR_FROM_PRIVKEY, e=`, err)
                 }
                 
-                utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
+                //utilsWallet.debug(`cpuWorker >> ${workerId} WALLET_ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
                 self.postMessage({ msg: 'WALLET_ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, reqId, totalReqCount } })
             }
             else {
@@ -112,7 +112,7 @@ async function handler(e) {
             break
 
         case 'ADDR_FROM_PRIVKEY':
-            utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY...`)
+            //utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY...`)
             if (data) {
                 const params = data.params
                 const reqId = data.reqId
@@ -127,7 +127,7 @@ async function handler(e) {
                     utilsWallet.error(`## cpuWorker >> ${workerId} - ADDR_FROM_PRIVKEY, err=`, err)
                 }
                 
-                utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
+                //utilsWallet.debug(`cpuWorker >> ${workerId} ADDR_FROM_PRIVKEY - DONE: reqId=`, reqId)
                 self.postMessage({ msg: 'ADDR_FROM_PRIVKEY', status: `RES_${reqId}`, data: { ret, inputParams: params, reqId, totalReqCount } })
             }
             break

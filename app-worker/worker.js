@@ -113,17 +113,17 @@ async function handler(e) {
     switch (msg) {
 
         case 'SERVER_INIT_TX_DB':  // setup tx db cache (dirty - replaces node-persist)
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`, null, { logServerConsole: true })
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_SERVER_DIRTY_DB...`, null, { logServerConsole: true })
             dirtyDbInit()
             break
         // ## broken -- see dirtyDbClear
         // case 'SERVER_NUKE_TX_DB': 
-        //     utilsWallet.debug(`appWorker >> ${self.workerId} SERVER_NUKE_TX_DB...`)
+        //     //utilsWallet.debug(`appWorker >> ${self.workerId} SERVER_NUKE_TX_DB...`)
         //     dirtyDbClear()
         //     break
 
         case 'DIAG_PING':
-            utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
             const pongTime = new Date().getTime()
             self.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
             break
@@ -131,12 +131,12 @@ async function handler(e) {
         case 'NOTIFY_USER': 
             // posts the notification payload back to the main thread, so it can display accordingly
             // (toastr notification in browser, console log on server)
-            utilsWallet.debug(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
             self.postMessage({ msg: 'NOTIFY_USER', status: 'RES', data })
             break
 
         case 'CONNECT_PRICE_SOCKET':
-            utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Connect()
             break
         case 'FETCH_PRICES': 
@@ -144,12 +144,12 @@ async function handler(e) {
             break
 
         case 'DISCONNECT_PRICE_SOCKET':
-            utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_PRICE_SOCKET...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Disconnect()
             break            
 
         case 'INIT_INSIGHT_SOCKETIO':
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && !p.use_BBv3).forEach(p => { 
                 if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
@@ -157,7 +157,7 @@ async function handler(e) {
             })
             break
         case 'INIT_GETH_ISOSOCKETS':
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
             var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker)
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE - (re)connected=`, setupCount, { logServerConsole: true })
@@ -165,7 +165,7 @@ async function handler(e) {
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker)
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
 
@@ -193,7 +193,7 @@ async function handler(e) {
                     const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt
-                    utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
+                    //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
                     if (allReady) { // all requested connections setup
                         clearInterval(wait_intId)
                         if (symbolsConnected.length > 0) {
@@ -216,7 +216,7 @@ async function handler(e) {
             })
             break
         case 'INIT_WEB3_SOCKET':
-            utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             var setupCount = workerWeb3.web3_SetupSocketProvider()
             if (data.wallet && data.wallet.assets) {
                 // TODO: take in data.wallet; iterate erc20's; call totalSupply() & postback 
@@ -237,7 +237,7 @@ async function handler(e) {
             break
 
         case 'GET_ETH_TX_FEE_WEB3':
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
             workerWeb3.getGasPrices(data.asset, data.params).then(result => {
                 utilsWallet.log('GET_ETH_TX_FEE_WEB3_DONE: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
@@ -245,7 +245,7 @@ async function handler(e) {
             break
 
         case 'GET_ETH_ESTIMATE_TX_GAS':
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_ESTIMATE_TX_GAS...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_ESTIMATE_TX_GAS...`)
             workerWeb3.estimateGasTx(data.asset, data.params).then(result => {
                 utilsWallet.log('GET_ETH_ESTIMATE_TX_GAS_DONE: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_ESTIMATE_TX_GAS_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
@@ -253,21 +253,21 @@ async function handler(e) {
             break
 
         case 'GET_ETH_TX_HEX_WEB3':
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
             workerWeb3.createTxHex_Eth(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ETH_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
             break
         case 'GET_ERC20_TX_HEX_WEB3': 
-            utilsWallet.debug(`appWorker >> ${self.workerId} GET_ERC20_TX_HEX_WEB3...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ERC20_TX_HEX_WEB3...`)
             workerWeb3.createTxHex_erc20(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ERC20_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ERC20_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
             break
         case 'PUSH_TX_WEB3': 
-            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_WEB3...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_WEB3...`)
             workerWeb3.pushRawTransaction_Account(data.payTo, data.asset, data.txHex).then(result => {
                 utilsWallet.log('PUSH_TX_WEB3: posting back', result)
                 self.postMessage({ msg: 'PUSH_TX_WEB3_DONE', status: 'RES', data: { res: result.res, err: result.err, assetSymbol: data.asset.symbol } }) 
@@ -275,26 +275,26 @@ async function handler(e) {
             break            
 
         case 'PUSH_TX_BLOCKBOOK':
-            utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
             workerPushTx.blockbook_pushTx(data.asset, data.txhex, data.wallet)
             break
 
         case 'CONNECT_ADDRESS_MONITORS':
-            utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_ADDRESS_MONITORS...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, true)
             }
             break
 
         case 'DISCONNECT_ADDRESS_MONITORS': 
-            utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_ADDRESS_MONITORS...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, false)
             }
         break
 
         case 'STATE_RESPONSE':
-            utilsWallet.debug(`appWorker >> ${self.workerId} STATE_RESPONSE`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} STATE_RESPONSE`)
             const stateItem = data.stateItem
             const stateKey = data.stateKey
             const value = data.value
@@ -338,7 +338,7 @@ async function handler(e) {
         // asset refresh requests - note: request to refresh an erc20 asset are actually requests to update eth
         //
         case 'REFRESH_ASSET_BALANCE': {
-            utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_BALANCE ${data.asset.symbol}...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} REFRESH_ASSET_BALANCE ${data.asset.symbol}...`)
             refreshAssetBalance(data.asset, data.wallet)
             break
         }
@@ -354,7 +354,7 @@ async function handler(e) {
         }
 
         case 'POST_OFFLINE_CHECK': 
-            utilsWallet.debug(`appWorker >> ${self.workerId} POST_OFFLINE_CHECK...`)
+            //utilsWallet.debug(`appWorker >> ${self.workerId} POST_OFFLINE_CHECK...`)
             postOfflineCheck()
             break
 
@@ -436,7 +436,7 @@ async function handler(e) {
     return Promise.resolve()
 
     function GetSyncInfo(symbol) {
-        utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
 
         if ((symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST)
          || (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST)
@@ -488,7 +488,7 @@ async function handler(e) {
                 //****
                 workerAddressMempool.mempool_get_BB_txs(asset, wallet) //, (utxo_mempool_spentTxIds) => {
 
-                utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetsFull ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+                //utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetsFull ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
                 //console.time(`refreshAssetFull_${asset.symbol}`)
     
                 // get BB scoket, for account types (needed for ETH v2)
@@ -551,7 +551,7 @@ async function handler(e) {
     function refreshAssetBalance(asset, wallet) {
         workerAddressMempool.mempool_get_BB_txs(asset, wallet) //, (utxo_mempool_spentTxIds) => {
 
-        utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
         // get BB scoket, for account types (needed for ETH v2)
         var bbSocket
@@ -575,7 +575,7 @@ async function handler(e) {
         Promise.all(refreshOps)
         .then((res) => {
             if (allDispatchActions.length > 0) {
-                utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
+                //utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance - ${asset.symbol} allDispatchActions.length=${allDispatchActions.length}`)
 
                 allDispatchActions = mergeDispatchActions(asset, allDispatchActions)
                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: allDispatchActions } } ) // post dispatch batch request
@@ -684,11 +684,11 @@ async function handler(e) {
     }
 
     function networkStatusChanged(symbol, info) {
-        //utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
+        ////utilsWallet.debug(`appWorker >> ${self.workerId} networkStatusChanged ${symbol} txid=${txid}`)
         self.postMessage({ msg: 'NETWORK_STATUS_CHANGE', status: 'ok', data: { symbol, info } })
     }
     function networkConnected(symbol, connected) {
-        utilsWallet.debug(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} networkConnected ${symbol} connected=${connected}`)
         self.postMessage({ msg: 'NETWORK_CONNECTED_CHANGE', status: 'ok', data: { symbol, connected } }) 
     }
 }
@@ -707,7 +707,7 @@ self.get_BlockbookSocketIo = function(asset) {
         }
         else {
             try {
-                utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
+                //utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
                 socket = io(configWS.blockbook_ws_config[socketToUse].url, { transports: ['websocket'] })
                 self.blockbookSocketIos[socketToUse] = socket
                 

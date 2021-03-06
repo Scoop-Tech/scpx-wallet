@@ -19,7 +19,7 @@ module.exports = {
 
     // insight tx and block subscriptions (diagnostics and balance polling, respectively)
     socketio_Setup_Insight: (networkConnected, networkStatusChanged, loaderWorker) => {
-        utilsWallet.debug('appWorker >> ${self.workerId} insight_Setup...')
+        //utilsWallet.debug('appWorker >> ${self.workerId} insight_Setup...')
 
         for (var assetSymbol in configWS.insightApi_ws_config) {
             if (assetSymbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST) continue
@@ -52,7 +52,7 @@ module.exports = {
                         //networkConnected(x, true) // init UI
                         //networkStatusChanged(x, null)
         
-                        utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`, null, { logServerConsole: true })
+                        //utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - io: ${configWS.insightApi_ws_config[x].url}...`, null, { logServerConsole: true })
 
                         self.insightSocketIos[x] = io(configWS.insightApi_ws_config[x].url, { transports: ['websocket'] })
                         var socket = self.insightSocketIos[x]
@@ -61,7 +61,7 @@ module.exports = {
                         // socket lifecycle
                         //
                         socket.on('connect', () => {
-                            utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect...`)
+                            //utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - connect...`)
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, true)
@@ -191,7 +191,7 @@ module.exports = {
                                 if (configWallet.WALLET_DISABLE_BLOCK_UPDATES) return
                                 
                                 if (configWS.insightApi_ws_config[x].subBlocks === false) {
-                                    utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
+                                    //utilsWallet.debug(`appWorker >> ${self.workerId} INSIGHT WS ${x} - IO - ignoring block: subBlocks=false`)
                                 }
                                 else {
                                     try {
@@ -233,7 +233,7 @@ module.exports = {
 
     getAddressBalance_Insight: (asset, address) => {
         const symbol = asset.symbol
-        utilsWallet.debug(`getAddressBalance_Insight v2_addrBal ${symbol}...`)
+        //utilsWallet.debug(`getAddressBalance_Insight v2_addrBal ${symbol}...`)
 
         return new Promise((resolve, reject) => {
             
@@ -268,7 +268,7 @@ module.exports = {
     // UTXO v2 -- gets balance and last n raw tx id's - one op.
     getAddressFull_Insight_v2: (wallet, asset, pollAddress, utxo_mempool_spentTxIds, allDispatchActions) => {
         const symbol = asset.symbol
-        utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol}...`)
+        //utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol}...`)
 
         //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
         const from = 0
@@ -328,7 +328,7 @@ module.exports = {
                     .then((enrichedTxs) => {
                         const dispatchTxs = enrichedTxs.filter(p => p != null)
                         if (dispatchTxs.length > 0) {
-                            utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
+                            //utilsWallet.debug(`getAddressFull_Insight_v2 ${symbol} ${pollAddress} - enrichTx done for ${dispatchTxs.length} tx's - requesting WCORE_SET_ENRICHED_TXS...`)
 
                             const dispatchAction = {
                                 type: actionsWallet.WCORE_SET_ENRICHED_TXS,

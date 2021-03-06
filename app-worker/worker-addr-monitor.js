@@ -62,7 +62,7 @@ function subAddr_Blockbook(wallet, asset) {
         
         // subscribe addr monitor
         socket.emit('subscribe', "bitcoind/addresstxid", ownAddresses, (result) => {})
-        //utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
+        ////utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
 
         // callback
         socket.on("bitcoind/addresstxid", function (data) {
@@ -141,7 +141,7 @@ function subAddr_Blockbook(wallet, asset) {
 
 // insight addr sub's -- we are sharing the insight sockets used for block and pending tx polling
 function subAddr_Insight(asset) {
-    utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}...`)
+    //utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}...`)
     const ownAddresses = asset.addresses.map(p => { return p.addr })
     var socket = self.insightSocketIos[asset.symbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} subAddr_Insight ${asset.symbol}: no socket setup!`); return }
@@ -178,7 +178,7 @@ function subAddr_Insight(asset) {
 }
 
 function unsubAddr_Blockbook(assetSymbol) {
-    //utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
+    ////utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
     var socket = self.blockbookSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}: no socket setup!`); return }
     else {
@@ -190,7 +190,7 @@ function unsubAddr_Blockbook(assetSymbol) {
 }
 
 function unsubAddr_Insight(assetSymbol) {
-    utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}...`)
+    //utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}...`)
     var socket = self.insightSocketIos[assetSymbol]
     if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Insight ${assetSymbol}: no socket setup!`); return }
     else {

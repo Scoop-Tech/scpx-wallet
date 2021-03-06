@@ -84,6 +84,7 @@ const erc20Contracts = {
     DOS:  '0x0A913beaD80F321E7Ac35285Ee10d9d922659cB7',
     RING: '0x9469d013805bffb7d3debe5e7839237e535ec483',
     SWAP: '0xCC4304A31d09258b0029eA7FE63d032f52e44EFe',
+    UNI: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
 
     CCC_TEST: '0xD661a646E28D157eb60e74298CE799E23d17db07', // v0.96a
     AY1A_TEST: '0xf07aA78a849A441eBf882967F6130BD3E71C1D9C', // v0.95c
@@ -480,6 +481,13 @@ const walletExternal_config = {
         donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
         contractAddress: erc20Contracts.SWAP,
         explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.SWAP, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    UNI: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.UNI,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.UNI, address),
         txExplorerPath: (txid) => eth_TxExplorer(txid),
         httpProvider: ethHttpProvider,
     },
