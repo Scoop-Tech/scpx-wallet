@@ -13,7 +13,6 @@ const axiosApi = axios.create({ baseURL: configWallet.API_URL })
 //     instance: axiosApi,
 //     retry: 3,
 //     httpMethodsToRetry: ['GET', 'HEAD', 'OPTIONS', 'DELETE', 'PUT', 'POST'],
-
 //     statusCodesToRetry: [[100, 199], [400, 429], [500, 599]],
 // };
 // const interceptorId = rax.attach(axiosApi);
