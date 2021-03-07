@@ -44,7 +44,7 @@ module.exports = {
     // (all claims output to the first standard address, as a standard UTXO)
     //
     claimable_Claim: async (asset) => {
-
+        //...
     },
 
 }

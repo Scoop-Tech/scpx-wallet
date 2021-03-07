@@ -412,93 +412,76 @@ function getEstReceiveAmount_ClearTimer() {
 }
 
 async function getEstReceiveAmount(store, fromSymbol, toSymbol, amount) {
-    //return async (dispatch) => {
-        //console.log(`getEstReceiveAmount fromSymbol=${fromSymbol} toSymbol=${toSymbol}`)
+    // clear first - prevents stale values showing
+    store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected: undefined, rateId: undefined } })
 
-        // if timer exist, clear timer for new pairs
-        //getEstReceiveAmount_ClearTimer()
+    if (amount == 0 || !fromSymbol || !toSymbol) return
 
-        // clear first - prevents stale values showing
-        store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected: undefined, rateId: undefined } })
+    const storeState = store.getState()
+    if (!storeState || !storeState.userData || !storeState.userData.exchange || !storeState.userData.exchange.currencies) { 
+        console.error('XS - getMinAmount - invalid store state')
+        return null
+    }
 
-        if (amount == 0 || !fromSymbol || !toSymbol) return
+    const fromSymbolLookup = toXsSymbol(fromSymbol)
+    const toSymbolLookup = toXsSymbol(toSymbol)
 
-        const storeState = store.getState()
-        if (!storeState || !storeState.userData || !storeState.userData.exchange || !storeState.userData.exchange.currencies) { 
-            console.error('XS - getMinAmount - invalid store state')
+    const xsCcyFrom = storeState.userData.exchange.currencies.find((p) => { return p.name === fromSymbolLookup.toLowerCase() })
+    const xsCcyTo = storeState.userData.exchange.currencies.find((p) => { return p.name === toSymbolLookup.toLowerCase() })
+
+    //console.log(`getEstReceiveAmount - xsCcyFrom=`, xsCcyFrom)
+    //console.log(`getEstReceiveAmount - xsCcyTo=`, xsCcyTo)
+    if (!xsCcyFrom.fixRateEnabled || !xsCcyTo.fixRateEnabled) {  
+        // variable-rate api
+        const res = await getEstReceiveAmountApi({ fromSymbol, toSymbol, amount })
+        if (res) {
+            //console.log(`XS - getEstReceiveAmount (VARIABLE) - ${amount} ${fromSymbol}==>${toSymbol}, res=`, res)
+            store.dispatch({ type: XS_SET_EST_RECEIVE_AMOUNT, payload: { result: res.result * configWallet.XS_CHANGELLY_VARRATE_MARKDOWN } })
+        }
+        else {
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 4', info: `getEstReceiveAmountApi - no data` }})
+            console.error('XS - getEstReceiveAmount - getEstReceiveAmountApi - no data')
             return null
         }
-
-        const fromSymbolLookup = toXsSymbol(fromSymbol)
-        const toSymbolLookup = toXsSymbol(toSymbol)
-
-        const xsCcyFrom = storeState.userData.exchange.currencies.find((p) => { return p.name === fromSymbolLookup.toLowerCase() })
-        const xsCcyTo = storeState.userData.exchange.currencies.find((p) => { return p.name === toSymbolLookup.toLowerCase() })
-
-        //console.log(`getEstReceiveAmount - xsCcyFrom=`, xsCcyFrom)
-        //console.log(`getEstReceiveAmount - xsCcyTo=`, xsCcyTo)
-        if (!xsCcyFrom.fixRateEnabled || !xsCcyTo.fixRateEnabled) {  
-            // variable-rate api
-            const res = await getEstReceiveAmountApi({ fromSymbol, toSymbol, amount })
+    }
+    else { 
+        // fixed-rate api -- calc. expected amount, keep track of the rateId
+        
+        // (v1 - deprecated Dec 1st 2019)
+        if (USE_CHANGELLY_FIXEDRATE_V2 == false) {
+            const res = await getFixRateApi({ fromSymbol, toSymbol })
             if (res) {
-                //console.log(`XS - getEstReceiveAmount (VARIABLE) - ${amount} ${fromSymbol}==>${toSymbol}, res=`, res)
-                store.dispatch({ type: XS_SET_EST_RECEIVE_AMOUNT, payload: { result: res.result * configWallet.XS_CHANGELLY_VARRATE_MARKDOWN } })
+                //console.log('getEstReceiveAmount - v1(dep) - fixed getFixRate', res);
+                const rateId = res.id
+                const fixedRate = res.result
+                const derivedExpected = fixedRate * amount
+                //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
+                store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
             }
             else {
-                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 4', info: `getEstReceiveAmountApi - no data` }})
-                console.error('XS - getEstReceiveAmount - getEstReceiveAmountApi - no data')
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
+                console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
                 return null
             }
         }
-        else { 
-            // fixed-rate api -- calc. expected amount, keep track of the rateId
-            
-            // (v1 - deprecated Dec 1st 2019)
-            if (USE_CHANGELLY_FIXEDRATE_V2 == false) {
-                const res = await getFixRateApi({ fromSymbol, toSymbol })
-                if (res) {
-                    //console.log('getEstReceiveAmount - v1(dep) - fixed getFixRate', res);
-                    const rateId = res.id
-                    const fixedRate = res.result
-                    const derivedExpected = fixedRate * amount
-                    //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
-                    store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
-                }
-                else {
-                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
-                    console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
-                    return null
-                }
+        else {
+            // v2 - getFixRateForAmount
+            // ### -- createTransactionFixedApi() returning "invalid currency pair" when using this rateId...
+            const res = await getFixRateForAmountApi({ fromSymbol, toSymbol, amountFrom: amount })
+            if (res) {
+                const rateId = res.id 
+                const fixedRate = res.result
+                const derivedExpected = fixedRate * amount
+                //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
+                store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
             }
             else {
-                // v2 - getFixRateForAmount
-                // ### -- createTransactionFixedApi() returning "invalid currency pair" when using this rateId...
-                const res = await getFixRateForAmountApi({ fromSymbol, toSymbol, amountFrom: amount })
-                if (res) {
-                    const rateId = res.id 
-                    const fixedRate = res.result
-                    const derivedExpected = fixedRate * amount
-                    //console.log(`XS - getEstReceiveAmount (FIXED) - ${amount} ${fromSymbol}==>${toSymbol}, rateId=${rateId} derivedExpected=${derivedExpected}, fixedRes=`, res)
-                    store.dispatch({ type: XS_SET_FIXED_RECEIVE_AMOUNT, payload: { derivedExpected, rateId } })
-                }
-                else {
-                    utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
-                    console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
-                    return null
-                }
+                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Exchange Error 5', info: `getFixRateApi - no data` }})
+                console.error('XS - getEstReceiveAmount - getFixRateApi - no data')
+                return null
             }
         }
-
-        // polling -- (moved to caller)
-        // const selectedAsset = utils.getSelectedAsset(storeState.ux, storeState.wallet)
-        // if (storeState.wallet && selectedAsset !== undefined && selectedAsset.symbol === fromSymbol) {
-        //     dispatch(getEstReceiveAmount(
-        //         storeState.userData.exchange.cur_fromSymbol,
-        //         storeState.userData.exchange.cur_toSymbol,
-        //         amount)
-        //     )
-        // }
-    //}
+    }
 }
 
 async function getMinAmount(store, fromSymbol, toSymbol) {

@@ -5,13 +5,6 @@ const utilsWallet = require('../utils')
 
 module.exports = {
 
-    // test_web3: async () => {
-    //     const Web3 = require('web3')
-    //     const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config['ETH'].httpProvider))
-    //     const height = await web3.eth.getBlockNumber()
-    //     console.log('web3 >> height=', height)
-    // },
-    
     createTxHex_Account: async ({ asset, params, privateKey }) => {
         //utilsWallet.debug(`*** createTxHex_Account ${asset.symbol}...`, params)
         switch (asset.symbol) {

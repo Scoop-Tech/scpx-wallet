@@ -22,15 +22,10 @@ module.exports = {
 
         // validation
         if (!params || !params.feeSatoshis || !params.utxos) {
-            //if (throwOnInsufficient) return Promise.reject("Invalid parameters")
-            //else return null
             utilsWallet.error(`## getUtxo_InputsOutputs - invalid params`)
             return Promise.reject(`Invalid parameters`)
         }
         if (params.utxos.length === 0) {
-            //utilsWallet.warn(`## getUtxo_InputsOutputs - no utxos; zero-balance`)
-            //if (throwOnInsufficient) return Promise.reject("Insufficient funds")
-            //else return null
             utilsWallet.warn(`getUtxo_InputsOutputs - no UTXOs`)
             return Promise.reject(`No UTXOs`)
         }
@@ -55,23 +50,14 @@ module.exports = {
             inputsTotalValue = inputsTotalValue.plus(new BigNumber(utxos[i].satoshis))
             inputsNeeded.push({ utxo: utxos[i], ndx: inputNdx,  })
             inputNdx++
-            //utilsWallet.log(`utxo ndx ${i} (utxos[i].satoshis=${utxos[i].satoshis}), inputsTotalValue=${inputsTotalValue.toString()} of ${valueNeeded.toString()} (value) + ${feeSatoshisAssumed.toString()} (fee)...`)
             if (inputsTotalValue.gt(valueNeeded.plus(feeSatoshisAssumed))) {
-                //utilsWallet.log(`** sufficient utxo's **`)
-                break
+                break // sufficient UTXOs
             }
         }
 
         // warn - but continue - if unable to construct specified total output value
         if (inputsTotalValue.lt(valueNeeded.plus(feeSatoshisAssumed))) {
-            // if (throwOnInsufficient) {
-            //     return Promise.reject("Insufficient funds")
-            // }
-            // else {
-            //     utilsWallet.log(`getUtxo_InputsOutputs - insufficient UTXOs to construct TX: ignoring on estimate path.`)
-            // }
             utilsWallet.warn(`getUtxo_InputsOutputs - insufficient UTXOs for specified TX value`)
-            //return Promise.reject(`Insufficient UTXOs`)
         }
 
         // format inputs and outputs
@@ -303,10 +289,6 @@ module.exports = {
 function map_insightTxs(txs, ownAddresses, symbol) {
     return txs.map(tx => {
 
-        // if (tx.txid === '7e3c943758c6373cd5299bad47352ddfea90f7eaceffca7192463a5be3b6cd33') {
-        //     debugger
-        // }
-
         // we class a tx as outgoing if any of our addresses contributed to the utxo inputs; it is incoming otherwise. 
         // (doing it this way round correctly abstracts away or ignores change utxo outputs - they are at the utxo level "incoming")
         const isIncoming = tx.vin.some(p => {
@@ -355,18 +337,16 @@ function map_insightTxs(txs, ownAddresses, symbol) {
             for (var i = 0; i < tx.vout.length; i++) {
 
                 // incoming: tx value is the value of the *sum* of the outpust that are to one of our addresses
-                if (isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] === address) {  
-                    && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === true) {
-
+                if (isIncoming && tx.vout[i].scriptPubKey.addresses &&
+                    ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === true) {
                     value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
                 }
 
                 // outgoing: tx value is the value of the *sum* of the outputs that are not our addresses (allows for sendmany tx's later)
-                else if (!isIncoming && tx.vout[i].scriptPubKey.addresses //&& tx.vout[i].scriptPubKey.addresses[0] !== address) {
-                    && ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === false) {
+                else if (!isIncoming && tx.vout[i].scriptPubKey.addresses &&
+                         ownAddresses.some(p => { return p === tx.vout[i].scriptPubKey.addresses[0] }) === false) {
 
                     value = Number(new BigNumber(value).plus(new BigNumber(tx.vout[i].value)))
-
                     toOrFrom = tx.vout[i].scriptPubKey.addresses[0] // still no spoon
                 }
             }
@@ -376,14 +356,12 @@ function map_insightTxs(txs, ownAddresses, symbol) {
         const pruned_vin = tx.vin
             .filter(p => { return ownAddresses.some(p2 => p2 == p.addr) })
             .map(p => { return {
-                addr: p.addr, valueSat: p.valueSat,
-
-                txid: p.txid,
+                    addr: p.addr, valueSat: p.valueSat,
+                    txid: p.txid,
                 sequence: p.sequence,
-                vout: p.vout,
-                n: p.n,
-                
-                // p.scriptSig is the storage killer!
+                    vout: p.vout,
+                       n: p.n,
+                          // p.scriptSig is the storage killer!
             }} )
 
         var vouts
@@ -397,19 +375,19 @@ function map_insightTxs(txs, ownAddresses, symbol) {
         }
 
         return { // EXTERNAL_TX
-            isMinimal: false,
+             isMinimal: false,
             isIncoming,
             sendToSelf,
-            date: new Date(tx.time * 1000),
-            value,
-            txid: tx.txid,
-            toOrFrom,
-            block_no: tx.blockheight,
-            fees: tx.fees,
-            utxo_vin: pruned_vin, 
-            utxo_vout: vouts, 
-            isFromShieldedAddr,
-            hex: tx.hex, // DMS - only supplied for protect_op tx's (worker-blockbook::enrichTx())
+                  date: new Date(tx.time * 1000),
+                 value,
+                  txid: tx.txid,
+              toOrFrom,
+              block_no: tx.blockheight,
+                  fees: tx.fees,
+              utxo_vin: pruned_vin, 
+             utxo_vout: vouts, 
+    isFromShieldedAddr,
+                   hex: tx.hex, // DMS - only supplied for protect_op tx's (worker-blockbook::enrichTx())
         }
     })
 }

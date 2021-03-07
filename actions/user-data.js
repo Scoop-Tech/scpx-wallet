@@ -50,8 +50,6 @@ module.exports = {
 
         if (utils.getStorageContext().owner !== null) {
             if (userData !== undefined && userData !== null) {
-                //console.log(`settings - settingsSaveAll...`, userData)
-
                 // remove redundant / transient exchange fields
                 const prunedUserData = _.cloneDeep(userData)
                 delete prunedUserData.exchange.cur_fromSymbol

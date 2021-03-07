@@ -27,16 +27,6 @@ module.exports = {
         }
 
         const isValid = WAValidator(validateAddr, testAddressType, testSymbol.includes('TEST') ? 'testnet' : 'prod')
-
-        // fixed in scp-address-validator
-        // if (testSymbol === 'VTC') { // WAValidator doesnt' recognize VTC 3-addresses
-        //     if (!isValid) {
-        //         if (validateAddr.startsWith('3') && validateAddr.length == 34) { // gross hack -- need to do this properly
-        //             return true
-        //         }
-        //     }
-        // }
-
         return isValid
     }
 }

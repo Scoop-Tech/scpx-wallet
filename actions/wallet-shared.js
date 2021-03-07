@@ -108,7 +108,7 @@ module.exports = {
                                symbol: newDisplayableAsset.symbol
                     })
                     newDisplayableAsset.addresses.push(newDisplayableAddr)
-                    newDisplayableAsset.addresses = sortAddresses(newDisplayableAsset.addresses) //_.sortBy(newDisplayableAsset.addresses, ['path'])
+                    newDisplayableAsset.addresses = sortAddresses(newDisplayableAsset.addresses)
 
                     addedCount++
                     utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
@@ -117,25 +117,13 @@ module.exports = {
                     utilsWallet.log(`addNonStdAddress_DsigCltv - supplied address ${addr_txid.nonStdAddr} already added`, null, { logServerConsole: true })
                 }
             })
-            //console.log('newDisplayableAssets', newDisplayableAssets)
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: newDisplayableAssets, owner: userAccountName } })
-
-        //     if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-        //         // raw assets: post encrypted
-        //         await apiDataContract.updateAssetsJsonApi({  
-        //                     owner: userAccountName, 
-        //    encryptedAssetsJSONRaw: module.exports.encryptPrunedAssets(rawAssets, apk, h_mpk), 
-        //                   e_email: e_email,
-        //          showNotification: true
-        //         })
-        //     }
 
             // update addr monitors & refresh balance
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet } })
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet } })
             
             // ret ok
-            //utilsWallet.logMajor('green','white', `addNonStdAddress_DsigCltv - complete`, addedCount, { logServerConsole: true })
             return { addedCount, accountName: nonStdAccount.name }
         }
         finally {
@@ -195,7 +183,7 @@ module.exports = {
                     break
                 
                 case configWallet.WALLET_TYPE_ACCOUNT: 
-                    if (genSymbol === 'EOS') { ; } //nop
+                    if (genSymbol === 'EOS') { ; } // nop
                     else if (meta.addressType === configWallet.ADDRESS_TYPE_ETH) { // including erc20
                         newPrivKey = module.exports.generateEthereumWallet({
                             entropySeed: h_mpk,
@@ -591,9 +579,9 @@ module.exports = {
             symbol,
             addr, 
             accountName, 
-            isNonStdAddr, // DMS: identifies a non-std addr
+            isNonStdAddr,          // DMS: identifies a non-std addr
             nonStd_protectOp_txid, // DMS: the "parent" or originating protect_op txid
-            path: key.path, // see config/wallet -- we don't have completely unique HD paths (e.g. BTC/SW, and testnets), but seems not to matter too much (?)
+            path: key.path,        // see config/wallet -- we don't have completely unique HD paths (e.g. BTC/SW, and testnets), but seems not to matter too much (?)
             txs: [],
             utxos: [],
             lastAddrFetchAt: undefined,
@@ -619,7 +607,7 @@ module.exports = {
 
             const keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network) // bitgo ECPair, below: .getPublicKeyBuffer() instead of .publicKey in bitcoin-js
 
-            if (symbol === "BTC" || symbol === "LTC" /*|| symbol === "BTC_TEST"*/ || symbol === "LTC_TEST") {
+            if (symbol === "BTC" || symbol === "LTC" || symbol === "LTC_TEST") {
                 // bitcoinjs-lib
 
                 // legacy addr
@@ -668,7 +656,6 @@ module.exports = {
         }
     },
     getAccountTypeAddress: (privKey, symbol, eosActiveWallet) => {
-        //utilsWallet.log(`getAccountTypeAddress privKey=${privKey} symbol=${symbol}...`)
         try {
             if (symbol === "EOS") {
                 if (eosActiveWallet !== undefined && eosActiveWallet !== null) {

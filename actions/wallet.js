@@ -43,13 +43,10 @@ module.exports = {
         utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
 
         const appWorker = utilsWallet.getAppWorker()
-        //const globalScope = utilsWallet.getMainThreadGlobalScope()
-
         return new Promise((resolve) => {
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
-                //if (!configWallet.getSupportedMetaKeyBySymbol(asset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
 
@@ -58,7 +55,6 @@ module.exports = {
             ethAssets.forEach(ethAsset => {
                 if (!configWallet.getSupportedMetaKeyBySymbol(ethAsset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
-                //globalScope.loaderWorkers[0].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
             })
 
             // then fetch all others, except erc20s
@@ -72,10 +68,6 @@ module.exports = {
                 && configWallet.getSupportedMetaKeyBySymbol(p.symbol) !== undefined
             )
             appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
-            // otherAssets.forEach(otherAsset => {
-            //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
-            //     //globalScope.loaderWorkers[1].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: otherAsset, wallet } })
-            // })
 
             // wait for eth[_test] fetch to finish 
             const eth_intId = setInterval(() => {
@@ -99,10 +91,6 @@ module.exports = {
                     if (ethDone && ethTestDone) {
                         erc20Assets = wallet.assets.filter(p => utilsWallet.isERC20(p))
                         appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: erc20Assets, wallet } })
-                        // erc20Assets.forEach(erc20Asset => {
-                        //     appWorker.postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
-                        //     //globalScope.loaderWorkers[3].postMessage({ msg: 'REFRESH_ASSET_FULL', data: { asset: erc20Asset, wallet } })
-                        // })
                         clearInterval(eth_intId)
 
                         // now wait for all erc20 - and all other types - to finish
@@ -114,18 +102,6 @@ module.exports = {
                                 otherAssets = storeState.wallet.assets.filter(p => (p.symbol !== 'ETH' && p.symbol !== 'ETH_TEST') && !utilsWallet.isERC20(p))
                                 if (!erc20Assets.some(p => p.lastAssetUpdateAt === undefined)
                                 && !otherAssets.some(p => p.lastAssetUpdateAt === undefined)) {
-
-                                    // test: add non-std addr...
-                                //     await walletShared.addNonStdAddress_DsigCltv({
-                                //dsigCltvP2shAddresses: ['2MuhFgcpt4TQoka6zSYqwtYdbkapGcubjey'],
-                                //                store,
-                                //      userAccountName: utilsWallet.getStorageContext().owner,
-                                //      eosActiveWallet: undefined,
-                                //            assetName: 'btc(t)',
-                                //                  apk: utilsWallet.getStorageContext().apk,
-                                //              e_email: utilsWallet.getStorageContext().e_email,
-                                //                h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
-                                //     })
 
                                     // done
                                     clearInterval(allRemaining_intId)
@@ -192,15 +168,13 @@ module.exports = {
         // determine what wallets to generate, if any
         var supportWalletTypes = await configWallet.getSupportedWalletTypes() // StMaster: dynamically adds StMaster erc20 types
         const currentTypes = Object.keys(currentAssets)
-        //console.log('StMaster - supportWalletTypes', supportWalletTypes)
         var needToGenerate = configWallet.WALLET_REGEN_EVERYTIME
             ? supportWalletTypes
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
 
-        // temp/hack - conditional load of test assets, by email type
+        // TEMP/TEST/WIP - conditional load of test assets, by email type
         if (email !== undefined) {
             //if (email !== 'testnets2@scoop.tech') {
-
                 // remove test assets, unless logged into appropriate account
                 if (!email.includes("aircarbon.co")) { 
                     console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
@@ -215,7 +189,6 @@ module.exports = {
                     needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
                 }
             //}
-
             // in prod, remove eth_test unless a test asset is present (excluding testnets account)
             if (email !== 'testnets2@scoop.tech') {
                 //if (!configWallet.IS_DEV) {
@@ -232,9 +205,6 @@ module.exports = {
 
             utilsWallet.logMajor('green','white', `GENERATING ${needToGenerate.length} ASSET TYPE(s)...`, null, { logServerConsole: true })
             
-            // DBG: ETH_T testnets dropping second address...
-            //console.log(JSON.stringify(currentAssets['eth(t)'], null, 2))
-
             // inverse/remove: remove server assets no longer in client-side asset list
             const currentAssetNames = Object.keys(currentAssets)
             const currentAssetsToRemove = currentAssetNames.filter(p => needToGenerate.some(p2 => p === p2) === false)
@@ -249,7 +219,6 @@ module.exports = {
             if (needToGenerate.includes('ethereum')) {
                 var ret = generateWalletAccount({ assets: currentAssets, genType: 'ethereum', h_mpk })
                 needToGenerate = needToGenerate.filter(p => p !== 'ethereum')
-                //utilsWallet.log(`generateWallets - did ETH ret=${ret}, new needToGenerate=${JSON.stringify(needToGenerate)}`)
             }
 
             // generate the rest
@@ -305,11 +274,7 @@ module.exports = {
             //
             // encrypt & postback raw asset data to server - potentially with newly added assets
             // 
-
-            // persist raw encrypted to eos server - pruned raw assets (without addresss data)
-            if (userAccountName && configWallet.WALLET_ENV === "BROWSER") {
-                
-                //await 
+            if (userAccountName && configWallet.WALLET_ENV === "BROWSER") { // persist raw encrypted to eos server - pruned raw assets (without addresss data)
                 apiDataContract.updateAssetsJsonApi({ 
                           owner: userAccountName, 
          encryptedAssetsJSONRaw: walletShared.encryptPrunedAssets(currentAssets, apk, h_mpk), 
@@ -338,11 +303,10 @@ module.exports = {
             store.dispatch({ type: actionsWallet.WCORE_SET_ASSETS_RAW, payload: e_storedAssetsRaw }) // persist encrypted local - no changes
         }
 
-        // ***
+        //
         // store local state: viewable asset data, e.g. last known balances: subset of currentAssets, persisted to browser storage, without privkeys
-        // ***
+        //
         const displayableAssets = await displayableWalletAssets(currentAssets, userAccountName)
-        //console.log('StMaster - displayableAssets', displayableAssets)
         store.dispatch((action) => {
             action({ type: actionsWallet.WCORE_SET_ASSETS, payload: { assets: displayableAssets, owner: userAccountName } })
         })
@@ -368,7 +332,6 @@ module.exports = {
                 .catch(err => {
                     utilsWallet.error(`### fees - getAssetFeeData ${asset.symbol} FAIL - err=`, err)
                 })
-                break
 
             case configWallet.WALLET_TYPE_ACCOUNT:
                 const estimateGasParams = {
@@ -397,7 +360,6 @@ module.exports = {
                     appWorker.addEventListener('message', listener)
                     appWorker.postMessageWrapped({ msg: 'GET_ETH_TX_FEE_WEB3', data: { asset, params: estimateGasParams } })
                 })
-                break
 
             default: utilsWallet.error(`fees - unsupported asset type ${asset.type}`)
         }

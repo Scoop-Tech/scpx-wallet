@@ -59,8 +59,8 @@ module.exports = {
         const inc_tx = txb.buildIncomplete()
         const inc_vs = inc_tx.virtualSize()
         const inc_bl = inc_tx.byteLength()
-        utilsWallet.log('inc_tx.virtualSize=', inc_vs)
-        utilsWallet.log('inc_tx.byteLength=', inc_bl)
+        //utilsWallet.debug('inc_tx.virtualSize=', inc_vs)
+        //utilsWallet.debug('inc_tx.byteLength=', inc_bl)
         if (validationMode && skipSigningOnValidation) { // validation mode
             vSize = inc_vs + (asset.tx_perInput_vsize * txSkeleton.inputs.length) 
             byteLength = inc_bl + (asset.tx_perInput_byteLength * txSkeleton.inputs.length)
@@ -74,7 +74,7 @@ module.exports = {
                 txb.addInput(txSkeleton.inputs[i].utxo.txid, txSkeleton.inputs[i].utxo.vout)
             }
 
-            // sign the inputs - SLOW!
+            // sign the inputs
             for (var i = 0; i < txSkeleton.inputs.length; i++) {
                 var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
                 var keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network)
@@ -101,22 +101,23 @@ module.exports = {
             vSize = tx_vs
             const tx_bl = tx.byteLength()
             byteLength = tx_bl
-            utilsWallet.log('tx.virtualSize=', tx_vs)
-            utilsWallet.log('tx.byteLength=', tx_bl)
-            
-            // dbg
+
+            // dbg - estimated final virtualSize & byteLen vs actual
             const delta_vs = tx_vs - inc_vs
             const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
-            utilsWallet.log('dbg: delta_vs=', delta_vs)
-            utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput)
-
             const delta_bl = tx_bl - inc_bl
             const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
-            utilsWallet.log('dbg: delta_bl=', delta_bl)
-            utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
+            //utilsWallet.debug('tx.virtualSize=', tx_vs)
+            //utilsWallet.debug('tx.byteLength=', tx_bl) 
+            //utilsWallet.debug('dbg: delta_vs=', delta_vs)
+            //utilsWallet.debug('dbg: delta_vs_perInput=', delta_vs_perInput) 
+            //utilsWallet.debug('dbg: delta_bl=', delta_bl)
+            //utilsWallet.debug('dbg: delta_bl_perInput=', delta_bl_perInput)
 
-            hex = tx.toHex()
-            utilsWallet.log(`*** createTxHex (wallet-external UTXO bitgo-utxo) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+            if (!validationMode) { // exec mode
+                hex = tx.toHex()
+                utilsWallet.log(`*** createTxHex (wallet-external UTXO bitgo-utxo P2PKH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+            }
         }
 
         return { tx, hex, vSize, byteLength }

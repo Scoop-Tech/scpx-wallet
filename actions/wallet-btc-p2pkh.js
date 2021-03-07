@@ -63,20 +63,6 @@ module.exports = {
             }
 
             // sign
-            // if (asset.symbol === "BTC_SEG" || asset.symbol === "BTC_TEST") { // P2SH(...)
-            //     for (var i = 0; i < txSkeleton.inputs.length; i++) {
-            //         var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
-            //         var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
-
-            //         const p2wpkh = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
-            //         const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wpkh, network })
-            //         txb.sign(i, keyPair, p2sh.redeem.output, null, txSkeleton.inputs[i].utxo.satoshis)
-
-            //         utilsWallet.softNuke(keyPair)
-            //         utilsWallet.softNuke(wif)
-            //     }
-            // }
-            // else
             if (asset.symbol === "BTC_SEG2") { // P2WPKH Bech32
                 for (var i = 0; i < txSkeleton.inputs.length; i++) {
                     var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
@@ -104,21 +90,23 @@ module.exports = {
             vSize = tx_vs
             const tx_bl = tx.byteLength()
             byteLength = tx_bl
-            utilsWallet.log('tx.virtualSize=', tx_vs) 
-            utilsWallet.log('tx.byteLength=', tx_bl) 
 
             // dbg - estimated final virtualSize & byteLen vs actual
             const delta_vs = tx_vs - inc_vs
             const delta_vs_perInput = delta_vs / txSkeleton.inputs.length
-            utilsWallet.log('dbg: delta_vs=', delta_vs)
-            utilsWallet.log('dbg: delta_vs_perInput=', delta_vs_perInput) 
             const delta_bl = tx_bl - inc_bl
             const delta_bl_perInput = delta_bl / txSkeleton.inputs.length
-            utilsWallet.log('dbg: delta_bl=', delta_bl)
-            utilsWallet.log('dbg: delta_bl_perInput=', delta_bl_perInput)
+            //utilsWallet.debug('tx.virtualSize=', tx_vs)
+            //utilsWallet.debug('tx.byteLength=', tx_bl) 
+            //utilsWallet.debug('dbg: delta_vs=', delta_vs)
+            //utilsWallet.debug('dbg: delta_vs_perInput=', delta_vs_perInput) 
+            //utilsWallet.debug('dbg: delta_bl=', delta_bl)
+            //utilsWallet.debug('dbg: delta_bl_perInput=', delta_bl_perInput)
             
-            hex = tx.toHex()
-            utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2PKH || P2WPKH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+            if (!validationMode) { // exec mode
+                hex = tx.toHex()
+                utilsWallet.log(`*** createTxHex (wallet-external UTXO bitcoin-js P2PKH || P2WPKH) ${asset.symbol}, hex.length, hex=`, hex.length, hex)
+            }
         }
 
         return { tx, hex, vSize, byteLength }

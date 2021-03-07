@@ -70,14 +70,6 @@ module.exports = {
 
         const anyPendingLocalTxs = getAll_local_txs(asset).length > 0
 
-        // if (asset.symbol === 'SD1A_TEST') {
-        //     console.log('DBG2 - balanceChanged', balanceChanged)
-        //     console.log('DBG2 - anyPendingLocalTxs', anyPendingLocalTxs)
-        //     console.log('DBG2 - delta_bal_conf', delta_bal_conf)
-        //     console.log('DBG2 - delta_bal_unconf', delta_bal_unconf)
-        //     console.log('DBG2 - new_txs.length', new_txs.length)
-        //     console.log('DBG2 - new_txs_value', new_txs_value)
-        // }
         if (
             // initial load or testing - accept
             firstLoad || testingPaddedTxs                                  
@@ -206,8 +198,6 @@ module.exports = {
                  has_pending: false,
                        avail: new BigNumber(0),
                        total: new BigNumber(0),
-                //utxo_avail: new BigNumber(0),
-        //utxo_changePending: new BigNumber(0),
         unconfirmed_tx_count: 0,
          allAddressesFetched: false,
         }
@@ -224,8 +214,6 @@ module.exports = {
             else
                 return ret
         }
-
-        //console.time(`get_combinedBalance ${asset.symbol}`)
 
         // confirmed & unconfirmed balances, aggregated over all addresses
         const totalConfirmed = addresses.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
@@ -319,36 +307,9 @@ module.exports = {
         // TODO -- should also be rounding ERC20 dust values - observed (sometimes) - "1e-20" or similar on send all erc20
         //...
 
-        // utxo balance
-        /*if (asset.type === configWallet.WALLET_TYPE_UTXO) {
-            // BB v3
-            // if (asset.symbol === 'BTC_SEG') {
-            //     // this is only neeeded for segwit, where insight-api doesn't give us balances reflecting unconfirmed tx's,
-            //     // and doesn't update segwit utxo lists for unconfirmed tx's
-            //     const utxos_flat = _.flatten(addresses.map(p => { return p.utxos })) 
-            //     ret.utxo_avail = 
-            //         utxos_flat.reduce((sum, p) => { return sum.plus(new BigNumber(p.satoshis)) }, new BigNumber(0))
-            //     const changePending = new BigNumber(ret.avail).minus(new BigNumber(ret.utxo_avail))
-            //     ret.utxo_changePending =  changePending.lt(0) ? new BigNumber(0) : changePending // clamp <0
-            // }
-            // else {
-                // for other utxo-types, insight data is fine
-                ret.utxo_avail = ret.avail
-                ret.utxo_changePending = new BigNumber(0)
-            //}
-        }
-        else {
-            ret.utxo_avail = new BigNumber(-1)
-            ret.utxo_changePending = new BigNumber(-1)
-        }*/
-
         // get total # of pending tx's -- external and local
         const unconfirmed_txs = getAll_unconfirmed_txs(asset)
         ret.unconfirmed_tx_count = asset.local_txs.length + unconfirmed_txs.length 
-
-        //console.timeEnd(`get_combinedBalance ${asset.symbol}`)
-
-        //utilsWallet.log(ret)
         return ret
     },
 
@@ -412,7 +373,6 @@ module.exports = {
 
                 // erc20's -- if asset flag set: use estimateGas + a multiplier (override hard-coded erc20_transferGasLimit); 
                 // required for complex transfer() functions, e.g. cashflow tokens
-                //if (erc20) { ...
                 if (asset.erc20_gasEstimateMultiplier) {
                     const dummyTxParams = {
                             from: asset.addresses[0].addr, //configExternal.walletExternal_config[asset.symbol].donate, 
@@ -481,9 +441,6 @@ module.exports = {
                        eth_gasLimit: gasLimitToUse,
                        eth_gasPrice: gasPriceToUse,
                                 fee: du_ethFee }
-
-                //console.warn(`computeTxFee - feeData=`, feeData)
-                //console.warn(`computeTxFee - du_ethFee=${du_ethFee}, ret=`, ret)
             }
             else throw(`Unknown account address type`)
         }
@@ -534,7 +491,7 @@ async function createTxHex(params) {
                 utxos.filter(utxo_n => utxo_n.satoshis > 0)                      // required: we don't explicitly prune outputs when they are spent (only a cache-clear drops them)
                      .filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
-    if (/*sendMode &&*/ asset.type === configWallet.WALLET_TYPE_UTXO) {
+    if (asset.type === configWallet.WALLET_TYPE_UTXO) {
 
         if (asset.symbol === 'BTC_TEST') {
             if (spendFullUtxo !== undefined && spendFullUtxo.txid !== undefined && spendFullUtxo.vout !== undefined) { 
@@ -564,16 +521,10 @@ async function createTxHex(params) {
     var addrPrivKeys = []
     pt_asset.accounts.forEach(account => {
         account.privKeys.forEach(privKey => {
-            // get addr from wif
-            const meta = configWallet.walletsMeta[asset.name.toLowerCase()]  //|| configWallet.walletsMeta[asset.symbol.toLowerCase()] // dbg/temp -- as above
-
-            //const addr = getAddressFromPrivateKey(meta, privKey.privKey, undefined/*eosActiveWallet*/)
-            // perf - much faster to lookup the addr rather than recompute it
-            const addrInfo = asset.addresses.find(p => p.path === privKey.path)
+            const addrInfo = asset.addresses.find(p => p.path === privKey.path) // lookup the addr (rather than recompute it, faster)
             if (!addrInfo) {
                 utilsWallet.error(`failed to lookup addr for path ${privKey.path}`)
             }
-
             addrPrivKeys.push( { addr: addrInfo.addr, privKey: privKey.privKey } )  
         })
     })
@@ -605,10 +556,9 @@ async function createTxHex(params) {
                 console.log('txSkeleton', txSkeleton)
             }
 
-            //console.time('ext-createTxHex-utxo-createSignTx')
+            // construct tx hex - switch on asset
             const opsWallet = require('./wallet')
             const network = opsWallet.getUtxoNetwork(asset.symbol)
-            
             var tx, hex, vSize, byteLength
             if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
             || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
@@ -637,7 +587,6 @@ async function createTxHex(params) {
                     var { tx, hex, vSize, byteLength } = walletP2pkhBtc.createTxHex_BTC_P2PKH({ asset, validationMode, skipSigningOnValidation, addrPrivKeys, txSkeleton })
                 }
             }
-            //console.timeEnd('ext-createTxHex-utxo-createSignTx')
             
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ 
@@ -653,7 +602,6 @@ async function createTxHex(params) {
         }
 
         case configWallet.WALLET_TYPE_ACCOUNT: {
-
             const receiver = payTo[0].receiver
             const value = payTo[0].value
 
@@ -677,11 +625,6 @@ async function createTxHex(params) {
         
             const walletAccount = require('./wallet-account')
             const txHexAndValue = await walletAccount.createTxHex_Account({ asset, params: txParams, privateKey: wif })
-            //console.log('DBG1 - txHexAndValue', txHexAndValue)
-            //utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, txParams=`, txParams)
-            //utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, hex=`, txHexAndValue.hex)
-            //utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, cu_sendValue=`, txHexAndValue.cu_sendValue)
-            //utilsWallet.log(`*** createTxHex (wallet-external ACCOUNT) ${asset.symbol}, cu_sendValue.toString()=`, txHexAndValue.cu_sendValue.toString())
 
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { 
