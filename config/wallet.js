@@ -109,7 +109,7 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
     'usdt',
     //'eurt', 'mkr', 'rep', 'hot', 'zil', // trim junk
     'link',
-    //'nexo', // trim junk
+    'nexo',
 
     //'band', 'dos', 'ring',
     'swap',

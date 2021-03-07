@@ -52,9 +52,11 @@ module.exports = {
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
         asset.addresses.filter(p => !p.isNonStdAddr)
         .forEach(a => { 
-            const include_localTxs = asset.local_txs.filter(p => 
-                p.utxo_vin.some(p2 => p2.addr == a.addr) || 
-                p.utxo_vout.some(p2 => p2.scriptPubKey.addresses.includes(a.addr)
+            const include_localTxs = asset.local_txs
+                .filter(p => p.utxo_vin !== undefined) // UTXO v2 - skip minimal tx's
+                .filter(p => 
+                    p.utxo_vin.some(p2 => p2.addr == a.addr) ||
+                    p.utxo_vout.some(p2 => p2.scriptPubKey.addresses.includes(a.addr)
             ))
             // if (include_localTxs.length > 0) {
             //     console.dir(include_localTxs)
