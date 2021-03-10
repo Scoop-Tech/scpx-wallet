@@ -112,8 +112,6 @@ const handlers = {
             if (addrNdx == -1) return {...state}
 
             txs.forEach((tx) => {
-                //console.log(`WCORE_SET_ENRICHED_TXS_MULTI txid=${tx.txid}, tx=`, tx)
-
                 if (!assets[assetNdx].addresses[addrNdx] // observed - race condition across logins??
                     || assets[assetNdx].addresses[addrNdx].addr !== addr) { 
                     return {...state}
@@ -159,11 +157,6 @@ const handlers = {
     },
     [WCORE_SET_ADDRESS_FULL]: (state, action) => {
         throw('unexpected state/call tree - these should all be transmogrified into WCORE_SET_ADDRESSES_FULL_MULTI')
-        // if (!state.assets) { return {...state} }
-        // const assetNdx = state.assets.findIndex((p) => p.symbol == action.payload.symbol)
-        // const addrNdx = state.assets[assetNdx].addresses.findIndex(p => p.addr == action.payload.newAddr.addr)
-        // console.log(`%cWCORE_SET_ADDRESS_FULL ${action.payload.symbol}/${addrNdx}`, 'background: orange; color: white; font-weight: 600; font-size: 12px;')
-        // return SetAddressFull_ReconcileLocalTxs(state, action)
     },
 
     [WCORE_PUSH_LOCAL_TX]: (state, action) => {

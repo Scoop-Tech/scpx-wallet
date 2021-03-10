@@ -117,10 +117,10 @@ module.exports = {
         jaysonRpc = jayson.server(methods)
 
         // read dev self-signed certs
-        // to create a production cert, use: "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -sha256"
+        // to create a production cert, use: "openssl req -x509 -newkey rsa:4096 -keyout dev-key.pem -out dev-cert.pem -days 365 -nodes -sha256"
         const fs = require('fs')
-        const key = fs.readFileSync('./certs/key.pem')
-        const cert = fs.readFileSync('./certs/cert.pem')
+        const key = fs.readFileSync('./certs/dev-key.pem')
+        const cert = fs.readFileSync('./certs/dev-cert.pem')
 
         // create json-rpc https server 
         serverRpc = jaysonRpc.https({ key, cert })

@@ -1,16 +1,5 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
-//const Eos = require('eosjs')
-//const { Keygen } = require('eosjs-keygen')
-//const { SHA256, MD5 } = require('crypto-js')
-//const _ = require('lodash')
-
-// const walletActions = require('../actions')
-// const opsWallet = require('../actions/wallet')
-
-// const configWallet = require('../config/wallet')
-// const configEos = require('../config/eos')
-
 const utilsWallet = require('../utils')
 
 const svrWalletCreate = require('./sw-create')

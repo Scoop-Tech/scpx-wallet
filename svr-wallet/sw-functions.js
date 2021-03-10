@@ -50,8 +50,6 @@ module.exports = {
                             }
                         }
                         else {
-                            //log.info('msg=', msg)
-                            //log.info('resolve2')
                             resolve({ ok: false })
                         }
                         
@@ -171,12 +169,8 @@ module.exports = {
                         const walletAddr = walletAsset.addresses.find(p => p.path === privKey.path)
 
                         pathKeyAddr.symbol = meta.symbol
-                        //pathKeyAddr.accountName = walletAddr.accountName
                         pathKeyAddr.addr = _.cloneDeep(walletAddr)
                         pathKeyAddr.addr.explorerPath = configExternal.walletExternal_config[meta.symbol].explorerPath(walletAddr.addr)
-
-                        //pathKeyAddr.addr.txCountConfirmed = pathKeyAddr.addr.txs.filter(p => p.block_no > 0).length
-                        //pathKeyAddr.addr.txCountUnconfirmed = pathKeyAddr.addr.txs.filter(p => !(p.block_no > 0)).length
                         pathKeyAddr.addr.utxoCount = pathKeyAddr.addr.utxos.length
                         if (!dumpTxs) {
                             delete pathKeyAddr.addr.txs

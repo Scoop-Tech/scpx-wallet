@@ -57,37 +57,30 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
     return new Promise((resolve, reject) => {
         isosocket_send_Blockbook(symbol, 'getAccountInfo',  {
               descriptor: address,
-                 details: 'txids', // { basic | balance | txids | txs }
+                 details: 'balance', // { basic | balance | txids | txs }
                     page: undefined, 
                 pageSize: configWallet.WALLET_MAX_TX_HISTORY || 888, 
                     from: undefined, 
                       to: undefined, 
           contractFilter: undefined
-        }, (txData) => {
+        }, (balanceData) => {
 
-            if (!txData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no txData!`); reject(); return }
+            if (!balanceData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no balanceData!`); reject(); return }
     
             // axiosRetry(axios, CONST.AXIOS_RETRY_EXTERNAL)
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
             // .then(async (utxoData) => {
-            isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxos) => {
+            isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxosData) => {
                 
-                if (!utxos) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
-                //utilsWallet.debug(`getAddressFull_Blockbook_v3 ${symbol} ${address} - txData.txs.len=${txData.txs}, utxoData.length=${utxos.length}`)
+                if (!utxosData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
 
-                const getUtxoSpecificOps = utxos.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
+                const getUtxoSpecificOps = utxosData.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
                     
                     isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid } , async (utxoSpecificData) => {
+                        //utilsWallet.debug(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
 
-                        // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483' && address === '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv') {
-                        //     debugger
-                        // }
-                        // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483' && address === '2NF6NQ7QeL7fYCWmhZZ6VKRzWnvccUcRLQd') {
-                        //     debugger
-                        // }
-
-                        //console.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
-                        if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
+                        if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
+                        if (!utxoSpecificData.vout) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData.vout!`); resolveSpecificUtxoOp([]); return }
 
                         // DMS - add all UTXOs for this TX that correspond to the query account
                         //       (or, that are cross-address/account OP_RETURN embeded data UTXOs)
@@ -124,13 +117,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 }) })
                 const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
 
-                //const utxos = utxoSpecifics.flat()
-                const utxosFlattened = //_.uniqWith(
-                    _.flatten(utxoSpecifics)
-                //, _.isEqual)
-                // if (utxosFlattened.length > 0 && asset.symbol === 'BTC_TEST') {
-                //     console.log(`blockbook_utxos de-duped, utxoFlattened for addr ${address}`, utxosFlattened)
-                // }
+                const utxosFlattened = _.flatten(utxoSpecifics)
 
                 // utxo's
                 // console.log('blockbook_utxoData', utxoData)
@@ -142,8 +129,8 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 // } })
 
                 // tx's
-                const totalTxCount = txData.txs
-                const addrTxs = txData.txids || []
+                const addrTxs = _.uniq(utxosData.map(p => p.txid))
+                const totalTxCount = addrTxs.length
     
                 // filter: new tx's, or known tx's that aren't yet enriched, or unconfirmed tx's
                 const assetAddress = asset.addresses.find(p => p.addr == address)
@@ -155,8 +142,8 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 .map(p => { return { txid: p, isMinimal: true } }) // TX_MINIMAL 
     
                 const res = {
-                    balance: txData.balance,
-                    unconfirmedBalance: txData.unconfirmedBalance,
+                    balance: balanceData.balance,
+                    unconfirmedBalance: balanceData.unconfirmedBalance,
                     utxos: utxosFlattened,
                     totalTxCount,
                     cappedTxs: addrTxs.length < totalTxCount, 

@@ -486,20 +486,18 @@ async function createTxHex(params) {
     asset.addresses
       //.filter(a_n => a_n.addr !== payTo.dsigCltvReceiver) // todo: (edgecase) - exclude any UTXOs from the dsigCltvReceiverAddr (for same-account testing...)
         .forEach(a_n => utxos.extend(a_n.utxos.map(p => { return Object.assign({}, p, { address: a_n.addr } )})))
-    
     utxos = _.uniqWith(
                 utxos.filter(utxo_n => utxo_n.satoshis > 0)                      // required: we don't explicitly prune outputs when they are spent (only a cache-clear drops them)
                      .filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
     if (asset.type === configWallet.WALLET_TYPE_UTXO) {
-
         if (asset.symbol === 'BTC_TEST') {
+            // spending a single UTXO (a single PROTECT_OP) - filter out all other UTXOs
             if (spendFullUtxo !== undefined && spendFullUtxo.txid !== undefined && spendFullUtxo.vout !== undefined) { 
-                // spending a single UTXO (a single protect_op) - filter out all other UTXOs
                 utxos = utxos.filter(p => p.txid == spendFullUtxo.txid && p.vout == spendFullUtxo.vout) // spendTxid, spendVout
             }   
+            // spending across multiple outputs - filter out UTXOs belonging to a PROTECT_OP beneficiary, i.e. those that have a specific locktime (they must be spent individually, specifying a single UTXO)
             else {
-                // spending regular outputs - filter out all protected beneficiary UTXOs (they require specific locktimes, so must be spent individually)
                 const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
                 utxos = utxos.filter(p => !p_op_txs.some(p2 => p2.txid == p.txid))
             }
@@ -538,10 +536,10 @@ async function createTxHex(params) {
 
             // get required inputs & outputs
             const utxoParams = {
-                changeAddress: asset.addresses[0].addr, // all change to primary address -- todo: probably should use new address on every send here
+                changeAddress: asset.addresses[0].addr, // send all change to primary address -- todo: probably should use new address on every send here
                       outputs: payTo.map(p => { return { receiver: p.receiver, value: new BigNumber(p.value).times(100000000).toString() }}),
                   feeSatoshis: Math.floor(feeParams.txFee.fee * 100000000),
-                        utxos, // flattened list of all utxos across all addresses
+                        utxos,
             }
             var txSkeleton
             try {

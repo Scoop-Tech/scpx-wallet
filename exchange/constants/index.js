@@ -2,21 +2,21 @@
 
 const ExchangeStatus = {
     // our statuses:
-    created: 'created',     // initial status
-    done: 'done',           // set to done when xs tx is finalized, and when user has acknowledged final status
+       created: 'created',   // initial status
+          done: 'done',      // set to done when xs tx is finalized, and when user has acknowledged final status
     
     // changelly statuses:
-    waiting: 'waiting',
+       waiting: 'waiting',
     confirming: 'confirming',
     exchanging: 'exchanging',
-    receiving: 'receiving', // = sending in changelly docs
+     receiving: 'receiving', // = sending in changelly docs
     
-    finished: 'finished',
-    failed: 'failed',
-    expired: 'expired',
-    refunded: 'refunded',
-    overdue: 'overdue',
-    hold: 'hold',
+      finished: 'finished',
+        failed: 'failed',
+       expired: 'expired',
+      refunded: 'refunded',
+       overdue: 'overdue',
+          hold: 'hold',
 }
 
 module.exports = {

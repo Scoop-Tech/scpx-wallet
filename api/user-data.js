@@ -16,7 +16,6 @@ module.exports = {
         //console.log(`POST updateDataJsonApi - owner=${owner}`)
         return API.post(`data`, req)
         .then(res => {
-            //console.log(`updateDataJsonApi - ok`)
             if (res && res.data && hideToast == false) {
                 utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'success', headline: 'Saved Settings', info: 'Updated Scoop chain', txid: res.data.txid }})
             }

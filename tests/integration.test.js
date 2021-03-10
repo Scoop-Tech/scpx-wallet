@@ -278,10 +278,11 @@ describe('wallet', function () {
 // testnet integration suite
 describe('transactions', function () {
     if (!serverTestWallet.mpk) { 
+        debugger
         console.warn(`Missing config: see .env.example, and populate all fields - skipping some tests...`)
     }
     else {
-        it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) BTC_TEST', async () => {
+        it('can push a standard tx for P2SH{P2WSH} BTC_TEST', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
                 //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
@@ -289,7 +290,7 @@ describe('transactions', function () {
             }
         })
 
-        it('can connect 3PBP (Blockbook WS API), create tx hex, compute tx fees and push a standard tx for P2SH(P2WSH) ZEC_TEST', async () => {
+        it('2 can push a standard tx for P2SH{P2WSH} ZEC_TEST', async () => {
             if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
                 //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
@@ -297,7 +298,7 @@ describe('transactions', function () {
             }
         })
 
-        it('can connect 3PBP (Blockbook WS API + Geth RPC), create tx hex, compute tx fees and push a standard tx for account-based ETH_TEST', async () => {
+        it('3 can push a standard tx for account-based ETH_TEST', async () => {
             if (configWallet.WALLET_INCLUDE_ETH_TEST) {
                 var serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
                 //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
@@ -317,7 +318,7 @@ describe('transactions', function () {
         })
 
         // WIP... ## complication is the pending p_op TX: it doesn't trigger the new non-std addr detection...
-        /*it('can connect 3PBP (Blockbook WS API), push a non-standard PROTECT_OP tx for P2SH(DSIG/CLTV) BTC_TEST, and benefactor can reclaim immediately', async () => {
+        /*it('can push a non-standard PROTECT_OP tx for P2SH{DSIG/CLTV} BTC_TEST, and benefactor can reclaim immediately', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
                 const { p2shAddr, txid } = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )

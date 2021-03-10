@@ -216,8 +216,13 @@ module.exports = {
             // create p2sh redeem script
             const assetAddress = asset.addresses.find(p => p.addr == input.utxo.address)
             if (!assetAddress) throw `Couldn't look up UTXO address in wallet`
-            const inputTx = utilsWallet.getAll_txs(asset).find(p => p.txid == input.utxo.txid)
-            if (!inputTx) throw `Couldn't look up UTXO TX in wallet`
+            const allTxs = utilsWallet.getAll_txs(asset)
+            const inputTx = allTxs.find(p => p.txid == input.utxo.txid)
+            if (!inputTx) { 
+                console.log(allTxs.map(p => p.txid).join(','))
+                debugger
+                throw `Couldn't look up UTXO TX in wallet`
+            }
 
             if (inputTx.utxo_vout[input.utxo.vout].scriptPubKey.hex != input.utxo.scriptPubKey.hex) throw `scriptPubKey hex sanity check failed`
             const isDsigCltvInput = input.utxo.address == inputTx.p_op_addrNonStd 

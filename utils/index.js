@@ -14,15 +14,6 @@ const moment = require('moment')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
 
-// misc - object extensions
-// Object.defineProperty(Array.prototype, 'flat', {
-//     value: function(depth = 1) {
-//       return this.reduce(function (flat, toFlatten) {
-//         return flat.concat((Array.isArray(toFlatten) && (depth>1)) ? toFlatten.flat(depth-1) : toFlatten);
-//       }, []);
-//     }
-// });
-
 // setup storage -- localforage/indexeddb (browser) or node-persist (server)
 var txdb_localForage 
 if (configWallet.WALLET_ENV === "BROWSER") {
@@ -99,7 +90,6 @@ module.exports = {
         }
         else {
             return new Promise((resolve) => { resolve(global.txdb_dirty.get(key)) })
-            //return global.txdb_nodePersist.getItem(key)
         }
     },
     txdb_setItem: (key, value) => {
@@ -108,7 +98,6 @@ module.exports = {
         }
         else {
             return new Promise((resolve) => { resolve(global.txdb_dirty.set(key, value)) })
-            //return global.txdb_nodePersist.setItem(key, value)
         }
     },
     txdb_localForage: () => { return txdb_localForage },
@@ -192,12 +181,12 @@ module.exports = {
             const addr = asset.addresses[i]
             var existing_txids = all_txs.map(p2 => { return p2.txid } )
             if (addr.txs) {
-                var deduped = addr.txs //... then we'll pick p_op_ enriched TX's in preference to un-enriched TX's on the latter non-std accounts
+                const deduped = addr.txs //... then we'll pick p_op_ enriched TX's in preference to un-enriched TX's on the latter non-std accounts
                     .filter(p => { return !existing_txids.some(p2 => p2 === p.txid) }) // dedupe
                 all_txs.extend(deduped)
             }
         }
-        all_txs.sort((a,b) => { 
+        all_txs.sort((a,b) => {
             // sort by block desc, except unconfirmed tx's on top
             const a_block_no = a.block_no !== -1 ? a.block_no : Number.MAX_SAFE_INTEGER
             const b_block_no = b.block_no !== -1 ? b.block_no : Number.MAX_SAFE_INTEGER
@@ -610,7 +599,7 @@ const getKeyAndIV = (saltStr, passphrase) => {
 
 function getStorageContext() {
     if (configWallet.WALLET_ENV === "BROWSER") {
-        return window.sessionStorage // UPDATE: JUL 2020 -- iOS/Safari now supports sessionStorage in homescreen mode... (I think!)
+        return window.sessionStorage // UPDATE: JUL 2020 -- iOS/Safari now supports sessionStorage in homescreen mode
         // if (window.isRunningHomescreen())
         //     return window.localStorage
         // else

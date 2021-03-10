@@ -83,6 +83,8 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
                 "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "development"
             },
+            "stopOnEntry": false,
+            "runtimeVersion": "14.16.0",
             "name": "wallet-dev",
             "cwd": "${workspaceFolder}/ext/wallet",
             "program": "${workspaceFolder}/ext/wallet/sw-cli.js",
@@ -111,6 +113,8 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
                 "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "development"
             },
+            "stopOnEntry": false,
+            "runtimeVersion": "14.16.0",
             "cwd": "${workspaceFolder}/ext/wallet",
             "program": "${workspaceFolder}/ext/wallet/sw-cli.js",
             "args": [//"--mpk=...", 
@@ -139,6 +143,8 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
                 "NODE_OPTIONS": "--experimental-worker",
                 "NODE_ENV": "test"
             },
+            "stopOnEntry": false,
+            "runtimeVersion": "14.16.0",
             "cwd": "${workspaceFolder}/ext/wallet",
             "program": "${workspaceFolder}/ext/wallet/node_modules/.bin/jest",
             "args": ["--runInBand", "--verbose", "--forceExit", "--env=node", "--coverage", 

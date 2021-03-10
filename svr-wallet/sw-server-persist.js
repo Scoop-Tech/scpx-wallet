@@ -130,8 +130,6 @@ module.exports = {
 
                 // update last loaded in user-data
                 var userData = store.getState().userData
-                //console.log(userData.loadHistory)
-                //console.log(userData.exchange.cur_xsTx)
                 store.dispatch({ type: walletActions.USERDATA_UPDATE_LASTLOAD, payload: { 
                        owner,
                     newValue: { browser: false, server: true, datetime: new Date().toString() }
@@ -140,13 +138,6 @@ module.exports = {
                 // post back to server
                 userData = store.getState().userData
                 userDataActions.userData_SaveAll({ userData, hideToast: true })
-                //console.log(userData.loadHistory)
-                //console.log('OPT_CLOUD_PWD', userDataHelper.getOptionValue(userData, 'OPT_CLOUD_PWD'))
-                //console.log('OPT_AUTOLOGOUT', userDataHelper.getOptionValue(userData, 'OPT_AUTOLOGOUT'))
-                //console.log('OPT_NIGHTSHIFT', userDataHelper.getOptionValue(userData, 'OPT_NIGHTSHIFT'))
-                //console.log('OPT_NOPATCH_MPK', userDataHelper.getOptionValue(userData, 'OPT_NOPATCH_MPK'))
-                //console.log('OPT_BETA_TESTER', userDataHelper.getOptionValue(userData, 'OPT_BETA_TESTER'))
-                console.log('OPT_TOTP', userDataHelper.getOptionValue(userData, 'OPT_TOTP'))
 
                 // poll any pending XS statuses
                 const { wallet, userData: { exchange: { cur_xsTx } } } = store.getState()

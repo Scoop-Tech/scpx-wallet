@@ -5,7 +5,6 @@ const Keygen = require('eosjs-keygen').Keygen
 const scpEosConfig = require('../config/eos').scpEosConfig
 
 const BigNumber = require('bignumber.js')
-//const MD5 = require('crypto-js').MD5
 const _ = require('lodash')
 
 const configWallet = require('../config/wallet')

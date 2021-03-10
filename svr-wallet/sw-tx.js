@@ -43,18 +43,18 @@ module.exports = {
         var spendTxid, spendVout, spendUtxo, cu_utxoValue
         if (!utilsWallet.isParamEmpty(spendFullUtxo) && asset.symbol !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op (spendFullUtxo) for ${asset.symbol}` })
         if (asset.type === configWallet.WALLET_TYPE_UTXO && !utilsWallet.isParamEmpty(spendFullUtxo)) {
+            // validate spendFullUtxo utxo and vout format
             const ss = spendFullUtxo.split(':')
             if (ss.length != 2) return Promise.resolve({ err: `Invalid spendFullUtxo format (txid:vout)` })
             spendTxid = ss[0]
             spendVout = Number(ss[1])
-            //log.info('spendTxid', spendTxid)
-            //log.info('spendVout', spendVout)
             if (Number.isInteger(spendVout) == false) return Promise.resolve({ err: `Invalid vout` })
             const tx = walletExternal.getAll_txs(asset).find(p => p.txid == spendTxid)
             if (!tx) return Promise.resolve({ err: `Invalid txid` })
             if (spendVout > tx.utxo_vout.length) return Promise.resolve({ err: `Bad vout` })
+            
+            // validate send value is explicitly set to UTXO's full value
             spendUtxo = tx.utxo_vout[spendVout]
-            //log.info('spendUtxo', spendUtxo)
             const cu_sendValue = new BigNumber(utilsWallet.toCalculationUnit(value, asset))
             cu_utxoValue = new BigNumber(utilsWallet.toCalculationUnit(spendUtxo.value, asset))
             if (!cu_sendValue.isEqualTo(cu_utxoValue)) return Promise.resolve({ err: `Invalid spendFullUtxo value: expected full UTXO value ${spendUtxo.value}, got ${value}` })

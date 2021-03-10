@@ -64,23 +64,6 @@ async function handler(e) {
     }
 
     switch (msg) {
-        // case 'TEST_TXDB':
-        //     utilsWallet.txdb_setItem('TEST_TXDB', { test: 42, test2: "42" })
-        //     .then(() => {
-        //         utilsWallet.log(`** TEST_TXDB - added to cache ok`)
-        //         self.postMessage({ msg: 'TEST_TXDB', status: 'RES', data: { ok: true } })
-        //     })
-        //     .catch((err) => {
-        //         utilsWallet.error(`## TEST_TXDB - error writing cache=`, err)
-        //         self.postMessage({ msg: 'TEST_TXDB', status: 'RES', data: { ok: false } })
-        //     })
-        //     break
-
-        // case 'TEST_WEB3':
-        //     walletAccount.test_web3()
-        //     self.postMessage({ msg: 'DIAG_TEST_WEB3', status: 'RES', data: { ok: true } })
-        //     break
-
         case 'DIAG_PING':
             utilsWallet.log(`cpuWorker >> ${workerId} DIAG_PING...`)
             const pongTime = new Date().getTime()
