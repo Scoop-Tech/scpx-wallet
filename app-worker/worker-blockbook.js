@@ -57,15 +57,15 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
     return new Promise((resolve, reject) => {
         isosocket_send_Blockbook(symbol, 'getAccountInfo',  {
               descriptor: address,
-                 details: 'balance', // { basic | balance | txids | txs }
+                 details: 'txids', // { basic | balance | txids | txs }
                     page: undefined, 
                 pageSize: configWallet.WALLET_MAX_TX_HISTORY || 888, 
                     from: undefined, 
                       to: undefined, 
           contractFilter: undefined
-        }, (balanceData) => {
+        }, (balanceAndTxData) => {
 
-            if (!balanceData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no balanceData!`); reject(); return }
+            if (!balanceAndTxData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no balanceAndTxData!`); reject(); return }
     
             // axiosRetry(axios, CONST.AXIOS_RETRY_EXTERNAL)
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
@@ -95,11 +95,6 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                             if ((utxo.vout == utxoSpecific.n && (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)))
                                 || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
                             ) { 
-                                //console.log(`utxo.vout=${utxo.vout} utxoSpecific.n=${utxoSpecific.n} :: utxo.value=${Number(utxo.value)} / utxoSpecific.value=${Number(new BigNumber(utxoSpecific.value).times(1e8).toString())}`)
-                                // if (utxo.txid === '2f6b423e8e3519618f597400abb37521b48587ac086eca1cf62b69af2088f483') {
-                                //     console.log(`${address} ${utxo.txid} - adding utxo @${utxoSpecific.n} / utxoSpecific.satoshis=${utxoSpecific.satoshis}`, utxoSpecific)
-                                // }
-    
                                 resolveSpecificUtxos.push({
                                     satoshis: Number(new BigNumber(utxoSpecific.value).times(1e8).toString()), //Number(utxo.value),
                                     txid: utxo.txid, 
@@ -128,8 +123,8 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 //     // TODO: *need* scriptPubKey.hex -- for new PSBT input...
                 // } })
 
-                // tx's
-                const addrTxs = _.uniq(utxosData.map(p => p.txid))
+                // it turns out that getAccountInfo(txids) does *not* return PROTECT_OP TX's; so, we must union with getAccountUtxo()'s txids (which does return p_op UTXOs)
+                const addrTxs =  _.union(_.uniq(utxosData.map(p => p.txid)), balanceAndTxData.txids || []) 
                 const totalTxCount = addrTxs.length
     
                 // filter: new tx's, or known tx's that aren't yet enriched, or unconfirmed tx's
@@ -142,8 +137,8 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 .map(p => { return { txid: p, isMinimal: true } }) // TX_MINIMAL 
     
                 const res = {
-                    balance: balanceData.balance,
-                    unconfirmedBalance: balanceData.unconfirmedBalance,
+                    balance: balanceAndTxData.balance,
+                    unconfirmedBalance: balanceAndTxData.unconfirmedBalance,
                     utxos: utxosFlattened,
                     totalTxCount,
                     cappedTxs: addrTxs.length < totalTxCount, 

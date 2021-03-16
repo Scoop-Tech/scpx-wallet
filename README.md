@@ -10,7 +10,9 @@ v0.9
 
 ## About
 
-Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. The architecture is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below).
+Scoop is a decentralised, open-source multi-platform and multi-asset HD ([BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)) wallet framework. It is intended to allow for rapid deployment of additional crypto assets into the framework, and the modular addition of additional blockchain features (see [Roadmap](#Roadmap) below). 
+
+Current priority and WIP item is [BitProtect](https://github.com/Scoop-Tech/scpx-wallet/issues/55).
 
 The architectural components of Scoop are as follows:
 
@@ -61,6 +63,8 @@ Type ```.help``` in the CLI for a full list of commands.
   * **Cloud Login**: (Web Wallet) optionally persist (and delete) double-encrypted MPK data to Firebase Realtime DB for cross-device login. See [here](https://github.com/Scoop-Tech/scpx-wallet/issues/9) for planned enhancement.
 
 ## Roadmap
+
+  * [BitProtect](https://github.com/Scoop-Tech/scpx-wallet/issues/55)
 
   * [CryptoMail](https://github.com/Scoop-Tech/scpx-wallet/issues/19)
 
