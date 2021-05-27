@@ -182,6 +182,13 @@ module.exports = {
         params.value = web3.utils.toHex(wei_sendValue)
         params.gasLimit = web3.utils.toHex(params.gasLimit)
         params.gasPrice = web3.utils.toHex(params.gasPrice)
+        params.chainId = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 3        // ropsten
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 1 // mainnet
+                       : undefined
+        if (!params.chainId) {
+            throw 'Bad EIP 155 chainId'
+        }
+        utilsWallet.log('createTxHex_Eth - params.chainId=', params.chainId)
 
         var nextNonce = await web3.eth.getTransactionCount(params.from, 'pending') // ~100 bytes ('pending' - fixed in geth 1.8.21 https://github.com/ethereum/go-ethereum/issues/2880)
         try {
@@ -237,6 +244,14 @@ module.exports = {
         utilsWallet.log('createTxHex_erc20 - params.gasLimit=', params.gasLimit)
         utilsWallet.log('createTxHex_erc20 - params.gasPrice=', params.gasPrice)
 
+        params.chainId = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 3        // ropsten
+                       : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 1 // mainnet
+                       : undefined
+        if (!params.chainId) {
+            throw 'Bad EIP 155 chainId'
+        }
+        utilsWallet.log('createTxHex_erc20 - params.chainId=', params.chainId)
+
         const minContractABI = erc20ABI.abi
         const contractAddress = configExternal.walletExternal_config[asset.symbol].contractAddress
         const contract = new web3.eth.Contract(minContractABI, contractAddress, { from: params.from })
@@ -250,7 +265,8 @@ module.exports = {
                 gasPrice: web3.utils.toHex(params.gasPrice),
                       to: contractAddress,
                    value: "0x0",
-                    data: contract.methods.transfer(params.to, params.value).encodeABI()
+                    data: contract.methods.transfer(params.to, params.value).encodeABI(),
+                 chainId: params.chainId,
             }
             if (!privateKey)
                 return { txParams: txParams }
