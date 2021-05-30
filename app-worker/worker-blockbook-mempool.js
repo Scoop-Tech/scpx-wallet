@@ -18,11 +18,11 @@ module.exports = {
     // ** get mempool tx's - using blockbook **
     //
     // BB v3 -- now all utxo types can get mempool tx's directly from their primary sources (insight API or Blockbook)
-    // (so, this fn. so no longer required for BTC_SEG); it's only now needed for eth to get pending inbound...
-    //
-    //  -- but note, re. ETH:  (BB limitation?) we're not getting eth outbound mempool tx's
+    // (so, this fn. is no longer required for BTC_SEG which is how it originally arose; it's only now needed for eth to get pending inbound...)
+    //   -- but note, re. ETH:  (BB limitation?) we're not getting eth *outbound* mempool tx's
     //
     mempool_get_BB_txs: (asset, wallet) => { //}, callback) => {
+
         if (asset.symbol !== 'ETH' && asset.symbol !== 'ETH_TEST') { // nop unless ETH
             //callback([])
             return

@@ -47,7 +47,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be available in prod for testnets2@scoop.tech
+const WALLET_INCLUDE_ETH_TEST = false // always include eth_test - so it can be available in prod for testnets2@scoop.tech
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -1076,7 +1076,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: false //process.env.NODE_ENV === "test"
+    , CLI_LOG_CORE: process.env.NODE_ENV === "test"
     , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core

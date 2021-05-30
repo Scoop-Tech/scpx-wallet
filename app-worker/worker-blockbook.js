@@ -72,8 +72,15 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             // .then(async (utxoData) => {
             isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxosData) => {
                 
-                if (!utxosData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxoData!`); reject(); return }                
-
+                if (!utxosData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxosData`); reject(); return }                
+                if (utxosData.error) {
+                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - errored utxosData`, utxosData.error); reject();
+                    return
+                }
+                if (!Array.isArray(utxosData)) {
+                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - invalid utxosData type`); reject();
+                    return
+                }
                 const getUtxoSpecificOps = utxosData.map(utxo => { return new Promise((resolveSpecificUtxoOp) => {
                     
                     isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid } , async (utxoSpecificData) => {
@@ -400,9 +407,24 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     // networkConnected(x, true) // init UI
                     // networkStatusChanged(x, null)
     
-                    //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... wsUrl=`, configWS.blockbook_ws_config[x].url, { logServerConsole: true })
-
-                    self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket") 
+                    const ws_url = new URL(configWS.blockbook_ws_config[x].url)
+                    utilsWallet.warn(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... hostname=${ws_url.hostname} origin=${ws_url.origin} ws_url=`, ws_url, { logServerConsole: true })
+                    
+                    self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket", configWallet.WALLET_ENV === "BROWSER" ? undefined : {
+                        headers: { 
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+                            "Connection": "Upgrade",
+                            "Upgrade": "websocket",
+                            "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
+                            "Sec-WebSocket-Version": "13",
+                            "Accept-Encoding": "gzip, deflate, br",
+                            "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+                            "Cache-Control": "no-cache",
+                            "Pragma": "no-cache",
+                            "Host": ws_url.hostname,
+                            "Origin": ws_url.origin.replace('wss', 'https'),
+                        }
+                    }) 
                     var socket = self.blockbookIsoSockets[x]
                     socket.symbol = x // add a property to the socket object, for logging in case it won't connect
                     self.blockbookIsoSockets_messageID[x] = 0 // init early, testing...
@@ -410,8 +432,11 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     self.blockbookIsoSockets_subscriptions[x] = {}
 
                     // socket lifecycle
+                    socket.onerror = (err) => {
+                        utilsWallet.error(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - ##`, err)
+                    }
                     socket.onopen = () => {
-                        //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect...`)
+                        utilsWallet.log(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connected ok...`)
                         try {
 
                             // setup (exactly once) a keep-alive timer; needed for direct Trezor WS connections to stop server idle drops

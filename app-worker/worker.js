@@ -708,19 +708,38 @@ self.get_BlockbookSocketIo = function(asset) {
         else {
             try {
                 //utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
-                socket = io(configWS.blockbook_ws_config[socketToUse].url, { transports: ['websocket'] })
+                const ws_url = new URL(configWS.blockbook_ws_config[socketToUse].url)
+                socket = io(configWS.blockbook_ws_config[socketToUse].url, {
+                    transports: ['websocket'],
+                    transportOptions: {
+                        websocket: {
+                              extraHeaders: {
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+                                "Connection": "Upgrade",
+                                "Upgrade": "websocket",
+                                "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
+                                "Sec-WebSocket-Version": "13",
+                                "Accept-Encoding": "gzip, deflate, br",
+                                "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+                                "Cache-Control": "no-cache",
+                                "Pragma": "no-cache",
+                                "Host": ws_url.hostname,
+                                "Origin": ws_url.origin.replace('wss', 'https'),
+                            } 
+                        }
+                    }
+                })
                 self.blockbookSocketIos[socketToUse] = socket
                 
                 socket.on('connect', function() { 
-                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - connect...`)
+                    utilsWallet.warn(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - connected...`)
                 })
                 socket.on('reconnect', () => {
-                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - reconnect...`)
+                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - reconnected...`)
                 })   
             } 
             catch(err) {
                 utilsWallet.error(`appWorker >> ${self.workerId} BLOCKBOOK WS - err=`, err)
-                utilsWallet.trace()
             }
         }
     }

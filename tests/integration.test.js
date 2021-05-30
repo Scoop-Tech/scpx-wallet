@@ -53,6 +53,53 @@ afterAll(async () => {
 
 
 describe('asset', function () {
+    // it('socketio_tmp', async () => {
+    //     const io = require('socket.io-client')
+    //     const result = await new Promise(async (resolve, reject) => {
+    //         const URL = require('url').URL;
+    //         const ws_url = new URL('wss://eth1.trezor.io')
+    //         const socket = io('wss://eth1.trezor.io', {
+    //             transports: ['websocket'],
+    //             extraHeaders: {
+    //                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+    //                 "Connection": "Upgrade",
+    //                 "Upgrade": "websocket",
+    //                 "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
+    //                 "Sec-WebSocket-Version": "13",
+    //                 "Accept-Encoding": "gzip, deflate, br",
+    //                 "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+    //                 "Cache-Control": "no-cache",
+    //                 "Pragma": "no-cache",
+    //                 "Host": ws_url.hostname, //"eth1.trezor.io", //,
+    //                 "Origin": ws_url.origin.replace('wss', 'https') //"https://eth1.trezor.io", //ws_url.origin.replace('wss', 'https'),
+    //             }
+    //         })
+    //         console.log('socket', socket)
+
+    //         const Web3 = require('web3')
+    //         const web3 = new Web3(new Web3.providers.HttpProvider('https://ac-dev0.net:10545'))
+    //         const height = await web3.eth.getBlockNumber()
+    //         console.log('height', height)
+
+    //         socket.send({ // get tx's
+    //             method: 'getAddressTxids',  
+    //             params: [ ['0xeEafeb77E47d31B957a55461b212DeE328fC316D'], 
+    //                         { 
+    //                             start: height,
+    //                             end: 0,
+    //                             queryMempoolOnly: false
+    //                         }
+    //                     ]
+    //         }, (data) => { 
+    //             console.log('data', data)
+    //             resolve()                
+    //         })
+    //     })
+    //     expect.assertions(1)
+    //     const o = {} 
+    //     expect(o).toBeDefined()
+    // })
+
     it('can create a new receive address for all asset types', async () => {
         expect.assertions(3)
         const result = await new Promise(async (resolve, reject) => {
