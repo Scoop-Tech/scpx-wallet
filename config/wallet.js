@@ -47,7 +47,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = false // always include eth_test - so it can be available in prod for testnets2@scoop.tech
+const WALLET_INCLUDE_ETH_TEST = true // always include eth_test - so it can be available in prod for testnets2@scoop.tech
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -1102,8 +1102,8 @@ module.exports = {
     , ETH_SENDMAX_PADDING_WEI: 50                                        // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)
     , ETH_COALESCE_DUST_TO_ZERO: true                                    // hide dust values: modifies balances at API and at calculation layers
     , ETH_DUST_WEI: 200                                                  // if less than this, we coalesce the Wei balance to zero
-    , ETH_USEWEB3_ACCOUNT_BALANCES: true                                 // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
-    , ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                             // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
+  //, ETH_USEWEB3_ACCOUNT_BALANCES: true                                 // use web3 and eth.getBalance to get ethereum balances; otherwise use 3PBP (etherscan or blockscout)
+  //, ETH_ERC20_USEWEB3_TOKEN_BALANCES: true                             // use web3 and make contract call to get erc20 token balances; otherwise use 3PBP (etherscan or blockscout)
     , ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT: 120000                         // static gasLimit for ERC20 token transfers, if not specified on the asset's config
 
     // privkey regexs

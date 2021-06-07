@@ -36,7 +36,7 @@ module.exports = {
 
         const feeData = await opsWallet.getAssetFeeData(asset)
 
-        return Promise.resolve({ ok: { feeData } })
+        return Promise.resolve({ symbol, ok: { feeData } })
     },
 
     // use exchange service to convert from one asset to another

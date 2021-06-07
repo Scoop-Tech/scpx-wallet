@@ -2,11 +2,12 @@
 
 const _ = require('lodash')
 const BigNumber = require('bignumber.js')
-const axios = require('axios')
-//const axiosRetry = require('axios-retry')
 
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
+
+const axios = require('axios'); configExternal.blockbookHeaders.set(axios, configExternal.blockbookHeaders)
+//const axiosRetry = require('axios-retry')
 
 const utilsWallet = require('../utils')
 

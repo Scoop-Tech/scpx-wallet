@@ -1,14 +1,16 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const _ = require('lodash')
-const axios = require('axios')
-const isoWs = require('isomorphic-ws')
-const BigNumber = require('bignumber.js')
-const CircularBuffer = require("circular-buffer")
 
 const configWS = require('../config/websockets')
 const configExternal = require('../config/wallet-external')
 const configWallet = require('../config/wallet')
+
+const axios = require('axios'); configExternal.blockbookHeaders.set(axios, configExternal.blockbookHeaders)
+
+const isoWs = require('isomorphic-ws')
+const BigNumber = require('bignumber.js')
+const CircularBuffer = require("circular-buffer")
 
 const walletUtxo = require('../actions/wallet-utxo')
 const actionsWallet = require('../actions')
@@ -52,7 +54,7 @@ module.exports = {
 // BB v3
 function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentTxIds, allDispatchActions) {
     const symbol = asset.symbol
-    utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol}...`)
+    //utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol}...`)
 
     return new Promise((resolve, reject) => {
         isosocket_send_Blockbook(symbol, 'getAccountInfo',  {
@@ -412,15 +414,15 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     
                     self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket", configWallet.WALLET_ENV === "BROWSER" ? undefined : {
                         headers: { 
-                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
-                            "Connection": "Upgrade",
-                            "Upgrade": "websocket",
-                            "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
-                            "Sec-WebSocket-Version": "13",
-                            "Accept-Encoding": "gzip, deflate, br",
-                            "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-                            "Cache-Control": "no-cache",
-                            "Pragma": "no-cache",
+                            "User-Agent": configExternal.blockbookHeaders["User-Agent"], //"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+                            "Connection": configExternal.blockbookHeaders["Connection"], //"Upgrade",
+                            "Upgrade": configExternal.blockbookHeaders["Upgrade"], //"websocket",
+                            "Sec-WebSocket-Extensions": configExternal.blockbookHeaders["Sec-WebSocket-Extensions"], //"permessage-deflate; client_max_window_bits",
+                            "Sec-WebSocket-Version": configExternal.blockbookHeaders["Sec-WebSocket-Version"], //"13",
+                            "Accept-Encoding": configExternal.blockbookHeaders["Accept-Encoding"], //"gzip, deflate, br",
+                            "Accept-Language": configExternal.blockbookHeaders["Accept-Language"], //"en-US,en;q=0.9,id;q=0.8",
+                            "Cache-Control": configExternal.blockbookHeaders["Cache-Control"], //"no-cache",
+                            "Pragma": configExternal.blockbookHeaders["Pragma"], //"no-cache",
                             "Host": ws_url.hostname,
                             "Origin": ws_url.origin.replace('wss', 'https'),
                         }

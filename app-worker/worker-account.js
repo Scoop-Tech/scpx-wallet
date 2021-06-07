@@ -1,7 +1,7 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const BigNumber = require('bignumber.js')
-const axios = require('axios')
+//const axios = require('axios')
 const _ = require('lodash')
 const CircularBuffer = require("circular-buffer")
 
@@ -533,7 +533,7 @@ async function getAddressBalance_Account(symbol, address) {
 
 function getETHAddressBalance_api(symbol, address) {
 
-    if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
+    //if (configWallet.ETH_USEWEB3_ACCOUNT_BALANCES) {
         //utilsWallet.debug(`*** getETHAddressBalance_api (using web3) (ACCOUNT) ${symbol} (${address})...`)
 
         return new Promise((resolve, reject) => {
@@ -553,34 +553,34 @@ function getETHAddressBalance_api(symbol, address) {
                 reject(err)
             })
         })
-    }
-    else {
-        //utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+    //}
+    // else {
+    //     //utilsWallet.debug(`*** getETHAddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
-        return new Promise((resolve, reject) => {
-            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
-                .then(res => {
-                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
-                        var balWei = res.data.result
-                        utilsWallet.log(`*** getETHAddressBalance_api (using api) ${symbol} (${address}), balWei=`, balWei)
-                        resolve(balWei.toString())
-                    } else {
-                        const err = `### getETHAddressBalance_api (using api) ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
-                        utilsWallet.warn(err)
-                        reject(err)
-                    }
-                })
-                .catch((err) => {
-                    utilsWallet.warn(`### getETHAddressBalance_api (using api) ${symbol} (${address}) FAIL - err=`, err)
-                    reject(err)
-                })
-        })
-    }
+    //     return new Promise((resolve, reject) => {
+    //         //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+    //         axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
+    //             .then(res => {
+    //                 if (res && res.status === 200 && res.data && res.data.message === "OK") {
+    //                     var balWei = res.data.result
+    //                     utilsWallet.log(`*** getETHAddressBalance_api (using api) ${symbol} (${address}), balWei=`, balWei)
+    //                     resolve(balWei.toString())
+    //                 } else {
+    //                     const err = `### getETHAddressBalance_api (using api) ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
+    //                     utilsWallet.warn(err)
+    //                     reject(err)
+    //                 }
+    //             })
+    //             .catch((err) => {
+    //                 utilsWallet.warn(`### getETHAddressBalance_api (using api) ${symbol} (${address}) FAIL - err=`, err)
+    //                 reject(err)
+    //             })
+    //     })
+    // }
 }
 
 function getERC20AddressBalance_api(symbol, address) {
-    if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
+    //if (configWallet.ETH_ERC20_USEWEB3_TOKEN_BALANCES) {
         //utilsWallet.debug(`*** getERC20AddressBalance_api ${symbol} (${address}) web3...`)
 
         return new Promise((resolve, reject) => {
@@ -617,33 +617,31 @@ function getERC20AddressBalance_api(symbol, address) {
                     }
                 });
         })
-    }
-    else {
-        //utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
+    // }
+    // else {
+    //     //utilsWallet.debug(`*** getERC20AddressBalance_api (using api) (ACCOUNT) ${symbol} (${address})...`)
 
-        return new Promise((resolve, reject) => {
-            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
-                .then(res => {
-                    if (res && res.status === 200 && res.data && res.data.message === "OK") {
-                        var balWei = res.data.result
+    //     return new Promise((resolve, reject) => {
+    //         //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
+    //         axios.get(configExternal.walletExternal_config[symbol].api.balance(address) + `&noCache=${new Date().getTime()}`)
+    //             .then(res => {
+    //                 if (res && res.status === 200 && res.data && res.data.message === "OK") {
+    //                     var balWei = res.data.result
 
-                        resolve(balWei.toString())
-                    } else {
-                        const err = `### getERC20AddressBalance_api ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
-                        utilsWallet.warn(err)
-                        reject(err)
-                    }
-                })
-                .catch((err) => {
-                    utilsWallet.warn(`### getERC20AddressBalance_api ${symbol} (${address}) FAIL - err=`, err)
-                    reject(err)
-                })
-        })
-    }
+    //                     resolve(balWei.toString())
+    //                 } else {
+    //                     const err = `### getERC20AddressBalance_api ${symbol} (${address}) UNEXPECTED DATA; balance undefined ###`
+    //                     utilsWallet.warn(err)
+    //                     reject(err)
+    //                 }
+    //             })
+    //             .catch((err) => {
+    //                 utilsWallet.warn(`### getERC20AddressBalance_api ${symbol} (${address}) FAIL - err=`, err)
+    //                 reject(err)
+    //             })
+    //     })
+    // }
 }
-
-
 
 // export function getERC20AddressBalance_web3(symbol, address) {
 // utilsWallet.log(`*** getERC20AddressBalance_web3 (ACCOUNT) ${symbol} (${address})...`)

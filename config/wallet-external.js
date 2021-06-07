@@ -531,4 +531,21 @@ module.exports = {
     ,erc20_ropstenAddrExplorer: (tokenAddr, holderAddr) => erc20_ropstenAddrExplorer(tokenAddr, holderAddr)
     ,ethTestHttpProvider
     ,ethHttpProvider
+
+    ,blockbookHeaders: {
+         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+        ,"Connection": "Upgrade"
+        ,"Upgrade": "websocket"
+        ,"Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+        ,"Sec-WebSocket-Version": "13"
+        ,"Accept-Encoding": "gzip, deflate, br"
+        ,"Accept-Language": "en-US,en;q=0.9,id;q=0.8"
+        ,"Cache-Control": "no-cache"
+        ,"Pragma": "no-cache"
+        , set(axios, headers) {
+            axios.defaults.headers.common['User-Agent'] = headers["User-Agent"]
+            axios.defaults.headers.common['Cache-Control'] = headers["Cache-Control"]
+            axios.defaults.headers.common['Pragma'] = headers["Pragma"]
+        }
+    }
 }
