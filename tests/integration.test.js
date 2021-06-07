@@ -75,12 +75,10 @@ describe('asset', function () {
     //             }
     //         })
     //         console.log('socket', socket)
-
     //         const Web3 = require('web3')
     //         const web3 = new Web3(new Web3.providers.HttpProvider('https://ac-dev0.net:10545'))
     //         const height = await web3.eth.getBlockNumber()
     //         console.log('height', height)
-
     //         socket.send({ // get tx's
     //             method: 'getAddressTxids',  
     //             params: [ ['0xeEafeb77E47d31B957a55461b212DeE328fC316D'], 
@@ -134,7 +132,7 @@ describe('asset', function () {
                 return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
             })
             const results = await Promise.all(ops)
-            console.log('results', results)
+            //console.log('results', results)
             const countOk = results.filter(p => p.ok && p.ok.feeData &&
                 (p.ok.feeData.fast_satPerKB || (p.ok.feeData.gasLimit && p.ok.feeData.gasprice_fast))).length
             const countAssets = wallet.assets.length
