@@ -373,7 +373,7 @@ describe('transactions', function () {
                 const opPause = new Promise((resolve) => {
                     setTimeout(async () => {
                         const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
-                        console.log(dump) // looking for the new non-std addr to be here... d
+                        console.dir(dump) // looking for the new non-std addr to be here...
 
                         //
                         // after p_op...
@@ -396,7 +396,8 @@ describe('transactions', function () {
                                 // value:
                                 // 5
                                 // e-7
-                    //
+
+                        //
                         // NEED TO TRIGGER A getAddressFull_Blockbook_v3() ... this will pick up the pending_tx from BB
                         //  (overwrites pending????) ... 
                         //

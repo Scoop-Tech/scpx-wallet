@@ -7,7 +7,7 @@ const axios = require('axios')
 const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
 
 //const utilsWallet = require('../utils')
-const configWalletExternal = require('./wallet-external')
+const configExternal = require('./wallet-external')
 
 // static - license, copyright, env
 const WALLET_VER = 'RC-' + require('../package.json').version
@@ -1040,19 +1040,19 @@ function addDynamicSecTokens() {
             }
 
             // config/wallet-external.js: ...erc20Contracts
-            if (configWalletExternal.erc20Contracts[newWalletsMeta.symbol] === undefined) {
-                configWalletExternal.erc20Contracts_append(newWalletsMeta.symbol, newWalletsMeta.cft_stm.base_addr)
+            if (configExternal.erc20Contracts[newWalletsMeta.symbol] === undefined) {
+                configExternal.erc20Contracts_append(newWalletsMeta.symbol, newWalletsMeta.cft_stm.base_addr)
                 console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to erc20Contracts ok`)
             }
 
             // config/wallet-external.js: ...module.exports.walletExternal_config
-            if (configWalletExternal.walletExternal_config[newWalletsMeta.symbol] === undefined) {
-                configWalletExternal.walletExternal_config_append(newWalletsMeta.symbol, {
+            if (configExternal.walletExternal_config[newWalletsMeta.symbol] === undefined) {
+                configExternal.walletExternal_config_append(newWalletsMeta.symbol, {
                     donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
                     contractAddress: newWalletsMeta.cft_stm.base_addr,
-                    explorerPath: (address) => configWalletExternal.erc20_ropstenAddrExplorer(configWalletExternal.erc20Contracts[newWalletsMeta.symbol], address),
-                    txExplorerPath: (txid) => configWalletExternal.eth_ropstenTxExplorer(txid),
-                    httpProvider: configWalletExternal.ethTestHttpProvider,
+                    explorerPath: (address) => configExternal.erc20_ropstenAddrExplorer(configExternal.erc20Contracts[newWalletsMeta.symbol], address),
+                    txExplorerPath: (txid) => configExternal.eth_ropstenTxExplorer(txid),
+                    httpProvider: configExternal.ethTestHttpProvider,
                 })
                 console.log(`StMaster - added ${newWalletsMeta.symbol}/${newWalletsMeta.name} to walletExternal_config ok`)
             }

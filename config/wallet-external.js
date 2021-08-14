@@ -28,8 +28,8 @@ const zecBlockbookApi     = 'https://ac-dev0.net:10000/api/'     // 'https://zec
 const ltcBlockbookApi     = 'https://ac-dev0.net:10001/api/'     // 'https://ltc1.trezor.io/api/'
 
 const btcBlockbookApi     = 'https://ac-dev0.net:10002/api/'     // use different btc/btc_seg BB servers to minimize 429's on api/block calls
-//const btcSegBlockbookApi  = 'https://ac-dev0.net:10003/api/'     // TODO: setup proxy to btc2.trezor.io
-const btcTestBlockbookApi     = 'https://tbtc2.trezor.io/api/'
+//const btcTestBlockbookApi = 'https://tbtc2.trezor.io/api/'
+const btcTestBlockbookApi  = 'https://ac-dev0.net:10009/api/'
 
 const dashBlockbookApi    = 'https://ac-dev0.net:10004/api/'     // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
 const vtcBlockbookApi     = 'https://ac-dev0.net:10005/api/'     // 'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'
@@ -543,9 +543,12 @@ module.exports = {
         ,"Cache-Control": "no-cache"
         ,"Pragma": "no-cache"
         , set(axios, headers) {
-            axios.defaults.headers.common['User-Agent'] = headers["User-Agent"]
-            axios.defaults.headers.common['Cache-Control'] = headers["Cache-Control"]
-            axios.defaults.headers.common['Pragma'] = headers["Pragma"]
+            const isNode = require('detect-node')
+            if (isNode) {
+                axios.defaults.headers.common['User-Agent'] = headers["User-Agent"]
+                axios.defaults.headers.common['Cache-Control'] = headers["Cache-Control"]
+                axios.defaults.headers.common['Pragma'] = headers["Pragma"]
+            }
         }
     }
 }

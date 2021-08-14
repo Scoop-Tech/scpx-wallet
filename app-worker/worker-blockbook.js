@@ -89,6 +89,15 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                         //utilsWallet.debug(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
 
                         if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
+                        if (utxoSpecificData.error) { 
+                            //debugger
+                            // 10:07:15.116 [SW-ERR] ## getAddressFull_Blockbook_v3 BTC_TEST dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08 - error on getTransactionSpecific: "txid dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08: 500 Internal Server Error invalid character 'W' looking for beginning of value"
+                            // # seems inconsistent on btc_test; care if it repro's on mainnet -- NEW RATE LIMIT ON BLOCKBOCK NODES?
+                            // TODO: setup own BTC_TEST BB NODE...
+                            utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - error on getTransactionSpecific: ${JSON.stringify(utxoSpecificData.error.message)}`);
+                            resolveSpecificUtxoOp([]);
+                            return
+                        }
                         if (!utxoSpecificData.vout) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData.vout!`); resolveSpecificUtxoOp([]); return }
 
                         // DMS - add all UTXOs for this TX that correspond to the query account

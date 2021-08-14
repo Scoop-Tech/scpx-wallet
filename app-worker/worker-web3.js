@@ -115,16 +115,17 @@ module.exports = {
             return self.ws_web3[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value
         })
         .then(gasprice_Web3 => {
+            console.log('getGasPrices, gasprice_Web3=', gasprice_Web3)
             ret.gasprice_Web3 = parseFloat(gasprice_Web3)
             //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
             return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
         })
         .then(res => {
             if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                ret.gasprice_safeLow = Math.ceil(parseFloat((res.data.safeLow * 1000000000 * 1))) // gwei -> wei
-                ret.gasprice_fast = Math.ceil(parseFloat((res.data.fast * 1000000000 * 1)))
-                ret.gasprice_fastest = Math.ceil(parseFloat((res.data.fastest * 1000000000 * 1)))
-
+                // EIP 1559 - legacy tx; just add recommendedBaseFee for now
+                ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.recommendedBaseFee) * 1000000000 * 1))) // gwei -> wei
+                ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.recommendedBaseFee) * 1000000000 * 1)))
+                ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.recommendedBaseFee) * 1000000000 * 1)))
             } else { // fallback to web3
                 utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
                 ret.gasprice_fast = ret.gasprice_Web3
