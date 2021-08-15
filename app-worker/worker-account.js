@@ -76,15 +76,16 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
             processBB_data(cache.get(0).data) // process from cache
         }
         else {
+            utilsWallet.log(`bbSocket.send ${asset.symbol} height=${height}`)
             bbSocket.send({ // get tx's
-                method: 'getAddressTxids',  
-                params: [ [pollAddress], 
-                            { start: height,// + 100, 
+                method: 'getAddressTxids',
+                params: [ [pollAddress],
+                            { start: height + 100, 
                               //end: height - 100000, // ~17 days
                                 // UPDATE 1: suspected: end: 0 causing sometimes very, slow processing?
                                 // UPDATE 2: CircularBuffer discards this path on erc20's - must be beneficial; reverting to end: 0
                                 end: 0, // uncapped -- all TX's
-                queryMempoolOnly: false }]
+                   queryMempoolOnly: false }]
             }, (data) => { 
                 cache.push({ height, data }) // cache
                 processBB_data(data)
@@ -92,9 +93,9 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
         }
         function processBB_data(data) {
             if (data && data.result) {
-                //console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress} bbSocket=`, bbSocket) //, data)
+                //console.log(`data for -- ERC20'S!! DEDUPE ME!!! ${asset.symbol} @ height=${height} data.length=${data.result.length} pollAddress=${pollAddress} data.result=`, data.result) //, data)
 
-                // if (asset.symbol === 'NEXO' && pollAddress === '0x23fa93bcabb452a9964d5b49777f2462bb632587') {
+                // if (asset.symbol === 'ETH' && pollAddress === '0xa24faebc2c6330b5122f6c3b7b5a1707f61baa5b') {
                 //     debugger
                 // }
 
@@ -382,23 +383,24 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
 
                                         mappedTx = { // EXTERNAL_TX (enriched) - ERC20
                                             erc20: known_erc20.symbol,
-                                            erc20_contract: txData.to,
-                                            date: new Date(blockTimestamp * 1000), 
-                                            txid: tx.txid,
-                                            isMinimal: false,
-                                            isIncoming: !weAreSender,
-                                            sendToSelf,
-
+                                   erc20_contract: txData.to,
+                                             date: new Date(blockTimestamp * 1000), 
+                                             txid: tx.txid,
+                                        isMinimal: false,
+                                       isIncoming: !weAreSender,
+                                       sendToSelf,
                                             value: Number(du_value),
-                                            toOrFrom: !weAreSender ? txData.from : txData.to,
-                                            account_to: param_to.toLowerCase(),
-                                            account_from: txData.from.toLowerCase(),
-                                            block_no: txData.blockNumber, 
-                                            fees: weAreSender
-                                                ? Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
-                                                : 0,
-                                            txFailedReverted
+                                         toOrFrom: !weAreSender ? txData.from : txData.to,
+                                       account_to: param_to.toLowerCase(),
+                                     account_from: txData.from.toLowerCase(),
+                                         block_no: txData.blockNumber, 
+                                             fees: weAreSender
+                                                    ? Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
+                                                    : 0,
+                                 txFailedReverted,
+                                            nonce: txData.nonce,
                                         }
+
                                         processAsEthTx = false
                                     }
                                 }
@@ -425,7 +427,8 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                                       fees: weAreSender
                                             ? Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
                                             : 0,
-                           txFailedReverted
+                           txFailedReverted,
+                                      nonce: txData.nonce,
                             }
 
                             // unknown (unsupported) erc20 transfer? e.g. 0x1d9018dd37fc010df2d20bf9151f3e25a34f1a55a125141faaa52386c872aa1b (airdrop AMB)

@@ -122,10 +122,17 @@ module.exports = {
         })
         .then(res => {
             if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                // EIP 1559 - legacy tx; just add recommendedBaseFee for now
-                ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.recommendedBaseFee) * 1000000000 * 1))) // gwei -> wei
-                ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.recommendedBaseFee) * 1000000000 * 1)))
-                ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.recommendedBaseFee) * 1000000000 * 1)))
+                // EIP 1559 - legacy tx; just add currentBaseFee for now
+                utilsWallet.log(`1559 ${asset.symbol} - getGasPrices res.data`, res.data)
+                if (asset.symbol === 'ETH_TEST') {
+                    ret.gasprice_safeLow = Math.ceil(parseFloat(((0.42) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
+                }
+                else {
+                    ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.currentBaseFee) * 1000000000 * 1))) // gwei -> wei
+                }
+                ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.currentBaseFee) * 1000000000 * 1)))
+                ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.currentBaseFee) * 1000000000 * 1)))
+                utilsWallet.log(`1559 ${asset.symbol} - ret`, ret)
             } else { // fallback to web3
                 utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
                 ret.gasprice_fast = ret.gasprice_Web3
@@ -314,16 +321,17 @@ module.exports = {
                             resolve({
                                 res: {
                                     tx: { // LOCAL_TX (ETH) OUT - caller will push to eth local_tx
-                                        txid: txHash,
+                                              txid: txHash,
                                         isIncoming: false,
                                         sendToSelf,
-                                        date: new Date(),
-                                        value: Number(web3.utils.fromWei(txData.value, 'ether')),
-                                        toOrFrom: txData.to.toLowerCase(),
+                                              date: new Date(),
+                                             value: Number(web3.utils.fromWei(txData.value, 'ether')),
+                                          toOrFrom: txData.to.toLowerCase(),
                                         account_to: txData.to.toLowerCase(),
-                                        account_from: txData.from.toLowerCase(),
-                                        block_no: -1,
-                                        fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
+                                      account_from: txData.from.toLowerCase(),
+                                          block_no: -1,
+                                              fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000))))),
+                                             nonce: txData.nonce,
                                     }
                                 },
                                 err: null
@@ -344,7 +352,8 @@ module.exports = {
                                     account_to: payTo[0].receiver.toLowerCase(),
                                   account_from: payTo.senderAddr.toLowerCase(),
                                       block_no: -1,
-                                          fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
+                                          fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000))))),
+                                         nonce: txData.nonce,
                             }
                             //utilsWallet.log('DBG1 - payTo[0].value=', payTo[0].value)
                             //utilsWallet.log('DBG1 - erc20 local_tx=', local_tx)
@@ -364,7 +373,8 @@ module.exports = {
                                     account_to: txData.to.toLowerCase(),
                                   account_from: payTo.senderAddr.toLowerCase(),
                                       block_no: -1,
-                                          fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000)))))
+                                          fees: Number((new BigNumber(txData.gas).div(new BigNumber(1000000000))).times((new BigNumber(txData.gasPrice).div(new BigNumber(1000000000))))),
+                                         nonce: txData.nonce,
                             }
                             //})                        
                             

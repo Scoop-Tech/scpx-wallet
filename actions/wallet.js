@@ -173,31 +173,26 @@ module.exports = {
             : supportWalletTypes.filter(assetType => !currentTypes.includes(assetType))
 
         // TEMP/TEST/WIP - conditional load of test assets, by email type
-        if (email !== undefined) {
-            //if (email !== 'testnets2@scoop.tech') {
-                // remove test assets, unless logged into appropriate account
-                if (!email.includes("aircarbon.co")) { 
-                    console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
-                    needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
-                }
-                if (!email.includes("singdax.co")) { 
-                    console.warn('temp/dbg - skipping singdax(t) for non SD email account')
-                    needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
-                }
-                if (!email.includes("ayondo.com")) { 
-                    console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
-                    needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
-                }
-            //}
-            // in prod, remove eth_test unless a test asset is present (excluding testnets account)
-            if (email !== 'testnets2@scoop.tech') {
-                //if (!configWallet.IS_DEV) {
-                    if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
-                        needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
-                    }
-                //}
-            }
-        }
+        // if (email !== undefined) {
+        //     // remove test assets, unless logged into appropriate account
+        //     if (!email.includes("aircarbon.co")) { 
+        //         console.warn('temp/dbg - skipping aircarbon(t) for non AC email account')
+        //         needToGenerate = needToGenerate.filter(p => p !== 'aircarbon(t)')
+        //     }
+        //     if (!email.includes("singdax.co")) { 
+        //         console.warn('temp/dbg - skipping singdax(t) for non SD email account')
+        //         needToGenerate = needToGenerate.filter(p => p !== 'singdax(t)')
+        //     }
+        //     if (!email.includes("ayondo.com")) { 
+        //         console.warn('temp/dbg - skipping ayondo(t) for non AY email account')
+        //         needToGenerate = needToGenerate.filter(p => p !== 'ayondo(t)')
+        //     }
+        //     if (email !== 'testnets2@scoop.tech') { // remove eth_test unless a test asset is present (excluding testnets account)
+        //         if (!needToGenerate.some(p => p === 'aircarbon(t)' || p === 'singdax(t)' || p === 'ayondo(t)')) {
+        //             needToGenerate = needToGenerate.filter(p => p !== 'eth(t)')
+        //         }
+        //     }
+        // }
 
         // (re)generate wallets
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
@@ -239,12 +234,12 @@ module.exports = {
                             o.accounts[i].privKeys.map(key => ({
                                     reqId: `${reqId++}`,
                                    params: {
-                                            symbol: configWallet.walletsMeta[assetName].symbol,
-                                         assetName: assetName, 
-                                       accountName: o.accounts[accountNdx].name,
-                                               key: key, 
-                                   eosActiveWallet: eosActiveWallet, 
-                                         knownAddr: undefined,
+                                        symbol: configWallet.walletsMeta[assetName].symbol,
+                                     assetName: assetName, 
+                                   accountName: o.accounts[accountNdx].name,
+                                           key: key, 
+                               eosActiveWallet: eosActiveWallet, 
+                                     knownAddr: undefined,
                                 }
                             } ))
                         opParams = opParams.concat(accountOpParams)

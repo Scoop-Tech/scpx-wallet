@@ -274,20 +274,20 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
                     if (erc20Asset && tokenValue) {
                         new_local_tx = { // LOCAL_TX (ERC20) IN or OUT
                             erc20: erc20Asset.symbol,
-                            erc20_contract: tx.to,
-                            txid,
-                            isIncoming: !weAreSender,
-                            sendToSelf, 
-
-                            date: new Date(),
+                   erc20_contract: tx.to,
+                             txid,
+                       isIncoming: !weAreSender,
+                       sendToSelf, 
+                             date: new Date(),
                             value: Number(du_value),
-                            toOrFrom: tx.from,
-                            account_to: param_to.toLowerCase(),
-                            account_from: tx.from.toLowerCase(),
-                            block_no: -1,
-                            fees: weAreSender
-                                ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
-                                : 0
+                         toOrFrom: tx.from,
+                       account_to: param_to.toLowerCase(),
+                     account_from: tx.from.toLowerCase(),
+                         block_no: -1,
+                             fees: weAreSender
+                                   ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
+                                   : 0,
+                            nonce: tx.nonce,
                         }
                     }
                 }
@@ -296,6 +296,10 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
     }
     else { // ETH || ETH_TEST
         inboundSymbol = asset.symbol
+
+        // if (txid == '0x25b67c6dc945148579b718a46771d85630008962d4434af1335f9659489ef4d4') {
+        //     debugger
+        // }
 
         const txAlready_in_local_txs = asset.local_txs.some(p => p.txid === txid)
         const txAlready_in_external_txs = asset.addresses.some(addr => addr.txs.some(tx => tx.txid === txid))
@@ -314,19 +318,19 @@ function mempool_process_BB_EthTx(web3, wallet, asset, txid, tx, weAreSender, er
              && ownAddresses.some(ownAddr => ownAddr.toLowerCase() === tx.from.toLowerCase())
 
             new_local_tx = { // LOCAL_TX (ETH) IN or OUT
-                txid,
+                      txid,
                 isIncoming: !weAreSender, 
                 sendToSelf,
-
-                date: new Date(),
-                value: Number(web3.utils.fromWei(tx.value, 'ether')),
-                toOrFrom: tx.from,
+                      date: new Date(),
+                     value: Number(web3.utils.fromWei(tx.value, 'ether')),
+                  toOrFrom: tx.from,
                 account_to: tx.to.toLowerCase(), 
-                account_from: tx.from.toLowerCase(),
-                block_no: -1, 
-                fees: weAreSender
-                    ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
-                    : 0
+              account_from: tx.from.toLowerCase(),
+                  block_no: -1, 
+                      fees: weAreSender
+                            ? Number((new BigNumber(tx.gas).div(new BigNumber(1000000000))).times((new BigNumber(tx.gasPrice).div(new BigNumber(1000000000)))))
+                            : 0,
+                     nonce: tx.nonce,
             }
         }
     }
