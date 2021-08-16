@@ -42,7 +42,7 @@ module.exports = {
     claimableClaim: async (appWorker, store, p) => {
         var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
-        log.cmd('claimableSpend')
+        log.cmd('claimableClaim')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
         log.param('symbol', symbol)
 

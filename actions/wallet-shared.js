@@ -31,7 +31,7 @@ module.exports = {
         if (!apk) throw 'apk is required'
         if (!assetName) throw 'assetName is required'
         if (!h_mpk) throw 'h_mpk is required'        
-        if (!dsigCltvP2sh_addr_txid || dsigCltvP2sh_addr_txid.length == 0) throw 'dsigCltvP2sh_addr_txid[] required' // { nonStdAddr, protect_op_txid }
+        if (!dsigCltvP2sh_addr_txid) throw 'dsigCltvP2sh_addr_txid[] required' // { nonStdAddr, protect_op_txid }
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (!userAccountName) throw 'userAccountName is required'
             if (!e_email) throw 'e_email is required'
@@ -43,6 +43,11 @@ module.exports = {
         const e_rawAssets = storeState.wallet.assetsRaw
         const displayableAssets = wallet.assets
        
+        if (dsigCltvP2sh_addr_txid.length == 0) {
+            utilsWallet.log(`addNonStdAddress_DsigCltv - no unspent non-std addr's supplied; nop.`)
+            return
+        }
+
         utilsWallet.logMajor('green','white', `addNonStdAddress_DsigCltv... dsigCltvP2sh_addr_txid=`, dsigCltvP2sh_addr_txid, { logServerConsole: true })
 
         // decrypt raw assets

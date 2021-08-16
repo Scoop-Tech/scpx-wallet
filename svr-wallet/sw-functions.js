@@ -133,7 +133,7 @@ module.exports = {
                    //protect_op_tx,
                         du_balConf: utilsWallet.toDisplayUnit(addrBal.conf, walletAsset),
                       du_balUnconf: utilsWallet.toDisplayUnit(addrBal.unconf, walletAsset),
-                             utxos: a_n.utxos,
+                           //utxos: a_n.utxos,
                 }}),
                 
                 countAll_txs: walletExternal.getAll_txs(walletAsset).length,

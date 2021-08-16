@@ -71,7 +71,7 @@ module.exports = {
                         // ## causing .length intermitant load errors on CLI...?
                         const positiveBalanceAddresses = addrBalRes.data.filter(p => p.bal.balance > 0 || p.bal.unconfirmedBalance > 0)
                         await walletShared.addNonStdAddress_DsigCltv({
-                            dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => positiveBalanceAddresses.some(p2 => p2.addr == p.nonStdAddr)),
+                            dsigCltvP2sh_addr_txid: nonStdAddrs_Txs.filter(p => positiveBalanceAddresses.some(p2 => p2.addr == p.nonStdAddr)), // this filters out spent non-std outputs
                                              store,
                                    userAccountName: utilsWallet.getStorageContext().owner,
                                    eosActiveWallet: undefined,
