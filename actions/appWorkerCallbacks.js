@@ -30,8 +30,6 @@ module.exports = {
             status = event.status
         }
 
-        const appWorker = utilsWallet.getAppWorker() 
-
         if (msg === 'REQUEST_STATE' && postback) {
             const stateItem = postback.stateItem
             switch (stateItem) {
@@ -42,7 +40,7 @@ module.exports = {
                     if (storeState && storeState.wallet && storeState.wallet.assets) {
                         const asset = storeState.wallet.assets.find((p) => { return p.symbol === stateKey })
                         if (asset) { // response
-                            appWorker.postMessageWrapped({ msg: 'STATE_RESPONSE', status: 'RES', data: { 
+                            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'STATE_RESPONSE', status: 'RES', data: { 
                                 stateItem, stateKey, value: { asset, wallet: storeState.wallet, ux: storeState.ux }, context
                             } }) 
                         }
@@ -60,8 +58,8 @@ module.exports = {
         else if (msg === 'ADD_NON_STANDARD_ADDRESSES') {
   
             const nonStdAddrs_Txs = postback.nonStdAddrs_Txs
-            utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES... addrs=`, nonStdAddrs_Txs.map(p => p.nonStdAddr))
-            //utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
+            //utilsWallet.log(`appWorkerCallbacks >> ADD_NON_STANDARD_ADDRESSES ${postback.asset.symbol}... addrs=`, nonStdAddrs_Txs.map(p => p.nonStdAddr))
+            utilsWallet.logMajor('magenta','blue', `ADD_NON_STANDARD_ADDRESSES ${postback.asset.symbol} [${nonStdAddrs_Txs.map(p => p.nonStdAddr).join(',')}] nonStdAddrs_Txs=`, nonStdAddrs_Txs, { logServerConsole: true })
             const asset = postback.asset
 
             // handle addr-balance postback
@@ -82,6 +80,8 @@ module.exports = {
                                            e_email: utilsWallet.getStorageContext().e_email,
                                              h_mpk: utilsWallet.getHashedMpk(), //document.hjs_mpk || utils.getBrowserStorage().PATCH_H_MPK //#READ
                         })
+
+                        //... TODO: signal complete for SCAN_NON_STANDARD_ADDRESSES callpath...
 
                         // addrBalRes.data.forEach(async result => { // PERF ## n ops
                         //     if (nonStdAddrs_Txs.map(p => p.nonStdAddr).some(p => p == result.addr)) {

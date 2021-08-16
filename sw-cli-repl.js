@@ -31,6 +31,7 @@ const walletDumpHelp = `${helpBanner}` +
     `(wallet-dump) - decrypts and dumps sub-asset private key, addresses, tx and utxo values from the loaded wallet\n`.cyan.bold +
     `\t--mpk          <master private key>  <required>  \n` +
     `\t--symbol (--s) [string]              [optional]  restrict output to supplied asset symbol if supplied, e.g. "ETH" or "BTC"\n` +
+    `\t--addr         [string]              [optional]  restrict output to supplied address\n` +
     `\t--txs          [bool]                [optional]  dump all address transactions (default: false)\n` +
     `\t--txid         [string]              [optional]  seach & dump specific TXID\n` +
     `\t--keys         [bool]                [optional]  dump private keys (default: false)\n`
@@ -104,17 +105,17 @@ const txPushHelp = `${helpBanner}` +
     `\t--from (--f)     [string]              <optional>  the address to send from (account-type assets)\n` +
     `\t--to (--t)       [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
     `\t--dsigCltvPubKey [string]  <optional>  creates a non-standard output PROTECT_OP (P2SH(DSIG/CLTV)) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n` +
-    `\t--spendFullUtxo  [string]  <optional>  spend (in full) a specifc UTXO - format "txid:vout"\n`
+    `\t--spendFullUtxos [string]  <optional>  spend (in full) one or more specifc UTXO(s) - format "txid:vout,..."\n`
 
 const claimableListHelp = `${helpBanner}` +
-    `.cll (claimable-list) - lists any claimable PROTECT_OP UTXOs\n`.cyan.bold +
+    `.cll (claimable-list) - lists any spendable PROTECT_OP UTXOs\n`.cyan.bold +
     `\t--symbol (--s) [string]              <required>  the asset for which to list claimables (BTC_TEST)\n`
 
 const claimableClaimHelp = `${helpBanner}` +
     `.clc (claimable-claim) - claims (sends to self, standard UTXO) any or all claimable PROTECT_OP transactions\n`.cyan.bold +
-    `\t--mpk           <master private key>  <required>  \n` +
-    `\t--symbol (--s)  [string]              <required>  the asset to use for the transaction (BTC_TEST)\n` +
-    `\t--spendFullUtxo [string]              [optional]  claim (in full) a specifc PROTECT_OP UTXO - format "txid:vout" (or claim all claimable UTXOs if not supplied)\n`
+    `\t--mpk            <master private key>  <required>  \n` +
+    `\t--symbol (--s)   [string]              <required>  the asset to use for the transaction (BTC_TEST)\n` +
+    `\t--spendFullUtxos [string]              [optional]  TODO: spend (in full) one or more PROTECT_OP UTXO(s) - format "txid:vout,..." (or claim all claimable UTXOs if not supplied)\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold

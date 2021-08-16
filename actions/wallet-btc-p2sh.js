@@ -164,7 +164,7 @@ module.exports = {
         // add the outputs
         //
         txSkeleton.outputs.forEach(output => {
-            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // non-standard output
+            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output
                 
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * 1) }); // 1 hr from now
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
@@ -175,11 +175,11 @@ module.exports = {
                 } 
                 finally { utilsWallet.softNuke(keyPair); utilsWallet.softNuke(wif) }
     
-                // P2SH(P2WSH(MSIG/CLTV))
+                // P2SH(P2WSH(DSIG/CLTV))
                 //const p2wsh = bitcoinJsLib.payments.p2wsh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
                 //const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wsh, network: network })
                 
-                // or, unwrapped P2SH (MSIG/CLTV)
+                // or, unwrapped P2SH(DSIG/CLTV)
                 const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network: network })
                 
                 psbt.addOutput({
@@ -226,7 +226,7 @@ module.exports = {
 
             if (inputTx.utxo_vout[input.utxo.vout].scriptPubKey.hex != input.utxo.scriptPubKey.hex) throw `scriptPubKey hex sanity check failed`
             const isDsigCltvInput = input.utxo.address == inputTx.p_op_addrNonStd 
-            if (isDsigCltvInput) { // DSIG/CLTV input - construct custom redeem script
+            if (isDsigCltvInput) { // DSIG/CLTV input - use custom redeem script
                 utilsWallet.log(`psbt/addInput - DSIG/CLTV input[${i}]`, input)
                 if (inputTx.p_op_lockTime === undefined || inputTx.hex === undefined
                     || inputTx.p_op_pubKeyBeneficiary === undefined || inputTx.p_op_pubKeyBenefactor === undefined) throw `inputTx sanity check(s) failed`

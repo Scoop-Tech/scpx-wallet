@@ -362,11 +362,12 @@ describe('transactions', function () {
             }
         })
 
-        // WIP... ## complication is the pending p_op TX: it doesn't trigger the new non-std addr detection...
-        /*it('can push a non-standard PROTECT_OP tx for P2SH{DSIG/CLTV} BTC_TEST, and benefactor can reclaim immediately', async () => {
+        // create PROTECT_OP
+        it('can push a non-standard PROTECT_OP tx for P2SH{DSIG/CLTV} BTC_TEST [, and benefactor can reclaim immediately - wip]', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
+                
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const { p2shAddr, txid } = await sendTestnetDsigCltvTx(appStore, serverLoad, 'BTC_TEST', )
+                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 15000)
                 console.log('txid', txid)
                 console.log('p2shAddr', p2shAddr)
 
@@ -374,6 +375,8 @@ describe('transactions', function () {
                     setTimeout(async () => {
                         const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
                         console.dir(dump) // looking for the new non-std addr to be here...
+
+                        // WIP... ## complication on testing benefactor can reclaim is the pending p_op TX: it doesn't trigger the new non-std addr detection...
 
                         //
                         // after p_op...
@@ -421,23 +424,74 @@ describe('transactions', function () {
                 })
                 const data = await opPause
                 console.log('data', data)
+
                 //
                 // TODO: test - "benefactor can reclaim immediately"...
                 //  (1) ./wd... find 
                 //   ./ptx spendFullUtxo=... -v... 
+                //      (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
                 //
-                //  (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
+                // TODO: test - "beneficiary can't reclaim early"...
                 //
             }
-        })*/
+        })
 
-        //
-        // TODO: test - beneficiary can't claim early...
-        //
+        // spend PROTECT_OP(s)
+        it('can spend PROTECT_OP UTXOs for BTC_TEST', async () => {
+            expect.assertions(1)
+            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
+                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
+                expect(serverLoad.ok).toBeDefined()
+
+                // spend PROTECT_OP(s) (>1)
+                const opPause = new Promise((resolve) => {
+                    setTimeout(async () => { // ### hack/fixme - wait for non-std scanning to finish (see ADD_NON_STANDARD_ADDRESSES for todo, re. signal-complete)
+                    
+                        // dump wallet, look for p_op UTXOs (e.g. CLI: ./wd --s btc_test)
+                        // const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'DUMP')
+                        // expect(dump.ok && dump.ok.length == 1).toBeTruthy()
+                        // const p_op_utxos = dump.ok[0].addresses.filter(p => p.protect_op_txid !== undefined)
+                        // console.log(`${p_op_utxos.map(p => p.protect_op_txid).join(',')}`)
+
+                        // or better: use CLAIMABLE-LIST
+                        // const cll = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'CLAIMABLE-LIST')
+                        // const weAreBenefactor = cll.ok.claimable.filter(p => p.protect_op_tx.p_op_weAreBenefactor == true)
+                        // const weAreBenificiary = cll.ok.claimable.filter(p => p.protect_op_tx.p_op_weAreBeneficiary == true)
+                        // const claimableUtxos = cll.ok.claimable.filter(p => p.utxos.length > 0 && p.utxos[0].satoshis > 0).map(p => p.utxos[0])
+                        // var claimableSpend = {}
+                        // if (claimableUtxos.length > 0) {
+
+                            // TODO - wrap underlyer call to ./txp into convenience fn. CLAIMABLE-CLAIM...
+                            claimableClaim = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'CLAIMABLE-CLAIM')
+                            console.dir(claimableClaim)
+
+                            /* // underlying CLIs:
+                                DONE: combining n p_op UTXOs 
+                                    ./txp --s btc_test --v 0.000021 --to 2N86aMtHDFsGLcqVfodDb3itwHENctFmJNF --spendFullUtxos bbeeddd415b99b1e5c0a9aac35db1c1191a455588221a31f28e47df947fe95ad:0,e795f5dbad9133d6e982b5e4ec5d411d00dd3e008fae151aa6dda330ae384cdc:0,044aa692623fb9c48a1df3b491a39c50db2d079c88a0b6254db416405f6f5cea:0,ca211f082863933890a805eab9ec3a11ea0fc0179f83017398cdb4a1b03fb602:0,e3122a1d55e38998bc774e502f504c41766a79b21a169cc160c5489d9befd6ac:0
+
+                                DONE: combining 1x p_op UTXO && 1x standard UTXO...
+                                    ./txp --s btc_test --v 0.00632557 --to 2N86aMtHDFsGLcqVfodDb3itwHENctFmJNF --spendFullUtxos 5d027d45036f2c4aeef08da69a454f59030109e5bc112384d019eb9eac9a89ab:1,96263f6fbd3f8aa7bb48299734a94db98ec1f9ae80df1f4af16e480a3644324b:0
+
+                                TODO: test combining p_op_weAreBeneficiary=true && p_op_weAreBeneficiary=false...
+                                    ...
+                            */
+
+                            // ./wd needs to be able to filter by addr, and show utxos v. clearly...
+
+                        //}
+
+                        resolve({ claimableUtxos }) //p_op_utxos, cll)
+
+                    }, 1000 * 10) // ###
+                })
+                const { claimableUtxos, claimableSpend } = await opPause
+                expect(claimableUtxos !== undefined).toBeTruthy()
+            }
+        })
     }
 
-    // PROTECT_OP
-    async function sendTestnetDsigCltvTx(store, serverLoad, testSymbol) {
+    // create PROTECT_OP
+    async function createDsigCltvTx(store, serverLoad, testSymbol, sats) {
         expect.assertions(7 + 5)
         const mpk = serverLoad.ok.walletInit.ok.mpk
         
@@ -453,7 +507,7 @@ describe('transactions', function () {
 
             // push p2sh(1/2 dsig+cltv) tx
             const avail = utilsWallet.toDisplayUnit(bal.avail, asset)
-            const sendValue = 0.0000042
+            const sendValue = sats ? sats / 100000000 : 0.0000042
             if (avail < sendValue) throw 'Insufficient test currency'
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
             console.log('sendValue', sendValue)

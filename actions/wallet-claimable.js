@@ -34,6 +34,10 @@ module.exports = {
                 return (protect_op_tx.p_op_weAreBenefactor
                     || (protect_op_tx.p_op_weAreBeneficiary && new Date() > protect_op_tx.p_op_unlockDateTime))
             })
+            .map(a => { 
+                const protect_op_tx = all_txs.find(p => p.txid == a.nonStd_protectOp_txid)
+                return Object.assign(a, { protect_op_tx })
+            })
         return p_addrs
     },
 

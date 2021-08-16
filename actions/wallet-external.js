@@ -121,7 +121,7 @@ module.exports = {
 
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
-        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, spendFullUtxo, apk, h_mpk, } = p
+        const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, useUtxos, apk, h_mpk, } = p
 
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
@@ -132,7 +132,7 @@ module.exports = {
                   feeParams,
                    sendMode: true,
             sendFromAddrNdx,
-            spendFullUtxo,
+                   useUtxos,
                         apk: apk,
                       h_mpk: h_mpk,
         })
@@ -317,7 +317,7 @@ module.exports = {
     // Compute a specific tx fee, for the supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, spendFullUtxo, apk, h_mpk } = p
+        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, useUtxos, apk, h_mpk } = p
         if (!feeData) { throw 'Invalid parameter - feeData' }
         if (!asset) { throw 'Invalid parameter - asset' }
         if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
@@ -343,7 +343,7 @@ module.exports = {
             const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
 
             const res = await createTxHex({ 
-                payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1, spendFullUtxo,
+                payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1, useUtxos,
                          apk: apk, 
                        h_mpk: h_mpk,
             })
@@ -463,7 +463,7 @@ module.exports = {
 // create tx hex - all assets
 //
 async function createTxHex(params) {
-    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1, spendFullUtxo,
+    const { payTo, asset, encryptedAssetsRaw, feeParams, sendMode = true, sendFromAddrNdx = -1, useUtxos,
             apk, h_mpk } = params
 
     //console.log('createTxHex/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
@@ -492,18 +492,19 @@ async function createTxHex(params) {
             _.isEqual)
     if (asset.type === configWallet.WALLET_TYPE_UTXO) {
         if (asset.symbol === 'BTC_TEST') {
-            // spending a single UTXO (a single PROTECT_OP) - filter out all other UTXOs
-            if (spendFullUtxo !== undefined && spendFullUtxo.txid !== undefined && spendFullUtxo.vout !== undefined) { 
-                utxos = utxos.filter(p => p.txid == spendFullUtxo.txid && p.vout == spendFullUtxo.vout) // spendTxid, spendVout
+            // spending specific UTXOs (e.g. all PROTECT_OPs via CLAIMABLE-CLAIM) - filter out all other UTXOs
+            if (useUtxos !== undefined && useUtxos.length > 0) {
+                utxos = utxos.filter(p => useUtxos.some(p2 => p2.txid == p.txid && p2.vout == p.vout))
             }   
-            // spending across multiple outputs - filter out UTXOs belonging to a PROTECT_OP beneficiary, i.e. those that have a specific locktime (they must be spent individually, specifying a single UTXO)
+            // spending across multiple outputs - filter out UTXOs belonging to a PROTECT_OP beneficiary, i.e. those that have a specific locktime (they must be spent specifically, by supplying useUtxos)
             else {
                 const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
                 utxos = utxos.filter(p => !p_op_txs.some(p2 => p2.txid == p.txid))
             }
         }
         //console.log('utxos', utxos)
-        if (utxos.length == 0) throw 'Insufficient UTXOs'
+        
+        if (utxos.length == 0) throw 'Insufficient or invalid UTXO(s)'
     }
 
     // get private keys
@@ -559,9 +560,9 @@ async function createTxHex(params) {
             const network = opsWallet.getUtxoNetwork(asset.symbol)
             var tx, hex, vSize, byteLength
             if (asset.symbol === 'ZEC' || asset.symbol === 'DASH' || asset.symbol === 'VTC'
-            || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
-            || asset.symbol === 'ZEC_TEST'
-            || asset.symbol === 'RVN')
+             || asset.symbol === 'QTUM' || asset.symbol === 'DGB' || asset.symbol === 'BCHABC'
+             || asset.symbol === 'ZEC_TEST'
+             || asset.symbol === 'RVN')
             {
                 //
                 // UTXO - P2PKH - bitgo-utxo tx builder (https://github.com/BitGo/bitgo-utxo-lib/issues/12, https://blog.bitgo.com/how-to-create-a-zcash-sapling-compatible-multisig-transaction-98e45657c48d )

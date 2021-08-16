@@ -420,7 +420,6 @@ async function handler(e) {
             walletP2shBtc.scan_NonStdOutputs({ asset: data.asset, dispatchActions, nonStdAddrs_Txs },)
             var mergedDispatchActions = mergeDispatchActions(data.asset, dispatchActions)
           
-            
             if (mergedDispatchActions.length > 0) {
                 //utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}, mergedDispatchActions=`, mergedDispatchActions, { logServerConsole: true })
                 self.postMessage({ msg: 'REQUEST_DISPATCH_BATCH', status: 'DISPATCH', data: { dispatchActions: mergedDispatchActions } })

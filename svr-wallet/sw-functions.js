@@ -82,7 +82,7 @@ module.exports = {
 
     // dumps current wallet asset data
     walletDump: (appWorker, store, p) => {
-        var { mpk, apk, symbol, txs, keys, txid } = p
+        var { mpk, apk, symbol, addr, txs, keys, txid, } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         const state = store.getState()
         const wallet = state.wallet
@@ -91,11 +91,13 @@ module.exports = {
 
         // params
         const filterSymbol = symbol && symbol.length > 0 ? symbol : undefined
+        const filterAddr = addr && addr.length > 0 ? addr : undefined
         const dumpTxs = utilsWallet.isParamTrue(txs)
         const dumpPrivKeys = utilsWallet.isParamTrue(keys)
         const dumpTxid = txid && txid.length > 0 ? txid : undefined
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
         log.param('symbol', filterSymbol)
+        log.param('addr', filterAddr)
         log.param('txs', dumpTxs)
         log.param('keys', dumpPrivKeys)
         log.param('txid', dumpTxid)
@@ -131,6 +133,7 @@ module.exports = {
                    //protect_op_tx,
                         du_balConf: utilsWallet.toDisplayUnit(addrBal.conf, walletAsset),
                       du_balUnconf: utilsWallet.toDisplayUnit(addrBal.unconf, walletAsset),
+                             utxos: a_n.utxos,
                 }}),
                 
                 countAll_txs: walletExternal.getAll_txs(walletAsset).length,
@@ -149,6 +152,9 @@ module.exports = {
                 assetOut.all_txs = assetOut.all_txs.filter(p => p.txid == dumpTxid)
                 assetOut.local_txs = assetOut.local_txs.filter(p => p.txid == dumpTxid)
                 assetOut.all_txs = assetOut.all_txs.filter(p => p.txid == dumpTxid)
+            }
+            if (filterAddr) {
+                assetOut.addresses = assetOut.addresses.filter(p => p.addr == filterAddr)
             }
             
             const accountsOut = []

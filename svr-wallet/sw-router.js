@@ -31,7 +31,7 @@ module.exports = {
           || fn === 'LOAD' || fn === 'SAVE' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH'
           || fn === 'ASSET-CONVERT'
-          || fn === 'CLAMABLE-SPEND')
+          || fn === 'CLAIMABLE-CLAIM')
         
         const loadedWalletRequired =
             (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
