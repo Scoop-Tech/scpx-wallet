@@ -9,10 +9,9 @@ const utilsWallet = require('../utils')
 const { syslog } = require('winston/lib/winston/config')
 const { getAll_txs, getAll_local_txs } = require('../utils')
 
-const DSIGCTLV_ID_vCur = Buffer.from( // (max 6 bytes)
-    `12100504` + // protect_op ID stamp (4 bytes)
-    `ab04`,      // flags/version
-'hex') 
+const DSIGCTLV_ID_vCur = Buffer.from( // (max 4 bytes)
+    `481fe761`  // protect_op ID stamp: "12100504" + "xx", where xx=p_op version; v1 = 1210050401 = 0x481fe761
+, 'hex')
 
 function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
     return bitcoinJsLib.script.fromASM(
@@ -85,6 +84,7 @@ module.exports = {
 
                 var txProtectOpTimelock = undefined
                 var txProtectOpDateTime = undefined
+                var txProtectOpLockHours = undefined
                 var pubKeyBeneficiary = undefined
                 var pubKeyBenefactor = undefined
                 tx.utxo_vout.forEach(utxo => { // look for our protect_op version id in an op_return output at index vout=1 
@@ -93,10 +93,12 @@ module.exports = {
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
                             if (asm && asm.length == 2 && asm[1].buffer !== undefined) {
-                                const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
+                                const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime, lockHours } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
                                 if (buf_idVer) {
                                     if (Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur) == 0) {
+                                        debugger
                                         txProtectOpTimelock = lockTime
+                                        txProtectOpLockHours = lockHours
                                         txProtectOpDateTime = new Date(Number(lockTime) * 1000)
                                         pubKeyBeneficiary = buf_pubKeyA
                                         pubKeyBenefactor = buf_pubKeyB
@@ -116,8 +118,9 @@ module.exports = {
                     _tx.p_op_valueProtected = tx.utxo_vout[0].value
                     _tx.p_op_weAreBeneficiary = ownStdAddresses.some(p => p == _tx.p_op_addrBeneficiary)
                     _tx.p_op_weAreBenefactor = ownStdAddresses.some(p => p == _tx.p_op_addrBenefactor)
-                    _tx.p_op_lockTime = txProtectOpTimelock
-                    _tx.p_op_unlockDateTime = txProtectOpDateTime
+                    _tx.p_op_lockTime = txProtectOpTimelock // filetime
+                    _tx.p_op_unlockDateTime = txProtectOpDateTime // datetime
+                    _tx.p_op_lockHours = txProtectOpLockHours // hrs to lock
                     _tx.p_op_pubKeyBeneficiary = pubKeyBeneficiary.toString('hex')
                     _tx.p_op_pubKeyBenefactor = pubKeyBenefactor.toString('hex')
 
@@ -166,7 +169,8 @@ module.exports = {
         txSkeleton.outputs.forEach(output => {
             if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output
                 
-                const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * 1) }); // 1 hr from now
+                const lockHours = 2 // hrs from now
+                const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * lockHours) }) 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
                 var nonCltvSpender
                 var wif = addrPrivKeys.find(p => { return p.addr === output.address }).privKey
@@ -188,7 +192,7 @@ module.exports = {
                 })
 
                 // embed data
-                const data = assembleDsigCsvOpReturnBuffer(lockTime, cltvSpender.publicKey, nonCltvSpender.publicKey)
+                const data = assembleDsigCsvOpReturnBuffer(lockTime, lockHours, cltvSpender.publicKey, nonCltvSpender.publicKey)
                 const embed = bitcoinJsLib.payments.embed({data: [data]})
                 psbt.addOutput({script: embed.output, value: 0 })
                 //utilsWallet.debug(`OP_RETURN data.length=`, data.length) // max 80 bytes, and max 1 op_return (node defaults - not consensus rules)
@@ -334,19 +338,23 @@ function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-function assembleDsigCsvOpReturnBuffer(lockTime, buf_pubKeyA, buf_pubKeyB) {
+function assembleDsigCsvOpReturnBuffer(lockTime, lockHours, buf_pubKeyA, buf_pubKeyB) {
+    if (lockHours > 0xffff) throw 'lockHours overflow'
     const buf_lockTime = write64bitToBuf(lockTime)
-    const buf_combined = Buffer.concat([DSIGCTLV_ID_vCur, buf_pubKeyA, buf_pubKeyB, buf_lockTime])
+    const buf_lockHours = write16bitToBuf(lockHours)
+    const buf_combined = Buffer.concat([DSIGCTLV_ID_vCur, buf_pubKeyA, buf_pubKeyB, buf_lockTime, buf_lockHours])
     return buf_combined
 }
 function disassembleDsigCsvOpReturnBuffer(buf) {
     if (buf.length != 80) return {}
-    const buf_idVer = buf.slice(0, 6)
-    const buf_pubKeyA = buf.slice(6, 6 + 33)
-    const buf_pubKeyB = buf.slice(39, 39 + 33)
-    const buf_lockTime = buf.slice(72, 72 + 8)
+    const buf_idVer = buf.slice(0, 4)
+    const buf_pubKeyA = buf.slice(4, 4 + 33)
+    const buf_pubKeyB = buf.slice(37, 37 + 33)
+    const buf_lockTime = buf.slice(70, 70 + 8)
     const lockTime = read64bitFromBuf(buf_lockTime)
-    return { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime } 
+    const buf_lockHours = buf.slice(78, 78 + 2)
+    const lockHours = read16bitFromBuf(buf_lockHours)
+    return { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime, lockHours }
 }
 function write64bitToBuf(i) {
     const buf = Buffer.alloc(8)
@@ -356,5 +364,14 @@ function write64bitToBuf(i) {
 }
 function read64bitFromBuf(buf) {
     var bufInt = (buf.readUInt32BE(0) << 8) + buf.readUInt32BE(4)
+    return bufInt
+}
+function write16bitToBuf(i) {
+    const buf = Buffer.alloc(4)
+    buf.writeUInt16BE(i, 0)
+    return buf
+}
+function read16bitFromBuf(buf) {
+    var bufInt = buf.readUInt16BE(0)
     return bufInt
 }
