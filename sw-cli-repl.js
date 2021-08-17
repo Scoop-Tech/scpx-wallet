@@ -112,10 +112,16 @@ const claimableListHelp = `${helpBanner}` +
     `\t--symbol (--s) [string]              <required>  the asset for which to list claimables (BTC_TEST)\n`
 
 const claimableClaimHelp = `${helpBanner}` +
-    `.clc (claimable-claim) - claims (sends to self, standard UTXO) any or all claimable PROTECT_OP transactions\n`.cyan.bold +
+    `.clc (claimable-claim) - claims (sends to self, standard UTXO) claimable PROTECT_OP UTXOs\n`.cyan.bold +
     `\t--mpk            <master private key>  <required>  \n` +
     `\t--symbol (--s)   [string]              <required>  the asset to use for the transaction (BTC_TEST)\n` +
-    `\t--spendFullUtxos [string]              [optional]  TODO: spend (in full) one or more PROTECT_OP UTXO(s) - format "txid:vout,..." (or claim all claimable UTXOs if not supplied)\n`
+    `\t--spendFullUtxos [string]              [optional]  claims (in full) one or more PROTECT_OP UTXO(s) - format "txid:vout,..." (or claims all available UTXOs if not supplied)\n`
+
+const claimableResetHelp = `${helpBanner}` +
+    `.clr (claimable-reset) - rolls over PROTECT_OP UTXOs resetting their timelocks\n`.cyan.bold +
+    `\t--mpk            <master private key>  <required>  \n` +
+    `\t--symbol (--s)   [string]              <required>  the asset to use for the transaction (BTC_TEST)\n` +
+    `\t--resetFullUtxos [string]              [optional]  resets (in full) one or more PROTECT_OP UTXO(s) - format "txid:vout,..." (or resets all available UTXOs if not supplied)\n`
 
 const clsHelp = `${helpBanner}` +
     `.cls (clear-screen) - clears the console screen \n`.cyan.bold
@@ -245,6 +251,7 @@ module.exports = {
 
         defineWalletCmd(prompt, ['/cll', 'list-claimable'], claimableListHelp, svrRouter.fn, 'CLAIMABLE-LIST')
         defineWalletCmd(prompt, ['/clc', 'claim-claimable'], claimableClaimHelp, svrRouter.fn, 'CLAIMABLE-CLAIM')
+        defineWalletCmd(prompt, ['/clr', 'claim-reset'], claimableResetHelp, svrRouter.fn, 'CLAIMABLE-RESET')
 
         defineWalletCmd(prompt, ['/rt', 'rpc-test'], rpcTestHelp, rpc.rpcTest)
         defineWalletCmd(prompt, ['/lt', 'log-tail'], logTailHelp, log.logTail)

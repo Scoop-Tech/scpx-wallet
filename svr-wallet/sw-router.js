@@ -31,7 +31,7 @@ module.exports = {
           || fn === 'LOAD' || fn === 'SAVE' || fn === 'SERVER-LOAD' || fn === 'SERVER-SAVE'
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH'
           || fn === 'ASSET-CONVERT'
-          || fn === 'CLAIMABLE-CLAIM')
+          || fn === 'CLAIMABLE-CLAIM' || fn === 'CLAIMABLE-RESET')
         
         const loadedWalletRequired =
             (fn !== 'LOAD' && fn !== 'SERVER-LOAD')
@@ -40,7 +40,7 @@ module.exports = {
             (fn === 'BALANCE' || fn === 'ASSET-GET-FEES' 
           || fn === 'TX-GET-FEE' || fn === 'TX-PUSH' 
           || fn === 'ASSET-CONVERT'
-          || fn === 'CLAIMABLE-LIST' || fn === 'CLAIMABLE-CLAIM')
+          || fn === 'CLAIMABLE-LIST' || fn === 'CLAIMABLE-CLAIM' || fn === 'CLAIMABLE-RESET')
     
         // param/state check - store is valid and wallet is loaded, if supplied and applicable
         var storeState = undefined
@@ -108,6 +108,7 @@ module.exports = {
 
             case 'CLAIMABLE-LIST':    walletFn = claimable.claimableList; break;
             case 'CLAIMABLE-CLAIM':   walletFn = claimable.claimableClaim; break;
+            case 'CLAIMABLE-RESET':   walletFn = claimable.claimableReset; break;
 
             default: return Promise.resolve({ err: 'Invalid wallet function' })
         }

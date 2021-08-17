@@ -79,8 +79,8 @@ module.exports = {
                 if (!tx.utxo_vout.every(utxo => utxo.scriptPubKey !== undefined // sanity checks
                      && utxo.scriptPubKey.addresses !== undefined 
                      && utxo.scriptPubKey.addresses.length == 1)) { 
-                        return 
-                     }
+                    return 
+                }
 
                 var txProtectOpTimelock = undefined
                 var txProtectOpDateTime = undefined
@@ -91,12 +91,14 @@ module.exports = {
                     if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) {
                         const firstOp = parseInt('0x' + utxo.scriptPubKey.hex.substring(0,2))
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
+                            // if (tx.txid == "a48240ccdf4d2bcd99ae4d30571ca4b7095d33bfdc86e77168231bc98e25b5b4") {
+                            //     debugger
+                            // }                            
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
                             if (asm && asm.length == 2 && asm[1].buffer !== undefined) {
                                 const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime, lockHours } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
                                 if (buf_idVer) {
                                     if (Buffer.compare(buf_idVer, DSIGCTLV_ID_vCur) == 0) {
-                                        debugger
                                         txProtectOpTimelock = lockTime
                                         txProtectOpLockHours = lockHours
                                         txProtectOpDateTime = new Date(Number(lockTime) * 1000)
@@ -169,7 +171,7 @@ module.exports = {
         txSkeleton.outputs.forEach(output => {
             if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output
                 
-                const lockHours = 2 // hrs from now
+                const lockHours = 3 // hrs from now
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * lockHours) }) 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
                 var nonCltvSpender
@@ -367,7 +369,7 @@ function read64bitFromBuf(buf) {
     return bufInt
 }
 function write16bitToBuf(i) {
-    const buf = Buffer.alloc(4)
+    const buf = Buffer.alloc(2)
     buf.writeUInt16BE(i, 0)
     return buf
 }
