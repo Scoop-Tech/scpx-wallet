@@ -163,7 +163,7 @@ module.exports = {
     
         const psbt = new bitcoinJsLib.Psbt({ network })
         psbt.setVersion(2)
-        utilsWallet.log(`createTxHex_BTC_P2SH (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`)
+        utilsWallet.log(`createTxHex_BTC_P2SH validationMode=${validationMode} (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`)
 
         //
         // add the outputs
@@ -322,10 +322,10 @@ module.exports = {
         vSize = inc_vs // tx is fully complete & signed; these are final values
         byteLength = inc_bl
         tx = inc_tx
-        //utilsWallet.debug('inc_tx.virtualSize=', inc_vs)
-        //utilsWallet.debug('inc_tx.byteLength=', inc_bl)
-        //utilsWallet.log('psbt/inc_tx', inc_tx)
-        //utilsWallet.debug('psbt/inc_tx.toHex()', inc_tx.toHex())
+        utilsWallet.log('inc_tx.virtualSize=', inc_vs)
+        utilsWallet.log('inc_tx.byteLength=', inc_bl)
+        utilsWallet.log('psbt/inc_tx', inc_tx)
+        //utilsWallet.log('psbt/inc_tx.toHex()', inc_tx.toHex())
 
         if (!validationMode) {
             hex = inc_tx.toHex()

@@ -509,11 +509,11 @@ describe('transactions', function () {
             const avail = utilsWallet.toDisplayUnit(bal.avail, asset)
             const sendValue = sats ? sats / 100000000 : 0.0000042
             if (avail < sendValue) throw 'Insufficient test currency'
-            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
+            const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // beneficiary - testnets3@scoop.tech, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
+            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue, dsigCltvPubKey }, 'TX-GET-FEE')
             console.log('sendValue', sendValue)
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee
-            const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // beneficiary - testnets3@scoop.tech, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
             const nonCltvSpender = asset.addresses[0].addr
             const txPush = await svrRouter.fn(appWorker, appStore,
                 { mpk, symbol: testSymbol,

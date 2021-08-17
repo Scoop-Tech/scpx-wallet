@@ -72,7 +72,7 @@ module.exports = {
         }
 
         // get fee
-        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value, /*spendFullUtxo: { txid: spendTxid, vout: spendVout },*/useUtxos, })
+        const txGetFee = await module.exports.txGetFee(appWorker, store, { mpk, apk, symbol, value, useUtxos, dsigCltvPubKey })
         if (txGetFee.err) return Promise.resolve({ err: txGetFee.err })
         if (!txGetFee.ok || !txGetFee.ok.txFee || txGetFee.ok.txFee.fee === undefined) return Promise.resolve({ err: `Error computing TX fee` })
         const du_fee = Number(txGetFee.ok.txFee.fee)
@@ -175,7 +175,7 @@ module.exports = {
 
     // gets network fee for the specified tx
     txGetFee: async (appWorker, store, p) => {
-        var { mpk, apk, symbol, value, useUtxos } = p
+        var { mpk, apk, symbol, value, useUtxos, dsigCltvPubKey } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txGetFee')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -194,6 +194,7 @@ module.exports = {
                      useUtxos,
                       feeData,
                     sendValue: du_sendValue,
+        dsigCltvSpenderPubKey: dsigCltvPubKey,
            encryptedAssetsRaw: wallet.assetsRaw, 
                    useFastest: false, useSlowest: false, //...
                           apk: apk,

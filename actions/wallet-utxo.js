@@ -22,13 +22,17 @@ module.exports = {
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, params=`, params)
 
         // validation
-        if (!params || !params.feeSatoshis || !params.utxos) {
+        if (!params || !params.feeSatoshis || !params.utxos || !params.outputs) {
             utilsWallet.error(`## getUtxo_InputsOutputs - invalid params`)
             return Promise.reject(`Invalid parameters`)
         }
-        if (params.utxos.length === 0) {
+        if (params.utxos.length == 0) {
             utilsWallet.warn(`getUtxo_InputsOutputs - no UTXOs`)
             return Promise.reject(`No UTXOs`)
+        }
+        if (params.outputs.length == 0) {
+            utilsWallet.warn(`getUtxo_InputsOutputs - no outputs`)
+            return Promise.reject(`No outputs`)
         }
 
         // sort available utxos by descending balance
@@ -65,13 +69,14 @@ module.exports = {
         const inputs = inputsNeeded.map(input => { return { utxo: input.utxo, ndx: input.ndx,  } })
         var outputs = params.outputs.map(output => { return { address: output.receiver, value: output.value, change: false } })
 
-        // unspent output - to self, if it's not dust 
+        // unspent output / change - to self, if not dust (the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust)
+        // NOTE: we always add this output for PROTECT_OP TX's; it's needed (even as a zero-value output) in order to identify which p_op TX's belong to us
         var unspentValue = inputsTotalValue.minus(valueNeeded).minus(feeSatoshisAssumed)
         utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue, unspentValue, feeSatoshisAssumed=`, inputsTotalValue.toString(), unspentValue.toString(), feeSatoshisAssumed.toString())
-        if (unspentValue.gt(feeSatoshisAssumed)) { // the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust
+        if (unspentValue.gt(feeSatoshisAssumed) || params.outputs[0].dsigCltvSpenderPubKey !== undefined) {
             outputs.push({
                 address: params.changeAddress,
-                  value: unspentValue.toString(),
+                  value: unspentValue.lt(0) ? '0' : unspentValue.toString(),
                  change: true
             })
         }

@@ -317,7 +317,7 @@ module.exports = {
     // Compute a specific tx fee, for the supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, receiverAddress, feeData, sendValue, encryptedAssetsRaw, useFastest, useSlowest, useUtxos, apk, h_mpk } = p
+        var { asset, receiverAddress, feeData, sendValue, dsigCltvSpenderPubKey, encryptedAssetsRaw, useFastest, useSlowest, useUtxos, apk, h_mpk } = p
         if (!feeData) { throw 'Invalid parameter - feeData' }
         if (!asset) { throw 'Invalid parameter - asset' }
         if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
@@ -336,12 +336,10 @@ module.exports = {
             if (!sendValue) {
                 sendValue = 0
             }
-            const payTo = [ { receiver: configExternal.walletExternal_config[asset.symbol].donate, value: sendValue } ]
+            const payTo = [ { receiver: configExternal.walletExternal_config[asset.symbol].donate, value: sendValue, dsigCltvSpenderPubKey } ]
             
-            // we need to pass some fee into createTxHex; 
-            // we only care here though about the returned tx size data
+            // we need to pass some fee into createTxHex; we only care here though about the returned tx size data
             const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
-
             const res = await createTxHex({ 
                 payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1, useUtxos,
                          apk: apk, 
@@ -349,7 +347,6 @@ module.exports = {
             })
             if (res !== undefined) {
                 const cu_fee = new BigNumber(Math.ceil(((res.byteLength / 1024) * cu_satPerKB))) // tx KB size * sat/KB
-
                 const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset))
                 ret = { inputsCount: res.inputsCount,
                          utxo_vsize: res.vSize,
@@ -536,9 +533,12 @@ async function createTxHex(params) {
             const cu_sendValue = payTo.reduce((sum,p) => { return sum.plus(new BigNumber(p.value).times(100000000)) }, BigNumber(0))
 
             // get required inputs & outputs
+            debugger
             const utxoParams = {
-                changeAddress: asset.addresses[0].addr, // send all change to primary address -- todo: probably should use new address on every send here
-                      outputs: payTo.map(p => { return { receiver: p.receiver, value: new BigNumber(p.value).times(100000000).toString() }}),
+                changeAddress: asset.addresses[0].addr, // send all change to primary address -- todo: address reuse
+                      outputs: payTo.map(p => { return { receiver: p.receiver,
+                                                            value: new BigNumber(p.value).times(100000000).toString(),
+                                            dsigCltvSpenderPubKey: p.dsigCltvSpenderPubKey }}),
                   feeSatoshis: Math.floor(feeParams.txFee.fee * 100000000),
                         utxos,
             }
