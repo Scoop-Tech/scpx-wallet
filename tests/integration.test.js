@@ -367,7 +367,7 @@ describe('transactions', function () {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 15000)
+                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 20000/*sats*/, 42/*dsigLockHours*/)
                 console.log('txid', txid)
                 console.log('p2shAddr', p2shAddr)
 
@@ -491,7 +491,7 @@ describe('transactions', function () {
     }
 
     // create PROTECT_OP
-    async function createDsigCltvTx(store, serverLoad, testSymbol, sats) {
+    async function createDsigCltvTx(store, serverLoad, testSymbol, sats, dsigLockHours) {
         expect.assertions(7 + 5)
         const mpk = serverLoad.ok.walletInit.ok.mpk
         
@@ -520,6 +520,7 @@ describe('transactions', function () {
                         value: sendValue,
                            to: nonCltvSpender, // PROTECT_OP = benefactor (aka nonCltvSpender)...
                dsigCltvPubKey,                 //            + beneficiary pubKey -- see: createTxHex_BTC_P2SH()
+                dsigLockHours
                 }, 'TX-PUSH')
 
             console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)

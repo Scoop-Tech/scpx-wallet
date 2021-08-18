@@ -29,6 +29,7 @@ module.exports = {
         const all_txs = walletExternal.getAll_txs(asset)
         const p_addrs = asset.addresses
             .filter(a => a.path.startsWith('~p/'))
+            .filter(a => a.utxos !== undefined && a.utxos.length > 0)
             .filter(a => { 
                 const protect_op_tx = all_txs.find(p2 => p2.txid == a.nonStd_protectOp_txid)
                 return (protect_op_tx.p_op_weAreBenefactor

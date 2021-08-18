@@ -144,6 +144,7 @@ module.exports = {
                     utilsWallet.log(`p_op_weAreBenefactor=${_tx.p_op_weAreBenefactor}`)
                     utilsWallet.log(`p_op_unlockDateTime=${_tx.p_op_unlockDateTime}`)
                     utilsWallet.log(`p_op_unlockDateTime.toLocaleString()=`, _tx.p_op_unlockDateTime.toLocaleString())
+                    utilsWallet.log(`p_op_lockHours=`, _tx.p_op_lockHours)
                     utilsWallet.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
                     utilsWallet.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
 
@@ -156,7 +157,7 @@ module.exports = {
     },
 
     createTxHex_BTC_P2SH: (params) => {
-        const { asset, validationMode, addrPrivKeys, txSkeleton, dsigCltvSpenderPubKey } = params
+        const { asset, validationMode, addrPrivKeys, txSkeleton, dsigCltvSpenderPubKey, dsigCltvSpenderLockHours } = params
         const opsWallet = require('./wallet')
         const network = opsWallet.getUtxoNetwork(asset.symbol)
         var tx, hex, vSize, byteLength  
@@ -170,8 +171,13 @@ module.exports = {
         //
         txSkeleton.outputs.forEach(output => {
             if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output
+
+                if (dsigCltvSpenderLockHours === undefined || !Number.isInteger(dsigCltvSpenderLockHours) || dsigCltvSpenderLockHours > 0xffff) { 
+                    debugger
+                    throw `Invalid or missing dsigCltvSpenderLockHours`
+                }
                 
-                const lockHours = 3 // hrs from now
+                const lockHours = Number(dsigCltvSpenderLockHours)
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * lockHours) }) 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
                 var nonCltvSpender

@@ -104,7 +104,8 @@ const txPushHelp = `${helpBanner}` +
     `\t--value (--v)    [number]              <required>  the amount to send, e.g. 0.01\n` +
     `\t--from (--f)     [string]              <optional>  the address to send from (account-type assets)\n` +
     `\t--to (--t)       [string]              <required>  the address to send to, e.g. "t1RGM2uztDM3iqGjBsK7UvuLFAYiSJWczLh"\n` +
-    `\t--dsigCltvPubKey [string]  <optional>  creates a non-standard output PROTECT_OP (P2SH(DSIG/CLTV)) which can be spent after a timelock by the address of this pubkey (BTC_TEST)\n` +
+    `\t--dsigCltvPubKey [string]  <optional>  creates a (non-std) dual-sig "PROTECT_OP" output (P2SH(DSIG/CLTV)) - can also be spent after a timelock this pubkey address (BTC_TEST)\n` +
+    `\t--dsigLockHours  [integer] <optional>  when creating a PROTECT_OP output, the timelock in hours for dsigCltvPubKey (default: 1)\n` +
     `\t--spendFullUtxos [string]  <optional>  spend (in full) one or more specifc UTXO(s) - format "txid:vout,..."\n`
 
 const claimableListHelp = `${helpBanner}` +

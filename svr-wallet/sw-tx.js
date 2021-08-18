@@ -22,7 +22,7 @@ module.exports = {
 
     // creates and broadcasts the specified tx
     txPush: async (appWorker, store, p) => {
-        var { mpk, apk, symbol, value, to, from, dsigCltvPubKey, spendFullUtxos } = p
+        var { mpk, apk, symbol, value, to, from, dsigCltvPubKey, dsigLockHours, spendFullUtxos } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txPush')
         log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
@@ -31,6 +31,7 @@ module.exports = {
         log.param('to', to)
         log.param('from', from)
         log.param('dsigCltvPubKey', dsigCltvPubKey)
+        log.param('dsigLockHours', dsigLockHours)
         log.param('spendFullUtxos', spendFullUtxos)
 
         // validate from addr
@@ -116,10 +117,11 @@ module.exports = {
         const toAddrIsValid = opsWallet.validateAssetAddress({ testSymbol: asset.symbol, testAddressType: asset.addressType, validateAddr: toAddr })
         if (!toAddrIsValid) return Promise.resolve({ err: `Invalid ${asset.symbol} to address` })
 
-        // validate beneficiary public key
+        // p_op: validate beneficiary public key, & lock hours
         if (!utilsWallet.isParamEmpty(dsigCltvPubKey)) {
             const dsigCltvPubKeyValid = true //todo
             if (!dsigCltvPubKeyValid) return Promise.resolve({ err: `Invalid ${asset.symbol} DSIG CLTV-spender public key` })
+            if (dsigLockHours && Number.isInteger(dsigLockHours)) return Promise.resolve({ err: `Invalid dsigLockHours` })
         }
 
         // validate sufficient balance
@@ -135,7 +137,7 @@ module.exports = {
 
         // send
         const feeParams = { txFee: txGetFee.ok.txFee }
-        const payTo = [{ receiver: toAddr, value: du_sendValue, dsigCltvSpenderPubKey: dsigCltvPubKey }]
+        const payTo = [{ receiver: toAddr, value: du_sendValue, dsigCltvSpenderPubKey: dsigCltvPubKey, dsigCltvSpenderLockHours: dsigLockHours || 1 }]
         log.info('sw-tx/payTo', payTo)
         log.info('sw-tx/useUtxos', useUtxos)
         return new Promise((resolve) => {
@@ -195,6 +197,7 @@ module.exports = {
                       feeData,
                     sendValue: du_sendValue,
         dsigCltvSpenderPubKey: dsigCltvPubKey,
+     dsigCltvSpenderLockHours: 42, // value doesn't matter for fee calc
            encryptedAssetsRaw: wallet.assetsRaw, 
                    useFastest: false, useSlowest: false, //...
                           apk: apk,

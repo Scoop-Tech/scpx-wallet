@@ -122,9 +122,11 @@ module.exports = {
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, useUtxos, apk, h_mpk, } = p
+        if (payTo !== undefined && payTo.some(p => p.value < 0)) throw 'Insufficient balance'
 
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
+
 
         createTxHex({ payTo,
                       asset,
@@ -317,7 +319,8 @@ module.exports = {
     // Compute a specific tx fee, for the supplied tx details
     //
     computeTxFee: async (p) => { 
-        var { asset, receiverAddress, feeData, sendValue, dsigCltvSpenderPubKey, encryptedAssetsRaw, useFastest, useSlowest, useUtxos, apk, h_mpk } = p
+        var { asset, receiverAddress, feeData, sendValue, dsigCltvSpenderPubKey, dsigCltvSpenderLockHours, 
+              encryptedAssetsRaw, useFastest, useSlowest, useUtxos, apk, h_mpk } = p
         if (!feeData) { throw 'Invalid parameter - feeData' }
         if (!asset) { throw 'Invalid parameter - asset' }
         if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
@@ -336,14 +339,23 @@ module.exports = {
             if (!sendValue) {
                 sendValue = 0
             }
-            const payTo = [ { receiver: configExternal.walletExternal_config[asset.symbol].donate, value: sendValue, dsigCltvSpenderPubKey } ]
+            const payTo = [{ receiver: configExternal.walletExternal_config[asset.symbol].donate,
+                                value: sendValue,
+                dsigCltvSpenderPubKey, 
+             dsigCltvSpenderLockHours
+            }]
             
             // we need to pass some fee into createTxHex; we only care here though about the returned tx size data
             const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
-            const res = await createTxHex({ 
-                payTo, asset, encryptedAssetsRaw, feeParams, sendMode: false, sendFromAddrNdx: -1, useUtxos,
-                         apk: apk, 
-                       h_mpk: h_mpk,
+            const res = await createTxHex({ payTo,
+                                            asset,
+                               encryptedAssetsRaw,
+                                        feeParams,
+                                         sendMode: false,
+                                  sendFromAddrNdx: -1,
+                                         useUtxos,
+                                              apk: apk, 
+                                            h_mpk: h_mpk,
             })
             if (res !== undefined) {
                 const cu_fee = new BigNumber(Math.ceil(((res.byteLength / 1024) * cu_satPerKB))) // tx KB size * sat/KB
@@ -533,12 +545,12 @@ async function createTxHex(params) {
             const cu_sendValue = payTo.reduce((sum,p) => { return sum.plus(new BigNumber(p.value).times(100000000)) }, BigNumber(0))
 
             // get required inputs & outputs
-            debugger
             const utxoParams = {
                 changeAddress: asset.addresses[0].addr, // send all change to primary address -- todo: address reuse
                       outputs: payTo.map(p => { return { receiver: p.receiver,
                                                             value: new BigNumber(p.value).times(100000000).toString(),
-                                            dsigCltvSpenderPubKey: p.dsigCltvSpenderPubKey }}),
+                                            dsigCltvSpenderPubKey: p.dsigCltvSpenderPubKey,
+                                         dsigCltvSpenderLockHours: p.dsigCltvSpenderLockHours }}),
                   feeSatoshis: Math.floor(feeParams.txFee.fee * 100000000),
                         utxos,
             }
@@ -576,7 +588,8 @@ async function createTxHex(params) {
                     //
                     var { tx, hex, vSize, byteLength, psbt } = walletP2shBtc.createTxHex_BTC_P2SH({ 
                         asset, validationMode, addrPrivKeys, txSkeleton, 
-                        dsigCltvSpenderPubKey: payTo[0].dsigCltvSpenderPubKey
+                        dsigCltvSpenderPubKey: payTo[0].dsigCltvSpenderPubKey,
+                     dsigCltvSpenderLockHours: payTo[0].dsigCltvSpenderLockHours,
                     })
                 }
                 else { // BTC || BTC_SEG2
