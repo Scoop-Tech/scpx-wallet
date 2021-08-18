@@ -367,7 +367,7 @@ describe('transactions', function () {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 20000/*sats*/, 42/*dsigLockHours*/)
+                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 2000/*sats*/, 42/*dsigLockHours*/)
                 console.log('txid', txid)
                 console.log('p2shAddr', p2shAddr)
 

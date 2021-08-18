@@ -315,7 +315,7 @@ module.exports = {
     // should be deprecated/removed completely in favour of wallet-external.computeTxFee() [specific tx fee compute]
     //
     getAssetFeeData: (asset) => {
-        utilsWallet.log(`fees - getAssetFeeData`, asset)
+        //utilsWallet.log(`fees - getAssetFeeData`, asset)
         switch (asset.type) {
 
             case configWallet.WALLET_TYPE_UTXO:

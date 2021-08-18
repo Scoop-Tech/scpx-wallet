@@ -121,7 +121,7 @@ module.exports = {
         if (!utilsWallet.isParamEmpty(dsigCltvPubKey)) {
             const dsigCltvPubKeyValid = true //todo
             if (!dsigCltvPubKeyValid) return Promise.resolve({ err: `Invalid ${asset.symbol} DSIG CLTV-spender public key` })
-            if (dsigLockHours && Number.isInteger(dsigLockHours)) return Promise.resolve({ err: `Invalid dsigLockHours` })
+            if (dsigLockHours && !Number.isInteger(dsigLockHours)) return Promise.resolve({ err: `Invalid dsigLockHours` })
         }
 
         // validate sufficient balance
