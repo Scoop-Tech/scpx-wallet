@@ -347,15 +347,16 @@ module.exports = {
             
             // we need to pass some fee into createTxHex; we only care here though about the returned tx size data
             const feeParams = { txFee: { fee: (du_satPerKB / 4) } }
-            const res = await createTxHex({ payTo,
-                                            asset,
-                               encryptedAssetsRaw,
-                                        feeParams,
-                                         sendMode: false,
-                                  sendFromAddrNdx: -1,
-                                         useUtxos,
-                                              apk: apk, 
-                                            h_mpk: h_mpk,
+            const res = await createTxHex({ 
+                                payTo,
+                                asset,
+                   encryptedAssetsRaw,
+                            feeParams,
+                             sendMode: false,
+                      sendFromAddrNdx: -1,
+                             useUtxos,
+                                  apk: apk, 
+                                h_mpk: h_mpk,
             })
             if (res !== undefined) {
                 const cu_fee = new BigNumber(Math.ceil(((res.byteLength / 1024) * cu_satPerKB))) // tx KB size * sat/KB

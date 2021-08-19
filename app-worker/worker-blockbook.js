@@ -645,14 +645,17 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
 
                             // DMS - detect protect_op TX's, and save txhex for these
-                            if (bbTx.version == 2 && bbTx.vout.length == 4 
-                                && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
-                                && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
-                                && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
-                                && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
-                            ) {
+                            //if (bbTx.version == 2 && bbTx.vout.length == 4 
+                            //    && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
+                            //    && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
+                            //    && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
+                            //    && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
+                            //) {
+                            // DMS - actually, we need the hex for all TX's -- see wallet-btc-p2sh::createTxHex_BTC_P2SH() and how it looks up inputTx;
+                            // namely, if we send funds to a PROTECT_OP-generated address with a *standard* transaction, then we will the need the hex of this std-tx
+                            // for createTxHex_BTC_P2SH() to be able to create dsigCltv() redeem script (i.e. spend it)
                                 insightTx.hex = bbTx.hex
-                            }
+                            //}
                             
                             // map tx (prunes vins, drops vouts)
                             const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset.symbol)[0]

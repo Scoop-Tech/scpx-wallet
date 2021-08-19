@@ -8,6 +8,7 @@ const { USERDATA_SET_FROM_SERVER, USERDATA_UPDATE_LASTLOAD, USERDATA_UPDATE_TOTP
         USERDATA_UPDATE_OPTION,
         USERDATA_UPDATE_FBASE,
         USERDATA_UPDATE_AUTOCONVERT,
+        USERDATA_UPDATE_ADDRBOOK,
 } = require('../actions')
     
 const {
@@ -26,13 +27,19 @@ const initialState = {
     t_f3: "42-def1",
     t_f4: "42-def2",
 
+    // address book
+    addrBook: { // e.g.
+        // BTC: [
+        //      { addr, name, email }
+        // ], ...
+    },
+
     // exchange autoconvert settings
-    autoConvertSettings: {
-        // e.g.
+    autoConvertSettings: { // e.g.
         // ZEC: { 
         //     fromBlockNo: undefined,
         //     toSymbol: undefined,
-        // }
+        // }, ...
     },
 
     // ndx 0 - current login
@@ -42,7 +49,7 @@ const initialState = {
         { browser: false, server: false, datetime: undefined }  
     ],
 
-    // random 32 char entropy - completely uncorrelated with all other account identifiers
+    // random 32 char entropy - uncorrelated with all other account identifiers
     totpSecret: undefined,
 
     fbaseCloudLoginSaved: {
@@ -182,8 +189,7 @@ const handlers = {
     [USERDATA_UPDATE_OPTION]: (state, action) => {
         var ndx = state.options.findIndex((p) => p.key === action.key)
 
-        // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
-        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync) 
             var newState = _.cloneDeep(state)
             newState.options[ndx].value = action.payload.newValue
             if (action.payload.save) {
@@ -193,9 +199,39 @@ const handlers = {
         }
     },
 
-    // user settings - autoconvert
+    // user data - address book
+    [USERDATA_UPDATE_ADDRBOOK]: (state, action) => {
+        if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
+            var newState = _.cloneDeep(state)
+
+            // validate
+            if (!action.payload.symbol || !action.payload.addr || !action.payload.name) {
+                console.error('USERDATA_UPDATE_ADDRBOOK - invalid params')
+                return newState
+            }
+
+            // update
+            if (newState.addrBook[action.payload.symbol] === undefined) {
+                newState.addrBook[action.payload.symbol] = []
+            }
+            const book = newState.addrBook[action.payload.symbol]
+            var entry = book.find(p => p.addr === action.payload.addr)
+            if (!entry) {
+                entry = {}
+                book.push(entry)
+            }
+            entry.addr = action.payload.addr
+            entry.name = action.payload.name
+            entry.email = action.payload.email
+
+            utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_ADDRBOOK`, newState, { logServerConsole: true })
+            userData_SaveAll({ userData: newState, hideToast: false })
+            return newState
+        }
+    },
+
+    // user data - autoconvert
     [USERDATA_UPDATE_AUTOCONVERT]: (state, action) => {
-        // disregard actions that originate from a different logged on user (this action is propagated by redux-state-sync)
         if (action.payload.owner === utilsWallet.getStorageContext().owner) { 
             var newState = _.cloneDeep(state)
 
@@ -220,7 +256,6 @@ const handlers = {
                     : undefined
 
             utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_AUTOCONVERT`, newState, { logServerConsole: true })
-
             userData_SaveAll({ userData: newState, hideToast: false })
             return newState
         }
