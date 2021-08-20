@@ -445,7 +445,7 @@ function generateWalletAccount(p) {
     }
 
     if (defaultPrivKeys !== undefined) { // save only the wifs/privkeys
-        const accountName = `${configWallet.walletsMeta[genType].displayName}`
+        const accountName = `${configWallet.walletsMeta[genType].displaySymbol}` //`${configWallet.walletsMeta[genType].displayName}`
 
         if (asset === undefined) {
             // no existing server data: first-time creation

@@ -367,7 +367,7 @@ describe('transactions', function () {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 
                 const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 2000/*sats*/, 42/*dsigLockHours*/)
+                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 3042/*sats*/, 12/*dsigLockHours*/)
                 console.log('txid', txid)
                 console.log('p2shAddr', p2shAddr)
 
@@ -511,6 +511,7 @@ describe('transactions', function () {
             if (avail < sendValue) throw 'Insufficient test currency'
             const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // beneficiary - testnets3@scoop.tech, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
             const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue, dsigCltvPubKey }, 'TX-GET-FEE')
+            if (!txGetFee || txGetFee.err) throw txGetFee.err || 'Failed getting TX fee'
             console.log('sendValue', sendValue)
             console.log('txGetFee', txGetFee)
             const txFee = txGetFee.ok.txFee

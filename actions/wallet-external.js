@@ -122,7 +122,9 @@ module.exports = {
     // payTo: [ { receiver: 'address', value: 'value'} ... ]
     createAndPushTx: (p, callback) => { 
         const { store, payTo, wallet, asset, feeParams = {}, sendFromAddrNdx = -1, useUtxos, apk, h_mpk, } = p
-        if (payTo !== undefined && payTo.some(p => p.value < 0)) throw 'Insufficient balance'
+        if (payTo !== undefined && payTo.some(p => p.value < 0)) { 
+            throw 'Insufficient balance'
+        }
 
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
@@ -187,7 +189,7 @@ module.exports = {
     //
     // if no addrNdx supplied, returns aggregated data for all addresses, otherwise restricts to the supplied address index
     //
-    get_combinedBalance: (asset, addrNdx = -1) => {
+    get_combinedBalance: (asset, addrNdx = -1, excludeProtectedAddresses) => {
         
         if (asset === undefined || asset.addresses === undefined) return 
 
@@ -206,11 +208,14 @@ module.exports = {
 
         // filter all or single address
         var addresses
-        if (addrNdx == -1) {
+        if (addrNdx == -1) { // all addresses
             addresses = asset.addresses
+            if (excludeProtectedAddresses) {
+                addresses = addresses.filter(p => !p.isNonStdAddr)
+            }
         }
         else {
-            addresses = []
+            addresses = [] // specific address
             if (asset.addresses[addrNdx])
                 addresses.push(asset.addresses[addrNdx])
             else
@@ -506,10 +511,11 @@ async function createTxHex(params) {
             if (useUtxos !== undefined && useUtxos.length > 0) {
                 utxos = utxos.filter(p => useUtxos.some(p2 => p2.txid == p.txid && p2.vout == p.vout))
             }   
-            // spending across multiple outputs - filter out UTXOs belonging to a PROTECT_OP beneficiary, i.e. those that have a specific locktime (they must be spent specifically, by supplying useUtxos)
             else {
-                const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
-                utxos = utxos.filter(p => !p_op_txs.some(p2 => p2.txid == p.txid))
+                // spending across multiple outputs - filter out PROTECT_OP UTXOs (they must be spent specifically, by supplying useUtxos)
+                //const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: true })
+                //utxos = utxos.filter(p => !p_op_txs.some(p2 => p2.txid == p.txid))
+                utxos = utxos.filter(p => asset.addresses.filter(p2 => p2.isNonStdAddr).some(p2 => p2.addr == p.address) == false)
             }
         }
         //console.log('utxos', utxos)

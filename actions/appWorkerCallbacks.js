@@ -197,7 +197,7 @@ module.exports = {
                     store.dispatch(batchActions(dispatchActions))
 
                     // btc p2sh - on tx confirmation, scan for non-standard outputs (and add any associated dynamic addresses)
-                    if (txConfirmed) {
+                    //if (txConfirmed) {
                         enrichTxOps.forEach(enrichTxOp => {
                             storeState = store.getState()
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
@@ -206,7 +206,7 @@ module.exports = {
                                 appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset }})
                             }
                         })
-                    }
+                    //}
                 }
             }
         }

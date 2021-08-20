@@ -220,12 +220,15 @@ const handlers = {
                 entry = {}
                 book.push(entry)
             }
+            const updated = (entry.addr != action.payload.addr || entry.name != action.payload.name || entry.email != action.payload.email)
             entry.addr = action.payload.addr
             entry.name = action.payload.name
             entry.email = action.payload.email
 
-            utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_ADDRBOOK`, newState, { logServerConsole: true })
-            userData_SaveAll({ userData: newState, hideToast: false })
+            if (updated) {
+                utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_ADDRBOOK`, newState, { logServerConsole: true })
+                userData_SaveAll({ userData: newState, hideToast: false })
+            }
             return newState
         }
     },
