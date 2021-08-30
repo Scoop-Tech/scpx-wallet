@@ -607,58 +607,55 @@ module.exports = {
         else utilsWallet.warn('### Wallet type ' + assetMeta.type + ' not supported!')
     },
     getUtxoTypeAddressFromWif: (wif, symbol) => {
+        var keyPair
         try {
             const network = module.exports.getUtxoNetwork(symbol) // bitgo networks: supports ZEC UInt16 pubKeyHash || scriptHash
+            keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network)
 
-            const keyPair = bitgoUtxoLib.ECPair.fromWIF(wif, network) // bitgo ECPair, below: .getPublicKeyBuffer() instead of .publicKey in bitcoin-js
-
-            if (symbol === "BTC" || symbol === "LTC" || symbol === "LTC_TEST") {
-                // bitcoinjs-lib
-
-                // legacy addr
-                const { address } = bitcoinJsLib.payments.p2pkh({ pubkey: keyPair.getPublicKeyBuffer(), network }) // bitcoin-js payments (works with bitgo networks)
-                return address
-            }
-            else if (symbol === "BTC_SEG" || symbol === "BTC_TEST") { // P2SH-WRAPPED SEGWIT -- P2SH(P2WPKH) addr -- w/ bitcoinjsLib (3 addr)
-                // bitcoinjs-lib
-
-                // native segwit - BlockCypher throws errors on address_balance -- generated bc1 addr isn't viewable on any block explorers!
-                //const { address } = bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.publicKey, network })
-                //return address
-
-                // p2sh-wrapped segwit -- need to generate tx json entirely, blockcypher doesn't support
-                // const { address } = bitcoinJsLib.payments.p2sh({ redeem: payments.p2wpkh({ pubkey: keyPair.publicKey, network }) })
-                // return address
-
-                const { address } = bitcoinJsLib.payments.p2sh({ 
-                    redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: keyPair.getPublicKeyBuffer(), 
-                                                        network }), 
-                    network
-                })
-                return address
-            }
-            else if (symbol === "BTC_SEG2") { // unwrapped P2WPKH -- w/ bitgoUtxoLib -- NATIVE/UNWRAPPED SEGWIT (b addr) - Bech32
-                var pubKey = keyPair.getPublicKeyBuffer()
-                var scriptPubKey = bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(pubKey))
-                var address = bitgoUtxoLib.address.fromOutputScript(scriptPubKey)
-                return address
+            if (symbol === "BTC" || symbol === "LTC" || symbol === "LTC_TEST"
+             || symbol === "BTC_SEG" || symbol === "BTC_TEST"
+             || symbol === "BTC_SEG2"
+            ) {
+                const addr = module.exports.getUtxoTypeAddressFromPubKeyHex(keyPair.getPublicKeyBuffer().toString('hex'), symbol)
+                utilsWallet.softNuke(keyPair)
+                return addr
             }
             else { 
                 // bitgo-utxo-lib (note - can't use bitcoin-js payment.p2pkh with ZEC UInt16 pubKeyHash || scriptHash)
-
                 var addr = keyPair.getAddress()
                 if (symbol === 'BCHABC') {
                     if (addr.startsWith('1')) {
                         addr = bchAddr.toCashAddress(addr)
                     }
                 }
+                utilsWallet.softNuke(keyPair)
                 return addr
             }
         }
         catch (err) { 
+            utilsWallet.softNuke(keyPair)
             utilsWallet.error(`getUtxoTypeAddressFromWif - FAIL: ${err.message}`, err)
             return null
         }
+    },
+    getUtxoTypeAddressFromPubKeyHex:(pubKeyHex, symbol) => {
+        const reHex = /[0-9A-Fa-f]{6}/g;
+        if (!pubKeyHex || pubKeyHex.length != 66 || !reHex.test(pubKeyHex)) return null //throw 'Invalid pubKeyHex'
+
+        const network = module.exports.getUtxoNetwork(symbol) // bitgo networks: supports ZEC UInt16 pubKeyHash || scriptHash
+        if (symbol === "BTC" || symbol === "LTC" || symbol === "LTC_TEST") { // P2PKH -- LEGACY -- bitcoinjs-lib (1 addr)
+            const { address } = bitcoinJsLib.payments.p2pkh({ pubkey: Buffer.from(pubKeyHex, 'hex'), network }) // bitcoin-js payments (works with bitgo networks)
+            return address
+        }
+        else if (symbol === "BTC_SEG" || symbol === "BTC_TEST") { // P2SH-WRAPPED SEGWIT (P2SH(P2WPKH)) -- bitcoinjs-lib -- addr (3 addr)
+            const { address } = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: Buffer.from(pubKeyHex, 'hex'), network }), network })
+            return address
+        }
+        else if (symbol === "BTC_SEG2") { // unwrapped P2WPKH -- w/ bitgo-utxo-lib -- NATIVE/UNWRAPPED SEGWIT (b addr, Bech32)
+            const address = bitgoUtxoLib.address.fromOutputScript(bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(Buffer.from(pubKeyHex, 'hex'))))
+            return address
+        }
+        else return null //throw 'Unsupported'
     },
     getAccountTypeAddress: (privKey, symbol, eosActiveWallet) => {
         try {

@@ -195,7 +195,7 @@ module.exports = {
                 //const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wsh, network: network })
                 
                 // or, unwrapped P2SH(DSIG/CLTV)
-                const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network: network })
+                const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
                 
                 psbt.addOutput({
                     script: p2sh.output,

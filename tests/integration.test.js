@@ -363,6 +363,7 @@ describe('transactions', function () {
         })
 
         // create PROTECT_OP
+        // ### "-26: min relay fee not met, 1 < 381" -- race condition with fee oracle?
         it('can push a non-standard PROTECT_OP tx for P2SH{DSIG/CLTV} BTC_TEST [, and benefactor can reclaim immediately - wip]', async () => {
             if (configWallet.WALLET_INCLUDE_BTC_TEST) {
                 
@@ -461,7 +462,6 @@ describe('transactions', function () {
                         // var claimableSpend = {}
                         // if (claimableUtxos.length > 0) {
 
-                            // TODO - wrap underlyer call to ./txp into convenience fn. CLAIMABLE-CLAIM...
                             claimableClaim = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'CLAIMABLE-CLAIM')
                             console.dir(claimableClaim)
 
