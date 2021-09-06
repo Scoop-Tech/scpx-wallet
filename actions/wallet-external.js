@@ -282,14 +282,16 @@ module.exports = {
         //  (each such utxo needs a different locktime to be spent, so they must be spent one by one...)
         if (asset.type === configWallet.WALLET_TYPE_UTXO) {
             if (asset.symbol === 'BTC_TEST') {
-                const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
-                if (p_op_txs.length > 0) {
-                    const beneficiary_addrs = asset.addresses.filter(p => p_op_txs.some(p2 => p2.p_op_addrNonStd == p.addr))
-                    if (beneficiary_addrs.length > 0) {
-                        const beneficiaryConfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
-                        const beneficiaryUnconfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.unconfirmedBalance || 0).plus(new BigNumber(sum)) }, 0)
-                        if (beneficiaryConfirmed.isGreaterThan(0) || beneficiaryUnconfirmed.isGreaterThan(0)) {
-                            ret.avail = ret.avail.minus(beneficiaryConfirmed).minus(beneficiaryUnconfirmed)
+                if (excludeProtectedAddresses == false) { // no need to do this if we've already excluded the p_op tx addr's
+                    const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
+                    if (p_op_txs.length > 0) {
+                        const beneficiary_addrs = asset.addresses.filter(p => p_op_txs.some(p2 => p2.p_op_addrNonStd == p.addr))
+                        if (beneficiary_addrs.length > 0) {
+                            const beneficiaryConfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
+                            const beneficiaryUnconfirmed = beneficiary_addrs.reduce((sum,p) => { return new BigNumber(p.unconfirmedBalance || 0).plus(new BigNumber(sum)) }, 0)
+                            if (beneficiaryConfirmed.isGreaterThan(0) || beneficiaryUnconfirmed.isGreaterThan(0)) {
+                                ret.avail = ret.avail.minus(beneficiaryConfirmed).minus(beneficiaryUnconfirmed)
+                            }
                         }
                     }
                 }

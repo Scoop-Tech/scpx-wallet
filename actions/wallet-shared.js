@@ -180,10 +180,21 @@ module.exports = {
             var newPrivKey
             switch (meta.type) {
                 case configWallet.WALLET_TYPE_UTXO:
+                    debugger
+                    const leafPathValues = genAccount.privKeys.map(p => Number(p.path.split('/').pop()))
+                    var newAddrNdx = -1
+                    for (var i=0; i <= leafPathValues.length; i++) {
+                        if (!leafPathValues.includes(i)) {
+                            newAddrNdx = i
+                            break
+                        }
+                    }
+                    if (newAddrNdx == -1) throw 'Unexpected path values'
+
                     newPrivKey = module.exports.generateUtxoBip44Wifs({
                         entropySeed: h_mpk, 
                              symbol: genSymbol,
-                            addrNdx: genAccount.privKeys.length,
+                            addrNdx: newAddrNdx,
                            genCount: 1 })[0]
                     break
                 

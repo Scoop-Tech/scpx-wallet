@@ -216,6 +216,17 @@ module.exports = {
                 needToGenerate = needToGenerate.filter(p => p !== 'ethereum')
             }
 
+            // de-dupe - have seen duplicates persisted here; likely to be a bug around add/delete addr's 
+            // debugger
+            // console.dir(currentAssets)
+            Object.keys(currentAssets).forEach(function(assetName) {
+                const asset = currentAssets[assetName]
+                for (var i=0; i < asset.accounts.length ; i++) {
+                    asset.accounts[i].privKeys = _.uniqBy(asset.accounts[i].privKeys, 'privKey')
+                }
+            })
+            // TODO: sort by path -- to fix gaps...
+
             // generate the rest
             needToGenerate.forEach(genType => generateWalletAccount({ assets: currentAssets, genType, h_mpk, eosActiveWallet }))
 
@@ -225,18 +236,18 @@ module.exports = {
             var opParams = []
             var reqId = 0
             Object.keys(currentAssets).forEach(function(assetName) {
-                var o = currentAssets[assetName]
-                if (configWallet.WALLET_REGEN_EVERYTIME || o.addresses == undefined) {
-                    o.addresses = [] // initialize asset addresses[]
-                    for (var i=0; i < o.accounts.length ; i++) {
+                const asset = currentAssets[assetName]
+                if (configWallet.WALLET_REGEN_EVERYTIME || asset.addresses == undefined) {
+                    asset.addresses = [] // initialize asset addresses[]
+                    for (var i=0; i < asset.accounts.length ; i++) {
                         const accountNdx = i
                         const accountOpParams = 
-                            o.accounts[i].privKeys.map(key => ({
+                            asset.accounts[i].privKeys.map(key => ({
                                     reqId: `${reqId++}`,
                                    params: {
                                         symbol: configWallet.walletsMeta[assetName].symbol,
                                      assetName: assetName, 
-                                   accountName: o.accounts[accountNdx].name,
+                                   accountName: asset.accounts[accountNdx].name,
                                            key: key, 
                                eosActiveWallet: eosActiveWallet, 
                                      knownAddr: undefined,
