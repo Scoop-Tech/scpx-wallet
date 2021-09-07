@@ -180,7 +180,6 @@ module.exports = {
             var newPrivKey
             switch (meta.type) {
                 case configWallet.WALLET_TYPE_UTXO:
-                    debugger
                     const leafPathValues = genAccount.privKeys.map(p => Number(p.path.split('/').pop()))
                     var newAddrNdx = -1
                     for (var i=0; i <= leafPathValues.length; i++) {
@@ -270,9 +269,9 @@ module.exports = {
             pt_rawAssets = null
         }
     },
-    deleteUnusedStandardAddresses: async (p) => {
-        const { store, apk, h_mpk, assetName, // required - browser & server
-                userAccountName, e_email,     // required - browser 
+    deleteUnusedStandardAddress: async (p) => {
+        const { store, apk, h_mpk, assetName, deleteAddr, // required - browser & server
+                userAccountName, e_email,                 // required - browser 
                 eosActiveWallet } = p
 
         // validation
@@ -280,6 +279,7 @@ module.exports = {
         if (!apk) throw 'apk is required'
         if (!store) throw 'store is required'
         if (!assetName) throw 'assetName is required'
+        if (!deleteAddr) throw 'deleteAddr is required'
         if (!h_mpk) throw 'h_mpk is required'
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (!userAccountName) throw 'userAccountName is required'
@@ -292,13 +292,13 @@ module.exports = {
         const e_rawAssets = storeState.wallet.assetsRaw
         const displayableAssets = wallet.assets
 
-        utilsWallet.logMajor('green','white', `deleteUnusedStandardAddresses...`, null, { logServerConsole: true })
+        utilsWallet.logMajor('green','white', `deleteUnusedStandardAddress ${deleteAddr}...`, null, { logServerConsole: true })
         
         // decrypt raw assets
         var pt_rawAssets = utilsWallet.aesDecryption(apk, h_mpk, e_rawAssets)
         var rawAssets = JSON.parse(pt_rawAssets)
         var genAsset = rawAssets[assetName.toLowerCase()]
-        var genPrimaryAccount
+        var genAccount
         try {
             // get gen-asset
             if (genAsset === undefined || !genAsset.accounts || genAsset.accounts.length == 0) throw 'Invalid assetName'
@@ -307,19 +307,24 @@ module.exports = {
 
             // get store-asset; this has the TX & UTXO appended to it
             const storeAsset = displayableAssets.find(p => { return p.symbol === genSymbol })
+            genAccount = genAsset.accounts.find(p => !p.nonStd && !p.imported)
+            const storePrimaryAddresses = storeAsset.addresses.filter(p => p.accountName == genAccount.name)
 
-            genPrimaryAccount = genAsset.accounts.find(p => !p.nonStd && !p.imported)
-            const storePrimaryAddresses = storeAsset.addresses.filter(p => p.accountName == genPrimaryAccount.name)
-
-            const storePruneAddresses = storePrimaryAddresses.filter(p => 
+            // get prune address(es)
+            // const storePruneAddresses = storePrimaryAddresses.filter(p => // prune all unused addresses
+            //     p.lastAddrFetchAt !== undefined &&
+            //     p.totalTxCount == 0 && p.txs.length == 0 && p.utxos.length == 0 &&
+            //     p.balance == 0 && p.unconfirmedBalance == 0
+            // )
+            const storePruneAddresses = storePrimaryAddresses.filter(p => p.addr == deleteAddr && // refactored to prune a singular addresses; fits UX better
                 p.lastAddrFetchAt !== undefined &&
                 p.totalTxCount == 0 && p.txs.length == 0 && p.utxos.length == 0 &&
                 p.balance == 0 && p.unconfirmedBalance == 0
             )
-            utilsWallet.log(`deleteUnusedStandardAddresses - storePruneAddresses=`, storePruneAddresses)
+            //utilsWallet.log(`deleteUnusedStandardAddress - storePruneAddresses=`, storePruneAddresses)
 
-            // raw assets: remove unused addresses, associated privKeys & update local persisted copy
-            genPrimaryAccount.privKeys = genPrimaryAccount.privKeys.filter(p => storePruneAddresses.map(p2 => p2.path).includes(p.path) == false)
+            // raw assets: remove prune-addresses, associated privKeys & update local persisted copy
+            genAccount.privKeys = genAccount.privKeys.filter(p => storePruneAddresses.map(p2 => p2.path).includes(p.path) == false)
             genAsset.addresses = genAsset.addresses.filter(p => storePruneAddresses.map(p2 => p2.addr).includes(p.addr) == false)
             var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
             const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
@@ -348,11 +353,11 @@ module.exports = {
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'REFRESH_ASSET_BALANCE', data: { asset: newDisplayableAsset, wallet } })
 
             // ret ok
-            utilsWallet.logMajor('green','white', `deleteUnusedStandardAddresses - complete, countRemoved=`, countRemoved, { logServerConsole: true })
+            utilsWallet.logMajor('green','white', `deleteUnusedStandardAddress - complete, countRemoved=`, countRemoved, { logServerConsole: true })
             return { countRemoved }
         }
         finally {
-            utilsWallet.softNuke(genPrimaryAccount)
+            utilsWallet.softNuke(genAccount)
             utilsWallet.softNuke(rawAssets)
             utilsWallet.softNuke(genAsset)
             pt_rawAssets = null

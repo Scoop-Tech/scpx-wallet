@@ -126,7 +126,7 @@ module.exports = {
     },
 
     generateNewStandardAddress: (p) => { return walletShared.generateNewStandardAddress(p) },
-    deleteUnusedStandardAddresses: (p) => { return walletShared.deleteUnusedStandardAddresses(p) },
+    deleteUnusedStandardAddress: (p) => { return walletShared.deleteUnusedStandardAddress(p) },
 
     importPrivKeys: (p) => { return walletShared.importPrivKeys(p) },
     removeImportedAccounts: (p) => { return walletShared.removeImportedAccounts(p) },
@@ -216,16 +216,15 @@ module.exports = {
                 needToGenerate = needToGenerate.filter(p => p !== 'ethereum')
             }
 
-            // de-dupe - have seen duplicates persisted here; likely to be a bug around add/delete addr's 
-            // debugger
-            // console.dir(currentAssets)
+            // de-dupe & sort by path
+            //  (shouldn't be strictly necessary, but no harm - had seen duplicates persisted here; due to bugs around add/delete addr's, since fixed)
             Object.keys(currentAssets).forEach(function(assetName) {
                 const asset = currentAssets[assetName]
                 for (var i=0; i < asset.accounts.length ; i++) {
                     asset.accounts[i].privKeys = _.uniqBy(asset.accounts[i].privKeys, 'privKey')
+                    asset.accounts[i].privKeys = _.sortBy(asset.accounts[i].privKeys, 'path')
                 }
             })
-            // TODO: sort by path -- to fix gaps...
 
             // generate the rest
             needToGenerate.forEach(genType => generateWalletAccount({ assets: currentAssets, genType, h_mpk, eosActiveWallet }))
