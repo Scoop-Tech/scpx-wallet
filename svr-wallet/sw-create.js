@@ -13,6 +13,7 @@ const opsWallet = require('../actions/wallet')
 
 const functions = require('./sw-functions')
 const log = require('../sw-cli-log')
+const rpc = require('../sw-rpc')
 
 //
 // handles in-memory creation of new wallets and sub-asset private keys
@@ -73,8 +74,8 @@ module.exports = {
             global.loadedWallet.file = undefined
             global.loadedServerWallet = {}
 
-            // save MPK
-            if (configWallet.CLI_SAVE_KEY === true) {
+            // save MPK if in dev mode, or we're running in RPC mode
+            if (configWallet.CLI_SAVE_KEY === true || (rpc.isRunning())) {
                 global.loadedWallet.keys = { mpk }
             }
 

@@ -11,9 +11,11 @@ const svrWallet = require('./svr-wallet/sw-router')
 const log = require('./sw-cli-log')
 
 var jaysonRpc
-var serverRpc
+var serverRpc // defined if RPC is running
 
 module.exports = {
+
+    isRunning: () => { return serverRpc !== undefined },
 
     init: async (rpcPort, rpcUsername, rpcPassword, rpcRemoteHosts) => {
         // validate

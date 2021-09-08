@@ -310,7 +310,7 @@ function postCmd(prompt, res, help) {
         }
         else log.success(`${JSON.stringify(res.ok, null, 2)}`)
         if (global.loadedWallet && global.loadedWallet.keys && global.loadedWallet.keys.mpk) {
-            log.warn(`DEV MODE - wallet MPK is being cached in-memory: ${global.loadedWallet.keys.mpk}`)
+            log.warn(`wallet MPK is being cached (MODE_ENV=development, or we're in RPC mode)`)
         }
         //prompt.setPrompt('new>')
         prompt.displayPrompt()

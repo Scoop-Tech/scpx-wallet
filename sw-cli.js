@@ -131,6 +131,20 @@ svrWorkers.init(appStore).then(async () => {
            config: { wallet: configWallet, external: configWalletExternal, },
     }
 
+    // process RPC cmdline  
+    if (cli.rpc) {
+        rpc.init(cli.rpcPort, cli.rpcUsername, cli.rpcPassword, cli.rpcRemoteHosts)
+    }
+    // if (cli.rpctest) {
+    //     const jayson = require('jayson')
+    //     console.log('rpcTestClient: init...')
+    //     const client = jayson.client.http({ port: 4000 })
+    //     client.request('exec', ['dom', {a: 42, b: 'asd'} ], function(err, response) {
+    //         if(err) throw err
+    //         console.log(`rpcTestClient: exec response - ${response.result}`)
+    //     })
+    // }    
+
     // process CLI load cmdline
     if (cli.mpk) { 
         const validationErrors = await svrWallet.validateMpk(cli.mpk)
@@ -166,20 +180,6 @@ svrWorkers.init(appStore).then(async () => {
             .then(res => cliRepl.postCmd(prompt, res))
         }
     }
-
-    // process RPC cmdline  
-    if (cli.rpc) {
-        rpc.init(cli.rpcPort, cli.rpcUsername, cli.rpcPassword, cli.rpcRemoteHosts)
-    }
-    // if (cli.rpctest) {
-    //     const jayson = require('jayson')
-    //     console.log('rpcTestClient: init...')
-    //     const client = jayson.client.http({ port: 4000 })
-    //     client.request('exec', ['dom', {a: 42, b: 'asd'} ], function(err, response) {
-    //         if(err) throw err
-    //         console.log(`rpcTestClient: exec response - ${response.result}`)
-    //     })
-    // }
 
     // launch REPL
     console.log()
