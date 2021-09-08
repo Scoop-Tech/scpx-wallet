@@ -56,13 +56,11 @@ module.exports = {
                     // switch wallet fn.
                     var fn
                     switch (cmd) {
-                        case 'wallet-dump':
-                            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'DUMP')
-                            break
-                        case 'wallet-add-address':
-                            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'ADD-ADDR')
-                            break
-                        }
+                        case 'wallet-dump':        fn = svrWallet.fn(appWorker, appStore, cmdParams, 'DUMP'); break
+                        case 'wallet-balance':     fn = svrWallet.fn(appWorker, appStore, cmdParams, 'BALANCE'); break
+                        case 'tx-get-fee':         fn = svrWallet.fn(appWorker, appStore, cmdParams, 'TX-GET-FEE'); break
+                        case 'tx-push':            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'TX-PUSH'); break
+                    }
                     if (fn === undefined) {
                         return callback({ code: -32600, message: 'Invalid request' })
                     }
@@ -166,6 +164,8 @@ module.exports = {
         log.param('rpcHost', rpcHost)
         log.param('rpcUsername', rpcUsername)
         log.param('rpcPassword', rpcPassword)
+        log.param('cmd', cmd)
+        log.param('params', params)
         var parsedParams
         try {
             parsedParams = JSON.parse(params)
@@ -173,8 +173,6 @@ module.exports = {
         catch (err) {
             return Promise.resolve({ err: `CLI command parameters must be valid JSON` })
         }
-        log.param('cmd', JSON.stringify(cmd))
-        log.param('params', JSON.stringify(parsedParams))
 
         // exec
         const https = require('https')
