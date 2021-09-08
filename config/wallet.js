@@ -47,7 +47,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = false //true
+const WALLET_INCLUDE_ETH_TEST = true
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -59,8 +59,8 @@ const WALLET_DISABLE_BLOCK_UPDATES = false
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
 
 // wallet api
-//const API_DOMAIN =`http://localhost:3030/`
-const API_DOMAIN = `https://scp-svr.azurewebsites.net/`
+const API_DOMAIN =`http://localhost:3030/`
+//const API_DOMAIN = `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 //
 // RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
