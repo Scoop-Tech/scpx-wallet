@@ -154,6 +154,8 @@ module.exports = {
 
         // validate: format is for a CLI command, and its params JSON encoded, e.g.
         // e.g. ./rt --rpcPort 4000 --cmd ".tx-push" --params "{\"mpk\": \"...\", \"symbol\": \"...\", \"value\": \"...\"}"
+        // e.g. ./rt --rpcPort ... --rpcHost ... --rpcUsername ... --rpcPassword ... --cmd tx-push --params '{\"symbol\": \"BTC_TEST\", \"value\": \"0.00042\", \"to\": \"2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ\" }'
+
         if (utilsWallet.isParamEmpty(rpcPort)) return Promise.resolve({ err: `RPC port is required` })
 
         if (utilsWallet.isParamEmpty(rpcHost)) return Promise.resolve({ err: `RPC host is required` })

@@ -84,7 +84,12 @@ module.exports = {
         if (asset.type === configWallet.WALLET_TYPE_ACCOUNT) { 
             // account: use specific address index
             if (!utilsWallet.isParamEmpty(spendFullUtxos)) return Promise.resolve({ err: `Invalid spendFullUtxos for account-type asset` })
-            if (utilsWallet.isParamEmpty(from)) return Promise.resolve({ err: `From address is required` })
+            if (utilsWallet.isParamEmpty(from)) { 
+                //return Promise.resolve({ err: `From address is required` })
+                log.info('Unspecified [from]; assigning default...')
+                from = asset.addresses[0].addr
+                log.param('from', from)
+            }
             sendFromAddrNdx = asset.addresses.findIndex(p => p.addr.toLowerCase() === from.toLowerCase())
             if (sendFromAddrNdx == -1) return Promise.resolve({ err: `Invalid from address` })
 
