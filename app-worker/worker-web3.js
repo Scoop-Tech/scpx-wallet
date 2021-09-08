@@ -126,12 +126,14 @@ module.exports = {
                 utilsWallet.log(`1559 ${asset.symbol} - getGasPrices res.data`, res.data)
                 if (asset.symbol === 'ETH_TEST') {
                     ret.gasprice_safeLow = Math.ceil(parseFloat(((0.42) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
+                    ret.gasprice_fast = Math.ceil(parseFloat(((1.5) * 1000000000 * 1))) 
+                    ret.gasprice_fastest = Math.ceil(parseFloat(((2.5) * 1000000000 * 1))) 
                 }
                 else {
                     ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.currentBaseFee) * 1000000000 * 1))) // gwei -> wei
+                    ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.currentBaseFee) * 1000000000 * 1)))
+                    ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.currentBaseFee) * 1000000000 * 1)))
                 }
-                ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.currentBaseFee) * 1000000000 * 1)))
-                ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.currentBaseFee) * 1000000000 * 1)))
                 utilsWallet.log(`1559 ${asset.symbol} - ret`, ret)
             } else { // fallback to web3
                 utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
