@@ -1068,6 +1068,11 @@ function addDynamicSecTokens() {
     }
 }
 
+//
+// RPC mode flag - set at runtime when running w/ RPC interface
+//
+var RPC_MODE = false
+
 module.exports = {
 
       WALLET_VER
@@ -1255,5 +1260,7 @@ module.exports = {
     //     retryDelay: require('axios-retry').exponentialDelay,
     //     retryCondition: (res) => { return true }
     // }    
+    , set_RPC_MODE:(value) => { RPC_MODE = value }
+    , get_RPC_MODE:() => { return RPC_MODE }
 
 }

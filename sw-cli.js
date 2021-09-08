@@ -133,7 +133,9 @@ svrWorkers.init(appStore).then(async () => {
 
     // process RPC cmdline  
     if (cli.rpc) {
-        rpc.init(cli.rpcPort, cli.rpcUsername, cli.rpcPassword, cli.rpcRemoteHosts)
+        if ((await rpc.init(cli.rpcPort, cli.rpcUsername, cli.rpcPassword, cli.rpcRemoteHosts)) == true) {
+            configWallet.set_RPC_MODE(true)
+        }
     }
     // if (cli.rpctest) {
     //     const jayson = require('jayson')

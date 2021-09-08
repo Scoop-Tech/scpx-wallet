@@ -10,6 +10,7 @@ const utilsWallet = require('./utils')
 const svrWorkers = require('./svr-workers')
 const svrRouter = require('./svr-wallet/sw-router')
 const svrWalletCreate = require('./svr-wallet/sw-create')
+const configWallet = require('./config/wallet')
 
 const log = require('./sw-cli-log')
 const info = require('./sw-cli-info')
@@ -310,7 +311,7 @@ function postCmd(prompt, res, help) {
         }
         else log.success(`${JSON.stringify(res.ok, null, 2)}`)
         if (global.loadedWallet && global.loadedWallet.keys && global.loadedWallet.keys.mpk) {
-            log.warn(`wallet MPK is being cached (MODE_ENV=development, or we're in RPC mode)`)
+            log.warn(`wallet MPK is being cached (MODE_ENV=${process.env.NODE_ENV}, RPC_MODE=${configWallet.get_RPC_MODE()})`)
         }
         //prompt.setPrompt('new>')
         prompt.displayPrompt()

@@ -138,6 +138,7 @@ module.exports = {
 
         // start rpc server
         serverRpc.listen(rpcPort)
+        return true
     },
 
     terminate: () => {

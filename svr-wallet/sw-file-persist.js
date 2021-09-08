@@ -9,7 +9,7 @@ const log = require('../sw-cli-log')
 // wallet file persistence
 //
 
-module.exports = {
+module.exports = {  
 
     walletFileSave: (appWorker, store, p) => {
         var { mpk, name, force } = p
