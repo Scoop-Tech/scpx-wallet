@@ -46,7 +46,7 @@ module.exports = {
         const showStatus = utilsWallet.isParamTrue(status)
 
         log.cmd('asset-convert')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         log.param('symbol', symbol)
         log.param('value', value)
         log.param('to', to)

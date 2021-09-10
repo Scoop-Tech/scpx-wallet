@@ -32,7 +32,7 @@ module.exports = {
     walletServerSave: async (appWorker, store, p) => {
         var { mpk } = p
         log.cmd('walletServerSave')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST? '[secure]' : mpk)
         const keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
         log.param('apk', apk)
@@ -75,14 +75,14 @@ module.exports = {
     walletServerLoad: async (appWorker, store, p) => {
         var { mpk, email } = p
         log.cmd('walletServerLoad')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         var keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
         log.param('apk', apk)
 
         // validate
         if (utilsWallet.isParamEmpty(email)) return Promise.resolve({ err: `Pseudo-email is required` })
-        log.param('e', process.env.NODE_ENV === 'test' ? '[secure]' : email)
+        log.param('e', configWallet.IS_TEST ? '[secure]' : email)
         const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, configEos.scpEosConfig)
         const eos = Eos(config)
         const h_mpk = utilsWallet.pbkdf2(apk, keys.masterPrivateKey)

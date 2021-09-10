@@ -95,7 +95,7 @@ module.exports = {
         const dumpTxs = utilsWallet.isParamTrue(txs)
         const dumpPrivKeys = utilsWallet.isParamTrue(keys)
         const dumpTxid = txid && txid.length > 0 ? txid : undefined
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         log.param('symbol', filterSymbol)
         log.param('addr', filterAddr)
         log.param('txs', dumpTxs)

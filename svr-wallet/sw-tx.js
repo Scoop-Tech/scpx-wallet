@@ -25,7 +25,7 @@ module.exports = {
         var { mpk, apk, symbol, value, to, from, dsigCltvPubKey, dsigLockHours, spendFullUtxos } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('txPush')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         log.param('symbol', symbol)
         log.param('value', value)
         log.param('to', to)

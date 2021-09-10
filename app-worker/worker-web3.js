@@ -125,9 +125,9 @@ module.exports = {
                 // EIP 1559 - legacy tx; just add currentBaseFee for now
                 utilsWallet.log(`1559 ${asset.symbol} - getGasPrices res.data`, res.data)
                 if (asset.symbol === 'ETH_TEST') {
-                    ret.gasprice_safeLow = Math.ceil(parseFloat(((0.42) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
+                    ret.gasprice_safeLow = Math.ceil(parseFloat(((0.05) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
                     ret.gasprice_fast = Math.ceil(parseFloat(((1.5) * 1000000000 * 1))) 
-                    ret.gasprice_fastest = Math.ceil(parseFloat(((2.5) * 1000000000 * 1))) 
+                    ret.gasprice_fastest = Math.ceil(parseFloat(((2.0) * 1000000000 * 1))) 
                 }
                 else {
                     ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.currentBaseFee) * 1000000000 * 1))) // gwei -> wei

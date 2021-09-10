@@ -4,7 +4,8 @@ const npmPackage = require('../package.json')
 const isNode = require('detect-node')
 const axios = require('axios')
 
-const IS_DEV = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const IS_TEST = (process.env.NODE_ENV === "test")
+const IS_DEV  = (process.env.NODE_ENV === "development")// || IS_TEST)
 
 //const utilsWallet = require('../utils')
 const configExternal = require('./wallet-external')
@@ -38,8 +39,8 @@ const PRICE_SOURCE_BITFINEX = 'BF'        // ## no CORS headers, not usable - to
 const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (eurt)
 
 // config - dbg/test
-const WALLET_INCLUDE_BTC_TEST = true //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
-const WALLET_INCLUDE_ZEC_TEST = false //(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+const WALLET_INCLUDE_BTC_TEST = true //(IS_DEV || IS_TEST)
+const WALLET_INCLUDE_ZEC_TEST = false //(IS_DEV || IS_TEST)
 const WALLET_INCLUDE_LTC_TEST = false
 const WALLET_INCLUDE_TUSD_TEST = false
 
@@ -51,7 +52,7 @@ const WALLET_INCLUDE_ETH_TEST = true
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
-                                // (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
+                                // (IS_DEV || IS_TEST)
 
 const WALLET_DISABLE_BLOCK_UPDATES = false
 
@@ -59,8 +60,9 @@ const WALLET_DISABLE_BLOCK_UPDATES = false
 const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this value for unregistered BIP44 coin-types (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
 
 // wallet api
-const API_DOMAIN =`http://localhost:3030/`
-//const API_DOMAIN = `https://scp-svr.azurewebsites.net/`
+//const API_DOMAIN =`http://localhost:3030/`
+const API_DOMAIN = IS_DEV ? `http://localhost:3030/`
+                          : `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 //
 // RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
@@ -1077,12 +1079,13 @@ module.exports = {
 
       WALLET_VER
     , IS_DEV
+    , IS_TEST
     , WALLET_COPYRIGHT
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: process.env.NODE_ENV === "test"
-    , CLI_SAVE_KEY: process.env.NODE_ENV === "development"               // if false, you will need to pass MPK via CLI to wallet functions
+    , CLI_LOG_CORE: IS_TEST
+    , CLI_SAVE_KEY: IS_DEV                                               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
     , WALLET_INCLUDE_ETH_TEST

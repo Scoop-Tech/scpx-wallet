@@ -43,7 +43,7 @@ module.exports = {
         var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('claimableClaim')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
@@ -92,7 +92,7 @@ module.exports = {
         var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('claimableReset')
-        log.param('mpk', process.env.NODE_ENV === 'test' ? '[secure]' : mpk)
+        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
