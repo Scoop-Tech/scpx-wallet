@@ -72,7 +72,7 @@ module.exports = {
         // unspent output / change - to self, if not dust (the definition of "dust" is up to individual nodes, but generally < network fee is reasonably considered to be dust)
         // NOTE: we always add this output for PROTECT_OP TX's; it's needed (even as a zero-value output) in order to identify which p_op TX's belong to us
         var unspentValue = inputsTotalValue.minus(valueNeeded).minus(feeSatoshisAssumed)
-        utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue, unspentValue, feeSatoshisAssumed=`, inputsTotalValue.toString(), unspentValue.toString(), feeSatoshisAssumed.toString())
+        utilsWallet.log(`*** getUtxo_InputsOutputs ${symbol}, inputsTotalValue=${inputsTotalValue.toString()}, unspentValue=${unspentValue.toString()}, feeSatoshisAssumed=${feeSatoshisAssumed.toString()}`)
         if (unspentValue.gt(feeSatoshisAssumed) || params.outputs[0].dsigCltvSpenderPubKey !== undefined) {
             outputs.push({
                 address: params.changeAddress,
@@ -139,7 +139,7 @@ module.exports = {
                 .then(txRes => {
                     // map and return local tx
                     const ownAddresses = asset.addresses.map(p => { return p.addr })
-                    const tx = map_insightTxs([txRes.data], ownAddresses, asset.symbol)[0]
+                    const tx = map_insightTxs([txRes.data], ownAddresses, asset)[0]
                     callback({ tx })
                 })
             })
@@ -158,9 +158,9 @@ module.exports = {
 
         if (symbol === 'BTC_TEST') {
             return new Promise((resolve, reject) => {
-                ret.fastest_satPerKB = 1024  * 3
-                ret.fast_satPerKB = 1024 * 2
-                ret.slow_satPerKB = 1024
+                ret.fastest_satPerKB = 1024 * 2
+                ret.fast_satPerKB = 1024 * 1
+                ret.slow_satPerKB = 512
                 resolve(ret)
             })        
         }
@@ -287,12 +287,12 @@ module.exports = {
         }
     },
 
-    map_insightTxs: (txs, ownAddresses, symbol) => {
-        return map_insightTxs(txs, ownAddresses, symbol)
+    map_insightTxs: (txs, ownAddresses, asset) => {
+        return map_insightTxs(txs, ownAddresses, asset)
     },
 }
 
-function map_insightTxs(txs, ownAddresses, symbol) {
+function map_insightTxs(txs, ownAddresses, asset) {
     return txs.map(tx => {
 
         // we class a tx as outgoing if any of our addresses contributed to the utxo inputs; it is incoming otherwise. 
@@ -371,7 +371,7 @@ function map_insightTxs(txs, ownAddresses, symbol) {
             }} )
 
         var vouts
-        if (symbol === 'BTC_SEG' || symbol === 'BTC_TEST') {
+        if (asset.OP_CLTV) {
             // DMS - P2SH addr-types: keep outputs - we use them in scan_NonStdOutputs() to detect our dsigCltv tx's...
             vouts = tx.vout
         }

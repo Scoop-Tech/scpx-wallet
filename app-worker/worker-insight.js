@@ -437,7 +437,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                 .then((txData) => {
                     if (txData && txData.data) {
                         // map tx (prunes vins, drops vouts)
-                        var mappedTx = walletUtxo.map_insightTxs([txData.data], ownAddresses, asset.symbol)[0]
+                        var mappedTx = walletUtxo.map_insightTxs([txData.data], ownAddresses, asset)[0]
                         //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
                         // add to cache

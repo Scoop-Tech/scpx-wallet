@@ -223,7 +223,7 @@ describe('wallet', function () {
     
                 // remove priv-keys
                 const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Bitcoin#' }, 'REMOVE-PRIV-KEYS')
+                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Test Bitcoin' }, 'REMOVE-PRIV-KEYS')
     
                 const removeZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
                     await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
@@ -498,7 +498,7 @@ describe('transactions', function () {
         const result = await new Promise(async (resolve, reject) => {
             // setup
             const wallet = store.getState().wallet
-            if (testSymbol !== 'BTC_TEST') throw `${testSymbol} is not supported`
+            if (testSymbol !== 'BTC_TEST') throw `${testSymbol} is not supported for tests`
             const asset = wallet.assets.find(p => p.symbol === testSymbol)
             if (!asset) throw `${testSymbol} is not configured`
             const bal = walletExternal.get_combinedBalance(asset)

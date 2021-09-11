@@ -8,6 +8,7 @@ const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
 const { syslog } = require('winston/lib/winston/config')
 const { getAll_txs, getAll_local_txs } = require('../utils')
+const walletShared = require('./wallet-shared')
 
 const DSIGCTLV_ID_vCur = Buffer.from( // (max 4 bytes)
     `481fe761`  // protect_op ID stamp: "12100504" + "xx", where xx=p_op version; v1 = 1210050401 = 0x481fe761
@@ -29,7 +30,13 @@ function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
     `.trim().replace(/\s+/g, ' ')
 )}
 
+const P_OP_DUST = 546
+const P_OP_MIN_GROSS = 4200
+
 module.exports = {
+
+    P_OP_DUST,
+    P_OP_MIN_GROSS,
 
     scan_NonStdOutputs: (params) => {
         const { asset, dispatchActions, nonStdAddrs_Txs } = params
@@ -42,10 +49,11 @@ module.exports = {
 
         // scan tx's, look for ones that conform to our v1 PROTECT_OP -- i.e. 4 outputs:
         //
-        //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output, unspent
+        //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
         //   * vout=1 op_return (versioning)
-        //   * vout=2 p2sh zero output (beneficiary) - ID by: zero-value
-        //   * vout=3 p2sh change output (benefactor) - ID by: matching one of our own addresses
+        //   * vout=2 p2sh zero output (beneficiary) == P_OP_DUST       (for beneficiary ID)
+        //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST      (for benefactor ID)  ###########################
+        //   *  >> TODO: vout=4 p2sh tip output (developer) ...
         //
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
         asset.addresses.filter(p => !p.isNonStdAddr)
@@ -70,16 +78,16 @@ module.exports = {
                 if (!tx.utxo_vout) { 
                     return
                 }
-                if (tx.utxo_vout.length != 4) return    // required anatomy...
-                if (tx.utxo_vout[0].value == 0) return  // protected output (dsigCltv)
-                if (tx.utxo_vout[1].value != 0) return  // op_return output (versioning)
-                if (tx.utxo_vout[2].value != 0) return  // beneficiary zero-value output (identification)
-              //if (tx.utxo_vout[3].value == 0) return  // benefactor change output (change) -- allow zero change
+              //if (tx.utxo_vout.length != 4) return            // required anatomy...
+                if (tx.utxo_vout[0].value == 0) return          // protected output (dsigCltv)
+                if (tx.utxo_vout[1].value != 0) return          // op_return output (versioning)
+              //if (tx.utxo_vout[2].value != P_OP_DUST) return  // beneficiary ID output
+              //if (tx.utxo_vout[3].value != P_OP_DUST) return  // benefactor change output
 
                 if (!tx.utxo_vout.every(utxo => utxo.scriptPubKey !== undefined // sanity checks
                      && utxo.scriptPubKey.addresses !== undefined 
-                     && utxo.scriptPubKey.addresses.length == 1)) { 
-                    return 
+                     && utxo.scriptPubKey.addresses.length == 1)) {
+                    return
                 }
 
                 var txProtectOpTimelock = undefined
@@ -91,9 +99,6 @@ module.exports = {
                     if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) {
                         const firstOp = parseInt('0x' + utxo.scriptPubKey.hex.substring(0,2))
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
-                            // if (tx.txid == "a48240ccdf4d2bcd99ae4d30571ca4b7095d33bfdc86e77168231bc98e25b5b4") {
-                            //     debugger
-                            // }                            
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
                             if (asm && asm.length == 2 && asm[1].buffer !== undefined) {
                                 const { buf_idVer, buf_pubKeyA, buf_pubKeyB, lockTime, lockHours } = disassembleDsigCsvOpReturnBuffer(Buffer.from(asm[1]))
@@ -111,12 +116,13 @@ module.exports = {
                         }
                     }
                 })
+                const addrBenefactor = walletShared.getUtxoTypeAddressFromPubKeyHex(pubKeyBenefactor.toString('hex'), asset.symbol)
 
-                if (txProtectOpDateTime) {
+                if (txProtectOpDateTime && addrBenefactor) {
                     const _tx = _.cloneDeep(tx)
                     _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
                     _tx.p_op_addrBeneficiary = tx.utxo_vout[2].scriptPubKey.addresses[0]
-                    _tx.p_op_addrBenefactor = tx.utxo_vout[3].scriptPubKey.addresses[0]
+                    _tx.p_op_addrBenefactor = addrBenefactor //tx.utxo_vout[3].scriptPubKey.addresses[0]
                     _tx.p_op_valueProtected = tx.utxo_vout[0].value
                     _tx.p_op_weAreBeneficiary = ownStdAddresses.some(p => p == _tx.p_op_addrBeneficiary)
                     _tx.p_op_weAreBenefactor = ownStdAddresses.some(p => p == _tx.p_op_addrBenefactor)
@@ -167,19 +173,51 @@ module.exports = {
     
         const psbt = new bitcoinJsLib.Psbt({ network })
         psbt.setVersion(2)
-        utilsWallet.log(`createTxHex_BTC_P2SH validationMode=${validationMode} (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey})`)
+        utilsWallet.log(`createTxHex_BTC_P2SH validationMode=${validationMode} (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey}), txSkeleton=`, txSkeleton)
+        
+        // 
+        // validate P_OP params -
+        //
+        //   if caller specifies dsigCltvSpenderPubKey, then:
+        //      output[0] must have format: { addr: BENEFACTOR_ADDR (will be overridden),      value: PROTECT_AMOUNT (>= P_OP_MIN_GROSS, will have dust & dev fees subtracted) }
+        //      output[1] must have format: { addr: BENEFACTOR_ADDR (must match first output), value: 0 } -- nominal change address, v1: will be dropped completely (no change!)
+        //
+        //   then, dynamically:
+        //      + we will insert the OP_RETURN versioning output
+        //      + we will insert the beneficiary identifier output with P_OP_DUST (taking from PROTECT_AMOUNT), so it satisfies nodes' min-relay/dust requirements 
+        //      + we will drop the zero-value change address (v1)
+        //
+        // https://bitcoin.stackexchange.com/questions/10986/what-is-meant-by-bitcoin-dust
+        //
+        if (dsigCltvSpenderPubKey !== undefined) {
+            if (txSkeleton.outputs.length != 2) throw 'P_OP: bad # outputs'
+            if (txSkeleton.outputs[0].adress != txSkeleton.outputs[1].adress) throw 'P_OP: output mismatch'
+            if (txSkeleton.outputs[0].value < P_OP_MIN_GROSS) throw 'P_OP: bad P_OP_MIN_GROSS'
+            if (txSkeleton.outputs[1].value != 0) throw 'P_OP: bad change output'
+            
+            txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take off one dust amount: it will used in the beneficiary ID output
+            
+            // just remove supplied zero-value change address (todo: v2 - allow arbitrary change)
+            //txSkeleton.outputs.pop()
+            txSkeleton.outputs[1].value = P_OP_DUST
+            txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID output
+        }
+        //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
+        //   * vout=1 op_return (versioning)
+        //   * vout=2 p2sh beneficiary ID output (beneficiary) == P_OP_DUST (for beneficiary ID)
+        //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST          (for benefactor ID)
 
         //
         // add the outputs
         //
         txSkeleton.outputs.forEach(output => {
-            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output
+            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output (1 dymmy output in skeleton ==> 3 outputs)
 
                 if (dsigCltvSpenderLockHours === undefined || !Number.isInteger(dsigCltvSpenderLockHours) || dsigCltvSpenderLockHours > 0xffff) { 
-                    debugger
-                    throw `Invalid or missing dsigCltvSpenderLockHours`
+                    throw `P_OP: dsigCltvSpenderLockHours`
                 }
                 
+                // get params for locking script
                 const lockHours = Number(dsigCltvSpenderLockHours)
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * lockHours) }) 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
@@ -189,28 +227,28 @@ module.exports = {
                     nonCltvSpender = bitcoinJsLib.ECPair.fromWIF(wif, network)
                 } 
                 finally { utilsWallet.softNuke(keyPair); utilsWallet.softNuke(wif) }
-    
-                // P2SH(P2WSH(DSIG/CLTV))
+
+                // vout=0 - p2sh non-standard (P2SH(DSIG/CLTV)) output
                 //const p2wsh = bitcoinJsLib.payments.p2wsh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
                 //const p2sh = bitcoinJsLib.payments.p2sh({ redeem: p2wsh, network: network })
-                
-                // or, unwrapped P2SH(DSIG/CLTV)
+                // or, unwrapped P2SH(DSIG/CLTV):
                 const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: dsigCltv(cltvSpender, nonCltvSpender, lockTime), network }, network })
-                
                 psbt.addOutput({
                     script: p2sh.output,
                     value: Number(Number(output.value).toFixed(0))
                 })
 
-                // embed data
+                // vout=1 op_return (versioning)
+                //   embed data
                 const data = assembleDsigCsvOpReturnBuffer(lockTime, lockHours, cltvSpender.publicKey, nonCltvSpender.publicKey)
                 const embed = bitcoinJsLib.payments.embed({data: [data]})
                 psbt.addOutput({script: embed.output, value: 0 })
                 //utilsWallet.debug(`OP_RETURN data.length=`, data.length) // max 80 bytes, and max 1 op_return (node defaults - not consensus rules)
 
-                // & reference the beneficiary address (so it can retrieve this TX and parse the embedded data)
+                // vout=2 p2sh beneficiary ID output (beneficiary) == P_OP_DUST (for beneficiary ID)
+                //   reference the beneficiary address (so it can retrieve this TX and parse the embedded data)
                 const ctlvSpenderP2sh = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: Buffer.from(dsigCltvSpenderPubKey, 'hex'), network }), network })
-                psbt.addOutput({ address: ctlvSpenderP2sh.address, value: Number(Number(0).toFixed(0)) })
+                psbt.addOutput({ address: ctlvSpenderP2sh.address, value: Number(Number(P_OP_DUST).toFixed(0)) })
             }
             else { // standard NP2WPKH
                 psbt.addOutput({ 
@@ -295,7 +333,20 @@ module.exports = {
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(p_opTx.p_op_pubKeyBeneficiary, 'hex'))
                 const nonCltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(p_opTx.p_op_pubKeyBenefactor, 'hex'))
                 const dsigCltvRedeemScript = dsigCltv(cltvSpender, nonCltvSpender, p_opTx.p_op_lockTime)
-                var wif = addrPrivKeys.find(p => { return p.addr === (p_opTx.p_op_weAreBeneficiary ? p_opTx.p_op_addrBeneficiary : p_opTx.p_op_addrBenefactor) }).privKey
+                const signingAddr = p_opTx.p_op_weAreBeneficiary ? p_opTx.p_op_addrBeneficiary : p_opTx.p_op_addrBenefactor
+
+                // sanity check
+                var cltvSpender_addr, nonCltvSpender_addr
+                try {
+                    cltvSpender_addr = walletShared.getUtxoTypeAddressFromPubKeyHex(p_opTx.p_op_pubKeyBeneficiary, asset.symbol)
+                    nonCltvSpender_addr = walletShared.getUtxoTypeAddressFromPubKeyHex(p_opTx.p_op_pubKeyBenefactor, asset.symbol)
+                }
+                catch(ex) {
+                    console.warn(ex)
+                }
+                if (signingAddr != cltvSpender_addr && signingAddr != nonCltvSpender_addr) throw 'Unexpected pubkey(s) vs signer'
+
+                var wif = addrPrivKeys.find(p => { return p.addr === signingAddr }).privKey
                 var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
                 try {
                     psbt.signInput(i, keyPair)
@@ -329,18 +380,19 @@ module.exports = {
                 finally { utilsWallet.softNuke(keyPair); utilsWallet.softNuke(wif) }
             }
         }
-        utilsWallet.log('psbt/signed', psbt)
+        //utilsWallet.log('psbt/signed', psbt)
 
         // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
         const inc_tx = psbt.extractTransaction(true)
+        console.log('inc_tx', inc_tx)
         const inc_vs = inc_tx.virtualSize()
         const inc_bl = inc_tx.byteLength()
         vSize = inc_vs // tx is fully complete & signed; these are final values
         byteLength = inc_bl
         tx = inc_tx
-        utilsWallet.log('inc_tx.virtualSize=', inc_vs)
-        utilsWallet.log('inc_tx.byteLength=', inc_bl)
-        utilsWallet.log('psbt/inc_tx', inc_tx)
+        //utilsWallet.log('inc_tx.virtualSize=', inc_vs)
+        //utilsWallet.log('inc_tx.byteLength=', inc_bl)
+        //utilsWallet.log('psbt/inc_tx', inc_tx)
         //utilsWallet.log('psbt/inc_tx.toHex()', inc_tx.toHex())
 
         if (!validationMode) {

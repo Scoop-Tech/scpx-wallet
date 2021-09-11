@@ -211,6 +211,7 @@ module.exports = {
             if (newPrivKey) {
                 // add new priv key (assets raw)
                 genAccount.privKeys.push(newPrivKey)
+                console.log('privKeys', JSON.stringify(genAccount.privKeys, null, 2))
                 
                 var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
                 const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)
@@ -584,13 +585,12 @@ module.exports = {
         
         //console.log(`newWalletAddressFromPrivKey, symbol=${symbol}, assetName=${assetName} configWallet.walletsMeta=`, configWallet.walletsMeta)
     
-        var addr = !knownAddr ? module.exports.getAddressFromPrivateKey(
-                        { assetMeta: configWallet.walletsMeta[assetName], privKey: key.privKey, eosActiveWallet }
-                    )
-                  : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
+        const assetMeta = configWallet.walletsMeta[assetName]
+        var addr = !knownAddr ? module.exports.getAddressFromPrivateKey({ assetMeta, privKey: key.privKey, eosActiveWallet })
+                              : knownAddr // perf (bulk import) - don't recompute the key if it's already been done
 
         var pubKey
-        if (symbol === 'BTC_TEST' && key.privKey) { 
+        if (assetMeta.OP_CLTV && key.privKey) { 
             var pair = bitcoinJsLib.ECPair.fromWIF(key.privKey, network)
             pubKey = pair.publicKey.toString('hex')
             utilsWallet.softNuke(pair)

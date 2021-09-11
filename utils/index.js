@@ -188,9 +188,10 @@ module.exports = {
         }
         all_txs.sort((a,b) => {
             // sort by block desc, except unconfirmed tx's on top
-            const a_block_no = a.block_no !== -1 ? a.block_no : Number.MAX_SAFE_INTEGER
-            const b_block_no = b.block_no !== -1 ? b.block_no : Number.MAX_SAFE_INTEGER
-            return b_block_no - a_block_no
+            const a_sort = a.block_no !== -1 ? a.block_no : (Number.MAX_SAFE_INTEGER /* / 2 + Number(b.nonce)*/)
+            const b_sort = b.block_no !== -1 ? b.block_no : (Number.MAX_SAFE_INTEGER /* / 2 + Number(a.nonce)*/)
+            return b_sort - a_sort
+
         })
         return all_txs 
     },
@@ -210,7 +211,7 @@ module.exports = {
     getAll_protect_op_txs: (p) => {
         const { asset, weAreBeneficiary, weAreBenefactor } = p
         if (!weAreBeneficiary && !weAreBenefactor) throw 'Must include at least one type of protect_op TX'
-        if (asset.symbol !== 'BTC_TEST') return []
+        if (!asset.OP_CLTV) return []
         const all_txs = module.exports.getAll_txs(asset)
         var ret = []
         const nonStdTxs = all_txs.filter(p => p.p_op_addrNonStd !== undefined)

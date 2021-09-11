@@ -637,8 +637,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             resolve(null)
                         }
                         else {
-                            // todo: bbTx.hex... (only for protect_op tx's...)
-                            // if (tx.txid == 'e96ad034850d723a52fa93194e6c5318477503df823596cbb0d6bb8927e2c5db') {
+                            // if (tx.txid == '0x58077838e7bf98c88f61a349e64c15816e19ccad8005df9aa33b65fc4c305ae0') {
                             //     debugger
                             // }
 
@@ -658,7 +657,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             //}
                             
                             // map tx (prunes vins, drops vouts)
-                            const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset.symbol)[0]
+                            const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset)[0]
                             //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
 
                             // add to cache

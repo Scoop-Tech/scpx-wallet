@@ -29,9 +29,9 @@ module.exports = {
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
-        if (symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
         const wallet = store.getState().wallet
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset.OP_CLTV) return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
 
         return new Promise((resolve) => {
             const claimable = opsWalletClaimable.claimable_List({ asset })
@@ -47,9 +47,9 @@ module.exports = {
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
-        if (symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
         const wallet = store.getState().wallet
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset.OP_CLTV) return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
 
         return new Promise(async (resolve) => {
 
@@ -96,9 +96,9 @@ module.exports = {
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
-        if (symbol.toUpperCase() !== 'BTC_TEST') return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
         const wallet = store.getState().wallet
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
+        if (!asset.OP_CLTV) return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
 
         return new Promise(async (resolve) => {
             const claimable = opsWalletClaimable.claimable_List({ asset })

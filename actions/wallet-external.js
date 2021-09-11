@@ -129,7 +129,6 @@ module.exports = {
         console.log('createAndPushTx/payTo.dsigCltvSpenderPubKey', payTo.dsigCltvSpenderPubKey)
         utilsWallet.log(`*** createAndPushTx (wallet-external) ${asset.symbol}... payTo=`, payTo)
 
-
         createTxHex({ payTo,
                       asset,
          encryptedAssetsRaw: wallet.assetsRaw,
@@ -281,7 +280,7 @@ module.exports = {
         // available balance: DMS - deduct any balances that arise from protect_op/weAreBeneficiary tx's
         //  (each such utxo needs a different locktime to be spent, so they must be spent one by one...)
         if (asset.type === configWallet.WALLET_TYPE_UTXO) {
-            if (asset.symbol === 'BTC_TEST') {
+            if (asset.OP_CLTV) {
                 if (excludeProtectedAddresses == false) { // no need to do this if we've already excluded the p_op tx addr's
                     const p_op_txs = getAll_protect_op_txs({ asset, weAreBeneficiary: true, weAreBenefactor: false })
                     if (p_op_txs.length > 0) {
@@ -488,7 +487,7 @@ async function createTxHex(params) {
     if (!asset) throw 'Invalid or missing asset'
     if (!payTo || payTo.length == 0 || !payTo[0].receiver) throw 'Invalid or missing payTo'
     if (payTo.length != 1) throw 'send-many is not supported'
-    if (payTo[0].dsigCltvSpenderPubKey !== undefined && asset.symbol !== 'BTC_TEST') throw 'Invalid dsigCltvSpenderPubKey for asset'
+    if (payTo[0].dsigCltvSpenderPubKey !== undefined && !asset.OP_CLTV) throw 'Invalid dsigCltvSpenderPubKey for asset'
     if (!feeParams || !feeParams.txFee) throw 'Invalid or missing feeParams'
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
     if (!apk || apk.length == 0) throw 'Invalid or missing apk'
@@ -508,7 +507,7 @@ async function createTxHex(params) {
                      .filter(utxo_n => utxo_n.scriptPubKey.type !== "nulldata"), // exclude OP_RETURN outputs
             _.isEqual)
     if (asset.type === configWallet.WALLET_TYPE_UTXO) {
-        if (asset.symbol === 'BTC_TEST') {
+        if (asset.OP_CLTV) {
             // spending specific UTXOs (e.g. all PROTECT_OPs via CLAIMABLE-CLAIM) - filter out all other UTXOs
             if (useUtxos !== undefined && useUtxos.length > 0) {
                 utxos = utxos.filter(p => useUtxos.some(p2 => p2.txid == p.txid && p2.vout == p.vout))
@@ -555,7 +554,7 @@ async function createTxHex(params) {
 
             // get required inputs & outputs
             const utxoParams = {
-                changeAddress: asset.addresses[0].addr, // send all change to primary address -- todo: address reuse
+                changeAddress: payTo[0].changeAddr || asset.addresses[0].addr,
                       outputs: payTo.map(p => { return { receiver: p.receiver,
                                                             value: new BigNumber(p.value).times(100000000).toString(),
                                             dsigCltvSpenderPubKey: p.dsigCltvSpenderPubKey,

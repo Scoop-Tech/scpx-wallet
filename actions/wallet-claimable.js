@@ -24,7 +24,7 @@ module.exports = {
     claimable_List: (p) => {
         const { asset } = p
         if (!asset) throw 'Invalid or missing asset'
-        if (asset.symbol !== 'BTC_TEST') throw `Invalid p_op for ${asset.symbol}`
+        if (!asset.OP_CLTV) throw `Invalid p_op for ${asset.symbol}`
 
         const all_txs = walletExternal.getAll_txs(asset)
         const p_addrs = asset.addresses

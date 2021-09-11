@@ -201,7 +201,7 @@ module.exports = {
                         enrichTxOps.forEach(enrichTxOp => {
                             storeState = store.getState()
                             const asset = storeState.wallet.assets.find(p => p.symbol === enrichTxOp.payload.symbol)
-                            if (asset.symbol === 'BTC_TEST') {
+                            if (asset.OP_CLTV) { //symbol === 'BTC_TEST') {
                                 utilsWallet.log(`REQUEST_DISPATCH_BATCH - will scan for non-std outputs...`)
                                 appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset }})
                             }

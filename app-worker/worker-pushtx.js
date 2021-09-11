@@ -32,7 +32,7 @@ module.exports = {
                 workerBlockbook.isosocket_send_Blockbook(asset.symbol, 'getTransaction', { txid }, (bbTx) => {
                     if (bbTx) {
                         const insightTx = workerBlockbook.mapTx_BlockbookToInsight(asset, bbTx)  // convert BB to base insight format
-                        const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset.symbol)[0] // then to our own internal store format
+                        const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset)[0] // then to our own internal store format
 
                         // postback tx details
                         postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, mappedTx } }) 
