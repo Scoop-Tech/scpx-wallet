@@ -81,7 +81,7 @@ module.exports = {
                         //console.log(res)
                     })
                     .catch(error => {
-                        utils.logErr(error)
+                        utils.reportErr(error)
                         console.log(`## settingsSaveAll FAIL ${error.message}`, error)
                         let msg = "Unknown Error"
                         try {

@@ -118,13 +118,14 @@ module.exports = {
     //
     toDisplayUnit: (value, asset) => {
         if (value === null || value === undefined || isNaN(value) || asset === undefined) return NaN
+
         switch (asset.type) {
             case configWallet.WALLET_TYPE_UTXO:
-                return value.dividedBy(100000000).toFixed()
+                return new BigNumber(value).dividedBy(100000000).toFixed()
 
             case configWallet.WALLET_TYPE_ACCOUNT:
                 if (asset.addressType === configWallet.ADDRESS_TYPE_ETH) {
-                    const ret = value.absoluteValue().div(new BigNumber(10).pow(asset.decimals))
+                    const ret = new BigNumber(value).absoluteValue().div(new BigNumber(10).pow(asset.decimals))
 
                     // eth, erc20
                     if (value.isNegative()) {
@@ -471,7 +472,7 @@ module.exports = {
     //
     // notifications & error logging
     //
-    logErr: (err, OPT_BETA_TESTER) => {
+    reportErr: (err, OPT_BETA_TESTER) => {
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (err) {
                 if (OPT_BETA_TESTER != 'false') {

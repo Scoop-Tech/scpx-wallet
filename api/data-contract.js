@@ -31,7 +31,7 @@ module.exports = {
         })
         .catch(e => {
             const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
-            utilsWallet.logErr(msg)
+            utilsWallet.reportErr(msg)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
         })
     },
@@ -54,7 +54,7 @@ module.exports = {
         })
         .catch(e => {
             const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
-            utilsWallet.logErr(msg)
+            utilsWallet.reportErr(msg)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
         })
     },    

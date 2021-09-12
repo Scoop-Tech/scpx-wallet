@@ -52,7 +52,7 @@ module.exports = {
         //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
         //   * vout=1 op_return (versioning)
         //   * vout=2 p2sh zero output (beneficiary) == P_OP_DUST       (for beneficiary ID)
-        //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST      (for benefactor ID)  ###########################
+        //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST      (for benefactor ID)
         //   *  >> TODO: vout=4 p2sh tip output (developer) ...
         //
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
@@ -179,15 +179,18 @@ module.exports = {
         // validate P_OP params -
         //
         //   if caller specifies dsigCltvSpenderPubKey, then:
-        //      output[0] must have format: { addr: BENEFACTOR_ADDR (will be overridden),      value: PROTECT_AMOUNT (>= P_OP_MIN_GROSS, will have dust & dev fees subtracted) }
-        //      output[1] must have format: { addr: BENEFACTOR_ADDR (must match first output), value: 0 } -- nominal change address, v1: will be dropped completely (no change!)
+        //      output[0] must have format: { addr: BENEFACTOR_ADDR (will be overridden),      value: PROTECT_AMOUNT (>= P_OP_MIN_GROSS, will have 2x dust & dev fees subtracted) }
+        //      output[1] must have format: { addr: BENEFACTOR_ADDR (must match first output), value: >=0 (will be padded up to P_OP_DUST as necessary) } 
         //
         //   then, dynamically:
-        //      + we will insert the OP_RETURN versioning output
-        //      + we will insert the beneficiary identifier output with P_OP_DUST (taking from PROTECT_AMOUNT), so it satisfies nodes' min-relay/dust requirements 
-        //      + we will drop the zero-value change address (v1)
+        //      + we will insert the OP_RETURN versioning & data output
+        //
+        //   and to satisfy nodes' min-relay/dust requirements:
+        //      + we will insert the beneficiary identifier output with P_OP_DUST (taking from PROTECT_AMOUNT)
+        //      + we will pad the mandatory change ouput up to P_OP_DUST (taking from PROTECT_AMOUNT) 
         //
         // https://bitcoin.stackexchange.com/questions/10986/what-is-meant-by-bitcoin-dust
+        // https://www.coindesk.com/tech/2020/08/18/dust-attacks-make-a-mess-in-bitcoin-wallets-but-there-could-be-a-fix/
         //
         if (dsigCltvSpenderPubKey !== undefined) {
             if (txSkeleton.outputs.length != 2) throw 'P_OP: bad # outputs'
@@ -197,13 +200,17 @@ module.exports = {
             
             txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take off one dust amount: it will used in the beneficiary ID output
             
-            // just remove supplied zero-value change address (todo: v2 - allow arbitrary change)
-            //txSkeleton.outputs.pop()
-            txSkeleton.outputs[1].value = P_OP_DUST
-            txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID output
+            // pad change up to min. dust output
+            if (txSkeleton.outputs[1].value < P_OP_DUST) {
+                const dustDelta = Number(P_OP_DUST) - Number(txSkeleton.outputs[1].value)
+                txSkeleton.outputs[1].value = Number(txSkeleton.outputs[1].value) + dustDelta
+                txSkeleton.outputs[0].value = Number(txSkeleton.outputs[0].value) - dustDelta
+            }
+            //txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID (change) output
+            //txSkeleton.outputs[1].value = P_OP_DUST
         }
         //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
-        //   * vout=1 op_return (versioning)
+        //   * vout=1 op_return (versioning, pubkeys x2 + timelock value)
         //   * vout=2 p2sh beneficiary ID output (beneficiary) == P_OP_DUST (for beneficiary ID)
         //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST          (for benefactor ID)
 

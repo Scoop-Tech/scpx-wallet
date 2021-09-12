@@ -68,7 +68,7 @@ module.exports = {
                     return res.data.result[0]
                 })
                 .catch(err => {
-                    utils.logErr(err)
+                    utils.reportErr(err)
                     console.error('getFixRateApi FAIL, err=', err)
                     return null
                 })
@@ -105,7 +105,7 @@ module.exports = {
                     return res.data.result[0]
                 })
                 .catch(err => {
-                    utils.logErr(err)
+                    utils.reportErr(err)
                     console.error('getFixRateForAmountApi FAIL, err=', err)
                     return null
                 })

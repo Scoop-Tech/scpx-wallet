@@ -9,7 +9,7 @@ module.exports = {
         const req = { owner, dataJSONRaw: dataJSON, e_email }
         
         if (dataJSON === undefined || dataJSON === null || dataJSON.length == 0) {
-            utilsWallet.logErr(`### updateDataJsonApi - invalid dataJSON passed - ignoring!`)
+            utilsWallet.reportErr(`### updateDataJsonApi - invalid dataJSON passed - ignoring!`)
             return
         }
     
@@ -23,7 +23,7 @@ module.exports = {
         })
         .catch(e => {
             //const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
-            //utilsWallet.logErr(msg)
+            //utilsWallet.reportErr(msg)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Server Error', info: e.toString() }})
         })
     }

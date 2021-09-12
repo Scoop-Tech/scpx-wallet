@@ -299,7 +299,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
         })
         .catch((err) => {
             debugger
-            utilsWallet.logErr(err)
+            utilsWallet.reportErr(err)
             utilsWallet.error('## enrichTx - error=', err)
             resolve(null)
         })
@@ -473,7 +473,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         })
                         .catch((err) => {
                             //debugger
-                            utilsWallet.logErr(err)
+                            utilsWallet.reportErr(err)
                             utilsWallet.error('## enrichTx - error writing cache=', err)
                             resolve(null)
                         })

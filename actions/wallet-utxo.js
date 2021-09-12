@@ -159,7 +159,7 @@ module.exports = {
         if (symbol === 'BTC_TEST') {
             return new Promise((resolve, reject) => {
                 ret.fastest_satPerKB = 1024 * 2
-                ret.fast_satPerKB = 1024 * 1
+                ret.fast_satPerKB = 1024 +1
                 ret.slow_satPerKB = 512
                 resolve(ret)
             })        

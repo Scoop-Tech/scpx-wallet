@@ -290,7 +290,7 @@ async function getTransaction(xsTx) {
             if (txs.length != 1) {
                 // it is possible that we may not get back the finalized xs tx data - getTransactionsApi() caps at the last 99 tx's
                 // this can happen if we have executed many other XS tx's from the same fromCurrency since we last polled
-                utilsWallet.logErr(`getTransactions - ${xsTx.xs.currencyFrom} - failed to get id ${xsTx.xs.id}`)
+                utilsWallet.reportErr(`getTransactions - ${xsTx.xs.currencyFrom} - failed to get id ${xsTx.xs.id}`)
                 return null
             }
             //console.log(`getTransactions - ${xsTx.xs.currencyFrom} - txid ${xsTx.xs.id} [0]=`, txs[0])

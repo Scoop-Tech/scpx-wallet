@@ -450,7 +450,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                             resolve(mappedTx)
                         })
                         .catch((err) => {
-                            utilsWallet.logErr(err)
+                            utilsWallet.reportErr(err)
                             utilsWallet.error(`## enrichTx - ${asset.symbol} ${tx.txid} - error writing cache=`, err)
 
                             resolve(null) // allow all enrich ops to run
@@ -464,7 +464,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
             }
         })
         .catch((err) => {
-            utilsWallet.logErr(err)
+            utilsWallet.reportErr(err)
             utilsWallet.error('## enrichTx - error=', err)
             resolve(null)
         })
