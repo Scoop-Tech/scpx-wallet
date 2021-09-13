@@ -16,13 +16,21 @@ const utilsWallet = require('../utils')
 
 module.exports = {
     // maintains a single websocket web3 provider for lighter/faster eth & erc20 balance updates
-    web3_SetupSocketProvider: () => {
+    web3_SetupSocketProvider: (walletSymbols) => {
 
         var setupCount = 0
         //utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
-                   
+
+            // exclude if not in the loaded wallet
+            if (walletSymbols && walletSymbols.length > 0) {
+                if (!walletSymbols.includes(assetSymbol)) { 
+                    utilsWallet.warn(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                    continue
+                }
+            }
+            
             if (assetSymbol === 'ETH_TEST') { if (!configWallet.WALLET_INCLUDE_ETH_TEST) continue }
             else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue  
 

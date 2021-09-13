@@ -65,6 +65,7 @@ const initialState = {
         { key: "OPT_NOPATCH_MPK", value: true },
         { key: "OPT_BETA_TESTER", value: true },
         { key: "OPT_TOTP",        value: false },
+        { key: "OPT_ALL_ASSETS",  value: false },
     ],
 
     // exchange service - current and history records

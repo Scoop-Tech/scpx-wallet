@@ -116,7 +116,7 @@ function erc20_ropstenAddrExplorer(tokenAddr, holderAddr) {
 const walletExternal_config = {
     
     BTC: {
-        donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x',
+        donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x', // d+10
         explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
         txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
         api: {

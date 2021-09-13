@@ -18,11 +18,19 @@ module.exports = {
 
     // geth tx and block subscriptions (diagnostics and balance polling, respectively)
     // considered VOLATILE -- no built-in reconnect
-    isosocket_Setup_Geth: (networkConnected, networkStatusChanged, loaderWorker) => {
+    isosocket_Setup_Geth: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
         var setupCount = 0
         //utilsWallet.debug(`appWorker >> ${self.workerId} geth_Setup...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
+
+            // exclude if not in the loaded wallet
+            if (walletSymbols && walletSymbols.length > 0) {
+                if (!walletSymbols.includes(assetSymbol)) { 
+                    utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Geth (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                    continue
+                }
+            }
 
             if (assetSymbol === 'ETH_TEST') { if (!configWallet.WALLET_INCLUDE_ETH_TEST) continue }
             else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue      

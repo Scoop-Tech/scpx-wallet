@@ -31,7 +31,7 @@ function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
 )}
 
 const P_OP_DUST = 546
-const P_OP_MIN_GROSS = 4200
+const P_OP_MIN_GROSS = P_OP_DUST * 2 + 800 // min. 2 dust tracking outputs + something reasonably greater than dust
 
 module.exports = {
 
@@ -196,7 +196,7 @@ module.exports = {
             if (txSkeleton.outputs.length != 2) throw 'P_OP: bad # outputs'
             if (txSkeleton.outputs[0].adress != txSkeleton.outputs[1].adress) throw 'P_OP: output mismatch'
             if (txSkeleton.outputs[0].value < P_OP_MIN_GROSS) throw 'P_OP: bad P_OP_MIN_GROSS'
-            if (txSkeleton.outputs[1].value != 0) throw 'P_OP: bad change output'
+            if (!txSkeleton.outputs[1].change) throw 'P_OP: missing explicit change output'
             
             txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take off one dust amount: it will used in the beneficiary ID output
             
@@ -205,7 +205,9 @@ module.exports = {
                 const dustDelta = Number(P_OP_DUST) - Number(txSkeleton.outputs[1].value)
                 txSkeleton.outputs[1].value = Number(txSkeleton.outputs[1].value) + dustDelta
                 txSkeleton.outputs[0].value = Number(txSkeleton.outputs[0].value) - dustDelta
-            }
+            }   
+            debugger
+            
             //txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID (change) output
             //txSkeleton.outputs[1].value = P_OP_DUST
         }

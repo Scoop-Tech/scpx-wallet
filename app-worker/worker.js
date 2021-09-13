@@ -159,28 +159,30 @@ async function handler(e) {
             break
         case 'INIT_GETH_ISOSOCKETS':
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
-            var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker)
+            var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE - (re)connected=`, setupCount, { logServerConsole: true })
             }
             break
         case 'INIT_BLOCKBOOK_ISOSOCKETS':
-            const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker)
-            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
+
+            const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
+
+            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
 
             if (setupSymbols.length > 0 || walletFirstPoll) {
                 const startWaitAt = new Date().getTime()
                 const wait_intId = setInterval(() => { // wait/poll for all sockets to be ready, then postback either success all or some failed
 
                     // if first wallet login, report on all asset sockets, otherwise just on those that were connected 
-                    const bbSocketValues = //Object.values(self.blockbookIsoSockets)
+                    const bbSocketValues = 
                         walletFirstPoll
                         ? Object.values(self.blockbookIsoSockets)
                         : Object.values(self.blockbookIsoSockets).filter(p => p === undefined || setupSymbols.some(p2 => p2 === p.symbol))
 
-                    const bbSocketKeys = //Object.keys(self.blockbookIsoSockets)
+                    const bbSocketKeys =
                         walletFirstPoll
                         ? Object.keys(self.blockbookIsoSockets)
                         : setupSymbols
@@ -218,15 +220,17 @@ async function handler(e) {
             break
         case 'INIT_WEB3_SOCKET':
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
-            var setupCount = workerWeb3.web3_SetupSocketProvider()
-            if (data.wallet && data.wallet.assets) {
+            
+            var setupCount = workerWeb3.web3_SetupSocketProvider(data.walletSymbols)
+            
+            //if (data.wallet && data.wallet.assets) {
                 // TODO: take in data.wallet; iterate erc20's; call totalSupply() & postback 
                 // const mainnetErc20s = data.wallet.assets.filter(p => p.addressType === configWallet.ADDRESS_TYPE_ETH && utilsWallet.isERC20(p) && !p.isErc20_Ropsten);
                 // const testnetErc20s = data.wallet.assets.filter(p => p.addressType === configWallet.ADDRESS_TYPE_ETH && utilsWallet.isERC20(p) && p.isErc20_Ropsten);
                 // utilsWallet.warn(`INIT_WEB3_SOCKET - mainnetErc20s`, mainnetErc20s)
                 // utilsWallet.warn(`INIT_WEB3_SOCKET - testnetErc20s`, testnetErc20s)
                 //...
-            }
+            //}
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_ACCOUNT).forEach(p => { 
                 if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
                 GetSyncInfo(p.symbol)

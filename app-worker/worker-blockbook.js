@@ -42,8 +42,8 @@ module.exports = {
 
     // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
     // considered VOLATILE -- no built-in reconnect
-    isosocket_Setup_Blockbook: (networkConnected, networkStatusChanged, loaderWorker) => {
-        return isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker)
+    isosocket_Setup_Blockbook: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
+        return isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols)
     },
 
     isosocket_send_Blockbook: (x, method, params, callback) => {
@@ -390,17 +390,26 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
 
 // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
 // considered VOLATILE -- no built-in reconnect
-function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker) {
+function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols) {
     const setupSymbols = []
     //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook...`)
 
     for (var assetSymbol in configWS.blockbook_ws_config) {
 
+        // exclude if not in the loaded wallet
+        if (walletSymbols && walletSymbols.length > 0) {
+            if (!walletSymbols.includes(assetSymbol)) { 
+                utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                continue
+            }
+        }
+        
+        // static exclusions
         if (assetSymbol === 'ETH_TEST') { if (!configWallet.WALLET_INCLUDE_ETH_TEST) continue }
         else if (assetSymbol === 'LTC_TEST') { if (!configWallet.WALLET_INCLUDE_LTC_TEST) continue }
         else if (assetSymbol === 'ZEC_TEST') { if (!configWallet.WALLET_INCLUDE_ZEC_TEST) continue }
         else if (assetSymbol === 'BTC_TEST') { if (!configWallet.WALLET_INCLUDE_BTC_TEST) continue }
-        else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue      
+        else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue
 
         setupSymbols.push(
             (function (x) {

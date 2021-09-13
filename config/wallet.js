@@ -7,11 +7,14 @@ const axios = require('axios')
 const IS_TEST = (process.env.NODE_ENV === "test")
 const IS_DEV  = (process.env.NODE_ENV === "development")// || IS_TEST)
 
+const DRIP_TEST_BTC = true
+const DRIP_TEST_ETH = false
+
 //const utilsWallet = require('../utils')
 const configExternal = require('./wallet-external')
 
 // static - license, copyright, env
-const WALLET_VER = 'RC-' + require('../package.json').version
+const WALLET_VER = 'BETA-' + require('../package.json').version
 const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
@@ -48,7 +51,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = true
+const WALLET_INCLUDE_ETH_TEST = false 
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -61,8 +64,8 @@ const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this 
 
 // wallet api
 //const API_DOMAIN =`http://localhost:3030/`
-const API_DOMAIN = IS_DEV ? `http://localhost:3030/`
-                          : `https://scp-svr.azurewebsites.net/`
+const API_DOMAIN = //IS_DEV ? `http://localhost:3030/` :
+                   `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 //
 // RE. ADDING NEW TYPES -- add here (below, main asset list), and in:
@@ -124,6 +127,7 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
 var walletsMeta = {
     // utxo's
     'btc(s2)': { // p2wpkh "native" Bech32 unwrapped segwit btc
+        core_asset: true,
         name: 'btc(s2)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -143,6 +147,7 @@ var walletsMeta = {
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
     'btc(s)': { // p2sh-wrapped segwit btc
+        core_asset: true,
         name: 'btc(s)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -183,6 +188,7 @@ var walletsMeta = {
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
     'btc(t)': {
+        core_asset: true,
         name: 'btc(t)',
         //use_Insightv2: true,
         use_BBv3: true, // DM: Dec '20 - upgrading, for DMS...
@@ -415,6 +421,7 @@ var walletsMeta = {
     },
 
     'ethereum': {
+        core_asset: true,
         name: 'ethereum',
         web: 'https://ethereum.org/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
@@ -431,6 +438,7 @@ var walletsMeta = {
         tradingViewSymbol: "BINANCE:ETHBTC",
     },
     'eth(t)': {
+        core_asset: true,
         name: 'eth(t)',
         type: WALLET_TYPE_ACCOUNT,
         addressType: ADDRESS_TYPE_ETH,
@@ -1083,6 +1091,9 @@ module.exports = {
       WALLET_VER
     , IS_DEV
     , IS_TEST
+    , DRIP_TEST_BTC
+    , DRIP_TEST_ETH
+
     , WALLET_COPYRIGHT
     , WALLET_ENV
 

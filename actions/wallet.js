@@ -144,7 +144,7 @@ module.exports = {
     //   server: merged data is persisted in-memory to redux store
     //
     generateWallets: async (p) => {
-        const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, 
+        const { store, userAccountName, e_storedAssetsRaw, eosActiveWallet, callbackProcessed, loadNonCoreAssets,
                 apk, e_email, h_mpk, email } = p
         if (!store) { throw 'Invalid store' }
         if (!h_mpk) { throw 'Invalid h_mpk' }
@@ -193,6 +193,14 @@ module.exports = {
         //         }
         //     }
         // }
+
+        // remove non-core assets, if specified
+        const ONLY_CORE = loadNonCoreAssets == true ? false : true
+        if (ONLY_CORE) {
+            needToGenerate = needToGenerate.filter(p => { 
+                return configWallet.walletsMeta[p].core_asset == true
+            })
+        }
 
         // (re)generate wallets
         // (all, if set by option, else only those assets not present in the server data, i.e. if a new account, or if we've added newly supported types)
