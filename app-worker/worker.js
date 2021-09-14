@@ -45,31 +45,36 @@ self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 self.priceSocket = undefined  // socket.io-client
 self.insightSocketIos = {}    // socket.io-client
 self.blockbookSocketIos = {}  // socket.io-client
-self.blockbookIsoSockets = {} // isomorphic-ws
-self.blockbookIsoSockets_messageID = []
-self.blockbookIsoSockets_pendingMessages = []
-self.blockbookIsoSockets_subscriptions = []
-self.blockbookIsoSockets_subId_NewBlock = []
-self.blockbookIsoSockets_keepAliveIntervalID = []
+self.bb_Sockets = {} // isomorphic-ws
+self.bb_Sockets_messageID = []
+self.bb_Sockets_pendingMessages = []
+self.bb_Sockets_subscriptions = []
+self.bb_Sockets_subId_NewBlock = []
+self.bb_Sockets_keepAliveIntervalID = []
 
 self.insight_OwnAddrTxIds = {}    // server sending >1 new tx notification - processed inbound tx list; disregard if tx is already in this list (one list for all assets, probably fine!)
 self.blockbook_OwnAddrTxIds = {}  // "
 self.geth_BlockNos = {}           // similar issue to address monitors: geth web3 sub - disregard if block already processed (polled) -- seeing sometimes same block sent twice
 
 self.geth_Sockets = {}            // eth - isomorphic-ws - used for slightly faster tx and block polling compared to web3 subscriptions
-self.ws_web3 = {}                 // eth - web3 socket for faster balance polling compared to HttpProvider
+self.web3_Sockets = {}            // eth - web3 socket for faster balance polling compared to HttpProvider
 
 // tx subscriptions - for throttling and TPS calcs
-//self.lastTx = {}
-//self.firstTx = {}
-//self.countTx = {}
-//self.gethAllTxs = {}
-self.mempool_tpsBuf = {}
-self.mempool_tpsAvg = {}
-self.mempool_tot = {}
-self.blocks_time = {}
-self.blocks_tps = {}
-self.blocks_height = {}
+// self.mempool_tpsBuf = {}
+// self.mempool_tpsAvg = {}
+// self.mempool_tot = {}
+// self.blocks_time = {}
+// self.blocks_tps = {}
+// self.blocks_height = {}
+function resetConnectionStats() {
+    self.mempool_tpsBuf = {}
+    self.mempool_tpsAvg = {}
+    self.mempool_tot = {}
+    self.blocks_time = {}
+    self.blocks_tps = {}
+    self.blocks_height = {}
+}
+resetConnectionStats()
 
 self.dirtyDbFile = 'scp_tx.db'
 
@@ -123,33 +128,37 @@ async function handler(e) {
         //     dirtyDbClear()
         //     break
 
-        case 'DIAG_PING':
+        case 'DIAG_PING': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} DIAG_PING...`)
             const pongTime = new Date().getTime()
             self.postMessage({ msg: 'DIAG_PONG', status: 'RES', data: { pongTime } })
             break
+        }
 
-        case 'NOTIFY_USER': 
+        case 'NOTIFY_USER': {
             // posts the notification payload back to the main thread, so it can display accordingly
             // (toastr notification in browser, console log on server)
             //utilsWallet.debug(`appWorker >> ${self.workerId} NOTIFY_USER...`, data)
             self.postMessage({ msg: 'NOTIFY_USER', status: 'RES', data })
             break
+        }
 
-        case 'CONNECT_PRICE_SOCKET':
+        case 'CONNECT_PRICE_SOCKET': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Connect()
             break
-        case 'FETCH_PRICES': 
+        }
+        case 'FETCH_PRICES': {
             workerPrices.fetch()
             break
-
-        case 'DISCONNECT_PRICE_SOCKET':
+        }
+        case 'DISCONNECT_PRICE_SOCKET': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_PRICE_SOCKET...`)
             workerPrices.priceSocket_Disconnect()
             break            
+        }
 
-        case 'INIT_INSIGHT_SOCKETIO':
+        case 'INIT_INSIGHT_SOCKETIO': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && !p.use_BBv3).forEach(p => { 
@@ -157,20 +166,31 @@ async function handler(e) {
                 GetSyncInfo(p.symbol)
             })
             break
-        case 'INIT_GETH_ISOSOCKETS':
+        }
+
+        case 'INIT_GETH_ISOSOCKETS': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS...`)
-            var setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
+            const setupCount = workerGeth.isosocket_Setup_Geth(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
             if (setupCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_GETH_ISOSOCKETS - DONE - (re)connected=`, setupCount, { logServerConsole: true })
             }
             break
-        case 'INIT_BLOCKBOOK_ISOSOCKETS':
+        }
+        case 'DISCONNECT_GETH_ISOSOCKETS': {
+            resetConnectionStats()
+            const disconnectCount = workerGeth.isosocket_Disconnect_Geth(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
+            if (disconnectCount > 0) {
+                utilsWallet.log(`appWorker >> ${self.workerId} DISCONNECT_GETH_ISOSOCKETS - DONE - disconnected=`, disconnectCount, { logServerConsole: true })
+            }
+            break
+        }
+
+        case 'INIT_BLOCKBOOK_ISOSOCKETS': {
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
 
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
-
-            //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
+            utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
 
             if (setupSymbols.length > 0 || walletFirstPoll) {
                 const startWaitAt = new Date().getTime()
@@ -179,12 +199,12 @@ async function handler(e) {
                     // if first wallet login, report on all asset sockets, otherwise just on those that were connected 
                     const bbSocketValues = 
                         walletFirstPoll
-                        ? Object.values(self.blockbookIsoSockets)
-                        : Object.values(self.blockbookIsoSockets).filter(p => p === undefined || setupSymbols.some(p2 => p2 === p.symbol))
+                        ? Object.values(self.bb_Sockets)
+                        : Object.values(self.bb_Sockets).filter(p => p === undefined || setupSymbols.some(p2 => p2 === p.symbol))
 
                     const bbSocketKeys =
                         walletFirstPoll
-                        ? Object.keys(self.blockbookIsoSockets)
+                        ? Object.keys(self.bb_Sockets)
                         : setupSymbols
 
                     const allReady = bbSocketValues.some(p => !p || p.readyState != 1) === false
@@ -193,7 +213,7 @@ async function handler(e) {
                     const displaySymbolsConnected = _.uniq(
                         bbSocketValues.filter(p => p && p.readyState == 1).map(p => Object.values(configWallet.walletsMeta).find(p2 => p2.symbol === p.symbol).displaySymbol)
                     )
-                    const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.blockbookIsoSockets[p] === undefined))
+                    const symbolsNotConnected = bbSocketValues.filter(p => p && p.readyState != 1).map(p => p.symbol).concat(bbSocketKeys.filter(p => self.bb_Sockets[p] === undefined))
 
                     const elapsedMs = new Date().getTime() - startWaitAt
                     //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
@@ -218,10 +238,20 @@ async function handler(e) {
                 GetSyncInfo(p.symbol) 
             })
             break
-        case 'INIT_WEB3_SOCKET':
+        }
+        case 'DISCONNECT_BLOCKBOOK_ISOSOCKETS': {
+            resetConnectionStats()
+            const disconnectCount = workerBlockbook.isosocket_Disconnect_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
+            if (disconnectCount > 0) {
+                utilsWallet.log(`appWorker >> ${self.workerId} DISCONNECT_BLOCKBOOK_ISOSOCKETS - DONE - disconnected=`, disconnectCount, { logServerConsole: true })
+            }
+            break
+        }
+
+        case 'INIT_WEB3_SOCKET': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET...`)
             
-            var setupCount = workerWeb3.web3_SetupSocketProvider(data.walletSymbols)
+            var setupCount = workerWeb3.web3_Setup_SocketProvider(data.walletSymbols)
             
             //if (data.wallet && data.wallet.assets) {
                 // TODO: take in data.wallet; iterate erc20's; call totalSupply() & postback 
@@ -240,14 +270,24 @@ async function handler(e) {
                 utilsWallet.log(`appWorker >> ${self.workerId} INIT_WEB3_SOCKET - DONE - connected=`, setupCount, { logServerConsole: true })
             }
             break
+        }
+        case 'DISCONNECT_WEB3_SOCKET': {
+            resetConnectionStats()
+            const disconnectCount = workerWeb3.web3_Disconnect_SocketProvider(data.walletSymbols)
+            if (disconnectCount > 0) {
+                utilsWallet.log(`appWorker >> ${self.workerId} DISCONNECT_WEB3_SOCKET - DONE - disconnected=`, disconnectCount, { logServerConsole: true })
+            }
+            break
+        }
 
-        case 'GET_ETH_TX_FEE_WEB3':
+        case 'GET_ETH_TX_FEE_WEB3': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_FEE_WEB3...`)
             workerWeb3.getGasPrices(data.asset, data.params).then(result => {
                 utilsWallet.log('GET_ETH_TX_FEE_WEB3_DONE: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_FEE_WEB3_DONE', status: 'RES', data: { fees: result, assetSymbol: data.asset.symbol } }) 
             })
             break
+        }
 
         case 'GET_ETH_ESTIMATE_TX_GAS':
             //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_ESTIMATE_TX_GAS...`)
@@ -257,48 +297,53 @@ async function handler(e) {
             })
             break
 
-        case 'GET_ETH_TX_HEX_WEB3':
+        case 'GET_ETH_TX_HEX_WEB3': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ETH_TX_HEX_WEB3...`)
             workerWeb3.createTxHex_Eth(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ETH_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ETH_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
             break
-        case 'GET_ERC20_TX_HEX_WEB3': 
+        }
+        case 'GET_ERC20_TX_HEX_WEB3':  {
             //utilsWallet.debug(`appWorker >> ${self.workerId} GET_ERC20_TX_HEX_WEB3...`)
             workerWeb3.createTxHex_erc20(data.asset, data.params, data.privateKey).then(result => {
                 utilsWallet.log('GET_ERC20_TX_HEX_WEB3: posting back', result)
                 self.postMessage({ msg: 'GET_ERC20_TX_HEX_WEB3_DONE', status: 'RES', data: { txHex: result, assetSymbol: data.asset.symbol } }) 
             })
             break
-        case 'PUSH_TX_WEB3': 
+        }
+        case 'PUSH_TX_WEB3': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_WEB3...`)
             workerWeb3.pushRawTransaction_Account(data.payTo, data.asset, data.txHex).then(result => {
                 utilsWallet.log('PUSH_TX_WEB3: posting back', result)
                 self.postMessage({ msg: 'PUSH_TX_WEB3_DONE', status: 'RES', data: { res: result.res, err: result.err, assetSymbol: data.asset.symbol } }) 
             })
             break            
+        }
 
-        case 'PUSH_TX_BLOCKBOOK':
+        case 'PUSH_TX_BLOCKBOOK': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} PUSH_TX_BLOCKBOOK...`)
             workerPushTx.blockbook_pushTx(data.asset, data.txhex, data.wallet)
             break
+        }
 
-        case 'CONNECT_ADDRESS_MONITORS':
+        case 'CONNECT_ADDRESS_MONITORS': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} CONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, true)
             }
             break
-
-        case 'DISCONNECT_ADDRESS_MONITORS': 
+        }
+        case 'DISCONNECT_ADDRESS_MONITORS': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} DISCONNECT_ADDRESS_MONITORS...`)
             if (data && data.wallet) {
                 workerAddressMonitor.addressMonitors_Sub_Unsub(data.wallet, false)
             }
-        break
+            break
+        }
 
-        case 'STATE_RESPONSE':
+        case 'STATE_RESPONSE': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} STATE_RESPONSE`)
             const stateItem = data.stateItem
             const stateKey = data.stateKey
@@ -338,6 +383,7 @@ async function handler(e) {
                 utilsWallet.warn(`appWorker >> ${self.workerId} unexpected stateItem=`, stateItem)
             }
             break
+        }
 
         //
         // asset refresh requests - note: request to refresh an erc20 asset are actually requests to update eth
@@ -358,10 +404,11 @@ async function handler(e) {
             break
         }
 
-        case 'POST_OFFLINE_CHECK': 
+        case 'POST_OFFLINE_CHECK': {
             //utilsWallet.debug(`appWorker >> ${self.workerId} POST_OFFLINE_CHECK...`)
             postOfflineCheck()
             break
+        }
 
         // arbitrary address balances -- used by privkey import; consolidated return format, unlike wallet-external
         case 'GET_ANY_ADDRESS_BALANCE': {
@@ -410,14 +457,15 @@ async function handler(e) {
         }
 
         // get initial block/sync info 
-        case 'GET_SYNC_INFO':
+        case 'GET_SYNC_INFO': {
             //if (configWallet.getSupportedMetaKeyBySymbol(data.symbol)) {
                 GetSyncInfo(data.symbol)
             //}
             break
+        }
 
         // scan for non-standard addresses - add any found to our address-monitor list
-        case 'SCAN_NON_STANDARD_ADDRESSES':
+        case 'SCAN_NON_STANDARD_ADDRESSES': {
             utilsWallet.logMajor('magenta','blue', `appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES ${data.asset.symbol}...`, null, { logServerConsole: true })
             const dispatchActions = []
             const nonStdAddrs_Txs = [] // { nonStdAddr, protect_op_txid }
@@ -436,6 +484,7 @@ async function handler(e) {
             }
             else utilsWallet.log(`appWorker >> ${self.workerId} SCAN_NON_STANDARD_ADDRESSES... no new non-std addr's found`)
             break
+        }
     }
     return Promise.resolve()
 

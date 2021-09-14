@@ -90,7 +90,7 @@ function subAddr_Blockbook(wallet, asset) {
                         // with its status page intermitently reporting mempool is not in sync for ETH
 
                         utilsWallet.logMajor('green','white', `appWorker >> ${self.workerId} bitcoind/addresstxid data - ${asset.symbol} - web3 getTx... txid=`, txid, { logServerConsole: true })
-                        const web3 = self.ws_web3[asset.symbol] // socket instance
+                        const web3 = self.web3_Sockets[asset.symbol] // socket instance
                         if (!web3) {
                             utilsWallet.error(`appWorker >> ${self.workerId} subAddr_Blockbook - ${asset.symbol} - web3 socket provider is not available!`); return
                         }

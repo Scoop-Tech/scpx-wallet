@@ -184,7 +184,6 @@ module.exports = {
 
                                 // Jan '21 - don't call this at all for tx's (perf)
                                 //    networkStatusChanged(x, { txid: tx.txid, mempool_tps: mempool_tps_avg, insight_url: configWS.insightApi_ws_config[x].url })
-                                
                                 //}
                             })
                             socket.on('block', (blockHash) => {

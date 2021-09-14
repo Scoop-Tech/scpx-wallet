@@ -15,18 +15,34 @@ const walletExternal = require('../actions/wallet-external')
 const utilsWallet = require('../utils')
 
 module.exports = {
+    web3_Disconnect_SocketProvider: (walletSymbols) => {
+        var disconnectCount = 0
+        for (var x in configWS.geth_ws_config) {
+            if (self.web3_Sockets[x] !== undefined) {
+
+                if (self.web3_Sockets[x].currentProvider && self.web3_Sockets[x].currentProvider.connection) {
+                    self.web3_Sockets[x].currentProvider.connection.close()
+
+                    self.web3_Sockets[x] = undefined
+                    disconnectCount++
+                }
+            }
+        }
+        return disconnectCount
+    },
+
     // maintains a single websocket web3 provider for lighter/faster eth & erc20 balance updates
-    web3_SetupSocketProvider: (walletSymbols) => {
+    web3_Setup_SocketProvider: (walletSymbols) => {
 
         var setupCount = 0
-        //utilsWallet.debug(`appWorker >> ${self.workerId} web3_SetupSocketProvider...`)
+        //utilsWallet.debug(`appWorker >> ${self.workerId} web3_Setup_SocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
 
             // exclude if not in the loaded wallet
             if (walletSymbols && walletSymbols.length > 0) {
                 if (!walletSymbols.includes(assetSymbol)) { 
-                    utilsWallet.warn(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                    utilsWallet.warn(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
                     continue
                 }
             }
@@ -36,8 +52,8 @@ module.exports = {
 
             setupCount += (function (x) {
 
-                if (self.ws_web3[x] === undefined) {
-                    utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider ${x} SETUP...`, null, { logServerConsole: true })
+                if (self.web3_Sockets[x] === undefined) {
+                    utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider ${x} SETUP...`, null, { logServerConsole: true })
                     
                     try {   
         
@@ -50,7 +66,7 @@ module.exports = {
                         //const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.parityPubSub_ws_config[x].url))
                         
                         const provider = web3.currentProvider
-                        self.ws_web3[x] = web3
+                        self.web3_Sockets[x] = web3
         
                         // these error/end handlers are *not* firing on the geth WS disconnect issue above ("unexpected EOF" from geth in WS response frame)
                         // if (provider) { 
@@ -67,7 +83,7 @@ module.exports = {
                         // }
                     }
                     catch(err) {
-                        utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - web3_SetupSocketProvider - err=`, err)
+                        utilsWallet.error(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider - err=`, err)
                     }
                 }
 
@@ -82,7 +98,7 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                        : asset.symbol
 
-        return self.ws_web3[wsSymbol].eth.estimateGas(params)
+        return self.web3_Sockets[wsSymbol].eth.estimateGas(params)
     },
 
     // returns  { gasLimit, gasprice_Web3,                              // from web3
@@ -100,14 +116,14 @@ module.exports = {
         // TODO: test this erc20's & eth...
         // note - params not used - anymore; we never need to actually call estimateGas()...
         // if (!utilsWallet.isERC20(asset)) {
-        //     params.value = self.ws_web3[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
+        //     params.value = self.web3_Sockets[wsSymbol].utils.toWei(params.value.toString(), 'ether') // params for standard eth transfer
         // }
 
         // update: use static/known gasLimits for the erc20/eth send tx
         return (
             !utilsWallet.isERC20(asset)
                 ? Promise.resolve(21000)  // vanilla eth payable() - known gas
-                : Promise.resolve(100000) // erc20 - dummy: overridden below... //self.ws_web3[wsSymbol].eth.estimateGas(params) // ##
+                : Promise.resolve(100000) // erc20 - dummy: overridden below... //self.web3_Sockets[wsSymbol].eth.estimateGas(params) // ##
         )
         .then(gasLimit => {
             // use estimate if not erc20, otherwise use a reasonable static max gas value
@@ -120,7 +136,7 @@ module.exports = {
                 }
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
-            return self.ws_web3[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value
+            return self.web3_Sockets[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value
         })
         .then(gasprice_Web3 => {
             console.log('getGasPrices, gasprice_Web3=', gasprice_Web3)
@@ -180,7 +196,7 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
-        const web3 = self.ws_web3[wsSymbol]
+        const web3 = self.web3_Sockets[wsSymbol]
         var wei_sendValue = new BigNumber(web3.utils.toWei(params.value.toString(), 'ether'))
         var bal = walletExternal.get_combinedBalance(asset)
         var delta_avail = wei_sendValue.plus(new BigNumber(params.gasLimit).times(new BigNumber(params.gasPrice))).minus(bal.avail)
@@ -241,7 +257,7 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol
 
-        const web3 = self.ws_web3[wsSymbol]
+        const web3 = self.web3_Sockets[wsSymbol]
 
         utilsWallet.log('createTxHex_erc20 - params.value=', params.value);
         utilsWallet.log('createTxHex_erc20 - params.value.toString()=', params.value.toString())
@@ -307,7 +323,7 @@ module.exports = {
                        : asset.symbol === 'ETH' || utilsWallet.isERC20(asset.symbol) ? 'ETH'
                        : asset.symbol        
 
-        const web3 = self.ws_web3[wsSymbol]
+        const web3 = self.web3_Sockets[wsSymbol]
         // const Web3 = require('web3')
         // const web3 = new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 

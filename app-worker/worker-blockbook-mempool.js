@@ -50,7 +50,7 @@ module.exports = {
                         //if (asset.symbol === 'ETH') {
                             // can't getDetailedTransaction for ETH from BB (just doesn't return data); must use web3
 
-                            const web3 = self.ws_web3[asset.symbol] // socket instance
+                            const web3 = self.web3_Sockets[asset.symbol] // socket instance
                             if (!web3) {
                                 utilsWallet.warn(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - singleton web3 socket provider is not available!`); return
                             }

@@ -734,6 +734,7 @@ var walletsMeta = {
 
     'usdt': {
         name: 'usdt',
+        core_asset: true,
         web: 'https://tether.to/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
         type: WALLET_TYPE_ACCOUNT,

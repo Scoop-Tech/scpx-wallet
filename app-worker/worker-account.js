@@ -47,10 +47,10 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                    : asset.symbol === 'ETH' || utilsWallet.isERC20(asset) ? 'ETH'
                    : asset.symbol
     const Web3 = require('web3')
-    if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
-        self.ws_web3[wsSymbol] = undefined 
+    if (self.web3_Sockets[wsSymbol] && self.web3_Sockets[wsSymbol].currentProvider.connection.readyState != 1) {
+        self.web3_Sockets[wsSymbol] = undefined 
     }
-    const web3 = self.ws_web3[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[wsSymbol].httpProvider))
+    const web3 = self.web3_Sockets[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[wsSymbol].httpProvider))
 
     var height
     try {
@@ -315,7 +315,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
     }
 
     // get tx
-    utilsWallet.warn(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx...`)
+    //utilsWallet.warn(`getTxDetails_web3 - ${symbol} ${tx.txid} calling web3 getTx...`)
 
     //self.geth_Sockets[symbol].send(`{"method":"eth_getTransactionByHash","params":["${tx.txid}"],"id":1,"jsonrpc":"2.0"}`)
     web3.eth.getTransaction(tx.txid)
@@ -542,11 +542,11 @@ function getETHAddressBalance_api(symbol, address) {
         return new Promise((resolve, reject) => {
             const Web3 = require('web3')
 
-            if (self.ws_web3[symbol] && self.ws_web3[symbol].currentProvider.connection.readyState != 1) {
-                self.ws_web3[symbol] = undefined 
+            if (self.web3_Sockets[symbol] && self.web3_Sockets[symbol].currentProvider.connection.readyState != 1) {
+                self.web3_Sockets[symbol] = undefined 
             }
 
-            const web3 = self.ws_web3[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const web3 = self.web3_Sockets[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             web3.eth.getBalance(address)
             .then(balWei => {
                 resolve(balWei.toString())
@@ -592,11 +592,11 @@ function getERC20AddressBalance_api(symbol, address) {
             const meta = configWallet.getMetaBySymbol(symbol)
             const wsSymbol = meta.isErc20_Ropsten ? 'ETH_TEST' : 'ETH'
 
-            if (self.ws_web3[wsSymbol] && self.ws_web3[wsSymbol].currentProvider.connection.readyState != 1) {
-                self.ws_web3[wsSymbol] = undefined 
+            if (self.web3_Sockets[wsSymbol] && self.web3_Sockets[wsSymbol].currentProvider.connection.readyState != 1) {
+                self.web3_Sockets[wsSymbol] = undefined 
             }
             
-            const web3 = self.ws_web3[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+            const web3 = self.web3_Sockets[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
             const tknAddress = (address).substring(2)
             const contractData = ('0x70a08231000000000000000000000000' // balanceOf
                                 + tknAddress)                          // (address)
@@ -759,7 +759,7 @@ function getERC20AddressBalance_api(symbol, address) {
                         const fees = tx.gasUsed * gasPrice / 1000000000
 
                         const Web3 = require('web3')
-                        const web3 = self.ws_web3 || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
+                        const web3 = self.web3_Sockets || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
 
                         return { // EXTERNAL_TX
                             isMinimal: false,

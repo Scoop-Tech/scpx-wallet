@@ -45,6 +45,9 @@ module.exports = {
     isosocket_Setup_Blockbook: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
         return isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols)
     },
+    isosocket_Disconnect_Blockbook: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
+        return isosocket_Disconnect_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols)
+    },
 
     isosocket_send_Blockbook: (x, method, params, callback) => {
        return isosocket_send_Blockbook(x, method, params, callback)
@@ -388,6 +391,26 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
     })
 }
 
+function isosocket_Disconnect_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols) {
+    var disconnectCount = 0
+    for (var x in configWS.blockbook_ws_config) {
+        if (self.bb_Sockets[x] !== undefined) {
+
+            if (self.bb_Sockets[x].readyState == 0 || self.bb_Sockets[x].readyState == 1) { // connecting || open
+                self.bb_Sockets[x].close()
+                self.bb_Sockets[x] = undefined
+                disconnectCount++
+            }
+
+            if (!loaderWorker) {
+                networkConnected(x, false)
+                networkStatusChanged(x, {})
+            }
+        }
+    }
+    return disconnectCount
+}
+
 // blockbook isosockets: note this is needed for a different BB API/interface compared to get_BlockbookSocketIo()
 // considered VOLATILE -- no built-in reconnect
 function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols) {
@@ -414,23 +437,23 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
         setupSymbols.push(
             (function (x) {
                 // if we're called more than once, then the socket object already exists
-                if (self.blockbookIsoSockets[x] !== undefined) { // safari refocus handling
-                    if (self.blockbookIsoSockets[x].readyState == 2 || self.blockbookIsoSockets[x].readyState == 3) { // if "closing" or "closed" respectively (connecting=0, open=1)
+                if (self.bb_Sockets[x] !== undefined) { // safari refocus handling
+                    if (self.bb_Sockets[x].readyState == 2 || self.bb_Sockets[x].readyState == 3) { // if "closing" or "closed" respectively (connecting=0, open=1)
                         utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook ${x} - found disconnected socket for ${x} - nuking it!`)
-                        self.blockbookIsoSockets[x].close()
-                        self.blockbookIsoSockets[x] = undefined
+                        self.bb_Sockets[x].close()
+                        self.bb_Sockets[x] = undefined
                     }
                 }
 
                 // initial / main path
-                if (self.blockbookIsoSockets[x] === undefined) { // connect & init
+                if (self.bb_Sockets[x] === undefined) { // connect & init
                     // networkConnected(x, true) // init UI
                     // networkStatusChanged(x, null)
     
                     const ws_url = new URL(configWS.blockbook_ws_config[x].url)
-                    utilsWallet.warn(`appWorker >> ${self.workerId} blockbookIsoSockets ${x}... hostname=${ws_url.hostname} origin=${ws_url.origin} ws_url=`, ws_url, { logServerConsole: true })
+                    utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets CONNECTING!!! ${x}... hostname=${ws_url.hostname} origin=${ws_url.origin} ws_url=`, ws_url, { logServerConsole: true })
                     
-                    self.blockbookIsoSockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket", configWallet.WALLET_ENV === "BROWSER" ? undefined : {
+                    self.bb_Sockets[x] = new isoWs(configWS.blockbook_ws_config[x].url + "/websocket", configWallet.WALLET_ENV === "BROWSER" ? undefined : {
                         headers: { 
                             "User-Agent": configExternal.blockbookHeaders["User-Agent"], //"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
                             "Connection": configExternal.blockbookHeaders["Connection"], //"Upgrade",
@@ -445,23 +468,23 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                             "Origin": ws_url.origin.replace('wss', 'https'),
                         }
                     }) 
-                    var socket = self.blockbookIsoSockets[x]
+                    var socket = self.bb_Sockets[x]
                     socket.symbol = x // add a property to the socket object, for logging in case it won't connect
-                    self.blockbookIsoSockets_messageID[x] = 0 // init early, testing...
-                    self.blockbookIsoSockets_pendingMessages[x] = {}
-                    self.blockbookIsoSockets_subscriptions[x] = {}
+                    self.bb_Sockets_messageID[x] = 0 // init early, testing...
+                    self.bb_Sockets_pendingMessages[x] = {}
+                    self.bb_Sockets_subscriptions[x] = {}
 
                     // socket lifecycle
                     socket.onerror = (err) => {
-                        utilsWallet.error(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - ##`, err)
+                        utilsWallet.error(`appWorker >> ${self.workerId} bb_Sockets ${x} - ##`, err)
                     }
                     socket.onopen = () => {
-                        utilsWallet.log(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connected ok...`)
+                        utilsWallet.log(`appWorker >> ${self.workerId} bb_Sockets ${x} - connected ok...`)
                         try {
 
                             // setup (exactly once) a keep-alive timer; needed for direct Trezor WS connections to stop server idle drops
-                            if (self.blockbookIsoSockets_keepAliveIntervalID[x] === undefined) {
-                                self.blockbookIsoSockets_keepAliveIntervalID[x] = 
+                            if (self.bb_Sockets_keepAliveIntervalID[x] === undefined) {
+                                self.bb_Sockets_keepAliveIntervalID[x] = 
                                     setInterval(() => {
                                         isosocket_send_Blockbook(x, 'getInfo', {}, (data) => {
                                             //utilsWallet.log(`keep-alive isoWS ${x} getInfo`, data)
@@ -480,16 +503,16 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                     //
                                     const method = 'subscribeNewBlock'
                                     const params = {}
-                                    if (self.blockbookIsoSockets_subId_NewBlock[x]) {
-                                        delete self.blockbookIsoSockets_subscriptions[x][self.blockbookIsoSockets_subId_NewBlock[x]]
-                                        self.blockbookIsoSockets_subId_NewBlock[x] = ""
+                                    if (self.bb_Sockets_subId_NewBlock[x]) {
+                                        delete self.bb_Sockets_subscriptions[x][self.bb_Sockets_subId_NewBlock[x]]
+                                        self.bb_Sockets_subId_NewBlock[x] = ""
                                     }
-                                    self.blockbookIsoSockets_subId_NewBlock[x] = isosocket_sub_Blockbook(x, method, params, function (result) {
+                                    self.bb_Sockets_subId_NewBlock[x] = isosocket_sub_Blockbook(x, method, params, function (result) {
                                         if (!configWallet.WALLET_DISABLE_BLOCK_UPDATES)  {
 
                                             if (result) {
                                                 if (result.subscribed === true) {
-                                                    //utilsWallet.debug(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - block - subscribed OK`)
+                                                    //utilsWallet.debug(`appWorker >> ${self.workerId} bb_Sockets ${x} - block - subscribed OK`)
                                                 }
                                                 else {
                                                     const receivedBlockNo = result.height
@@ -552,14 +575,15 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                 }
                             }
                         }
-                        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - connect, err=`, err) }
+                        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - connect, err=`, err) }
                     }
                     socket.onclose = () => {
-                        utilsWallet.warn(`appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose...`)
-                        self.blockbookIsoSockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
+                        utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - onclose...`)
+                        self.bb_Sockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
                         try {
                             // reconnect - this supplements volatileSockets_ReInit() for faster reconnection
-                            isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
+                            // UPDATE: allow explicit disconnects
+                            //isosocket_Setup_Blockbook(networkConnected, networkStatusChanged)
 
                             // ##
                             // very ugly - but worker-geth:socket.onclose isn't triggering reliably - this is, for some reason
@@ -569,7 +593,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                                 networkStatusChanged(x)
                             }
                         }
-                        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - onclose callback, err=`, err) }
+                        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - onclose callback, err=`, err) }
                     }
 
                     //
@@ -578,17 +602,17 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     socket.onmessage = (msg) => {
                         if (msg && msg.data) {
                             var resp = JSON.parse(msg.data)
-                            var callback = self.blockbookIsoSockets_pendingMessages[x][resp.id]
+                            var callback = self.bb_Sockets_pendingMessages[x][resp.id]
                             if (callback != undefined) {
-                                delete self.blockbookIsoSockets_pendingMessages[x][resp.id]
+                                delete self.bb_Sockets_pendingMessages[x][resp.id]
                                 callback(resp.data)
                             } else {
-                                callback = self.blockbookIsoSockets_subscriptions[x][resp.id]
+                                callback = self.bb_Sockets_subscriptions[x][resp.id]
                                 if (callback != undefined) {
                                     callback(resp.data)
                                 }
                                 else {
-                                    utilsWallet.error(`### appWorker >> ${self.workerId} blockbookIsoSockets ${x} - UNKNOWN MESSAGE: no callback, msg =`, msg)
+                                    utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - UNKNOWN MESSAGE: no callback, msg =`, msg)
                                 }                                
                             }
                         }
@@ -603,20 +627,20 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 }
 
 function isosocket_send_Blockbook(x, method, params, callback) {
-    if (self.blockbookIsoSockets[x] === undefined) {
-        utilsWallet.error(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
+    if (self.bb_Sockets[x] === undefined) {
+        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
         return
     }
-    if (self.blockbookIsoSockets[x].readyState != 1) {
-        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: invalid socket readyState=`, self.blockbookIsoSockets[x].readyState)
+    if (self.bb_Sockets[x].readyState != 1) {
+        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: invalid socket readyState=`, self.bb_Sockets[x].readyState)
         return
     }
 
-    var id = self.blockbookIsoSockets_messageID[x].toString()
-    self.blockbookIsoSockets_messageID[x]++
-    self.blockbookIsoSockets_pendingMessages[x][id] = callback
+    var id = self.bb_Sockets_messageID[x].toString()
+    self.bb_Sockets_messageID[x]++
+    self.bb_Sockets_pendingMessages[x][id] = callback
     var req = { id, method, params }
-    self.blockbookIsoSockets[x].send(JSON.stringify(req))
+    self.bb_Sockets[x].send(JSON.stringify(req))
     return id
 }
 
@@ -700,36 +724,36 @@ function enrichTx(wallet, asset, tx, pollAddress) {
 }
 
 function isosocket_sub_Blockbook(x, method, params, callback) {
-    if (self.blockbookIsoSockets[x] === undefined) {
-        utilsWallet.error(`appWorker >> ${self.workerId} isosocket_sub_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
+    if (self.bb_Sockets[x] === undefined) {
+        utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_sub_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
         return
     }
-    if (self.blockbookIsoSockets[x].readyState != 1) {
-        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_sub_Blockbook ${x} - ignoring: invalid socket readyState=`, self.blockbookIsoSockets[x].readyState)
+    if (self.bb_Sockets[x].readyState != 1) {
+        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_sub_Blockbook ${x} - ignoring: invalid socket readyState=`, self.bb_Sockets[x].readyState)
         return
     }
 
-    var id = self.blockbookIsoSockets_messageID[x].toString()
-    self.blockbookIsoSockets_messageID[x]++
-    self.blockbookIsoSockets_subscriptions[x][id] = callback
+    var id = self.bb_Sockets_messageID[x].toString()
+    self.bb_Sockets_messageID[x]++
+    self.bb_Sockets_subscriptions[x][id] = callback
     var req = { id, method,params }
-    self.blockbookIsoSockets[x].send(JSON.stringify(req))
+    self.bb_Sockets[x].send(JSON.stringify(req))
     return id
 }
 
 function isosocket_unsub_Blockbook(method, id, params, callback) {
-    if (self.blockbookIsoSockets[x] === undefined) {
-        utilsWallet.error(`appWorker >> ${self.workerId} isosocket_unsub_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
+    if (self.bb_Sockets[x] === undefined) {
+        utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_unsub_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
         return
     }
-    if (self.blockbookIsoSockets[x].readyState != 1) {
-        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_unsub_Blockbook ${x} - ignoring: invalid socket readyState=`, self.blockbookIsoSockets[x].readyState)
+    if (self.bb_Sockets[x].readyState != 1) {
+        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_unsub_Blockbook ${x} - ignoring: invalid socket readyState=`, self.bb_Sockets[x].readyState)
         return
     }
 
-    delete self.blockbookIsoSockets_subscriptions[x][id]
-    self.blockbookIsoSockets_pendingMessages[x][id] = callback
+    delete self.bb_Sockets_subscriptions[x][id]
+    self.bb_Sockets_pendingMessages[x][id] = callback
     var req = { id, method, params }
-    self.blockbookIsoSockets[x].send(JSON.stringify(req))
+    self.bb_Sockets[x].send(JSON.stringify(req))
     return id
 }

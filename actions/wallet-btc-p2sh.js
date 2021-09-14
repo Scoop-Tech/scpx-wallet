@@ -78,7 +78,7 @@ module.exports = {
                 if (!tx.utxo_vout) { 
                     return
                 }
-              //if (tx.utxo_vout.length != 4) return            // required anatomy...
+                if (tx.utxo_vout.length != 4) return            // required anatomy...
                 if (tx.utxo_vout[0].value == 0) return          // protected output (dsigCltv)
                 if (tx.utxo_vout[1].value != 0) return          // op_return output (versioning)
               //if (tx.utxo_vout[2].value != P_OP_DUST) return  // beneficiary ID output

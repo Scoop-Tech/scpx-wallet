@@ -16,6 +16,26 @@ module.exports = {
         return getSyncInfo_Geth(symbol, receivedBlockNo, receivedBlockTime, networkStatusChanged)
     },
 
+    isosocket_Disconnect_Geth: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
+        var disconnectCount = 0
+        for (var x in configWS.geth_ws_config) {
+            if (self.geth_Sockets[x] !== undefined) {
+
+                if (self.geth_Sockets[x].readyState == 0 || self.bb_Sockets[x].readyState == 1) { // connecting || open
+                    self.geth_Sockets[x].close()
+                    self.geth_Sockets[x] = undefined
+                    disconnectCount++
+                }
+
+                if (!loaderWorker) {
+                    networkConnected(x, false)
+                    networkStatusChanged(x, {})
+                }
+            }
+        }
+        return disconnectCount
+    },
+
     // geth tx and block subscriptions (diagnostics and balance polling, respectively)
     // considered VOLATILE -- no built-in reconnect
     isosocket_Setup_Geth: (networkConnected, networkStatusChanged, loaderWorker, walletSymbols) => {
@@ -69,7 +89,8 @@ module.exports = {
                         // socket lifecycle
                         //
                         socket.onopen = () => {
-                            //utilsWallet.debug(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
+                            utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect...`)
+
                             try {
                                 if (!loaderWorker) {
                                     networkConnected(x, true)
@@ -290,14 +311,14 @@ module.exports = {
 async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
     if (symbol !== 'ETH' && symbol !== 'ETH_TEST') return
 
-    if (!self.ws_web3[symbol] || self.ws_web3[symbol].currentProvider.connection.readyState != 1) {
+    if (!self.web3_Sockets[symbol] || self.web3_Sockets[symbol].currentProvider.connection.readyState != 1) {
         utilsWallet.warn(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not setup & ready for asset`)
         return
     }
 
     // get block - exact time & tx count
-    const receivedBlockNo = _receivedBlockNo || (await self.ws_web3[symbol].eth.getBlockNumber())
-    const curBlock = await self.ws_web3[symbol].eth.getBlock(receivedBlockNo)
+    const receivedBlockNo = _receivedBlockNo || (await self.web3_Sockets[symbol].eth.getBlockNumber())
+    const curBlock = await self.web3_Sockets[symbol].eth.getBlock(receivedBlockNo)
     const txCount = curBlock.transactions.length
     const receivedBlockTime = /*_receivedBlockTime ||*/ curBlock.timestamp
 
@@ -312,7 +333,7 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
 
     // get prev block - exact time; for block TPS
     if (!self.blocks_time[symbol][receivedBlockNo - 1]) {
-        const prevBlock = await self.ws_web3[symbol].eth.getBlock(receivedBlockNo - 1)
+        const prevBlock = await self.web3_Sockets[symbol].eth.getBlock(receivedBlockNo - 1)
         self.blocks_time[symbol][receivedBlockNo - 1] = prevBlock.timestamp
     }
     const prevBlockTime = self.blocks_time[symbol][receivedBlockNo - 1]
