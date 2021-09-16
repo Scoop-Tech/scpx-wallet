@@ -116,7 +116,10 @@ module.exports = {
                         }
                     }
                 })
-                const addrBenefactor = walletShared.getUtxoTypeAddressFromPubKeyHex(pubKeyBenefactor.toString('hex'), asset.symbol)
+                var addrBenefactor
+                if (pubKeyBenefactor) {
+                    addrBenefactor = walletShared.getUtxoTypeAddressFromPubKeyHex(pubKeyBenefactor.toString('hex'), asset.symbol)
+                }
 
                 if (txProtectOpDateTime && addrBenefactor) {
                     const _tx = _.cloneDeep(tx)
@@ -206,7 +209,6 @@ module.exports = {
                 txSkeleton.outputs[1].value = Number(txSkeleton.outputs[1].value) + dustDelta
                 txSkeleton.outputs[0].value = Number(txSkeleton.outputs[0].value) - dustDelta
             }   
-            debugger
             
             //txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID (change) output
             //txSkeleton.outputs[1].value = P_OP_DUST
