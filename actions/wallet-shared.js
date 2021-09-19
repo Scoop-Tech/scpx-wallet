@@ -211,7 +211,6 @@ module.exports = {
             if (newPrivKey) {
                 // add new priv key (assets raw)
                 genAccount.privKeys.push(newPrivKey)
-                console.log('privKeys', JSON.stringify(genAccount.privKeys, null, 2))
                 
                 var rawAssetsJsonUpdated = JSON.stringify(rawAssets, null, 4)
                 const e_rawAssetsUpdated = utilsWallet.aesEncryption(apk, h_mpk, rawAssetsJsonUpdated)

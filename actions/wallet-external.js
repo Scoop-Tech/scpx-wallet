@@ -274,8 +274,9 @@ module.exports = {
         ret.has_pending = cu_local_txs_pendingOut.isLessThan(0) || cu_local_txs_pendingIn.isGreaterThan(0) || totalUnconfirmed != 0
 
         // available balance: deduct any pending out, don't credit any pending in
-        ret.avail = ret.conf.minus(cu_local_txs_pendingOut.abs())                                    // net off any pending local_tx out value
-                            .minus(totalUnconfirmed < 0 ? new BigNumber(totalUnconfirmed).abs() : 0) // net off any address (3PBP) pending out value
+        ret.avail = ret.conf.plus(ret.unconf)
+            //.minus(cu_local_txs_pendingOut.abs())                                    // net off any pending local_tx out value
+            //.minus(totalUnconfirmed < 0 ? new BigNumber(totalUnconfirmed).abs() : 0) // net off any address (3PBP) pending out value
 
         // available balance: DMS - deduct any balances that arise from protect_op/weAreBeneficiary tx's
         //  (each such utxo needs a different locktime to be spent, so they must be spent one by one...)
@@ -345,7 +346,7 @@ module.exports = {
             if (!sendValue) {
                 sendValue = 0
             }
-            const payTo = [{ receiver: configExternal.walletExternal_config[asset.symbol].donate,
+            const payTo = [{ receiver: receiverAddress || configExternal.walletExternal_config[asset.symbol].donate,
                                 value: sendValue,
                 dsigCltvSpenderPubKey, 
              dsigCltvSpenderLockHours
