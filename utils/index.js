@@ -472,13 +472,11 @@ module.exports = {
     //
     // notifications & error logging
     //
-    reportErr: (err, OPT_BETA_TESTER) => {
+    reportErr: (err) => {
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (err) {
-                if (OPT_BETA_TESTER != 'false') {
-                    if (Sentry) {
-                        Sentry.captureException(err)
-                    }
+                if (Sentry) {
+                    Sentry.captureException(err)
                 }
             }
         }

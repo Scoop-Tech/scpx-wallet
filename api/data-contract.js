@@ -29,10 +29,10 @@ module.exports = {
             }
             return res.data
         })
-        .catch(e => {
-            const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
+        .catch(err => {
+            const msg = err.response && err.response.data && err.response.data.msg ? err.response.data.msg : JSON.stringify(err)
             utilsWallet.reportErr(msg)
-            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Server Error', info: msg }})
+            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Create Account Failed', info: msg }})
         })
     },
 
@@ -43,7 +43,6 @@ module.exports = {
         return API.post(`assets`, req)
         .then(res => {
             utilsWallet.log(`assets POST - ok`)
-
             if (res && res.data) {
                 if (showNotification) {
                     utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
