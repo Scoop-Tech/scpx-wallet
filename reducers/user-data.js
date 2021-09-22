@@ -211,12 +211,12 @@ const handlers = {
                 return newState
             }
 
-            // update
+            // update or insert
             if (newState.addrBook[action.payload.symbol] === undefined) {
                 newState.addrBook[action.payload.symbol] = []
             }
             const book = newState.addrBook[action.payload.symbol]
-            var entry = book.find(p => p.addr === action.payload.addr)
+            var entry = book.find(p => p.addr === action.payload.addr) // keyed by addr
             if (!entry) {
                 entry = {}
                 book.push(entry)
@@ -228,7 +228,7 @@ const handlers = {
 
             if (updated) {
                 utilsWallet.logMajor('orange','black', `USERDATA_UPDATE_ADDRBOOK`, newState, { logServerConsole: true })
-                userData_SaveAll({ userData: newState, hideToast: false })
+                userData_SaveAll({ userData: newState, hideToast: true })
             }
             return newState
         }

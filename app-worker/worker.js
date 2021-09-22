@@ -51,6 +51,7 @@ self.bb_Sockets_pendingMessages = []
 self.bb_Sockets_subscriptions = []
 self.bb_Sockets_subId_NewBlock = []
 self.bb_Sockets_keepAliveIntervalID = []
+self.bb_Sockets_aborted = false
 
 self.insight_OwnAddrTxIds = {}    // server sending >1 new tx notification - processed inbound tx list; disregard if tx is already in this list (one list for all assets, probably fine!)
 self.blockbook_OwnAddrTxIds = {}  // "
@@ -186,6 +187,7 @@ async function handler(e) {
         }
 
         case 'INIT_BLOCKBOOK_ISOSOCKETS': {
+            self.bb_Sockets_aborted = false
             const walletFirstPoll = data.walletFirstPoll == true
             const timeoutMs = data.timeoutMs
 
@@ -217,6 +219,11 @@ async function handler(e) {
 
                     const elapsedMs = new Date().getTime() - startWaitAt
                     //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - elapsedMs=${elapsedMs} - allReady=`, allReady, { logServerConsole: true })
+                    if (self.bb_Sockets_aborted) { // received disconnect (logout) signal?
+                        clearInterval(wait_intId)
+                        utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ABORTED`, null, { logServerConsole: true })
+                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, aborted: true } }) 
+                    }
                     if (allReady) { // all requested connections setup
                         clearInterval(wait_intId)
                         if (symbolsConnected.length > 0) {
@@ -241,6 +248,8 @@ async function handler(e) {
         }
         case 'DISCONNECT_BLOCKBOOK_ISOSOCKETS': {
             resetConnectionStats()
+            self.bb_Sockets_aborted = true
+            self.bb_Sockets = {}
             const disconnectCount = workerBlockbook.isosocket_Disconnect_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
             if (disconnectCount > 0) {
                 utilsWallet.log(`appWorker >> ${self.workerId} DISCONNECT_BLOCKBOOK_ISOSOCKETS - DONE - disconnected=`, disconnectCount, { logServerConsole: true })

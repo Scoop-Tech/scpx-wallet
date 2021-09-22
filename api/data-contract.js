@@ -25,7 +25,7 @@ module.exports = {
             utilsWallet.log('account POST - ok' + JSON.stringify(res, 2, null))
             if (res && res.data) {
                 utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
-                    data: { type: 'success', headline: 'Created Wallet', info: 'Wrote Scoop chain', txid: res.data.txid } })
+                    data: { type: 'success', headline: 'Created Wallet!', info: 'Wrote Scoop chain', txid: res.data.txid } })
             }
             return res.data
         })

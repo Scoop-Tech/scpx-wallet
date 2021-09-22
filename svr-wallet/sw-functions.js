@@ -41,12 +41,14 @@ module.exports = {
                             appWorker.postMessageWrapped({ msg: 'DISCONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
                             appWorker.postMessageWrapped({ msg: 'CONNECT_ADDRESS_MONITORS', data: { wallet: storeState.wallet } })
                             
-                            if (data.symbolsConnected.length > 0) {
-                                log.info('walletConnect - triggering loadAllAsets...')
-                                opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
-                                .then(p => {
-                                    resolve({ ok: true })
-                                })
+                            if (!data.aborted) {
+                                if (data.symbolsConnected.length > 0) {
+                                    log.info('walletConnect - triggering loadAllAsets...')
+                                    opsWallet.loadAllAssets({ bbSymbols_SocketReady: data.symbolsConnected, store })
+                                    .then(p => {
+                                        resolve({ ok: true })
+                                    })
+                                }
                             }
                         }
                         else {
