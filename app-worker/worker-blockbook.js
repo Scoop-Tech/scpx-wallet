@@ -76,6 +76,10 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
             // .then(async (utxoData) => {
             isosocket_send_Blockbook(symbol, 'getAccountUtxo', {descriptor: address} , async (utxosData) => {
+
+                // if (address === 'bc1qkdnsl2aulf4ktfeyfsvysgknfsmpew77cqahqy') {
+                //     debugger
+                // }
                 
                 if (!utxosData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxosData`); reject(); return }                
                 if (utxosData.error) {
@@ -90,6 +94,10 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     
                     isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid } , async (utxoSpecificData) => {
                         //utilsWallet.debug(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
+
+                        // if (utxo.txid === '782fd42cda8112201f87f5f2a5721a664763d9df4b43d80a3dbb6de511379cce') {
+                        //     debugger
+                        // }
 
                         if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
                         if (utxoSpecificData.error) { 
@@ -113,7 +121,12 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                             // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
                             //      for the "protected" non-standard P2SH(DSIG/CLTV) outputs...
                             //
-                            if ((utxo.vout == utxoSpecific.n && (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)))
+                            if ((utxo.vout == utxoSpecific.n
+                                    && (
+                                       (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)) // p2sh
+                                    || (utxoSpecific.scriptPubKey.address !== undefined && utxoSpecific.scriptPubKey.address == address && utxoSpecific.scriptPubKey.type == 'witness_v0_keyhash') // p2wpkh
+                                    )
+                                )
                                 || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
                             ) { 
                                 resolveSpecificUtxos.push({

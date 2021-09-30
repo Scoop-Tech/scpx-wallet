@@ -127,13 +127,13 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
 var walletsMeta = {
     // utxo's
     'btc(s2)': { // p2wpkh "native" Bech32 unwrapped segwit btc
-        core_asset: true,
+        core_asset: true, 
         name: 'btc(s2)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
         priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
         type: WALLET_TYPE_UTXO,
-        addressType: ADDRESS_TYPE_BECH32,
+        addressType: ADDRESS_TYPE_BECH32,   
         symbol: 'BTC_SEG2',
         displayName: 'Bitcoin',
         desc: 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
@@ -147,7 +147,7 @@ var walletsMeta = {
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
     'btc(s)': { // p2sh-wrapped segwit btc
-        core_asset: true,
+        core_asset: true, // TODO: deprecate - make this the non-core (i.e. migrate p2sh P_OP... to bech32)
         name: 'btc(s)',
         use_BBv3: true,
         web: 'https://bitcoin.org/',
@@ -156,7 +156,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_SEG',
         OP_CLTV: true,
-        displayName: 'Bitcoin',
+        displayName: 'Bitcoin',     
         desc: '3-addr P2SH(P2WPKH)',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
