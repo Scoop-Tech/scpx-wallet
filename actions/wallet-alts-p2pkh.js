@@ -29,7 +29,7 @@ module.exports = {
         if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
             //network.consensusBranchId["4"] = 4122551051 // 0xf5b9230b -- Heartwood -- https://github.com/BitGo/bitgo-utxo-lib/releases/tag/1.7.1
             //network.consensusBranchId["4"] = 3925833126 // 0xe9ff75a6 -- Canopy
-            network.consensusBranchId["4"] = 0xc2d6d0b4 // NU5
+            network.consensusBranchId["4"] = 0xc2d6d0b4 // NU5 - https://z.cash/upgrade/nu5/
         }
         utilsWallet.log(`createTxHex - network`, network)
 
