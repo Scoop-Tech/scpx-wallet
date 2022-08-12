@@ -64,7 +64,7 @@ const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this 
 
 // wallet api
 //const API_DOMAIN =`http://localhost:3030/`
-const API_DOMAIN = IS_DEV ? `http://localhost:3030/` :
+const API_DOMAIN = //IS_DEV ? `http://localhost:3030/` :
                             `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 //

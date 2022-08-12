@@ -1,7 +1,10 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 const bitcoinJsLib = require('bitcoinjs-lib')
-const bitgoUtxoLib = require('bitgo-utxo-lib')
+//        "@bitgo/utxo-lib": "^2.4.1",
+//const bitgoUtxoLib = require('@bitgo/utxo-lib') //require('bitgo-utxo-lib') // -26: 16: old-consensus-branch-id (Expected c2d6d0b4, found e9ff75a6)
+const bitgoUtxoLib = require('bitgo-utxo-lib') 
+
 const bchAddr = require('bchaddrjs')
 const BigNumber = require('bignumber.js')
 const _ = require('lodash')
@@ -25,14 +28,15 @@ module.exports = {
 
         if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
             //network.consensusBranchId["4"] = 4122551051 // 0xf5b9230b -- Heartwood -- https://github.com/BitGo/bitgo-utxo-lib/releases/tag/1.7.1
-            network.consensusBranchId["4"] = 3925833126 // 0xe9ff75a6 -- Canopy
+            //network.consensusBranchId["4"] = 3925833126 // 0xe9ff75a6 -- Canopy
+            network.consensusBranchId["4"] = 0xc2d6d0b4 // NU5
         }
         utilsWallet.log(`createTxHex - network`, network)
 
         const txb = new bitgoUtxoLib.TransactionBuilder(network)
         if (asset.symbol === 'ZEC' || asset.symbol === 'ZEC_TEST') {
-            txb.setVersion(bitgoUtxoLib.Transaction.ZCASH_SAPLING_VERSION) // sapling: v4
-            txb.setVersionGroupId(2301567109) // sapling
+            txb.setVersion(bitgoUtxoLib.Transaction.ZCASH_SAPLING_VERSION) // sapling/blossom: v4
+            txb.setVersionGroupId(0x892F2085) // sapling/blossom || NU5 w/ v4 TX
             txb.setExpiryHeight(0) // if non-zero, will be removed from mempool at this block height, if not yet mined
         }
         
