@@ -51,7 +51,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = false 
+const WALLET_INCLUDE_ETH_TEST = true 
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -64,7 +64,7 @@ const WALLET_BIP44_COINTYPE_UNREGISTERED = 100000           // we start at this 
 
 // wallet api
 //const API_DOMAIN =`http://localhost:3030/`
-const API_DOMAIN = IS_DEV ? `http://localhost:3030/` :
+const API_DOMAIN = //IS_DEV ? `http://localhost:3030/` :
                             `https://scp-svr.azurewebsites.net/`
 const API_URL = `${API_DOMAIN}api/`
 //
@@ -136,7 +136,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,   
         symbol: 'BTC_SEG2',
         displayName: 'Bitcoin',
-        desc: 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
+        desc: 'Bech32 (bc1q-addr)', //'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -146,7 +146,7 @@ var walletsMeta = {
         tx_perInput_byteLength: 151,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(s)': { // p2sh-wrapped segwit btc
+    'btc(s)': { // p2sh-wrapped legacy segwit btc
         core_asset: true, // TODO: deprecate - make this the non-core (i.e. migrate p2sh P_OP... to bech32)
         name: 'btc(s)',
         use_BBv3: true,
@@ -157,7 +157,7 @@ var walletsMeta = {
         symbol: 'BTC_SEG',
         OP_CLTV: true,
         displayName: 'Bitcoin',     
-        desc: '3-addr P2SH(P2WPKH)',
+        desc: 'P2SH(P2WPKH) (3-addr)',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -187,7 +187,7 @@ var walletsMeta = {
         tx_perInput_byteLength: 148, //147,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(t)': {
+    'btc(t)': { // p2sh-wrapped legacy segwit btc testnet
         core_asset: true,
         name: 'btc(t)',
         //use_Insightv2: true,
@@ -196,9 +196,9 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BTC,
         symbol: 'BTC_TEST',
         OP_CLTV: true,
-        displayName: 'Test Bitcoin',
+        displayName: 'Testnet3',
         ccySymbol: '฿', //₿', 
-        desc: 'Testnet3',
+        desc: 'P2SH(P2WPKH) (2-addr)',
         displaySymbol: 'BTC#',
         imageUrl: 'img/asset-icon/btc_test.png',
         primaryColor: '#f2a235',
@@ -208,6 +208,26 @@ var walletsMeta = {
         tx_perInput_byteLength: 148,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
+    'btc(ts2)': { // p2wpkh "native" Bech32 unwrapped segwit btc testnet
+        core_asset: true, 
+        name: 'btc(ts2)',
+        use_BBv3: true,
+        web: 'https://bitcoin.org/',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_UTXO,
+        addressType: ADDRESS_TYPE_BECH32,   
+        symbol: 'BTC_TEST2',
+        displayName: 'Testnet3',
+        desc: 'Bech32 (tb1q-addr)', // 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
+        displaySymbol: 'BTC#',
+        imageUrl: 'img/asset-icon/btc_seg2.png',
+        primaryColor: '#f2a235',
+        sortOrder: 0,
+        bip44_index: 0, // ##
+        tx_perInput_vsize: 69,
+        tx_perInput_byteLength: 151,
+        tradingViewSymbol: "BITFINEX:BTCUSD",
+    },    
 
     'litecoin': {
         name: 'litecoin',
@@ -443,9 +463,9 @@ var walletsMeta = {
         type: WALLET_TYPE_ACCOUNT,
         addressType: ADDRESS_TYPE_ETH,
         symbol: 'ETH_TEST',
-        displayName: 'Test Ethereum',
+        displayName: 'Sepolia',
         ccySymbol: 'Ξ',
-        desc: 'Ropsten Testnet',
+        desc: 'Testnet',
         displaySymbol: 'ETH#',
         imageUrl: 'img/asset-icon/eth_test.png',
         primaryColor: '#6e7bc4',
@@ -991,6 +1011,9 @@ function addDynamicSecTokens() {
     // }
     if (WALLET_INCLUDE_BTC_TEST && !supportedWalletTypes.includes('btc(t)')) {
         supportedWalletTypes.push('btc(t)')
+    }
+    if (WALLET_INCLUDE_BTC_TEST && !supportedWalletTypes.includes('btc(ts2)')) {
+        supportedWalletTypes.push('btc(ts2)')
     }
     if (WALLET_INCLUDE_LTC_TEST && !supportedWalletTypes.includes('ltc(t)')) {
         supportedWalletTypes.push('ltc(t)')

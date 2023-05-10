@@ -383,6 +383,10 @@ function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockT
                 updateSymbols.push('BTC_SEG')
                 updateSymbols.push('BTC_SEG2')
             }
+            if (symbol === 'BTC_TEST') {
+                updateSymbols.push('BTC_TEST2')
+            }
+    
             if (symbol === 'BTC') {  
                 updateSymbols.forEach(p =>  {
                     dispatchActions.push({ 
@@ -444,7 +448,7 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                         //utilsWallet.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.log(`** enrichTx (worker-insight) - ${asset.symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
                             resolve(mappedTx)
                         })

@@ -35,6 +35,7 @@ module.exports = {
     blockbook_ws_config: {
       //'BTC_TEST' : { url: 'wss://tbtc2.trezor.io',                                           subBlocks: true },
         'BTC_TEST' : { url: 'wss://ac-dev0.net:10009',                                         subBlocks: true },
+        'BTC_TEST2': { url: 'wss://ac-dev0.net:10009',                                         subBlocks: true },
         'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
         'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true },
         'BTC_SEG2' : { url: 'wss://btc3.trezor.io',                                            subBlocks: true },

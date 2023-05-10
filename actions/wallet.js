@@ -418,6 +418,7 @@ function generateWalletAccount(p) {
 
     switch (genType) {
         case 'btc(t)':   defaultPrivKeys = walletShared.generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_TEST' }); break; 
+        case 'btc(ts2)': defaultPrivKeys = walletShared.generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_TEST2' }); break; 
 
         case 'bitcoin':  defaultPrivKeys = walletShared.generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC' }); break; 
         case 'btc(s)':   defaultPrivKeys = walletShared.generateUtxoBip44Wifs({ entropySeed: h_mpk, symbol: 'BTC_SEG' }); break; 

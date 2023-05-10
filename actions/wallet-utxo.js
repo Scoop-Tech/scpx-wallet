@@ -164,7 +164,7 @@ module.exports = {
                 resolve(ret)
             })        
         }
-        else if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' ) {
+        else if (symbol === 'BTC' || symbol === 'BTC_SEG' || symbol === 'BTC_SEG2' || symbol === 'BTC_TEST2') {
             return axios.get(configExternal.btcFeeOracle_BitGo) // BTC - Bitpay recommended: https://www.bitgo.com/api/v1/tx/fee?numBlocks=2 
             .then(res => {
                 if (res && res.data && res.data.feeByBlockTarget) {

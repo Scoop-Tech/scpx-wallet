@@ -151,6 +151,16 @@ const walletExternal_config = {
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
+    BTC_TEST2: {
+        donate: '???',
+        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc-testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc-testnet/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    
     DASH: {
         donate: 'Xw9oJkZHqMYiEiRTVjQ3sqhLBxyrZgd2WH',
         explorerPath: (address) => { return 'https://insight.dash.org/insight/address/' + address },

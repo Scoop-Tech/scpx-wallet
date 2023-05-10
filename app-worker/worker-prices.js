@@ -24,7 +24,11 @@ module.exports = {
         // get cryptocompare prices
         var symbols_cc = Object
         .keys(configWallet.walletsMeta)
-        .filter(p => { return p.indexOf("(t)") == -1 && configWallet.walletsMeta[p].priceSource == configWallet.PRICE_SOURCE_CRYPTOCOMPARE })
+        .filter(p => { return (
+            p.indexOf("(t)") == -1 && 
+            p.indexOf("(ts2)") == -1 && 
+        configWallet.walletsMeta[p].priceSource == configWallet.PRICE_SOURCE_CRYPTOCOMPARE
+        ) })
         .map(p => { return configWallet.walletsMeta[p].priceSource_CC_symbol || 
                         configWallet.walletsMeta[p].displaySymbol })
                         
@@ -34,6 +38,8 @@ module.exports = {
         //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
         axios.get(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${csv_symbols_cc}&tsyms=USD`)
         .then((resCryptocompare) => {
+            utilsWallet.log('resCryptocompare', resCryptocompare)
+
             if (resCryptocompare && resCryptocompare.data) {
                 const keys = Object.keys(resCryptocompare.data)
                 if (keys) {

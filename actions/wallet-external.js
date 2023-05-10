@@ -601,7 +601,7 @@ async function createTxHex(params) {
                      dsigCltvSpenderLockHours: payTo[0].dsigCltvSpenderLockHours,
                     })
                 }
-                else { // BTC || BTC_SEG2
+                else { // BTC || BTC_SEG2 || BTC_TEST2
                     //
                     // UTXO - P2PKH || P2WPKH - bitcoin-js tx builder
                     //

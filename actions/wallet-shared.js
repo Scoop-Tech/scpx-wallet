@@ -629,7 +629,7 @@ module.exports = {
 
             if (symbol === "BTC" || symbol === "LTC" || symbol === "LTC_TEST"
              || symbol === "BTC_SEG" || symbol === "BTC_TEST"
-             || symbol === "BTC_SEG2"
+             || symbol === "BTC_SEG2" || symbol === "BTC_TEST2"
             ) {
                 const addr = module.exports.getUtxoTypeAddressFromPubKeyHex(keyPair.getPublicKeyBuffer().toString('hex'), symbol)
                 utilsWallet.softNuke(keyPair)
@@ -666,7 +666,7 @@ module.exports = {
             const { address } = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: Buffer.from(pubKeyHex, 'hex'), network }), network })
             return address
         }
-        else if (symbol === "BTC_SEG2") { // unwrapped P2WPKH -- w/ bitgo-utxo-lib -- NATIVE/UNWRAPPED SEGWIT (b addr, Bech32)
+        else if (symbol === "BTC_SEG2" || symbol === "BTC_TEST2") { // unwrapped P2WPKH -- w/ bitgo-utxo-lib -- NATIVE/UNWRAPPED SEGWIT (bc1q | tb1q addr's, Bech32)
             const address = bitgoUtxoLib.address.fromOutputScript(bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(Buffer.from(pubKeyHex, 'hex'))))
             return address
         }
@@ -776,10 +776,11 @@ module.exports = {
     
         const coininfo = require('coininfo')
         switch (symbol) { 
-            case "BTC":      return bitgoUtxoLib.networks.bitcoin
-            case "BTC_SEG":  return bitgoUtxoLib.networks.bitcoin
-            case "BTC_SEG2": return bitgoUtxoLib.networks.bitcoin
-            case "BTC_TEST": return bitgoUtxoLib.networks.testnet
+            case "BTC":       return bitgoUtxoLib.networks.bitcoin
+            case "BTC_SEG":   return bitgoUtxoLib.networks.bitcoin
+            case "BTC_SEG2":  return bitgoUtxoLib.networks.bitcoin
+            case "BTC_TEST":  return bitgoUtxoLib.networks.testnet
+            case "BTC_TEST2": return bitgoUtxoLib.networks.testnet
     
             case "LTC":      return bitgoUtxoLib.networks.litecoin
             case "LTC_TEST": return coininfo('LTC-TEST').toBitcoinJS()
