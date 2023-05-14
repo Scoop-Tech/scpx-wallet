@@ -4,13 +4,11 @@ const bitcoinJsLib = require('bitcoinjs-lib')
 const bip65 = require('bip65')
 const _ = require('lodash')
 
+const walletShared = require('./wallet-shared')
 const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
 const configWallet = require('../config/wallet')
 const { walletExternal_config } = require('../config/wallet-external')
-const opsWallet = require('./wallet')
-const walletShared = require('./wallet-shared')
-const { getAll_txs, getAll_local_txs } = require('../utils')
 
 const DSIGCTLV_ID_vCur = Buffer.from( // (max 4 bytes)
     `481fe761`  // protect_op ID stamp: "12100504" + "xx", where xx=p_op version; v1 = 1210050401 = 0x481fe761
@@ -172,7 +170,7 @@ module.exports = {
     createTxHex_BTC_P2SH: (params) => {
         const { asset, validationMode, addrPrivKeys, txSkeleton, dsigCltvSpenderPubKey, dsigCltvSpenderLockHours } = params
         const allTxs = utilsWallet.getAll_txs(asset)
-        const network = opsWallet.getUtxoNetwork(asset.symbol)
+        const network = walletShared.getUtxoNetwork(asset.symbol)
         const devFeeAddr = walletExternal_config[asset.symbol].donate
         var tx, hex, vSize, byteLength  
     
