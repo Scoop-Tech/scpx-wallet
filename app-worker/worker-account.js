@@ -39,7 +39,7 @@ module.exports = {
 //  (b) if we use blockbook, we have exactly the same model as utxo's -- i.e. cached IndexedDB and keyed on txid: faster, more reliable and less bandwidth
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
-    //utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
+    utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
     if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
     
     // ETH v2
@@ -51,6 +51,8 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
         self.web3_Sockets[wsSymbol] = undefined 
     }
     const web3 = self.web3_Sockets[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[wsSymbol].httpProvider))
+    // utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), web3=`, web3)
+    // utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), currentProvider.host=`, web3.currentProvider.host)
 
     var height
     try {
@@ -460,7 +462,7 @@ function getTxDetails_web3(resolve, web3, wallet, asset, tx, cacheKey, ownAddres
                         //utilsWallet.idb_tx.setItem(cacheKey, mappedTx)
                         utilsWallet.txdb_setItem(cacheKey, mappedTx)
                         .then(() => {
-                            utilsWallet.log(`** enrichTx - ${symbol} ${tx.txid} - added to cache ok`)
+                            utilsWallet.log(`** enrichTx (worker-account, ${web3.currentProvider.host}) - ${symbol} ${tx.txid} - added to cache ok`)
                             mappedTx.fromCache = false
 
                             if (utilsWallet.isERC20(asset) && mappedTx.erc20 !== asset.symbol) {

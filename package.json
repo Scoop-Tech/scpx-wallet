@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.15.0",
+    "version": "0.15.2",
     "description": "Scoop Core Wallet: dual-signature timelock crypto wallet - multi-asset, cross-platform and open-source",
     "keywords": [
         "bitprotect",
@@ -17,19 +17,9 @@
         "btc",
         "ethereum",
         "eth",
-        "scoop",
-        "litecoin",
-        "ltc",
-        "digibyte",
-        "dgb",
         "erc20",
-        "trueusd",
-        "tusd",
         "tether",
-        "usdt",
-        "chainlink",
-        "link",
-        "swap"
+        "usdt"
     ],
     "repository": {
         "type": "git",
@@ -54,11 +44,6 @@
             "npm-cache",
             ".npm"
         ]
-    },
-    "engineStrict": true,
-    "engines": {
-        "node": "14.16.0",
-        "npm": "6.14.11"
     },
     "author": "Dominic Morris",
     "license": "AGPL-3.0",
@@ -119,5 +104,10 @@
         "cross-env": "^7.0.3",
         "jest": "21.2.1",
         "nodemon": "^1.19.0"
+    },
+    "engineStrict": true,
+    "engines": {
+        "node": "14.16.0",
+        "npm": "6.14.11"
     }
 }

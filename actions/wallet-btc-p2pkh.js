@@ -48,7 +48,7 @@ module.exports = {
             for (var i = 0; i < txSkeleton.inputs.length; i++) {
                 utilsWallet.log(`${asset.symbol} UTXO TX - input=`, txSkeleton.inputs[i])
 
-                if (asset.symbol === "BTC_SEG2") { // P2WPKH Bech32
+                if (asset.symbol === "BTC_SEG2" || asset.symbol === "BTC_TEST2") { // P2WPKH Bech32
                     // https://github.com/bitcoinjs/bitcoinjs-lib/issues/999
                     var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
                     var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)
@@ -63,7 +63,7 @@ module.exports = {
             }
 
             // sign
-            if (asset.symbol === "BTC_SEG2") { // P2WPKH Bech32
+            if (asset.symbol === "BTC_SEG2" || asset.symbol === "BTC_TEST2") { // P2WPKH Bech32
                 for (var i = 0; i < txSkeleton.inputs.length; i++) {
                     var wif = addrPrivKeys.find(p => { return p.addr === txSkeleton.inputs[i].utxo.address }).privKey
                     var keyPair = bitcoinJsLib.ECPair.fromWIF(wif, network)

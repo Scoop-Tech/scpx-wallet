@@ -498,21 +498,22 @@ async function handler(e) {
     return Promise.resolve()
 
     function GetSyncInfo(symbol) {
-        //utilsWallet.debug(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
-
-        if ((symbol === 'ZEC_TEST' && !configWallet.WALLET_INCLUDE_ZEC_TEST)
-         || (symbol === 'LTC_TEST' && !configWallet.WALLET_INCLUDE_LTC_TEST)
-         || (symbol === 'BTC_TEST' && !configWallet.WALLET_INCLUDE_BTC_TEST)
-         || (symbol === 'ETH_TEST' && !configWallet.WALLET_INCLUDE_ETH_TEST)
+        if ((symbol === 'ZEC_TEST'  && !configWallet.WALLET_INCLUDE_ZEC_TEST)
+         || (symbol === 'LTC_TEST'  && !configWallet.WALLET_INCLUDE_LTC_TEST)
+         || (symbol === 'BTC_TEST'  && !configWallet.WALLET_INCLUDE_BTC_TEST)
+         || (symbol === 'BTC_TEST2' && !configWallet.WALLET_INCLUDE_BTC_TEST)
+         || (symbol === 'ETH_TEST'  && !configWallet.WALLET_INCLUDE_ETH_TEST)
         ) {
             return
         }
 
+        utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
+
         const meta = configWallet.getMetaBySymbol(symbol)
         if (meta.type === configWallet.WALLET_TYPE_UTXO) {
             // don't send redundant requests: causes 429's
-            // (BTC's GetSyncInfo will update BTC_SEG)
-            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2') return 
+            // (BTC_SEG's GetSyncInfo will update BTC_SEG2)
+            // if (symbol === 'BTC_SEG2' || symbol === 'BTC_TEST2') return 
 
             if (meta.use_BBv3) {
                 workerBlockbook.getSyncInfo_Blockbook_v3(symbol, undefined, undefined, networkStatusChanged)
