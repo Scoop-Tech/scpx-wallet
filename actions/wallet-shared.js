@@ -78,7 +78,7 @@ module.exports = {
             if (!nonStdAccount) {
                 nonStdAccount = { // new non-std account
                     nonStd: true,
-                      name: `Protected ${meta.displayName}`,
+                      name: `Protected ${meta.displaySymbol}`,
                   privKeys: [] // we sign dsigCltv addresses with keys of the csvSpender ("beneficiary"), or of the nonCsvSpender ("benefactor")
                 }
                 genAsset.accounts.push(nonStdAccount)

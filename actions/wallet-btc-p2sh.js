@@ -6,9 +6,11 @@ const _ = require('lodash')
 
 const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
-const { syslog } = require('winston/lib/winston/config')
-const { getAll_txs, getAll_local_txs } = require('../utils')
+const configWallet = require('../config/wallet')
+const { walletExternal_config } = require('../config/wallet-external')
+const opsWallet = require('./wallet')
 const walletShared = require('./wallet-shared')
+const { getAll_txs, getAll_local_txs } = require('../utils')
 
 const DSIGCTLV_ID_vCur = Buffer.from( // (max 4 bytes)
     `481fe761`  // protect_op ID stamp: "12100504" + "xx", where xx=p_op version; v1 = 1210050401 = 0x481fe761
@@ -170,13 +172,13 @@ module.exports = {
     createTxHex_BTC_P2SH: (params) => {
         const { asset, validationMode, addrPrivKeys, txSkeleton, dsigCltvSpenderPubKey, dsigCltvSpenderLockHours } = params
         const allTxs = utilsWallet.getAll_txs(asset)
-        const opsWallet = require('./wallet')
         const network = opsWallet.getUtxoNetwork(asset.symbol)
+        const devFeeAddr = walletExternal_config[asset.symbol].donate
         var tx, hex, vSize, byteLength  
     
         const psbt = new bitcoinJsLib.Psbt({ network })
         psbt.setVersion(2)
-        utilsWallet.log(`createTxHex_BTC_P2SH validationMode=${validationMode} (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey}), txSkeleton=`, txSkeleton)
+        utilsWallet.log(`createTxHex_BTC_P2SH validationMode=${validationMode} devFeeAddr=${devFeeAddr} (dsigCltvSpenderPubKey=${dsigCltvSpenderPubKey}), txSkeleton=`, txSkeleton)
         
         // 
         // validate P_OP params -
@@ -186,7 +188,7 @@ module.exports = {
         //      output[1] must have format: { addr: BENEFACTOR_ADDR (must match first output), value: >=0 (will be padded up to P_OP_DUST as necessary) } 
         //
         //   then, dynamically:
-        //      + we will insert the OP_RETURN versioning & data output
+        //      + we will insert the OP_RETURN (versioning & data) output
         //
         //   and to satisfy nodes' min-relay/dust requirements:
         //      + we will insert the beneficiary identifier output with P_OP_DUST (taking from PROTECT_AMOUNT)
@@ -222,7 +224,7 @@ module.exports = {
         // add the outputs
         //
         txSkeleton.outputs.forEach(output => {
-            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output (1 dymmy output in skeleton ==> 3 outputs)
+            if (output.change == false && dsigCltvSpenderPubKey !== undefined) { // PROTECT_OP non-standard output (1 dummy output in skeleton ==> 3 outputs)
 
                 if (dsigCltvSpenderLockHours === undefined || !Number.isInteger(dsigCltvSpenderLockHours) || dsigCltvSpenderLockHours > 0xffff) { 
                     throw `P_OP: dsigCltvSpenderLockHours`

@@ -115,7 +115,7 @@ function erc20_ropstenAddrExplorer(tokenAddr, holderAddr) {
 
 const walletExternal_config = {
     
-    BTC: {
+    BTC: { // BTC mainnet - legacy, unused
         donate: '192baToCaVeVTrsYdKTib8QXkoL4Jppg9x', // d+10
         explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
         txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
@@ -124,16 +124,25 @@ const walletExternal_config = {
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_SEG: {
-        donate: '32FtNE5ShUDh4wQJm3bGYGtjKpFeJqeVEw',
-        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+    BTC_SEG: { // BTC mainnet - p2sh - current
+        donate: '3BpYKfAp3Rks5ykGJXJNifJjnnH6me7Rmo', // d+11
+        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_TEST: { // BTC TestNet3 -- https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
+    BTC_SEG2: { // BTC mainnet - p2wpkh - target
+        donate: 'bc1qpm6knrsjl6cjfseyqzpwqczvynnrlh3wtzpuak', // d+11
+        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
+        api: {
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
+        }
+    },
+    BTC_TEST: { // BTC testnet3 - p2sh - https://coinfaucet.eu/en/btc-testnet/  https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
         donate: '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv', // testnets2@scoop.tech P2SH
         explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
         txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
@@ -142,23 +151,10 @@ const walletExternal_config = {
             block: (blockHash, page) => { return `${btcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_SEG2: {
-        donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
-        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
-        // explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-        // txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
-        api: {
-            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
-            block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
-        }
-    },
-    BTC_TEST2: {
+    BTC_TEST2: { // BTC testnet3 - p2wpkh - target
         donate: 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9', // testnets2@scoop.tech Bech32 Testnet
         explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
         txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
-        // explorerPath: (address) => { return 'https://www.blockchain.com/en/btc-testnet/address/' + address },
-        // txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc-testnet/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
