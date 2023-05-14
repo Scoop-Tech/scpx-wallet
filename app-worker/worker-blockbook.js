@@ -94,7 +94,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     return new Promise((resolveSpecificUtxoOp) => {
 
                         isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid }, async (utxoSpecificData) => {
-                            utilsWallet.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
+                            //utilsWallet.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
 
                             // if (utxo.txid === 'ca550151752838a87e7e89edb8f2fcf508377c1a537da185e54d36e430128af9') {
                             //     debugger
@@ -117,10 +117,10 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                             const resolveSpecificUtxos = []
                             for (var j = 0; j < utxoSpecificData.vout.length; j++) {
                                 const utxoSpecific = utxoSpecificData.vout[j]
-                                console.log(`utxoSpecific ${address} ${utxo.txid} ${j} scriptPubKey.type=${utxoSpecific.scriptPubKey.type}`, utxoSpecific)
-                                if (address === 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9') {
-                                    debugger
-                                }
+                                // console.log(`utxoSpecific ${address} ${utxo.txid} ${j} scriptPubKey.type=${utxoSpecific.scriptPubKey.type}`, utxoSpecific)
+                                // if (address === 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9') {
+                                //     debugger
+                                // }
 
                                 // 
                                 // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
