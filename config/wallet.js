@@ -136,7 +136,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,   
         symbol: 'BTC_SEG2',
         displayName: 'Bitcoin',
-        desc: 'Bech32 (bc1q-addr)', //'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
+        desc: 'P2WPKH Bech32 (bc1q-addr)', //'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',
@@ -208,7 +208,7 @@ var walletsMeta = {
         tx_perInput_byteLength: 148,
         tradingViewSymbol: "BITFINEX:BTCUSD",
     },
-    'btc(ts2)': { // p2wpkh "native" Bech32 unwrapped segwit btc testnet
+    'btc(ts2)': { // p2wpkh native Bech32 unwrapped segwit btc testnet
         core_asset: true, 
         name: 'btc(ts2)',
         use_BBv3: true,
@@ -218,7 +218,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,   
         symbol: 'BTC_TEST2',
         displayName: 'Testnet3',
-        desc: 'Bech32 (tb1q-addr)', // 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
+        desc: 'P2WPKH Bech32 (tb1q-addr)', // 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC#',
         imageUrl: 'img/asset-icon/btc_seg2.png',
         primaryColor: '#f2a235',

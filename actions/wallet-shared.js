@@ -667,7 +667,7 @@ module.exports = {
             return address
         }
         else if (symbol === "BTC_SEG2" || symbol === "BTC_TEST2") { // unwrapped P2WPKH -- w/ bitgo-utxo-lib -- NATIVE/UNWRAPPED SEGWIT (bc1q | tb1q addr's, Bech32)
-            const address = bitgoUtxoLib.address.fromOutputScript(bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(Buffer.from(pubKeyHex, 'hex'))))
+            const address = bitgoUtxoLib.address.fromOutputScript(bitgoUtxoLib.script.witnessPubKeyHash.output.encode(bitgoUtxoLib.crypto.hash160(Buffer.from(pubKeyHex, 'hex'))), network)
             return address
         }
         else return null //throw 'Unsupported'

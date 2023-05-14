@@ -117,7 +117,10 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                             const resolveSpecificUtxos = []
                             for (var j = 0; j < utxoSpecificData.vout.length; j++) {
                                 const utxoSpecific = utxoSpecificData.vout[j]
-                                //console.log(`utxoSpecific ${utxo.txid} ${j} scriptPubKey.type=${utxoSpecific.scriptPubKey.type}`, utxoSpecific)
+                                console.log(`utxoSpecific ${address} ${utxo.txid} ${j} scriptPubKey.type=${utxoSpecific.scriptPubKey.type}`, utxoSpecific)
+                                if (address === 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9') {
+                                    debugger
+                                }
 
                                 // 
                                 // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
@@ -125,8 +128,11 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                                 //
                                 if ((utxo.vout == utxoSpecific.n
                                     && (
-                                        (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)) // p2sh
-                                        || (utxoSpecific.scriptPubKey.address !== undefined && utxoSpecific.scriptPubKey.address == address && utxoSpecific.scriptPubKey.type == 'scripthash') // p2wpkh
+                                        (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)) // p2sh (p2wpkh)
+                                        || (utxoSpecific.scriptPubKey.address !== undefined && utxoSpecific.scriptPubKey.address == address // p2wpkh native bech32
+                                            && (utxoSpecific.scriptPubKey.type == 'scripthash' 
+                                             || utxoSpecific.scriptPubKey.type == 'witness_v0_keyhash')
+                                        )
                                     )
                                 )
                                     || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return

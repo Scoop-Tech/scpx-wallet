@@ -144,23 +144,27 @@ const walletExternal_config = {
     },
     BTC_SEG2: {
         donate: 'bc1qtq8yj8glt0d5salq7wcvj6yzmgs6k3e8cvmdak',
-        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
-        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
+        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
+        // explorerPath: (address) => { return 'https://www.blockchain.com/en/btc/address/' + address },
+        // txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
     BTC_TEST2: {
-        donate: '???',
-        explorerPath: (address) => { return 'https://www.blockchain.com/en/btc-testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc-testnet/tx/' + txid },
+        donate: 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9', // testnets2@scoop.tech Bech32 Testnet
+        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
+        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
+        // explorerPath: (address) => { return 'https://www.blockchain.com/en/btc-testnet/address/' + address },
+        // txExplorerPath: (txid) => { return 'https://www.blockchain.com/btc-testnet/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    
+
     DASH: {
         donate: 'Xw9oJkZHqMYiEiRTVjQ3sqhLBxyrZgd2WH',
         explorerPath: (address) => { return 'https://insight.dash.org/insight/address/' + address },
