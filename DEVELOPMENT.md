@@ -107,7 +107,6 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
         {
             "name": "local: new",
             "type": "node",
-            "runtimeVersion": "10.22.0",
             "request": "launch",
             "env": {
                 "NODE_OPTIONS": "--experimental-worker",
@@ -137,7 +136,6 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
         {
             "name": "tests: integration",
             "type": "node",
-            "runtimeVersion": "10.22.0",
             "request": "launch",    
             "env": {
                 "NODE_OPTIONS": "--experimental-worker",
@@ -153,7 +151,6 @@ Visual Studio Code is recommended. A template ./vscode/launch.json with some com
             "autoAttachChildProcesses": true,
             "console": "externalTerminal",
             "internalConsoleOptions": "neverOpen",
-            "disableOptimisticBPs": true,
             "windows": {
               "program": "${workspaceFolder}/node_modules/jest/bin/jest",
             }        

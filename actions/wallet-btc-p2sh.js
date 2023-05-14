@@ -233,7 +233,6 @@ module.exports = {
                 const lockTime = bip65.encode({ utc: (Math.floor(Date.now() / 1000)) + (3600 * lockHours) }) 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(dsigCltvSpenderPubKey, 'hex'))
                 var nonCltvSpender
-                debugger
                 var wif = addrPrivKeys.find(p => { return p.addr === output.address }).privKey
                 try {
                     nonCltvSpender = bitcoinJsLib.ECPair.fromWIF(wif, network)
