@@ -3,6 +3,7 @@
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bip65 = require('bip65')
 const _ = require('lodash')
+const BigNumber = require('bignumber.js')
 
 const walletShared = require('./wallet-shared')
 const actionsWallet = require('../actions')
@@ -31,7 +32,9 @@ function dsigCltv(cltvSpender, nonCltvSpender, lockTime) {
 )}
 
 const P_OP_DUST = 546
-const P_OP_MIN_GROSS = P_OP_DUST * 2 + 800 // min. 2 dust tracking outputs + something reasonably greater than dust
+const P_OP_DUST_BTC = new BigNumber(P_OP_DUST).div(100000000).toString()
+const P_OP_MIN_GROSS = P_OP_DUST * 3 + 800 // min. 2 dust tracking outputs + 1 dust dev fee output, plus something reasonably greater than dust
+const P_OP_DEV_FEE_PERC = 0.005 // 0.5% developer fee
 
 module.exports = {
 
@@ -53,7 +56,7 @@ module.exports = {
         //   * vout=1 op_return (versioning)
         //   * vout=2 p2sh zero output (beneficiary) == P_OP_DUST       (for beneficiary ID)
         //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST      (for benefactor ID)
-        //   *  >> TODO: vout=4 p2sh tip output (developer) ...
+        //   * vout=4 p2sh dev_fee output (developer)
         //
         // then, harvest the p2sh-addr and add it to our nonStd addr's list... (wallet-shared.addNonStdAddress_DsigCltv...)
         asset.addresses.filter(p => !p.isNonStdAddr)
@@ -78,11 +81,12 @@ module.exports = {
                 if (!tx.utxo_vout) { 
                     return
                 }
-                if (tx.utxo_vout.length != 4) return            // required anatomy...
-                if (tx.utxo_vout[0].value == 0) return          // protected output (dsigCltv)
-                if (tx.utxo_vout[1].value != 0) return          // op_return output (versioning)
-              //if (tx.utxo_vout[2].value != P_OP_DUST) return  // beneficiary ID output
-              //if (tx.utxo_vout[3].value != P_OP_DUST) return  // benefactor change output
+                if (tx.utxo_vout.length != 5) return                // required anatomy...
+                if (tx.utxo_vout[0].value == 0) return              // protected output (dsigCltv)
+                if (tx.utxo_vout[1].value != 0) return              // op_return output (versioning)
+                if (tx.utxo_vout[2].value != P_OP_DUST_BTC) return  // beneficiary ID output - must be dust
+                if (tx.utxo_vout[3].value < P_OP_DUST_BTC) return   // benefactor change output - at least dust
+                if (tx.utxo_vout[4].value < P_OP_DUST_BTC) return   // dev_fee - at least dust
 
                 if (!tx.utxo_vout.every(utxo => utxo.scriptPubKey !== undefined // sanity checks
                      && utxo.scriptPubKey.addresses !== undefined 
@@ -96,7 +100,7 @@ module.exports = {
                 var pubKeyBeneficiary = undefined
                 var pubKeyBenefactor = undefined
                 tx.utxo_vout.forEach(utxo => { // look for our protect_op version id in an op_return output at index vout=1 
-                    if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) {
+                    if (utxo && utxo.scriptPubKey && utxo.scriptPubKey.hex && utxo.scriptPubKey.hex.length > 2 && utxo.n == 1) { // op_return output
                         const firstOp = parseInt('0x' + utxo.scriptPubKey.hex.substring(0,2))
                         if (firstOp == bitcoinJsLib.script.OPS.OP_RETURN) {
                             const asm = bitcoinJsLib.script.decompile(Buffer.from(utxo.scriptPubKey.hex, 'hex'))
@@ -125,7 +129,7 @@ module.exports = {
                     const _tx = _.cloneDeep(tx)
                     _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
                     _tx.p_op_addrBeneficiary = tx.utxo_vout[2].scriptPubKey.addresses[0]
-                    _tx.p_op_addrBenefactor = addrBenefactor //tx.utxo_vout[3].scriptPubKey.addresses[0]
+                    _tx.p_op_addrBenefactor = addrBenefactor
                     _tx.p_op_valueProtected = tx.utxo_vout[0].value
                     _tx.p_op_weAreBeneficiary = ownStdAddresses.some(p => p == _tx.p_op_addrBeneficiary)
                     _tx.p_op_weAreBenefactor = ownStdAddresses.some(p => p == _tx.p_op_addrBenefactor)
@@ -134,6 +138,8 @@ module.exports = {
                     _tx.p_op_lockHours = txProtectOpLockHours // hrs to lock
                     _tx.p_op_pubKeyBeneficiary = pubKeyBeneficiary.toString('hex')
                     _tx.p_op_pubKeyBenefactor = pubKeyBenefactor.toString('hex')
+                    _tx.p_op_addrDevFee = tx.utxo_vout[4].scriptPubKey.addresses[0]
+                    _tx.p_op_valueDev = tx.utxo_vout[4].value
 
                     const dispatchAction = {
                         type: actionsWallet.WCORE_SET_ENRICHED_TXS,
@@ -153,11 +159,11 @@ module.exports = {
                     utilsWallet.log(`p_op_weAreBenefactor=${_tx.p_op_weAreBenefactor}`)
                     utilsWallet.log(`p_op_unlockDateTime=${_tx.p_op_unlockDateTime}`)
                     utilsWallet.log(`p_op_unlockDateTime.toLocaleString()=`, _tx.p_op_unlockDateTime.toLocaleString())
-                    
                     utilsWallet.log(`p_op_lockHours=`, _tx.p_op_lockHours)
-
                     utilsWallet.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
                     utilsWallet.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
+                    utilsWallet.log(`p_op_addrDevFee=${_tx.p_op_addrDevFee}`)
+                    utilsWallet.log(`p_op_valueDev=${_tx.p_op_valueDev}`)
 
                     if (!nonStdAddrs_Txs.some(p => p.protect_op_txid == tx.txid)) {
                         nonStdAddrs_Txs.push({ nonStdAddr: _tx.p_op_addrNonStd, protect_op_txid: tx.txid})
@@ -172,6 +178,7 @@ module.exports = {
         const allTxs = utilsWallet.getAll_txs(asset)
         const network = walletShared.getUtxoNetwork(asset.symbol)
         const devFeeAddr = walletExternal_config[asset.symbol].donate
+        let devFee = 0
         var tx, hex, vSize, byteLength  
     
         const psbt = new bitcoinJsLib.Psbt({ network })
@@ -182,15 +189,21 @@ module.exports = {
         // validate P_OP params -
         //
         //   if caller specifies dsigCltvSpenderPubKey, then:
-        //      output[0] must have format: { addr: BENEFACTOR_ADDR (will be overridden),      value: PROTECT_AMOUNT (>= P_OP_MIN_GROSS, will have 2x dust & dev fees subtracted) }
-        //      output[1] must have format: { addr: BENEFACTOR_ADDR (must match first output), value: >=0 (will be padded up to P_OP_DUST as necessary) } 
+        //      output[0] placeholder - must have format: { addr: BENEFACTOR_ADDR (will be overridden),      value: PROTECT_AMOUNT (>= P_OP_MIN_GROSS, will have 2x dust & dev fee (at minimum, dust) subtracted) }
+        //      output[1] change      - must have format: { addr: BENEFACTOR_ADDR (must match first output), value: >=0 (will be padded up to P_OP_DUST as necessary) } 
         //
-        //   then, dynamically:
+        //      ...we will calculate and add here inline a dev_fee at output[2] (taking from PROTECT_AMOUNT)
+        //
+        //   then, dynamically we will transform input[0] into the following 3 inputs:
+        //      + we will insert the P2SH non-standard (P2SH(DSIG/CLTV)) locking output
         //      + we will insert the OP_RETURN (versioning & data) output
+        //      + we will insert the P2SH beneficiary ID output
         //
-        //   and to satisfy nodes' min-relay/dust requirements:
-        //      + we will insert the beneficiary identifier output with P_OP_DUST (taking from PROTECT_AMOUNT)
-        //      + we will pad the mandatory change ouput up to P_OP_DUST (taking from PROTECT_AMOUNT) 
+        //   i.e. dsigCltvSpenderPubKey ? output.len(2) ==> output.len(5) { 0: locking, 1: op_return, 2: P2SH (beneficiary ID), 3: P2SH change (benefactor ID), 4: P2SH dev_fee }
+        //
+        //    to satisfy nodes' min-relay/dust requirements:
+        //      + we will insert the beneficiary ID output with P_OP_DUST (taking from PROTECT_AMOUNT)
+        //      + we will pad the mandatory change ouput up to P_OP_DUST (taking from PROTECT_AMOUNT)
         //
         // https://bitcoin.stackexchange.com/questions/10986/what-is-meant-by-bitcoin-dust
         // https://www.coindesk.com/tech/2020/08/18/dust-attacks-make-a-mess-in-bitcoin-wallets-but-there-could-be-a-fix/
@@ -200,23 +213,49 @@ module.exports = {
             if (txSkeleton.outputs[0].adress != txSkeleton.outputs[1].adress) throw 'P_OP: output mismatch'
             if (txSkeleton.outputs[0].value < P_OP_MIN_GROSS) throw 'P_OP: bad P_OP_MIN_GROSS'
             if (!txSkeleton.outputs[1].change) throw 'P_OP: missing explicit change output'
+
+            // insert the dev fee output
+            const protectAmount = new BigNumber(txSkeleton.outputs[0].value)
+            devFee = new BigNumber(protectAmount.times(0.005).toFixed(0))// 0.5% dev fee
+            if (devFee.lt(new BigNumber(P_OP_DUST))) { // pad dev fee up to dust
+                devFee = new BigNumber(P_OP_DUST)
+            }
+            const protectValueNet = protectAmount.minus(devFee)
+           
+            console.log('protectAmount.toString()', protectAmount.toString())
+            console.log('devFee.toString())', devFee.toString())
+            console.log('protectValueNet.toString())', protectValueNet.toString())
+
+            // console.log('protectAmount', protectAmount.precision(0))
+            // console.log('devFee', devFee.precision(0))
+            // console.log('protectValueNet', protectValueNet.precision(0))
+
+            // add dev fee output
+            const devFeeOutput = { address: devFeeAddr, value: Number(devFee.toString()) }
+            txSkeleton.outputs.push(devFeeOutput)
+            //txSkeleton.outputs[0].value -= devFee.precision(0) // take off the dev fee
+            txSkeleton.outputs[0].value = Number(new BigNumber(txSkeleton.outputs[0].value).minus(devFee).toFixed(0))
             
-            txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take off one dust amount: it will used in the beneficiary ID output
+            // take off one dust amount: it will used in the beneficiary ID output
+            //txSkeleton.outputs[0].value -= P_OP_DUST * 1 
+            txSkeleton.outputs[0].value = Number(new BigNumber(txSkeleton.outputs[0].value).minus(new BigNumber(P_OP_DUST * 1)).toFixed(0))
             
-            // pad change up to min. dust output
-            if (txSkeleton.outputs[1].value < P_OP_DUST) {
-                const dustDelta = Number(P_OP_DUST) - Number(txSkeleton.outputs[1].value)
-                txSkeleton.outputs[1].value = Number(txSkeleton.outputs[1].value) + dustDelta
-                txSkeleton.outputs[0].value = Number(txSkeleton.outputs[0].value) - dustDelta
+            // pad change up to min. dust output - ensures a change output for consistent anatomy
+            if (new BigNumber(txSkeleton.outputs[1].value).lt(new BigNumber(P_OP_DUST))) { 
+                const dustDelta = new BigNumber(P_OP_DUST).minus(new BigNumber(txSkeleton.outputs[1].value))
+                txSkeleton.outputs[0].value = Number(new BigNumber(txSkeleton.outputs[0].value).minus(dustDelta).toFixed(0))
+                txSkeleton.outputs[1].value = Number(new BigNumber(txSkeleton.outputs[1].value).plus(dustDelta).toFixed(0))
             }   
+
+            //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
+            //   * vout=1 op_return (versioning, pubkeys x2 + timelock value)
+            //   * vout=2 p2sh beneficiary ID output (beneficiary) == P_OP_DUST (for beneficiary ID)
+            //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST          (for benefactor ID)
+            //   * vout=4 p2sh dev_fee output (developer) >= P_OP_DUST          (for dev fee)
             
             //txSkeleton.outputs[0].value -= P_OP_DUST * 1 // take another one off for the change benefactor ID (change) output
             //txSkeleton.outputs[1].value = P_OP_DUST
         }
-        //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
-        //   * vout=1 op_return (versioning, pubkeys x2 + timelock value)
-        //   * vout=2 p2sh beneficiary ID output (beneficiary) == P_OP_DUST (for beneficiary ID)
-        //   * vout=3 p2sh change output (benefactor) >= P_OP_DUST          (for benefactor ID)
 
         //
         // add the outputs
@@ -260,8 +299,9 @@ module.exports = {
                 //   reference the beneficiary address (so it can retrieve this TX and parse the embedded data)
                 const ctlvSpenderP2sh = bitcoinJsLib.payments.p2sh({ redeem: bitcoinJsLib.payments.p2wpkh({ pubkey: Buffer.from(dsigCltvSpenderPubKey, 'hex'), network }), network })
                 psbt.addOutput({ address: ctlvSpenderP2sh.address, value: Number(Number(P_OP_DUST).toFixed(0)) })
+
             }
-            else { // standard NP2WPKH
+            else { // standard P2SH output (for dsigCltvSpenderPubKey: change or dev_fee)
                 psbt.addOutput({ 
                     address: output.address, 
                     value: Number(Number(output.value).toFixed(0))
