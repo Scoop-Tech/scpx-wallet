@@ -130,16 +130,24 @@ module.exports = {
                     _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
                     _tx.p_op_addrBeneficiary = tx.utxo_vout[2].scriptPubKey.addresses[0]
                     _tx.p_op_addrBenefactor = addrBenefactor
+                    _tx.p_op_addrDevFee = tx.utxo_vout[4].scriptPubKey.addresses[0]
+
                     _tx.p_op_valueProtected = tx.utxo_vout[0].value
+                    _tx.p_op_valueBeneficiaryDust = tx.utxo_vout[2].value
+                    _tx.p_op_valueChange = tx.utxo_vout[3].value
+                    _tx.p_op_valueDevFee = tx.utxo_vout[4].value
+                    _tx.p_op_valueBenefactorProtectionCost = _tx.p_op_valueBeneficiaryDust + _tx.p_op_valueDevFee // + tx fees
+
                     _tx.p_op_weAreBeneficiary = ownStdAddresses.some(p => p == _tx.p_op_addrBeneficiary)
                     _tx.p_op_weAreBenefactor = ownStdAddresses.some(p => p == _tx.p_op_addrBenefactor)
+                    _tx.p_op_weAreDeveloper = ownStdAddresses.some(p => p == _tx.p_op_addrDevFee)
+
                     _tx.p_op_lockTime = txProtectOpTimelock // filetime
                     _tx.p_op_unlockDateTime = txProtectOpDateTime // datetime
                     _tx.p_op_lockHours = txProtectOpLockHours // hrs to lock
+                    
                     _tx.p_op_pubKeyBeneficiary = pubKeyBeneficiary.toString('hex')
                     _tx.p_op_pubKeyBenefactor = pubKeyBenefactor.toString('hex')
-                    _tx.p_op_addrDevFee = tx.utxo_vout[4].scriptPubKey.addresses[0]
-                    _tx.p_op_valueDev = tx.utxo_vout[4].value
 
                     const dispatchAction = {
                         type: actionsWallet.WCORE_SET_ENRICHED_TXS,
@@ -163,7 +171,7 @@ module.exports = {
                     utilsWallet.log(`p_op_pubKeyBeneficiary=${_tx.p_op_pubKeyBeneficiary}`)
                     utilsWallet.log(`p_op_pubKeyBenefactor=${_tx.p_op_pubKeyBenefactor}`)
                     utilsWallet.log(`p_op_addrDevFee=${_tx.p_op_addrDevFee}`)
-                    utilsWallet.log(`p_op_valueDev=${_tx.p_op_valueDev}`)
+                    utilsWallet.log(`p_op_valueDevFee=${_tx.p_op_valueDevFee}`)
 
                     if (!nonStdAddrs_Txs.some(p => p.protect_op_txid == tx.txid)) {
                         nonStdAddrs_Txs.push({ nonStdAddr: _tx.p_op_addrNonStd, protect_op_txid: tx.txid})
