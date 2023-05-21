@@ -20,6 +20,7 @@ const {
 } = require('../actions')
 
 const utilsWallet = require('../utils')
+const configWallet = require('../config/wallet')
 
 const { createReducer } = require('./utils')
 
@@ -62,7 +63,7 @@ const initialState = {
         { key: "OPT_CLOUD_PWD",   value: false },
         { key: "OPT_AUTOLOGOUT",  value: true },
         { key: "OPT_NIGHTSHIFT",  value: true },
-        { key: "OPT_NOPATCH_MPK", value: true },
+        { key: "OPT_NOPATCH_MPK", value: !configWallet.IS_DEV },
         { key: "OPT_BETA_TESTER", value: true },
         { key: "OPT_TOTP",        value: false },
         { key: "OPT_ALL_ASSETS",  value: false },
