@@ -72,7 +72,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     if (!cache_bb_addressTxs[wsSymbol][pollAddress]) cache_bb_addressTxs[wsSymbol][pollAddress] = new CircularBuffer(1)
     const cache = cache_bb_addressTxs[wsSymbol][pollAddress]
 
-    try {
+    //try {
         // get address tx's from BB; used cached value if present (erc20 optimization)
         if (cache.size() > 0 && cache.get(0).height == height) {
             processBB_data(cache.get(0).data) // process from cache
@@ -209,12 +209,12 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                 callback(null)
             }
         }
-    }
-    catch(err) {
-        debugger
-        utilsWallet.error(`### getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - err=`, err)
-        callback(null)
-    }
+    // }
+    // catch(err) {
+    //     debugger
+    //     utilsWallet.error(`### getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - err=`, err)
+    //     callback(null)
+    // }
 }
 
 // cleanup 
