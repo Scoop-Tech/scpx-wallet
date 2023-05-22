@@ -14,9 +14,15 @@
   * ```npm install -g node-gyp```
   * ```git clone https://github.com/Scoop-Tech/scpx-wallet.git```
   * ```cd scpx-wallet```
+ 
+ > MacOS:
+  * Python (use 2.x) fixup (for node-gyp) https://stackoverflow.com/questions/70098133/npm-error-cant-find-python-executable-in-macos-big-sur
+  * ```npm install --force```
+   
  > Windows:
   * ```npm install -g --production windows-build-tools@4.0.0``` - see also [here](https://github.com/felixrieseberg/windows-build-tools/issues/152)
   * ```npm config set msvs_version 2015```
+ 
  > All:
   * ```npm install``` - Windows: see also [here](https://github.com/nodejs/node-gyp/issues/671) re. node-gyp rebuild failures
 
