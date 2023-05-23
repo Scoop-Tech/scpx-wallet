@@ -32,7 +32,8 @@ module.exports = {
         .catch(err => {
             const msg = err.response && err.response.data && err.response.data.msg ? err.response.data.msg : JSON.stringify(err)
             utilsWallet.reportErr(msg)
-            utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Create Account Failed', info: msg }})
+            //utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data:  { type: 'error', headline: 'Create Account Failed', info: msg }})
+            throw msg
         })
     },
 
