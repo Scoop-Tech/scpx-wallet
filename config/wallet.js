@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
 
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
@@ -15,7 +15,7 @@ const configExternal = require('./wallet-external')
 
 // static - license, copyright, env
 const WALLET_VER = 'BETA-' + require('../package.json').version
-const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.`
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types
@@ -43,6 +43,7 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 
 // config - dbg/test
 const WALLET_INCLUDE_BTC_TEST = true //(IS_DEV || IS_TEST)
+const WALLET_INCLUDE_BTC_TEST2 = false //IS_DEV
 const WALLET_INCLUDE_ZEC_TEST = false //(IS_DEV || IS_TEST)
 const WALLET_INCLUDE_LTC_TEST = false
 const WALLET_INCLUDE_TUSD_TEST = false
@@ -1012,7 +1013,7 @@ function addDynamicSecTokens() {
     if (WALLET_INCLUDE_BTC_TEST && !supportedWalletTypes.includes('btc(t)')) {
         supportedWalletTypes.push('btc(t)')
     }
-    if (WALLET_INCLUDE_BTC_TEST && !supportedWalletTypes.includes('btc(ts2)')) {
+    if (WALLET_INCLUDE_BTC_TEST2 && !supportedWalletTypes.includes('btc(ts2)')) {
         supportedWalletTypes.push('btc(ts2)')
     }
     if (WALLET_INCLUDE_LTC_TEST && !supportedWalletTypes.includes('ltc(t)')) {

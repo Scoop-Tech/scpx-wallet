@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
 
 const axios = require('axios')
 //const axiosRetry = require('axios-retry')
@@ -35,14 +35,14 @@ module.exports = {
     web3_Setup_SocketProvider: (walletSymbols) => {
 
         var setupCount = 0
-        //utilsWallet.debug(`appWorker >> ${self.workerId} web3_Setup_SocketProvider...`)
+        utilsWallet.debug(`appWorker >> ${self.workerId} web3_Setup_SocketProvider...`)
 
         for (var assetSymbol in configWS.geth_ws_config) {
 
             // exclude if not in the loaded wallet
             if (walletSymbols && walletSymbols.length > 0) {
                 if (!walletSymbols.includes(assetSymbol)) { 
-                    utilsWallet.warn(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                    //utilsWallet.warn(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
                     continue
                 }
             }
@@ -56,7 +56,6 @@ module.exports = {
                     utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider ${x} SETUP...`, null, { logServerConsole: true })
                     
                     try {   
-        
                         // geth: fails on geth v 1.8.2 w/ large web3 getTransactionDetail return packets (large ~= 16kb ?) -- gets EOF and hard-disconnects the WS from server
                         const Web3 = require('web3')
         
@@ -67,6 +66,7 @@ module.exports = {
                         
                         const provider = web3.currentProvider
                         self.web3_Sockets[x] = web3
+                        utilsWallet.log(`appWorker >> ${self.workerId} WEB3(WS) - web3_Setup_SocketProvider ${x} SETUP OK - self.web3_Sockets[${x}]=`, self.web3_Sockets[x], { logServerConsole: true })
         
                         // these error/end handlers are *not* firing on the geth WS disconnect issue above ("unexpected EOF" from geth in WS response frame)
                         // if (provider) { 
@@ -136,38 +136,49 @@ module.exports = {
                 }
                 ret.gasLimit = asset.erc20_transferGasLimit || configWallet.ETH_ERC20_TX_FALLBACK_WEI_GASLIMIT
             }
-            return self.web3_Sockets[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value
+            console.log('getGasPrices 2 - self.web3_Sockets', self.web3_Sockets)
+            console.log('wsSymbol', wsSymbol)
+            return self.web3_Sockets[wsSymbol].eth.getGasPrice() // web3/eth node gas price - fallback value - ## race condition here? observerd: self.web3_Sockets={}
         })
         .then(gasprice_Web3 => {
             console.log('getGasPrices, gasprice_Web3=', gasprice_Web3)
             ret.gasprice_Web3 = parseFloat(gasprice_Web3)
-            //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-            return axios.get(configExternal.ethFeeOracle_EtherChainOrg) // oracle - main
-        })
-        .then(res => {
-            if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
-                // EIP 1559 - legacy tx; just add currentBaseFee for now
-                utilsWallet.log(`1559 ${asset.symbol} - getGasPrices res.data`, res.data)
-                if (asset.symbol === 'ETH_TEST') {
-                    ret.gasprice_safeLow = Math.ceil(parseFloat(((0.05) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
-                    ret.gasprice_fast = Math.ceil(parseFloat(((1.5) * 1000000000 * 1))) 
-                    ret.gasprice_fastest = Math.ceil(parseFloat(((2.0) * 1000000000 * 1))) 
-                }
-                else {
-                    ret.gasprice_safeLow = Math.ceil(parseFloat(((res.data.standard + res.data.currentBaseFee) * 1000000000 * 1))) // gwei -> wei
-                    ret.gasprice_fast = Math.ceil(parseFloat(((res.data.fast + res.data.currentBaseFee) * 1000000000 * 1)))
-                    ret.gasprice_fastest = Math.ceil(parseFloat(((res.data.fastest + res.data.currentBaseFee) * 1000000000 * 1)))
-                }
-                utilsWallet.log(`1559 ${asset.symbol} - ret`, ret)
-            } else { // fallback to web3
-                utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
-                ret.gasprice_fast = ret.gasprice_Web3
-                ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
-                ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
-            }
+
+            // removing: old API has gone, and now need to find one that has CORS headers on its responses...
+            // e.g. https://ethgasstation.info/api/ethgasAPI.json - fails due to not CORS headers...
+            //return axios.get(configExternal.ethFeeOracle_EtherGasStation) // oracle - main ##### BROKEN
+
+            // so now we *rely* on our single node's web3.eth.getGasPrice() value:
+            ret.gasprice_fast = ret.gasprice_Web3
+            ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
+            ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
             utilsWallet.log(`fees - getGasPrices ${asset.symbol}, ret=`, ret)
             return ret
         })
+        // .then(res_Oracle => {
+        //     if (res && res.data && !isNaN(res.data.safeLow) && !isNaN(res.data.fast) && !isNaN(res.data.fastest)) {
+        //         // EIP 1559 - legacy tx; just add currentBaseFee for now
+        //         utilsWallet.log(`res_Oracle - ${asset.symbol} - getGasPrices res.data`, res_Oracle.data)
+        //         if (asset.symbol === 'ETH_TEST') {
+        //             ret.gasprice_safeLow = Math.ceil(parseFloat(((0.05) * 1000000000 * 1))) // ropsten - to test eth cancel tx; use crazy low gas
+        //             ret.gasprice_fast = Math.ceil(parseFloat(((1.5) * 1000000000 * 1))) 
+        //             ret.gasprice_fastest = Math.ceil(parseFloat(((2.0) * 1000000000 * 1))) 
+        //         }
+        //         else {
+        //             ret.gasprice_safeLow = Math.ceil(parseFloat(((res_Oracle.safeLow) * 1000000000 * 1))) // gwei -> wei
+        //             ret.gasprice_fast = Math.ceil(parseFloat((((res_Oracle.safeLow + res_Oracle.fastest) / 2) * 1000000000 * 1)))
+        //             ret.gasprice_fastest = Math.ceil(parseFloat(((res_Oracle.fastest) * 1000000000 * 1)))
+        //         }
+        //         utilsWallet.log(`res_Oracle - ${asset.symbol} - ret`, ret)
+        //     } else { // fallback to web3
+        //         utilsWallet.warn(`### fees - getGasPrices ${asset.symbol} UNEXPECTED DATA (oracle) - data=`, data)
+        //         ret.gasprice_fast = ret.gasprice_Web3
+        //         ret.gasprice_safeLow = Math.ceil(ret.gasprice_Web3 / 2)
+        //         ret.gasprice_fastest = Math.ceil(ret.gasprice_Web3 * 2) 
+        //     }
+        //     utilsWallet.log(`fees - getGasPrices ${asset.symbol}, ret=`, ret)
+        //     return ret
+        // })
     },
 
     createTxHex_Eth: async (asset, params, privateKey) => {

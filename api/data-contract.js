@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
 
 const API = require('./api').axiosApi
 const utilsWallet = require('../utils')
@@ -24,8 +24,9 @@ module.exports = {
         .then(res => {
             utilsWallet.log('account POST - ok' + JSON.stringify(res, 2, null))
             if (res && res.data) {
-                utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
-                    data: { type: 'success', headline: 'Created Wallet!', info: 'Wrote Scoop chain', txid: res.data.txid, position: "top-center" } })
+                // gets in the way of browser auto-save popups, doesn't add much value:
+                // utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER',
+                //     data: { type: 'success', headline: 'Created Wallet!', info: 'Wrote Scoop chain', txid: res.data.txid, position: "top-center" } })
             }
             return res.data
         })

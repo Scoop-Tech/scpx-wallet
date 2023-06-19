@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.15.9",
+    "version": "0.15.11",
     "description": "Scoop Core Wallet: dual-signature timelock Bitcoin wallet - multi-asset, cross-platform and open-source",
     "keywords": [
         "bitprotect",

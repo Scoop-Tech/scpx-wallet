@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
 
 //
 // insight utxo v2 - insight api rest (absolete, but backup for non-BB supported types - now only using websockets/insight WS interfaces for Insight)
@@ -516,7 +516,7 @@ module.exports = {
     //
     // fee oracles
     // 
-    ,ethFeeOracle_EtherChainOrg: `https://www.etherchain.org/api/gasPriceOracle`
+    ,ethFeeOracle_EtherGasStation: `https://www.etherchain.org/api/gasPriceOracle`
     ,btcFeeOracle_BitGo: `https://www.bitgo.com/api/v1/tx/fee?numBlocks=2`
     ,ltcFeeOracle_BlockCypher: `https://api.blockcypher.com/v1/ltc/main`
     ,dashFeeOracle_BlockCypher: `https://api.blockcypher.com/v1/dash/main`

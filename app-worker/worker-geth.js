@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
 
 const CircularBuffer = require("circular-buffer")
 const isoWs = require('isomorphic-ws')
@@ -312,7 +312,7 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
     if (symbol !== 'ETH' && symbol !== 'ETH_TEST') return
 
     if (!self.web3_Sockets[symbol] || self.web3_Sockets[symbol].currentProvider.connection.readyState != 1) {
-        utilsWallet.warn(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not setup & ready for asset`)
+        utilsWallet.warn(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not setup & ready for asset; self.web3_Sockets[${symbol}].currentProvider=`, self.web3_Sockets[symbol].currentProvider, null)
         return
     }
 
