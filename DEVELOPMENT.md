@@ -44,7 +44,6 @@
 The full test suite executes full integration tests that transact on testnets - these incur testnet network fees. The Travis integration suite uses a server account for this. If you can help keep it topped up, the testnet addresses are:
 
   * **BTC_TEST** ```2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv``` (BTC Testnet3 P2SH)
-    * https://testnet-faucet.mempool.co/  
     * https://tbtc.bitaps.com/   
     * http://bitcoinfaucet.uo1.net/send.php/
 
