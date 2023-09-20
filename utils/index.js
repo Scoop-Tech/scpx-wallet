@@ -42,6 +42,8 @@ else {
 var fileLogger = undefined
 if (configWallet.WALLET_ENV === "SERVER") {
     const { createLogger, format, transports } = require('winston')
+    const DailyRotateFile = require('winston-daily-rotate-file')
+
     const { combine, timestamp, align, label, prettyPrint, printf } = format
     const { SPLAT } = require('triple-beam')
     const { isObject } = require('lodash')
@@ -58,8 +60,9 @@ if (configWallet.WALLET_ENV === "SERVER") {
         info.message = `${message} ${rest}`
         return info
       });
+    const tenMb = 10 * 1024 * 1024
     fileLogger = createLogger({
-        level: 'info',
+        level: 'debug', //level: 'info', 
         format: combine(
             all(),
             label({ label: configWallet.WALLET_VER }),
@@ -67,12 +70,21 @@ if (configWallet.WALLET_ENV === "SERVER") {
             align(),
             printf(info => `${info.timestamp} [${info.label}] ${info.level}:${formatObject(info.message)}`)
         ),
-        defaultMeta: { service: 'scpx-w' },
         transports: [
-            new transports.File({ filename: './error.log',  level: 'error' }),   // error only
-            new transports.File({ filename: './warn.log' ,  level: 'warn' }),    // warn & error
-            new transports.File({ filename: './info.log' ,  level: 'info' }),    // info, warn & error
-            new transports.File({ filename: './debug.log' , level: 'verbose' }), // all
+          /*
+            new transports.File({ filename: './error.log',  maxsize: tenMb, level: 'error' }),   // error only
+            new transports.File({ filename: './warn.log' ,  maxsize: tenMb, level: 'warn' }),    // warn & error
+            new transports.File({ filename: './info.log' ,  maxsize: tenMb, level: 'info' }),    // info, warn & error
+          //new transports.File({ filename: './debug.log' , maxsize: tenMb, level: 'verbose' }), // all
+          */
+        new DailyRotateFile({
+            filename: 'error-%DATE%.log', datePattern: 'YYYY-MM-DD', zippedArchive: true, level: 'error', maxSize: '10m',  maxFiles: '10d' }), // 10 days retention
+        new DailyRotateFile({
+            filename: 'warn-%DATE%.log', datePattern: 'YYYY-MM-DD', zippedArchive: true, level: 'warn', maxSize: '10m',  maxFiles: '5d' }), // 5 days retention
+        new DailyRotateFile({
+            filename: 'info-%DATE%.log', datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'info', maxSize: '200m',  maxFiles: '6' }), // 6 hours retention
+        new DailyRotateFile({
+            filename: 'debug-%DATE%.log', datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'debug', maxSize: '300m',  maxFiles: '3' }) // 3 hours retention
         ]
     })
 }
@@ -517,8 +529,13 @@ module.exports = {
             cpuWorker.addEventListener('message', listener)
 
             function listener(event) {
+                console.log('op_WalletAddrFromPrivKey.listener')
+
                 var input = unpackWorkerResponse(event)
-                if (!input) { resolve(null); return }
+                if (!input) { 
+                    console.log('op_WalletAddrFromPrivKey.resolve(2)')
+                    resolve(null); return
+                }
 
                 const msg = input.msg
                 const status = input.status
@@ -527,6 +544,7 @@ module.exports = {
                 const totalReqCount = input.data.totalReqCount
 
                 if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
+                    console.log('op_WalletAddrFromPrivKey.resolve(1)')
                     resolve(ret)
                     cpuWorker.removeEventListener('message', listener)
                     if (callbackProcessed) {

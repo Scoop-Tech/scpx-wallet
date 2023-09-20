@@ -7,3 +7,5 @@ scp_tx.db
 *.dat
 *.db
 .env
+*audit.json
+

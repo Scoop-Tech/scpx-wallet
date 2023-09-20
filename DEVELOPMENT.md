@@ -6,8 +6,9 @@
   * https://github.com/bitpay/insight-api - secondary 3PBP interface: BTC_TEST uses this codepath, and is retained as fallback interface for additional assets.
   * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
-## Platform
-`nvm install lts/fermium` tested: "node": "14.16.0", "npm": "6.14.11"
+# setup
+```nvm use lts/fermium``` tested: "node": "14.21.3", "npm": "6.14.8"
+```npm i yarn -g```
 
 ## Setup
  > All:
@@ -24,6 +25,7 @@
   * ```npm config set msvs_version 2015```
  
  > All:
+  * ```yarn install``` PREFERRED
   * ```npm install``` - Windows: see also [here](https://github.com/nodejs/node-gyp/issues/671) re. node-gyp rebuild failures
 
 ## Running Core Wallet CLI - through NPM
