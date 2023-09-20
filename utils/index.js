@@ -487,8 +487,16 @@ module.exports = {
     reportErr: (err) => {
         if (configWallet.WALLET_ENV === "BROWSER") {
             if (err) {
-                if (Sentry) {
-                    Sentry.captureException(err)
+                console.log('reportErr: ', err)
+                if (typeof Sentry !== 'undefined') {
+                    console.log('reportErr: Sentry ok 1...')
+                    if (Sentry) {
+                        console.log('reportErr: Sentry ok 2...')
+                        Sentry.captureException(err)
+                    }
+                }
+                else {
+                    console.log('reportErr: NOP - bad typeof Sentry')
                 }
             }
         }

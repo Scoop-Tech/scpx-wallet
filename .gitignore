@@ -3,9 +3,8 @@ node_modules
 coverage/
 .node_history
 scp_tx.db
-*.log
 *.dat
 *.db
 .env
 *audit.json
-
+*.log*
