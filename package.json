@@ -1,6 +1,6 @@
 {
     "name": "scpx-wallet",
-    "version": "0.16.1",
+    "version": "0.24.2",
     "description": "Scoop Core Wallet: dual-signature timelock Bitcoin wallet - multi-asset, cross-platform and open-source",
     "keywords": [
         "bitprotect",
@@ -88,7 +88,6 @@
         "redux-batched-actions": "^0.4.1",
         "redux-persist": "^5.10.0",
         "redux-thunk": "^2.1.0",
-        "repl.history": "^0.1.4",
         "scp-address-validator": "^0.2.8",
         "socket.io-client": "2.3.1",
         "tiny-secp256k1": "1.1.6",

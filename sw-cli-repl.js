@@ -155,9 +155,10 @@ const infoHelp = `${helpBanner}` +
 module.exports = {
     init: (walletContext, enableFileHistory) => {
 
-        if (utilsWallet.isParamTrue(enableFileHistory)) {
-            log.warn('command history is being saved to file at ./node_history. This will include sensitive data.\n')
-        }
+        // todo
+        // if (utilsWallet.isParamTrue(enableFileHistory)) {
+        //     log.warn('command history is being saved to file at ./node_history. This will include sensitive data.\n')
+        // }
 
         // init repl
         const colors = { RED: "31", GREEN: "32", YELLOW: "33", BLUE: "34", MAGENTA: "35", CYAN: "36" }
@@ -166,6 +167,7 @@ module.exports = {
         const prompt = repl.start({
             terminal: true,
             historySize: 100,
+            //historyFile: /*utilsWallet.isParamTrue(enableFileHistory) ?*/ './.node_history', // : undefined, // todo
             removeHistoryDuplicates: true,
             useGlobal: true,
             useColors: true,
@@ -177,11 +179,11 @@ module.exports = {
         })
 
         // init file history
-        if (utilsWallet.isParamTrue(enableFileHistory)) {
-            prompt.clearBufferedCommand()
-            require('repl.history')(prompt, './.node_history')
-            prompt.displayPrompt()
-        }
+        // if (utilsWallet.isParamTrue(enableFileHistory)) {
+        //     prompt.clearBufferedCommand()
+        //     require('repl.history')(prompt, './.node_history')
+        //     prompt.displayPrompt()
+        // }
         prompt.context.w = walletContext
 
         // custom commands

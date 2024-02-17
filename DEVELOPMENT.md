@@ -7,7 +7,7 @@
   * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
 # setup
-```nvm use lts/fermium``` tested: "node": "14.21.3", "npm": "6.14.8"
+```nvm use 16.13.0``` tested: "node": "16.13.0" 
 ```npm i yarn -g```
 
 ## Setup
