@@ -48,6 +48,7 @@ module.exports = {
                                     .then(p => {
                                         resolve({ ok: true })
                                     })
+                                    .catch(err => { log.error(err); resolve({ ok: false }) })
                                 }
                             }
                         }
