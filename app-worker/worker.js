@@ -159,7 +159,7 @@ async function handler(e) {
             break            
         }
 
-        case 'INIT_INSIGHT_SOCKETIO': {
+        case 'INIT_INSIGHT_SOCKETIO': { // INSIGHT: OBSOLETE / NOT USED ANY MORE
             //utilsWallet.debug(`appWorker >> ${self.workerId} INIT_INSIGHT_SOCKETIO...`)
             workerInsight.socketio_Setup_Insight(networkConnected, networkStatusChanged, data.loaderWorker)
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && !p.use_BBv3).forEach(p => { 

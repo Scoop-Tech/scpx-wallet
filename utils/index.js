@@ -533,11 +533,11 @@ module.exports = {
             cpuWorker.addEventListener('message', listener)
 
             function listener(event) {
-                console.log('op_WalletAddrFromPrivKey.listener')
+                //console.log('op_WalletAddrFromPrivKey.listener')
 
                 var input = unpackWorkerResponse(event)
                 if (!input) { 
-                    console.log('op_WalletAddrFromPrivKey.resolve(2)')
+                    //console.log('op_WalletAddrFromPrivKey.resolve(2)')
                     resolve(null); return
                 }
 
@@ -548,7 +548,7 @@ module.exports = {
                 const totalReqCount = input.data.totalReqCount
 
                 if (msg === 'WALLET_ADDR_FROM_PRIVKEY' && status === `RES_${p.reqId}` && ret) {
-                    console.log('op_WalletAddrFromPrivKey.resolve(1)')
+                    //console.log('op_WalletAddrFromPrivKey.resolve(1)')
                     resolve(ret)
                     cpuWorker.removeEventListener('message', listener)
                     if (callbackProcessed) {

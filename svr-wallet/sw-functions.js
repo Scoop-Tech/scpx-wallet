@@ -22,7 +22,7 @@ module.exports = {
 
         return new Promise( async (resolve) => {
             appWorker.postMessageWrapped({ msg: 'INIT_WEB3_SOCKET', data: {} })
-            appWorker.postMessageWrapped({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
+            //appWorker.postMessageWrapped({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} }) // INSIGHT: OBSOLETE / NOT USED ANY MORE
             
             const listener = function(event) {
                 var input = utilsWallet.unpackWorkerResponse(event)
