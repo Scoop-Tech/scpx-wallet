@@ -77,14 +77,10 @@ if (configWallet.WALLET_ENV === "SERVER") {
             new transports.File({ filename: './info.log' ,  maxsize: tenMb, level: 'info' }),    // info, warn & error
           //new transports.File({ filename: './debug.log' , maxsize: tenMb, level: 'verbose' }), // all
           */
-        new DailyRotateFile({
-            filename: 'error-%DATE%.log', datePattern: 'YYYY-MM-DD', zippedArchive: true, level: 'error', maxSize: '10m',  maxFiles: '10d' }), // 10 days retention
-        new DailyRotateFile({
-            filename: 'warn-%DATE%.log', datePattern: 'YYYY-MM-DD', zippedArchive: true, level: 'warn', maxSize: '10m',  maxFiles: '5d' }), // 5 days retention
-        new DailyRotateFile({
-            filename: 'info-%DATE%.log', datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'info', maxSize: '200m',  maxFiles: '6' }), // 6 hours retention
-        new DailyRotateFile({
-            filename: 'debug-%DATE%.log', datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'debug', maxSize: '300m',  maxFiles: '3' }) // 3 hours retention
+        new DailyRotateFile({filename: 'error-%DATE%.log', datePattern: 'YYYY-MM-DD',    zippedArchive: true, level: 'error', maxSize: '10m',   maxFiles: '1d' }), // 1 days retention
+        new DailyRotateFile({filename: 'warn-%DATE%.log',  datePattern: 'YYYY-MM-DD',    zippedArchive: true, level: 'warn',  maxSize: '10m',   maxFiles: '1' }),  // 1 hour
+        new DailyRotateFile({filename: 'info-%DATE%.log',  datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'info',  maxSize: '200m',  maxFiles: '1' }),
+        new DailyRotateFile({filename: 'debug-%DATE%.log', datePattern: 'YYYY-MM-DD-HH', zippedArchive: true, level: 'debug', maxSize: '300m',  maxFiles: '1' }) 
         ]
     })
 }

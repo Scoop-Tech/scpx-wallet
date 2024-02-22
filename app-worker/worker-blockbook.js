@@ -505,7 +505,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 
                     // socket lifecycle
                     socket.onerror = (err) => {
-                        utilsWallet.error(`appWorker >> ${self.workerId} bb_Sockets ${x} - ##`, err)
+                        utilsWallet.error(`appWorker >> ${self.workerId} bb_Sockets ${x} - ## onerror: type=${err.type}, msg=${err.message}, err=`, err.error)
                     }
                     socket.onopen = () => {
                         utilsWallet.log(`appWorker >> ${self.workerId} bb_Sockets ${x} - connected ok...`)
