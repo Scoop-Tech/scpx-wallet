@@ -1123,7 +1123,7 @@ module.exports = {
     , WALLET_ENV
 
     // CLI
-    , CLI_LOG_CORE: IS_TEST || IS_DEV
+    , CLI_LOG_CORE: IS_TEST /*|| IS_DEV*/
     , CLI_SAVE_KEY: IS_DEV                                               // if false, you will need to pass MPK via CLI to wallet functions
 
     // wallet config - core
