@@ -49,7 +49,7 @@ module.exports = {
             wallet.assets.forEach(asset => {
                 appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
             })
-            utilsWallet.log('GET_SYNC_INFO done')
+            //utilsWallet.log('GET_SYNC_INFO done')
 
             // fetch eth[_test] first -- erc20 fetches will then use eth's cached tx data in the indexeddb
             const ethAssets = wallet.assets.filter(p => p.symbol === 'ETH' || p.symbol === 'ETH_TEST')
@@ -57,7 +57,7 @@ module.exports = {
                 if (!configWallet.getSupportedMetaKeyBySymbol(ethAsset.symbol)) return
                 appWorker.postMessageWrapped({ msg: 'REFRESH_ASSET_FULL', data: { asset: ethAsset, wallet } })
             })
-            utilsWallet.log('REFRESH_ASSET_FULL done')
+            //utilsWallet.log('REFRESH_ASSET_FULL done')
 
             // then fetch all others, except erc20s
             var erc20Assets = wallet.assets.filter(p => 
@@ -70,12 +70,12 @@ module.exports = {
                 && configWallet.getSupportedMetaKeyBySymbol(p.symbol) !== undefined
             )
             appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: otherAssets, wallet } })
-            utilsWallet.log('REFRESH_MULTI_ASSET_FULL done')
+            //utilsWallet.log('REFRESH_MULTI_ASSET_FULL done')
 
             // wait for eth[_test] fetch to finish 
             const eth_intId = setInterval(() => {
                 storeState = store.getState()
-                utilsWallet.log('eth_intId setInterval..., storeState=', storeState)
+                //utilsWallet.log('eth_intId setInterval..., storeState=', storeState)
 
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
                     var ethDone = false, ethTestDone = false

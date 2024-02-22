@@ -4,7 +4,11 @@
 #
 
 # Env
-`nvm use 16.13.0`
+//
+// #### WARNING: node v16.13.0 (and other 16's?) result in loadAllAssets never resolving (something prevents state changes on lastAssetUpdateAt?)
+//               (node v18 seems ok for future upgrading...)
+//
+`nvm use 14.16.0` 
 `npm i --g yarn`
 `rm ./node_modules/ -rf && yarn install`
 
