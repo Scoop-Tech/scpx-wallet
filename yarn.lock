@@ -4509,11 +4509,6 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
-repl.history@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/repl.history/-/repl.history-0.1.4.tgz#80367171f3781d6e4299c71758c253097f5d5832"
-  integrity sha512-dObzo+ZzPPHH3Sq94ct+v5e20FLMHdx+wVUEGn/oGJm5yRBYTTFnMkcFYJPVVvx2Uv9hws+8SOAQ6E4cxsn/iA==
-
 request@^2.79.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"

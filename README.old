@@ -1,16 +1,5 @@
-#
-# PAIN & SUFFERING
-# as-of Feb '24
-#
-
-# Env
-`nvm use 16.13.0`
-`npm i --g yarn`
-`rm ./node_modules/ -rf && yarn install`
-
----
-
 # Scoop Core Wallet 
+v0.11
 
 [![NPM](https://nodei.co/npm/scpx-wallet.png)](https://nodei.co/npm/scpx-wallet/)
 

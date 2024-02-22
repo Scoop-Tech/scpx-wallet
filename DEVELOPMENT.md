@@ -6,9 +6,6 @@
   * https://github.com/bitpay/insight-api - secondary 3PBP interface: BTC_TEST uses this codepath, and is retained as fallback interface for additional assets.
   * https://github.com/EOSIO/eos - used as the backing store for web client accounts: optional dependency of the Core Wallet.
 
-# setup
-```nvm use 16.13.0``` tested: "node": "16.13.0" 
-```npm i yarn -g```
 
 ## Setup
  > All:

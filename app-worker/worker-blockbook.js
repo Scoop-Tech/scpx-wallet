@@ -337,7 +337,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         // get current block - exact time & tx count
         const receivedBlockNo = _receivedBlockNo || data.bestheight || data.bestHeight
         const curBlock = await bb_getBlock(receivedBlockNo, 1)
-        utilsWallet.log(`getInfo ${symbol}, curBlock=`, curBlock)
+        //utilsWallet.log(`getInfo ${symbol}, curBlock=`, curBlock)
         const txCount = curBlock ? (curBlock.txCount ? curBlock.txCount : 0) : undefined
         const receivedBlockTime = curBlock ? curBlock.time : undefined
 
