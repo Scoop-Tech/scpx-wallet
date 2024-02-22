@@ -20,7 +20,7 @@ module.exports = {
     walletConnect: async (appWorker, store, p) => {
         log.cmd('walletConnect')
 
-        return new Promise( (resolve) => {
+        return new Promise( async (resolve) => {
             appWorker.postMessageWrapped({ msg: 'INIT_WEB3_SOCKET', data: {} })
             appWorker.postMessageWrapped({ msg: 'INIT_INSIGHT_SOCKETIO', data: {} })
             
@@ -61,16 +61,22 @@ module.exports = {
             }
             appWorker.addEventListener('message', listener)
     
-            appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
+            //const walletSymbols = ['BTC']
+            // feb '24 - only load core assets
+            const walletSymbols = (await configWallet.getSupportedWalletTypes()).filter(p => configWallet.walletsMeta[p].core_asset == true).map(p => configWallet.walletsMeta[p].symbol)
+            utilsWallet.log('walletSymbols=', walletSymbols)
+            appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { walletSymbols, timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000, walletFirstPoll: true } })
             appWorker.postMessageWrapped({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
             
             // volatile sockets reconnect / keep-alive timer
             log.info(`walletConnect - setting volatile sockets reconnector...`)
             const globalScope = utilsWallet.getMainThreadGlobalScope()
-            globalScope.volatileSockets_intId = setInterval(() => {
+            globalScope.volatileSockets_intId = setInterval(async () => {
                 if (globalScope.appWorker) {
                     try {
-                        globalScope.appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
+                        const walletSymbols = (await configWallet.getSupportedWalletTypes()).filter(p => configWallet.walletsMeta[p].core_asset == true).map(p => configWallet.walletsMeta[p].symbol)
+                        //console.log('walletSymbols (setInterval)=', walletSymbols)
+                        globalScope.appWorker.postMessageWrapped({ msg: 'INIT_BLOCKBOOK_ISOSOCKETS', walletSymbols, data: { timeoutMs: configWallet.VOLATILE_SOCKETS_REINIT_SECS * 0.75 * 1000 } })
                         globalScope.appWorker.postMessageWrapped({ msg: 'INIT_GETH_ISOSOCKETS', data: {} })
                     }
                     catch(err) {

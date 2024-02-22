@@ -80,12 +80,14 @@ module.exports = {
                     if (!ethDone) {
                         utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
                     }
+                    utilsWallet.log('poll: ethAsset.lastAssetUpdateAt', ethAsset.lastAssetUpdateAt)
 
                     const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
                     ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
                     if (!ethTestDone) {
                         utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
                     }
+                    utilsWallet.log('poll: ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
 
                     // now fetch erc20s - they will use cached eth[_test] tx's
                     if (ethDone && ethTestDone) {
