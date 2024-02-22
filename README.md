@@ -12,6 +12,9 @@
 `npm i --g yarn`
 `rm ./node_modules/ -rf && yarn install`
 
+# For core logging set:
+`export NODE_ENV=development`
+
 ---
 
 # Scoop Core Wallet 
