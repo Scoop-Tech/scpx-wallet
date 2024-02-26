@@ -39,6 +39,7 @@ const P_OP_DEV_FEE_PERC = 0.005 // 0.5% developer fee
 module.exports = {
 
     P_OP_DUST,
+    P_OP_DUST_BTC,
     P_OP_MIN_GROSS,
 
     scan_NonStdOutputs: (params) => {
@@ -50,7 +51,7 @@ module.exports = {
         const ownStdAddresses = asset.addresses.filter(p => !p.isNonStdAddr).map(p => { return p.addr })
         utilsWallet.log(`scan_NonStdOutputs ${asset.symbol}`)
 
-        // scan tx's, look for ones that conform to our v1 PROTECT_OP -- i.e. 4 outputs:
+        // scan standard tx's, look for ones that conform to our v1 PROTECT_OP -- i.e. 4 outputs:
         //
         //   * vout=0 p2sh non-standard (P2SH(DSIG/CLTV)) output (>= P_OP_MIN_LOCKED)
         //   * vout=1 op_return (versioning)
@@ -126,6 +127,11 @@ module.exports = {
                 }
 
                 if (txProtectOpDateTime && addrBenefactor) {
+                    //console.log(`got p_op TX: ${tx.txid}`, tx)
+                    // 5443b88413f52a760d1fd29c8da9ddb3a2f3ce9e7bd99d618f3b9c239cab978a 
+                    // 1edc7195bb257e7dd2065dc822c14bc30efcb8144ef2367d4707a76c3439253c 
+                    // 362315858525c8e71a3d7e6744edf967bae5cad668f8b90946d249c997ddee5c 
+
                     const _tx = _.cloneDeep(tx)
                     _tx.p_op_addrNonStd = tx.utxo_vout[0].scriptPubKey.addresses[0]
                     _tx.p_op_addrBeneficiary = tx.utxo_vout[2].scriptPubKey.addresses[0]

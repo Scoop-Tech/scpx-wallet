@@ -13,8 +13,9 @@ module.exports = {
             return res.data
         })
         .catch(err => {
-            //const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
-            //utilsWallet.reportErr(msg)
+            const msg = e.response && e.response.data ? e.response.data.toString() : e.toString()
+            utilsWallet.reportErr(msg)
+            utilsWallet.error(`Failed: Send Invite`, err)
             utilsWallet.getAppWorker().postMessageWrapped({ msg: 'NOTIFY_USER', data: { type: 'error', headline: 'Failed: Send Invite', info: err.toString() }})
         })
     },
@@ -52,3 +53,5 @@ module.exports = {
         })
     },
 }
+
+

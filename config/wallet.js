@@ -4,6 +4,8 @@ const npmPackage = require('../package.json')
 const isNode = require('detect-node')
 const axios = require('axios')
 
+const BigNumber = require('bignumber.js')
+
 const IS_TEST = (process.env.NODE_ENV === "test")
 const IS_DEV  = (process.env.NODE_ENV === "development")// || IS_TEST)
 
@@ -1143,7 +1145,8 @@ module.exports = {
     , WALLET_MAX_TX_HISTORY: 100                                         // local storage is limited: we cap the # of tx's that we read from 3PBPs (this is limit per addr)
 
     // wallet config - utxo
-    , UTXO_DUST_SAT: 1                                                   // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates
+    , UTXO_DUST_SAT: 546 //1                                             // maybe not needed - for tolerence in accepting atomic utxo bal/tx updates - Feb '24: set to match P_OP_DUST
+    , UTXO_DUST_BTC: new BigNumber(546).div(100000000).toString()
 
     // wallet config - eth
     , ETH_SENDMAX_PADDING_WEI: 50                                        // help ETH transactions by reducing this amount of Wei (intermittent Geth issues with full sends)

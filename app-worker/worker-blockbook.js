@@ -701,8 +701,10 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                                 resolve(null)
                             }
                             else {
-                                // if (tx.txid == '0x58077838e7bf98c88f61a349e64c15816e19ccad8005df9aa33b65fc4c305ae0') {
-                                //     debugger
+                                // if (tx.txid == '5443b88413f52a760d1fd29c8da9ddb3a2f3ce9e7bd99d618f3b9c239cab978a' || 
+                                //     tx.txid == '1edc7195bb257e7dd2065dc822c14bc30efcb8144ef2367d4707a76c3439253c' || 
+                                //     tx.txid == '362315858525c8e71a3d7e6744edf967bae5cad668f8b90946d249c997ddee5c') {
+                                //     console.log(`bbTx p_op ${tx.txid}`, bbTx)
                                 // }
 
                                 const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
