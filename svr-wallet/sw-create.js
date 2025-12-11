@@ -83,7 +83,7 @@ module.exports = {
             
             const config = Object.assign({ keyProvider: [keys.privateKeys.owner, keys.privateKeys.active] }, scpEosConfig)
             const eos = Eos(config)
-            const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
+            const keyAccounts = await utilsWallet.getAccountsByAuthorizer_Wrapper(keys.publicKeys.owner, scpEosConfig.httpEndpoint)
             const owner = keyAccounts.account_names[0]
             global.storageContext.owner = owner
             

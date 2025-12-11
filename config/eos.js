@@ -2,9 +2,9 @@
 
 module.exports = {
     scpEosConfig: {
-        chainId: 'eea99af65be68069e86a7473429348492612370b35577a70540271d9402e06c3',
-        httpEndpoint: 'https://eos4.scoop.tech:4242', 
-        httpEndpointInfo: 'https://eos4.scoop.tech:4242/v1/chain/get_info',
+        chainId: '8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f',
+        httpEndpoint: 'https://x-eos.d0m1.com:4242',
+        httpEndpointInfo: 'https://x-eos.d0m1.com:4242/v1/chain/get_info',
         expireInSeconds: 60,
         broadcast: true,
         debug: false,

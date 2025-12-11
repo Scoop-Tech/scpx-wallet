@@ -54,7 +54,7 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = true 
+const WALLET_INCLUDE_ETH_TEST = false  // Disabled - only using BTC testnet
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -104,24 +104,27 @@ const API_URL = `${API_DOMAIN}api/`
 // default static assets
 // augmented with dynamic (network fetched) ERC20's
 //
+// NOTE: Mainnet assets are now conditionally added based on WALLET_INCLUDE_*_MAINNET flags
+// Only testnets are enabled by default
 var supportedWalletTypes = [ // use walletsMeta keys for this list
-    'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
-    'dash', 
+    // Mainnets - disabled, controlled by flags below
+    //'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
+    //'dash', 
     //'vertcoin', 'qtum', // trim junk
-    'digibyte',
+    //'digibyte',
     //'bchabc', 'raven', // trim junk
 
-    'trueusd', 
+    //'trueusd', 
     //'bancor', '0x', 'bat', 'omg', 'snt', // trim junk
    
-    'usdt',
+    //'usdt',
     //'eurt', 'mkr', 'rep', 'hot', 'zil', // trim junk
-    'link',
-    'nexo',
+    //'link',
+    //'nexo',
 
     //'band', 'dos', 'ring',
-    'swap',
-    'uni'
+    //'swap',
+    //'uni'
 
     // todo 
     //'tgbp' (new)

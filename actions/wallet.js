@@ -80,19 +80,29 @@ module.exports = {
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
                     var ethDone = false, ethTestDone = false
                     
-                    const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
-                    ethDone = ethAsset.lastAssetUpdateAt !== undefined
-                    if (!ethDone) {
-                        utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+                    // Guard ETH mainnet check with WALLET_INCLUDE_ETH_MAINNET flag
+                    if (configWallet.WALLET_INCLUDE_ETH_MAINNET) {
+                        const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
+                        ethDone = ethAsset ? ethAsset.lastAssetUpdateAt !== undefined : true
+                        if (!ethDone) {
+                            utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+                        }
+                        if (ethAsset) utilsWallet.log('poll: ethAsset.lastAssetUpdateAt', ethAsset.lastAssetUpdateAt)
+                    } else {
+                        ethDone = true // Skip if ETH mainnet not enabled
                     }
-                    utilsWallet.log('poll: ethAsset.lastAssetUpdateAt', ethAsset.lastAssetUpdateAt)
 
-                    const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
-                    ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
-                    if (!ethTestDone) {
-                        utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
+                    // Guard ETH testnet check with WALLET_INCLUDE_ETH_TEST flag
+                    if (configWallet.WALLET_INCLUDE_ETH_TEST) {
+                        const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
+                        ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
+                        if (!ethTestDone) {
+                            utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
+                        }
+                        if (ethTestAsset) utilsWallet.log('poll: ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
+                    } else {
+                        ethTestDone = true // Skip if ETH testnet not enabled
                     }
-                    utilsWallet.log('poll: ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
 
                     // now fetch erc20s - they will use cached eth[_test] tx's
                     if (ethDone && ethTestDone) {
@@ -461,10 +471,14 @@ function generateWalletAccount(p) {
             }
             else {
                 if (meta.addressType === configWallet.ADDRESS_TYPE_ETH) {
-                    defaultPrivKeys = 
-                        //assets['ethereum'].accounts !== undefined ?
-                            assets['ethereum'].accounts[0].privKeys.slice()
-                        //: [{ privKey: assets['ethereum'].wif }] // ###### race? - old path?
+                    // Guard: ETH-based assets (eth_test, erc20s) require ethereum mainnet to be enabled
+                    if (configWallet.WALLET_INCLUDE_ETH_MAINNET && assets['ethereum'] && assets['ethereum'].accounts) {
+                        defaultPrivKeys = assets['ethereum'].accounts[0].privKeys.slice()
+                    } else {
+                        // ETH mainnet not enabled - skip this ETH-based asset
+                        utilsWallet.log(`Skipping ${genType} - requires ETH mainnet (WALLET_INCLUDE_ETH_MAINNET=false)`)
+                        return false // Signal to skip this asset
+                    }
                 }
             }
             break

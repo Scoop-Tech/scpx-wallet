@@ -510,6 +510,11 @@ module.exports = {
 
     getAppWorker: () => getMainThreadGlobalScope().appWorker,
 
+    //
+    // EOS compatibility
+    //
+    getAccountsByAuthorizer_Wrapper: (publicKey, httpEndpoint) => getAccountsByAuthorizer_Wrapper(publicKey, httpEndpoint),
+
     getHashedMpk: () => {
         if (configWallet.WALLET_ENV === "BROWSER") {
             return document.hjs_mpk || getStorageContext().PATCH_H_MPK
@@ -629,6 +634,29 @@ function getStorageContext() {
     }
     else {
         return global.storageContext
+    }
+}
+
+//
+// EOS v5 compatibility wrapper for get_accounts_by_authorizers
+// Replaces deprecated getKeyAccounts() which used the removed history_api_plugin
+//
+async function getAccountsByAuthorizer_Wrapper(publicKey, httpEndpoint) {
+    const axios = require('axios')
+    try {
+        const response = await axios.post(`${httpEndpoint}/v1/chain/get_accounts_by_authorizers`, {
+            accounts: [],
+            keys: [publicKey]
+        })
+        // Transform to match old getKeyAccounts format
+        const accountNames = response.data.accounts ? response.data.accounts.map(acc => acc.account_name) : []
+        return {
+            account_names: accountNames
+        }
+    } catch (err) {
+        // Return empty if endpoint not available or account queries not enabled
+        module.exports.warn(`Could not query EOS accounts (ensure 'enable-account-queries = true' in config.ini): ${err.message}`)
+        return { account_names: [] }
     }
 }
 

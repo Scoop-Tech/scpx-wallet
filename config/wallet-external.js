@@ -29,7 +29,7 @@ const ltcBlockbookApi     = 'https://ac-dev0.net:10001/api/'     // 'https://ltc
 
 const btcBlockbookApi     = 'https://ac-dev0.net:10002/api/'     // use different btc/btc_seg BB servers to minimize 429's on api/block calls
 //const btcTestBlockbookApi = 'https://tbtc2.trezor.io/api/'
-const btcTestBlockbookApi  = 'https://ac-dev0.net:10009/api/'
+const btcTestBlockbookApi  = 'https://x-btc-testnet.d0m1.com:10009/api/'
 
 const dashBlockbookApi    = 'https://ac-dev0.net:10004/api/'     // 'https://scp-btcsw.southeastasia.cloudapp.azure.com:10133/api/'
 const vtcBlockbookApi     = 'https://ac-dev0.net:10005/api/'     // 'https://scp-bb-vtc01.southeastasia.cloudapp.azure.com:8888/api/'

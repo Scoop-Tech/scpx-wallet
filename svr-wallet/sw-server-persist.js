@@ -88,7 +88,7 @@ module.exports = {
         const h_mpk = utilsWallet.pbkdf2(apk, keys.masterPrivateKey)
         const e_email = utilsWallet.aesEncryption(apk, h_mpk, email)
         const h_email = MD5(email).toString()
-        const keyAccounts = await eos.getKeyAccounts(keys.publicKeys.owner)
+        const keyAccounts = await utilsWallet.getAccountsByAuthorizer_Wrapper(keys.publicKeys.owner, configEos.scpEosConfig.httpEndpoint)
         utilsWallet.softNuke(keys)
 
         if (!(keyAccounts.account_names && keyAccounts.account_names.length > 0 && keyAccounts.account_names[0] !== undefined)) { 
