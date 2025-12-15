@@ -54,11 +54,15 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = false  // Disabled - only using BTC testnet
+const WALLET_INCLUDE_ETH_TEST = true  // Re-enabled with resilient connection handling
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
                                 // (IS_DEV || IS_TEST)
+
+// config - mainnet enable/disable flags
+const WALLET_INCLUDE_BTC_MAINNET = true  // Re-enabled with resilient connection handling
+const WALLET_INCLUDE_ETH_MAINNET = true  // Re-enabled with resilient connection handling
 
 const WALLET_DISABLE_BLOCK_UPDATES = false
 
