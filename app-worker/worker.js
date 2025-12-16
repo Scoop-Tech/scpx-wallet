@@ -192,7 +192,7 @@ async function handler(e) {
             const timeoutMs = data.timeoutMs
 
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
-            utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
+            utilsWallet.logMajor('pink', 'green', `appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
 
             if (setupSymbols.length > 0 || walletFirstPoll) {
                 const startWaitAt = new Date().getTime()
@@ -227,15 +227,15 @@ async function handler(e) {
                     if (allReady) { // all requested connections setup
                         clearInterval(wait_intId)
                         if (symbolsConnected.length > 0) {
-                            utilsWallet.log(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - (re)connected=`, symbolsConnected.join(','), { logServerConsole: true })
+                            utilsWallet.logMajor('pink', 'green', `appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - DONE - (re)connected=`, symbolsConnected.join(','), { logServerConsole: true })
                         }
-                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected: displaySymbolsConnected, symbolsNotConnected } }) 
+                        self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                     }
                     else { // some failed
                         if (elapsedMs > timeoutMs) {
                             clearInterval(wait_intId)
                             utilsWallet.error(`appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS - ## timeout elapsed: sockets still not all readyState=1 ##`, null, { logServerConsole: true })
-                            self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected: displaySymbolsConnected, symbolsNotConnected } }) 
+                            self.postMessage({ msg: 'BLOCKBOOK_ISOSOCKETS_DONE', status: 'RES', data: { walletFirstPoll, symbolsConnected, symbolsNotConnected } }) 
                         }
                     }
                 }, 888)
@@ -422,7 +422,7 @@ async function handler(e) {
         // arbitrary address balances -- used by privkey import; consolidated return format, unlike wallet-external
         case 'GET_ANY_ADDRESS_BALANCE': {
             const addrs = data.addrs
-            utilsWallet.logMajor(`appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
+            utilsWallet.logMajor('magenta', 'blue', `appWorker >> ${self.workerId} GET_ANY_ADDRESS_BALANCE... asset, addrs=`, data.asset, data.addrs)
             //debugger
             if (data.asset.symbol === 'ETH' || data.asset.symbol === 'ETH_TEST' || utilsWallet.isERC20(data.asset.symbol)) {
                 const ops = data.addrs.map(addr => { return workerAccount.getAddressBalance_Account(data.asset.symbol, addr, false) })
@@ -795,14 +795,14 @@ self.get_BlockbookSocketIo = function(asset) {
                 self.blockbookSocketIos[socketToUse] = socket
                 
                 socket.on('connect', function() { 
-                    utilsWallet.warn(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - connected...`)
+                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - connected ${ws_url.toString()}`)
                 })
                 socket.on('reconnect', () => {
-                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - reconnected...`)
+                    utilsWallet.warn(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - reconnected ${ws_url.toString()}`)
                 })   
             } 
             catch(err) {
-                utilsWallet.error(`appWorker >> ${self.workerId} BLOCKBOOK WS - err=`, err)
+                utilsWallet.error(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - err ${ws_url.toString()}`, err)
             }
         }
     }

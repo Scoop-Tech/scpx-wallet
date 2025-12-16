@@ -409,8 +409,8 @@ module.exports = {
             }
         }
         else {
-            if (p) console.error(ts + ' [SW-ERR]' + s, p)
-            else   console.error(ts + ' [SW-ERR]' + s)
+            if (p) console.error(ts + ' [SW-ERR] ' + s, p)
+            else console.error(ts + ' [SW-ERR] ' + s)
         }
     },
     warn: (s, p, opts) => { // level: warn 
@@ -424,8 +424,8 @@ module.exports = {
             }
         }
         else {
-            if (p) console.warn(ts + ' [SW-WRN]' + s, p)
-            else   console.warn(ts + ' [SW-WRN]' + s)
+            if (p) console.warn(ts + ' [SW-WRN] ' + s, p)
+            else console.warn(ts + ' [SW-WRN] ' + s)
         }
     },
     debug: (s, p, opts) => { // level: verbose 
@@ -644,12 +644,15 @@ function getStorageContext() {
 async function getAccountsByAuthorizer_Wrapper(publicKey, httpEndpoint) {
     const axios = require('axios')
     try {
+        module.exports.log(`getAccountsByAuthorizer_Wrapper - querying ${httpEndpoint} for key: ${publicKey}`)
         const response = await axios.post(`${httpEndpoint}/v1/chain/get_accounts_by_authorizers`, {
             accounts: [],
             keys: [publicKey]
         })
+        module.exports.log(`getAccountsByAuthorizer_Wrapper - response.data:`, response.data)
         // Transform to match old getKeyAccounts format
         const accountNames = response.data.accounts ? response.data.accounts.map(acc => acc.account_name) : []
+        module.exports.log(`getAccountsByAuthorizer_Wrapper - returning account_names:`, accountNames)
         return {
             account_names: accountNames
         }

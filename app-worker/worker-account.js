@@ -52,7 +52,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     }
     const web3 = self.web3_Sockets[wsSymbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[wsSymbol].httpProvider))
     // utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), web3=`, web3)
-    // utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), currentProvider.host=`, web3.currentProvider.host)
+    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), currentProvider.host=`, web3.currentProvider.host)
 
     var height
     try {
@@ -63,6 +63,7 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
         callback(null)
         return
     }
+    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), height=`, height)
 
      // balance - web3
     const balData = await getAddressBalance_Account(asset.symbol, pollAddress)

@@ -40,14 +40,22 @@ module.exports = {
         if (!wallet || !wallet.assets) throw 'No wallet supplied'
         
         console.time('loadAllAssets')
-        utilsWallet.logMajor('green','white', `loadAllAssets...`, null, { logServerConsole: true })
+        utilsWallet.logMajor('green', 'white', `loadAllAssets...`, null, { logServerConsole: true })
+
+        utilsWallet.log(`loadAllAssets - bbSymbols_SocketReady=`, bbSymbols_SocketReady);
 
         const appWorker = utilsWallet.getAppWorker()
         return new Promise((resolve) => {
 
             // get initial sync (block) info, all assets
             wallet.assets.forEach(asset => {
-                appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+                if (bbSymbols_SocketReady.some(p => p == asset.symbol)) {
+                    utilsWallet.log(`loadAllAssets - ${asset.symbol} - calling GET_SYNC_INFO (BB socket is connected)`);
+                    appWorker.postMessageWrapped({ msg: 'GET_SYNC_INFO', data: { symbol: asset.symbol } })
+                }
+                else {
+                    utilsWallet.warn(`loadAllAssets - ${asset.symbol} - skipping GET_SYNC_INFO (BB socket is not connected)`);
+                }
             })
             //utilsWallet.log('GET_SYNC_INFO done')
 
@@ -80,26 +88,26 @@ module.exports = {
                 if (storeState && storeState.wallet && storeState.wallet.assets) {
                     var ethDone = false, ethTestDone = false
                     
-                    // Guard ETH mainnet check with WALLET_INCLUDE_ETH_MAINNET flag
+                    // wait for ETH lastAssetUpdateAt to get set...
                     if (configWallet.WALLET_INCLUDE_ETH_MAINNET) {
                         const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
                         ethDone = ethAsset ? ethAsset.lastAssetUpdateAt !== undefined : true
                         if (!ethDone) {
-                            utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH to finish...`)
+                            utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH to finish...`)
                         }
-                        if (ethAsset) utilsWallet.log('poll: ethAsset.lastAssetUpdateAt', ethAsset.lastAssetUpdateAt)
+                        if (ethAsset) utilsWallet.log('loadAllAssets - poll - ethAsset.lastAssetUpdateAt=', ethAsset.lastAssetUpdateAt)
                     } else {
                         ethDone = true // Skip if ETH mainnet not enabled
                     }
 
-                    // Guard ETH testnet check with WALLET_INCLUDE_ETH_TEST flag
+                    // wait for ETH_TEST lastAssetUpdateAt to get set...
                     if (configWallet.WALLET_INCLUDE_ETH_TEST) {
                         const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
                         ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
                         if (!ethTestDone) {
-                            utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
+                            utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
                         }
-                        if (ethTestAsset) utilsWallet.log('poll: ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
+                        if (ethTestAsset) utilsWallet.log('loadAllAssets - poll - ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
                     } else {
                         ethTestDone = true // Skip if ETH testnet not enabled
                     }
@@ -126,13 +134,13 @@ module.exports = {
                                     console.timeEnd('loadAllAssets')
 
                                     // all assets fully loaded - now scan for non-standard outputs (and add any associated dynamic addresses)
-                                    utilsWallet.log(`Load complete - will scan for non-std outputs...`)
+                                    utilsWallet.log(`loadAllAssets - Load complete - will scan for non-std outputs...`)
                                     appWorker.postMessageWrapped({ msg: 'SCAN_NON_STANDARD_ADDRESSES', data: { asset: otherAssets.find(p => p.OP_CLTV) }})
 
                                     resolve()
                                 }
                                 else {
-                                    utilsWallet.warn(`Wallet - pollAllAddressBalances: waiting for ERC20s to finish...`)
+                                    utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ERC20s & Others to finish...`)
                                 }
                             }
                         }, 1000)

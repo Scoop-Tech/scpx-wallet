@@ -364,7 +364,7 @@ function getSyncInfo_Insight(symbol, receivedBlockNo = undefined, receivedBlockT
     if (configExternal.walletExternal_config[symbol] === undefined ||
         configExternal.walletExternal_config[symbol].api == undefined ||
         configExternal.walletExternal_config[symbol].api.sync === undefined) {
-        utilsWallet.info(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
+        utilsWallet.log(`appWorker >> ${self.workerId} getSyncInfo_Insight ${symbol} - ignoring: not setup for asset`)
         return
     }
     axios.get(configExternal.walletExternal_config[symbol].api.sync())

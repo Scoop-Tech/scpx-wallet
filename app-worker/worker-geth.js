@@ -311,8 +311,12 @@ module.exports = {
 async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedBlockTime = undefined, networkStatusChanged = undefined) {
     if (symbol !== 'ETH' && symbol !== 'ETH_TEST') return
 
-    if (!self.web3_Sockets[symbol] || self.web3_Sockets[symbol].currentProvider.connection.readyState != 1) {
-        utilsWallet.warn(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not setup & ready for asset; self.web3_Sockets[${symbol}].currentProvider=`, self.web3_Sockets[symbol].currentProvider, null)
+    if (!self.web3_Sockets[symbol]) {
+        utilsWallet.error(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not setup for asset; self.web3_Sockets[${symbol}]=`, self.web3_Sockets[symbol], null)
+        return
+    }
+    if (self.web3_Sockets[symbol].currentProvider.connection.readyState != 1) {
+        utilsWallet.error(`appWorker >> ${self.workerId} getSyncInfo_Geth ${symbol} - ignoring: web3 WS not ready for asset; readyState=`, self.web3_Sockets[symbol].currentProvider.connection.readyState, null)
         return
     }
 

@@ -1033,6 +1033,30 @@ function addDynamicSecTokens() {
         supportedWalletTypes.push('zcash(t)')
     }
 
+    // Conditional mainnet inclusion
+    if (WALLET_INCLUDE_BTC_MAINNET) {
+        if (!supportedWalletTypes.includes('bitcoin')) supportedWalletTypes.push('bitcoin')
+        if (!supportedWalletTypes.includes('btc(s)')) supportedWalletTypes.push('btc(s)')
+        if (!supportedWalletTypes.includes('btc(s2)')) supportedWalletTypes.push('btc(s2)')
+    }
+
+    if (WALLET_INCLUDE_ETH_MAINNET) {
+        if (!supportedWalletTypes.includes('ethereum')) supportedWalletTypes.push('ethereum')
+        if (!supportedWalletTypes.includes('eos')) supportedWalletTypes.push('eos')
+        // ERC20 tokens
+        if (!supportedWalletTypes.includes('trueusd')) supportedWalletTypes.push('trueusd')
+        if (!supportedWalletTypes.includes('usdt')) supportedWalletTypes.push('usdt')
+        if (!supportedWalletTypes.includes('link')) supportedWalletTypes.push('link')
+        if (!supportedWalletTypes.includes('nexo')) supportedWalletTypes.push('nexo')
+        if (!supportedWalletTypes.includes('swap')) supportedWalletTypes.push('swap')
+        if (!supportedWalletTypes.includes('uni')) supportedWalletTypes.push('uni')
+        // Other mainnets that were in the original list
+        if (!supportedWalletTypes.includes('litecoin')) supportedWalletTypes.push('litecoin')
+        if (!supportedWalletTypes.includes('zcash')) supportedWalletTypes.push('zcash')
+        if (!supportedWalletTypes.includes('dash')) supportedWalletTypes.push('dash')
+        if (!supportedWalletTypes.includes('digibyte')) supportedWalletTypes.push('digibyte')
+    }
+
     // (todo - remove, or move to dynamic)
     if (WALLET_INCLUDE_AIRCARBON_TEST && !supportedWalletTypes.includes('aircarbon(t)')) {
         supportedWalletTypes.push('aircarbon(t)')
@@ -1141,6 +1165,8 @@ module.exports = {
     , WALLET_INCLUDE_BTC_TEST
     , WALLET_INCLUDE_LTC_TEST
     , WALLET_INCLUDE_ZEC_TEST
+    , WALLET_INCLUDE_BTC_MAINNET
+    , WALLET_INCLUDE_ETH_MAINNET
     , WALLET_INCLUDE_DYNAMIC_STM_ASSETS
     , WALLET_DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
