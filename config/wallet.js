@@ -54,15 +54,15 @@ const WALLET_INCLUDE_DYNAMIC_STM_ASSETS = false
 const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
-const WALLET_INCLUDE_ETH_TEST = true  // Re-enabled with resilient connection handling
+const WALLET_INCLUDE_ETH_TEST = true
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
                                 // (IS_DEV || IS_TEST)
 
 // config - mainnet enable/disable flags
-const WALLET_INCLUDE_BTC_MAINNET = true  // Re-enabled with resilient connection handling
-const WALLET_INCLUDE_ETH_MAINNET = true  // Re-enabled with resilient connection handling
+const WALLET_INCLUDE_BTC_MAINNET = true
+const WALLET_INCLUDE_ETH_MAINNET = true 
 
 const WALLET_DISABLE_BLOCK_UPDATES = false
 
@@ -108,12 +108,11 @@ const API_URL = `${API_DOMAIN}api/`
 //
 // default static assets
 // augmented with dynamic (network fetched) ERC20's
-//
-// NOTE: Mainnet assets are now conditionally added based on WALLET_INCLUDE_*_MAINNET flags
-// Only testnets are enabled by default
+// NOTE: now conditionally added based on WALLET_INCLUDE_*_MAINNET flags
 var supportedWalletTypes = [ // use walletsMeta keys for this list
     // Mainnets - disabled, controlled by flags below
     //'bitcoin', 'litecoin', 'ethereum', 'eos', 'btc(s)', 'btc(s2)', 'zcash',
+
     //'dash', 
     //'vertcoin', 'qtum', // trim junk
     //'digibyte',
@@ -134,6 +133,10 @@ var supportedWalletTypes = [ // use walletsMeta keys for this list
     // todo 
     //'tgbp' (new)
 ] 
+//
+// INITIAL DYNAMIC POPULATION! important to do this here, so that the initial wallet generation can use the correct list of supported assets
+//
+setSupportedWalletTypes()
 
 var walletsMeta = {
     // utxo's
@@ -1011,7 +1014,13 @@ var walletsMeta = {
 // also update/augment their static configs...
 //
 var stm_ApiPayload = undefined
-function addDynamicSecTokens() {
+function setSupportedWalletTypes() {
+
+    // console.log(`setSupportedWalletTypes - WALLET_INCLUDE_ETH_TEST=${WALLET_INCLUDE_ETH_TEST}`)
+    // console.log(`setSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST=${WALLET_INCLUDE_BTC_TEST}`)
+    // console.log(`setSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST2=${WALLET_INCLUDE_BTC_TEST2}`)
+    // console.log(`setSupportedWalletTypes - WALLET_INCLUDE_LTC_TEST=${WALLET_INCLUDE_LTC_TEST}`)
+    // console.log(`setSupportedWalletTypes - WALLET_INCLUDE_ZEC_TEST=${WALLET_INCLUDE_ZEC_TEST}`)
 
     // semi-dynamic assets (dynamic at build time)
     if (WALLET_INCLUDE_ETH_TEST && !supportedWalletTypes.includes('eth(t)')) {
@@ -1071,7 +1080,7 @@ function addDynamicSecTokens() {
     // }
     // SD - replaced with true dynamic assets:
     if (stm_ApiPayload === undefined) {
-        //console.warn('StMaster - addDynamicSecTokens - stm_ApiPayload not set')
+        //console.warn('StMaster - setSupportedWalletTypes - stm_ApiPayload not set')
     }
     else {
         for (let i=0; i < stm_ApiPayload.base_types.length ; i++) {
@@ -1138,6 +1147,8 @@ function addDynamicSecTokens() {
         //console.log(`StMaster - done appends - configWalletExternal.walletExternal_config=`, configWalletExternal.walletExternal_config)
         //console.log(`StMaster - done appends - stm_ApiPayload=`, stm_ApiPayload)
     }
+
+    console.log(`setSupportedWalletTypes - done - supportedWalletTypes=`, supportedWalletTypes)
 }
 
 //
@@ -1230,6 +1241,12 @@ module.exports = {
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
     //
     , getSupportedWalletTypes: async () => { 
+        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ETH_TEST=${WALLET_INCLUDE_ETH_TEST}`)
+        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST=${WALLET_INCLUDE_BTC_TEST}`)
+        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST2=${WALLET_INCLUDE_BTC_TEST2}`)
+        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_LTC_TEST=${WALLET_INCLUDE_LTC_TEST}`)
+        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ZEC_TEST=${WALLET_INCLUDE_ZEC_TEST}`)
+
         if (stm_ApiPayload === undefined 
             && WALLET_INCLUDE_DYNAMIC_STM_ASSETS // WIP: disable in dev & prod for now...
         ) {
@@ -1258,7 +1275,7 @@ module.exports = {
                             }
                         }
                         console.log(`StMaster - getSupportedWalletTypes - WALLET_ENV=${WALLET_ENV}, set stm_ApiPayload=`, stm_ApiPayload)
-                        addDynamicSecTokens()
+                        setSupportedWalletTypes()
 
                     } else console.error(`StMaster - bad stm response (1)`)
                 } else console.error(`StMaster - bad stm response (2)`)
@@ -1268,7 +1285,7 @@ module.exports = {
         }
         else {
             //console.log('StMaster - using cached/supplied stm_ApiPayload', stm_ApiPayload)
-            addDynamicSecTokens()
+            setSupportedWalletTypes()
 
             //console.log('StMaster - returning - already populated', supportedWalletTypes)
             return new Promise((resolve) => resolve(supportedWalletTypes))
@@ -1283,7 +1300,7 @@ module.exports = {
         }
         stm_ApiPayload = val // set in var
     }
-    , addDynamicSecTokens: () => addDynamicSecTokens()
+    , setSupportedWalletTypes: () => setSupportedWalletTypes()
 
     , walletsMeta
     , getMetaBySymbol: (symbol) => {
@@ -1293,7 +1310,7 @@ module.exports = {
                 if (window !== undefined && window.sessionStorage !== undefined && window.sessionStorage.stm_ApiPayload !== undefined) {
                     console.warn(`StMaster - getMetaBySymbol, stm_ApiPayload is undefined... reloading from sessionStorage.stm_ApiPayload; supportedWalletTypes=${supportedWalletTypes}`)
                     stm_ApiPayload = JSON.parse(window.sessionStorage.stm_ApiPayload)
-                    addDynamicSecTokens()
+                    setSupportedWalletTypes()
                 }
             }
         }
@@ -1312,11 +1329,28 @@ module.exports = {
 
         var metaKey = undefined
         Object.keys(walletsMeta).map(p => {
-            if (walletsMeta[p].symbol === symbol) // *A*
+            //if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
+            //    console.log(`getSupportedMetaKeyBySymbol ${symbol} - p=${p}: ${walletsMeta[p].symbol} vs ${symbol}`)
+
+            if (walletsMeta[p].symbol === symbol) { // *A*
+                if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
+                    console.log(`getSupportedMetaKeyBySymbol ${symbol} - MATCH! p=${p}`)
+
                 metaKey = p
+            }
         })
-        if (!metaKey) return undefined // not known in global list
-        if (!supportedWalletTypes.includes(metaKey)) return undefined // not configured for inclusion
+        if (!metaKey) {
+            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
+                console.log(`getSupportedMetaKeyBySymbol ${symbol} - ### !metaKey ###`)
+
+            return undefined // not known in global list
+        }
+        if (!supportedWalletTypes.includes(metaKey)) {
+            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
+                console.log(`getSupportedMetaKeyBySymbol ${symbol} - ### !supportedWalletTypes ###`)
+
+            return undefined // not configured for inclusion
+        }
         return metaKey // known & included
     }
 

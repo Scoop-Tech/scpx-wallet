@@ -450,8 +450,10 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
         // exclude if not in the loaded wallet
         if (walletSymbols && walletSymbols.length > 0) {
             if (!walletSymbols.includes(assetSymbol)) {
-                utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook (skipping ${assetSymbol} - not in wallet)`, null, { logServerConsole: true })
+                utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook (skipping ${assetSymbol} - not in wallet) walletSymbols=`, walletSymbols, { logServerConsole: true })
                 continue
+            } else {
+                utilsWallet.log(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook - proceeding with ${assetSymbol} - in wallet; walletSymbols=`, walletSymbols, { logServerConsole: true })
             }
         }
 
@@ -461,7 +463,10 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
         else if (assetSymbol === 'ZEC_TEST') { if (!configWallet.WALLET_INCLUDE_ZEC_TEST) continue }
         else if (assetSymbol === 'BTC_TEST') { if (!configWallet.WALLET_INCLUDE_BTC_TEST) continue }
         else if (assetSymbol === 'BTC_TEST2') { if (!configWallet.WALLET_INCLUDE_BTC_TEST) continue }
-        else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) continue
+        else if (!configWallet.getSupportedMetaKeyBySymbol(assetSymbol)) {
+            utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Blockbook (skipping ${assetSymbol} - getSupportedMetaKeyBySymbol lookup failed)`, null, { logServerConsole: true })
+            continue
+        }
 
         setupSymbols.push(
             (function (x) {

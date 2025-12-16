@@ -31,7 +31,7 @@ module.exports = {
     // issues appWorker requests to populate asset data (balances & tx's) for the loaded wallet
     //
     loadAllAssets: (p) => {
-        const { bbSymbols_SocketReady, store } = p // todo - could make use of BB field to exclude BBv3 assets with known sockets down 
+        const { bbSymbols_SocketReady, store } = p // todo - could make use of BB field to exclude BBv3 assets with known sockets down...
 
         if (!store) throw 'No store supplied'
         var storeState = store.getState()
@@ -41,8 +41,7 @@ module.exports = {
         
         console.time('loadAllAssets')
         utilsWallet.logMajor('green', 'white', `loadAllAssets...`, null, { logServerConsole: true })
-
-        utilsWallet.log(`loadAllAssets - bbSymbols_SocketReady=`, bbSymbols_SocketReady);
+        utilsWallet.log(`loadAllAssets - bbSymbols_SocketReady=`, bbSymbols_SocketReady)
 
         const appWorker = utilsWallet.getAppWorker()
         return new Promise((resolve) => {
@@ -95,7 +94,7 @@ module.exports = {
                         if (!ethDone) {
                             utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH to finish...`)
                         }
-                        if (ethAsset) utilsWallet.log('loadAllAssets - poll - ethAsset.lastAssetUpdateAt=', ethAsset.lastAssetUpdateAt)
+                        //if (ethAsset) utilsWallet.log('loadAllAssets - poll - ethAsset.lastAssetUpdateAt=', ethAsset.lastAssetUpdateAt)
                     } else {
                         ethDone = true // Skip if ETH mainnet not enabled
                     }
@@ -107,7 +106,7 @@ module.exports = {
                         if (!ethTestDone) {
                             utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
                         }
-                        if (ethTestAsset) utilsWallet.log('loadAllAssets - poll - ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
+                        //if (ethTestAsset) utilsWallet.log('loadAllAssets - poll - ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
                     } else {
                         ethTestDone = true // Skip if ETH testnet not enabled
                     }
@@ -526,7 +525,8 @@ async function displayableWalletAssets(assets) {
     var displayableAssets = []
     if (assets) {
         for (const key in assets) {
-            const supportedTypes = await configWallet.getSupportedWalletTypes()
+            const supportedTypes = await configWallet.getSupportedWalletTypes() // ok, but we're not doing dybamic types (StMaster crap); so really we should just use the global supportedTypes list
+
             if (!supportedTypes.includes(key)) continue
             if (assets[key]) {
                 var displayableAsset = Object.assign(
