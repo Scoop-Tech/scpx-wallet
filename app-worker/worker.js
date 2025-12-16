@@ -192,9 +192,9 @@ async function handler(e) {
             const timeoutMs = data.timeoutMs
 
             const setupSymbols = workerBlockbook.isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, data.loaderWorker, data.walletSymbols)
-            utilsWallet.logMajor('pink', 'green', `appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
-
             if (setupSymbols.length > 0 || walletFirstPoll) {
+                utilsWallet.logMajor('pink', 'green', `appWorker >> ${self.workerId} INIT_BLOCKBOOK_ISOSOCKETS... setupSymbols=`, setupSymbols)
+
                 const startWaitAt = new Date().getTime()
                 const wait_intId = setInterval(() => { // wait/poll for all sockets to be ready, then postback either success all or some failed
 

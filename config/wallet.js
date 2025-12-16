@@ -1051,20 +1051,20 @@ function setSupportedWalletTypes() {
 
     if (WALLET_INCLUDE_ETH_MAINNET) {
         if (!supportedWalletTypes.includes('ethereum')) supportedWalletTypes.push('ethereum')
-        if (!supportedWalletTypes.includes('eos')) supportedWalletTypes.push('eos')
-        // ERC20 tokens
-        if (!supportedWalletTypes.includes('trueusd')) supportedWalletTypes.push('trueusd')
+        if (!supportedWalletTypes.includes('trueusd')) supportedWalletTypes.push('trueusd') // ERC20 tokens
         if (!supportedWalletTypes.includes('usdt')) supportedWalletTypes.push('usdt')
         if (!supportedWalletTypes.includes('link')) supportedWalletTypes.push('link')
         if (!supportedWalletTypes.includes('nexo')) supportedWalletTypes.push('nexo')
         if (!supportedWalletTypes.includes('swap')) supportedWalletTypes.push('swap')
         if (!supportedWalletTypes.includes('uni')) supportedWalletTypes.push('uni')
-        // Other mainnets that were in the original list
-        if (!supportedWalletTypes.includes('litecoin')) supportedWalletTypes.push('litecoin')
-        if (!supportedWalletTypes.includes('zcash')) supportedWalletTypes.push('zcash')
-        if (!supportedWalletTypes.includes('dash')) supportedWalletTypes.push('dash')
-        if (!supportedWalletTypes.includes('digibyte')) supportedWalletTypes.push('digibyte')
     }
+
+    if (!supportedWalletTypes.includes('litecoin')) supportedWalletTypes.push('litecoin')
+    if (!supportedWalletTypes.includes('zcash')) supportedWalletTypes.push('zcash')
+    if (!supportedWalletTypes.includes('dash')) supportedWalletTypes.push('dash')
+    if (!supportedWalletTypes.includes('digibyte')) supportedWalletTypes.push('digibyte')
+
+    //if (!supportedWalletTypes.includes('eos')) supportedWalletTypes.push('eos')
 
     // (todo - remove, or move to dynamic)
     if (WALLET_INCLUDE_AIRCARBON_TEST && !supportedWalletTypes.includes('aircarbon(t)')) {

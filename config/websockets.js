@@ -36,13 +36,17 @@ module.exports = {
       //'BTC_TEST' : { url: 'wss://tbtc2.trezor.io',                                           subBlocks: true },
         'BTC_TEST' : { url: 'wss://x-btc-testnet.d0m1.com:10009',                              subBlocks: true },
         'BTC_TEST2': { url: 'wss://x-btc-testnet.d0m1.com:10009',                              subBlocks: true },
+
         'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
         'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true },
         'BTC_SEG2' : { url: 'wss://btc3.trezor.io',                                            subBlocks: true },
         'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
         'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
-        'ETH'      : { url: 'wss://eth1.trezor.io',                                            subBlocks: false },
-        'DASH'     : { url: 'wss://dash1.trezor.io',                                           subBlocks: true },
+
+      'ETH': { url: 'wss://ac-dev0.net:10003', subBlocks: true },
+      //'ETH': { url: 'wss://eth1.trezor.io',                                                  subBlocks: false },
+
+      'DASH': { url: 'wss://dash1.trezor.io', subBlocks: true },
       //'VTC'      : { url: 'wss://vtc1.trezor.io',                                            subBlocks: true },
         'DGB'      : { url: 'wss://dgb1.trezor.io',                                            subBlocks: true },
       //'BCHABC'   : { url: 'wss://bch1.trezor.io',                                            subBlocks: true },
