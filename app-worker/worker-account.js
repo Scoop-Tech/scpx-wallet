@@ -40,7 +40,7 @@ module.exports = {
 //
 async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, allDispatchActions, callback) {
     utilsWallet.debug(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress})...`)
-    if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false } ); return } // todo
+    if (asset.symbol === 'EOS') { callback( { balance: 0, unconfirmedBalance: 0, txs: [], cappedTxs: false }, null ); return } // todo
     
     // ETH v2
     const wsSymbol = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
@@ -55,18 +55,28 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
     utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), currentProvider.host=`, web3.currentProvider.host)
 
     var height
+    var balData
     try {
-        height = await web3.eth.getBlockNumber()
+        // Add timeout to prevent infinite hanging on offline nodes
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout: Node did not respond')), 3000) // 3 second timeout
+        )
+        height = await Promise.race([
+            web3.eth.getBlockNumber(),
+            timeoutPromise
+        ])
+        
+        utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), height=`, height)
+
+        // balance - web3 (also with timeout protection)
+        balData = await getAddressBalance_Account(asset.symbol, pollAddress)
     }
     catch(ex) { 
-        utilsWallet.error(`## failed to get block height: ${asset.symbol} (${pollAddress})`)
-        callback(null)
+        const errorMsg = `Failed to fetch account data from ${web3.currentProvider.host}: ${ex.message || ex.toString()}`
+        utilsWallet.error(`## ${errorMsg}`)
+        callback(null, errorMsg)
         return
     }
-    utilsWallet.log(`*** getAddressFull_Account_v2 ${asset.symbol} (${pollAddress}), height=`, height)
-
-     // balance - web3
-    const balData = await getAddressBalance_Account(asset.symbol, pollAddress)
 
     // address tx's - BB
     if (!cache_bb_addressTxs[wsSymbol]) cache_bb_addressTxs[wsSymbol] = {}
@@ -192,29 +202,32 @@ async function getAddressFull_Account_v2(wallet, asset, pollAddress, bbSocket, a
                             }
 
                             //console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress} dispatchTxs.length=${dispatchTxs.length}: CALLBACK 1`)
-                            callback(res)
+                            callback(res, null)
                         })
                         .catch((err) => {
+                            const errorMsg = `Failed to enrich transactions: ${err.message || err.toString()}`
                             utilsWallet.error(`## getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - enrichOps.all FAIL, err=`, err)
+                            callback(null, errorMsg)
                         })
                     }
                     else {
                         //console.log(`data for ${asset.symbol} data.length=${data.result.length} pollAddress=${pollAddress}: CALLBACK 2`)
-                        callback(res)
+                        callback(res, null)
                     }
 
                 //}) // dedicatedWeb3.currentProvider.on("connect" 
             }
             else {
                 debugger
-                callback(null)
+                callback(null, 'No data from Blockbook')
             }
         }
     }
     catch(err) {
         debugger
+        const errorMsg = `Failed to fetch address data: ${err.message || err.toString()}`
         utilsWallet.error(`### getAddressFull_Account_v2 ${asset.symbol} ${pollAddress} - err=`, err)
-        callback(null)
+        callback(null, errorMsg)
     }
 }
 
@@ -550,7 +563,16 @@ function getETHAddressBalance_api(symbol, address) {
             }
 
             const web3 = self.web3_Sockets[symbol] || new Web3(new Web3.providers.HttpProvider(configExternal.walletExternal_config[symbol].httpProvider))
-            web3.eth.getBalance(address)
+            
+            // Add timeout to prevent infinite hanging
+            const timeoutPromise = new Promise((_, timeoutReject) => 
+                setTimeout(() => timeoutReject(new Error('Timeout: Node did not respond')), 3000)
+            )
+            
+            Promise.race([
+                web3.eth.getBalance(address),
+                timeoutPromise
+            ])
             .then(balWei => {
                 resolve(balWei.toString())
             })
@@ -604,12 +626,19 @@ function getERC20AddressBalance_api(symbol, address) {
             const contractData = ('0x70a08231000000000000000000000000' // balanceOf
                                 + tknAddress)                          // (address)
             const contractAddress = configExternal.walletExternal_config[symbol].contractAddress
+            
+            // Add timeout to prevent infinite hanging
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Timeout: Node did not respond'))
+            }, 3000)
+            
             web3.eth.call({
                 to: contractAddress,
                 data: contractData
             },
             web3.eth.defaultBlock,
                 (err, result) => {
+                    clearTimeout(timeoutId)
                     if (result) {
                         const tokens = web3.utils.toBN(result)
                         // if (symbol === 'SD1A_TEST') {

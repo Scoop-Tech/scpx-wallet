@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const CircularBuffer = require("circular-buffer")
 const isoWs = require('isomorphic-ws')
@@ -111,7 +111,7 @@ module.exports = {
                             catch (err) { utilsWallacket.error(`### appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - connect, err=`, err) }
                         }
                         socket.onclose = () => {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onclose...`)
+                            //utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onclose...`)
                             self.geth_Sockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
                             try {
                                 if (!loaderWorker) {
@@ -122,7 +122,7 @@ module.exports = {
                             catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onclose callback, err=`, err) }
                         }
                         socket.onerror = (e) => {
-                            utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onerror...`)
+                            //utilsWallet.warn(`appWorker >> ${self.workerId} isosocket_Setup_Geth ${x} - onerror...`)
                             self.geth_Sockets[x] = undefined 
                             try {
                                 if (!loaderWorker) {

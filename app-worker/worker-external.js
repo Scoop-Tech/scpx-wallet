@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const _ = require('lodash')
 
@@ -60,29 +60,39 @@ function getAddressFull_External(p, callback) { // todo: accept already fetched 
                     if (dispatchAction !== null) {
                         allDispatchActions = [...allDispatchActions, dispatchAction]
                     }
-                    callback(allDispatchActions)
+                    callback({ dispatchActions: allDispatchActions, error: null })
                 }
                 else {
-                    callback([])
+                    callback({ dispatchActions: [], error: 'No response from node' })
                 }
+            })
+            .catch(err => {
+                utilsWallet.error(`## getAddressFull_External UTXO ${asset.symbol} addrNdx=${addrNdx}, err=`, err)
+                callback({ dispatchActions: [], error: err.message || err.toString() })
             })
             break
 
         case configWallet.WALLET_TYPE_ACCOUNT:
-            workerAccount.getAddressFull_Account_v2(wallet, asset, asset.addresses[addrNdx].addr, bbSocket, allDispatchActions, (res) => {
-                if (res) {
+            workerAccount.getAddressFull_Account_v2(wallet, asset, asset.addresses[addrNdx].addr, bbSocket, allDispatchActions, (res, error) => {
+                if (error) {
+                    callback({ dispatchActions: [], error: error })
+                }
+                else if (res) {
                     const dispatchAction = walletExternal.getAddressFull_ProcessResult(res, asset, addrNdx)
                     if (dispatchAction !== null) {
                         allDispatchActions = [...allDispatchActions, dispatchAction]
                     }
+                    callback({ dispatchActions: allDispatchActions, error: null })
                 }
-                callback(allDispatchActions)
+                else {
+                    callback({ dispatchActions: [], error: 'No response from node' })
+                }
             })
             break
 
         default:
             utilsWallet.error('Wallet type ' + asset.type + ' not supported!')
-            callback([])
+            callback({ dispatchActions: [], error: 'Unsupported wallet type' })
             break
     }
 }
@@ -115,22 +125,22 @@ function getAddressBalance_External(p, callback) {
                         //utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - UTXO BALANCE UPDATE: refreshing TX HIST`)
                         
                         // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
-                        getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket }, (dispatchActions) => {
-                            callback(dispatchActions)
+                        getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds, bbSocket }, (result) => {
+                            callback(result)
                         })
                     }
                     else {
-                        callback([])
+                        callback({ dispatchActions: [], error: null })
                     }
 
                 } else { 
                     utilsWallet.error(`## getAddressBalance - WALLET_TYPE_UTXO -- undefined response!`)
-                    callback([])
+                    callback({ dispatchActions: [], error: 'No response from node' })
                 }
             })
             .catch((err) => {
                 utilsWallet.error(`## getAddressBalance FAIL ${asset.symbol}`, err)
-                callback([])
+                callback({ dispatchActions: [], error: err.message || err.toString() })
             })
             break
 
@@ -151,17 +161,17 @@ function getAddressBalance_External(p, callback) {
                     utilsWallet.log(`*** getAddressBalance - ${asset.symbol} - addrNdx=${addrNdx} - ACCOUNT BALANCE UPDATE: refreshing TX HIST`)
 
                     // todo: pass in balanceData; getAddressFull should use this data instead of querying balance (again)
-                    return getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds: undefined, bbSocket }, (dispatchActions) => {
-                        callback(dispatchActions)
+                    return getAddressFull_External({ wallet, asset, addrNdx, utxo_mempool_spentTxIds: undefined, bbSocket }, (result) => {
+                        callback(result)
                     })
                 }
                 else {
-                    callback([])
+                    callback({ dispatchActions: [], error: null })
                 }
             })
             .catch((err) => { 
                 utilsWallet.error(`## getAddressBalance FAIL ${asset.symbol}`, err)
-                callback([])
+                callback({ dispatchActions: [], error: err.message || err.toString() })
             })
 
             // if (asset.symbol === 'EOS') ; // todo

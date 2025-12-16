@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const Buffer = require('buffer').Buffer
 const _ = require('lodash')
@@ -92,7 +92,7 @@ module.exports = {
                         const ethAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH')
                         ethDone = ethAsset ? ethAsset.lastAssetUpdateAt !== undefined : true
                         if (!ethDone) {
-                            utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH to finish...`)
+                            //utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH to finish...`)
                         }
                         //if (ethAsset) utilsWallet.log('loadAllAssets - poll - ethAsset.lastAssetUpdateAt=', ethAsset.lastAssetUpdateAt)
                     } else {
@@ -104,7 +104,7 @@ module.exports = {
                         const ethTestAsset = storeState.wallet.assets.find(p => p.symbol === 'ETH_TEST')
                         ethTestDone = ethTestAsset === undefined || ethTestAsset.lastAssetUpdateAt !== undefined
                         if (!ethTestDone) {
-                            utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
+                            //utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ETH_TEST to finish...`)
                         }
                         //if (ethTestAsset) utilsWallet.log('loadAllAssets - poll - ethTestAsset.lastAssetUpdateAt', ethTestAsset.lastAssetUpdateAt)
                     } else {

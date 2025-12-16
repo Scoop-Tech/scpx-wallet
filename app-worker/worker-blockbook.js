@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const _ = require('lodash')
 
@@ -70,7 +70,16 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             contractFilter: undefined
         }, (balanceAndTxData) => {
 
-            if (!balanceAndTxData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no balanceAndTxData!`); reject(); return }
+            if (!balanceAndTxData) { 
+                utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no balanceAndTxData!`); 
+                reject(new Error('No balanceAndTxData from Blockbook')); 
+                return 
+            }
+            if (balanceAndTxData.error) {
+                utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - BB error:`, balanceAndTxData.error);
+                reject(new Error(`Blockbook error: ${balanceAndTxData.error}`));
+                return
+            }
 
             // axiosRetry(axios, CONST.AXIOS_RETRY_EXTERNAL)
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
@@ -81,13 +90,19 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 //     debugger
                 // }
 
-                if (!utxosData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxosData`); reject(); return }
+                if (!utxosData) { 
+                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - no utxosData`); 
+                    reject(new Error('No utxosData from Blockbook')); 
+                    return 
+                }
                 if (utxosData.error) {
-                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - errored utxosData`, utxosData.error); reject();
+                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - errored utxosData`, utxosData.error); 
+                    reject(new Error(`Blockbook UTXO error: ${JSON.stringify(utxosData.error)}`));
                     return
                 }
                 if (!Array.isArray(utxosData)) {
-                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - invalid utxosData type`); reject();
+                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - invalid utxosData type`); 
+                    reject(new Error('Invalid utxosData type from Blockbook'));
                     return
                 }
                 const getUtxoSpecificOps = utxosData.map(utxo => {
@@ -282,15 +297,20 @@ function getAddressBalance_Blockbook_v3(asset, address) {
         isosocket_send_Blockbook(symbol, 'getAccountInfo', params, (data) => {
             //utilsWallet.debug(`getAddressBalance_Blockbook_v3 ${symbol} ${address} - data=`, data)
             if (data) {
-                resolve({
-                    symbol,
-                    balance: new BigNumber(data.balance),
-                    unconfirmedBalance: new BigNumber(data.unconfirmedBalance),
-                    address,
-                })
+                if (data.error) {
+                    reject(new Error(`Blockbook balance error: ${JSON.stringify(data.error)}`))
+                }
+                else {
+                    resolve({
+                        symbol,
+                        balance: new BigNumber(data.balance),
+                        unconfirmedBalance: new BigNumber(data.unconfirmedBalance),
+                        address,
+                    })
+                }
             }
             else {
-                resolve({ symbol, balance: new BigNumber(0), unconfirmedBalance: new BigNumber(0) })
+                reject(new Error('No data from Blockbook for balance'))
             }
         })
     })

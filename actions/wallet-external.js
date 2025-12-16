@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const bitcoinJsLib = require('bitcoinjs-lib')
 const bitgoUtxoLib = require('bitgo-utxo-lib')
@@ -225,12 +225,17 @@ module.exports = {
         const totalConfirmed = addresses.reduce((sum,p) => { return new BigNumber(p.balance || 0).plus(new BigNumber(sum)) }, 0)
         const totalUnconfirmed = addresses.reduce((sum,p) => { return new BigNumber(p.unconfirmedBalance || 0).plus(new BigNumber(sum)) }, 0)
 
-        if (addresses.some(p => p.balance === undefined || p.unconfirmedBalance === undefined)) {
+        // allAddressesFetched is true if ALL addresses have been fetch-attempted (successfully or with error)
+        // An address is considered "fetch-attempted" if it has balance data OR has a fetchError
+        if (addresses.some(p => (p.balance === undefined || p.unconfirmedBalance === undefined) && !p.fetchError)) {
             ret.allAddressesFetched = false
         }
         else {
             ret.allAddressesFetched = true
         }
+        
+        // Track if any addresses have errors
+        ret.hasAddressErrors = addresses.some(p => p.fetchError !== undefined)
 
         ret.conf = totalConfirmed || new BigNumber(0)
         ret.unconf = totalUnconfirmed || new BigNumber(0)

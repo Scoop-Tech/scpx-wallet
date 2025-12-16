@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const npmPackage = require('../package.json')
 const isNode = require('detect-node')
@@ -16,8 +16,8 @@ const DRIP_TEST_ETH = false
 const configExternal = require('./wallet-external')
 
 // static - license, copyright, env
-const WALLET_VER = 'BETA-' + require('../package.json').version
-const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.`
+const WALLET_VER = 'RC-' + require('../package.json').version
+const WALLET_COPYRIGHT = `Distributed under the ${npmPackage.license} license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.`
 const WALLET_ENV = isNode ? "SERVER" : "BROWSER"
 
 // static - asset types
@@ -1329,26 +1329,14 @@ module.exports = {
 
         var metaKey = undefined
         Object.keys(walletsMeta).map(p => {
-            //if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
-            //    console.log(`getSupportedMetaKeyBySymbol ${symbol} - p=${p}: ${walletsMeta[p].symbol} vs ${symbol}`)
-
             if (walletsMeta[p].symbol === symbol) { // *A*
-                if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
-                    console.log(`getSupportedMetaKeyBySymbol ${symbol} - MATCH! p=${p}`)
-
                 metaKey = p
             }
         })
         if (!metaKey) {
-            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
-                console.log(`getSupportedMetaKeyBySymbol ${symbol} - ### !metaKey ###`)
-
             return undefined // not known in global list
         }
         if (!supportedWalletTypes.includes(metaKey)) {
-            if (symbol === 'BTC_SEG' || symbol === 'BTC_SEG2')
-                console.log(`getSupportedMetaKeyBySymbol ${symbol} - ### !supportedWalletTypes ###`)
-
             return undefined // not configured for inclusion
         }
         return metaKey // known & included

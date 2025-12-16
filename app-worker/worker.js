@@ -17,6 +17,7 @@ const workerUtxo = require('./worker-insight')
 const configWS = require('../config/websockets')
 const configWallet = require('../config/wallet')
 const configExternal = require('../config/wallet-external')
+const actionsWallet = require('../actions')
 const walletExternal = require('../actions/wallet-external')
 const walletP2shBtc = require('../actions/wallet-btc-p2sh')
 const utilsWallet = require('../utils')
@@ -242,7 +243,7 @@ async function handler(e) {
             }
             Object.values(configWallet.walletsMeta).filter(p => p.type === configWallet.WALLET_TYPE_UTXO && p.use_BBv3).forEach(p => { 
                 if (!configWallet.getSupportedMetaKeyBySymbol(p.symbol)) return
-                GetSyncInfo(p.symbol) 
+                GetSyncInfo(p.symbol)
             })
             break
         }
@@ -507,8 +508,6 @@ async function handler(e) {
             return
         }
 
-        utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
-
         const meta = configWallet.getMetaBySymbol(symbol)
         if (meta.type === configWallet.WALLET_TYPE_UTXO) {
             // don't send redundant requests: causes 429's
@@ -516,6 +515,7 @@ async function handler(e) {
             // if (symbol === 'BTC_SEG2' || symbol === 'BTC_TEST2') return 
 
             if (meta.use_BBv3) {
+                //utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
                 workerBlockbook.getSyncInfo_Blockbook_v3(symbol, undefined, undefined, networkStatusChanged)
             }
             else {
@@ -524,6 +524,7 @@ async function handler(e) {
         }
         else if (meta.type === configWallet.WALLET_TYPE_ACCOUNT) {
             if (symbol === 'ETH' || symbol === 'ETH_TEST') {
+                //utilsWallet.log(`appWorker >> ${self.workerId} ${symbol} GET_SYNC_INFO...`)
                 workerGeth.getSyncInfo_Geth(symbol, undefined, undefined, networkStatusChanged)
             }
         }
@@ -570,16 +571,28 @@ async function handler(e) {
                     return new Promise((resolveAddrOp, rejectAddrOp) => {
                         const addrNdx = asset.addresses.findIndex(p => p.addr === a.addr)
     
-                        // ### d+10 eth this is *failing* (intermittent geth WS issue?) but callback always resolves
-                        // so, lastAssetUpdateAt is being set, and loadAllAssets sees eth as "done"
-                        //  1 - need to detect failure state here
-                        //  2 - need a new flag "allAddressesLoaded" only set on happy path
-                        //...
-                        workerExternal.getAddressFull_External({ wallet, asset, addrNdx, bbSocket, /*utxo_mempool_spentTxIds: spentTxIds,*/ }, (dispatchActions) => {
-                            if (dispatchActions.length > 0) {
+                        workerExternal.getAddressFull_External({ wallet, asset, addrNdx, bbSocket, /*utxo_mempool_spentTxIds: spentTxIds,*/ }, (result) => {
+                            const { dispatchActions, error } = result
+                            
+                            if (error) {
+                                // Dispatch error state for this address
+                                utilsWallet.error(`## refreshAssetsFull - ${asset.symbol} addrNdx=${addrNdx} - fetch error: ${error}`)
+                                const errorAction = {
+                                    type: actionsWallet.WCORE_SET_ADDRESS_FETCH_ERROR,
+                                    payload: {
+                                         symbol: asset.symbol,
+                                        addrNdx: addrNdx,
+                                          error: error,
+                                       updateAt: new Date()
+                                    }
+                                }
+                                assetDispatchActions = [...assetDispatchActions, errorAction]
+                            }
+                            else if (dispatchActions && dispatchActions.length > 0) {
                                 assetDispatchActions = [...assetDispatchActions, ...dispatchActions]
                             }
-                            resolveAddrOp()
+                            
+                            resolveAddrOp() // Always resolve to let other addresses continue
                         })
                 })})
                 //****
@@ -627,11 +640,28 @@ async function handler(e) {
             return new Promise((resolve, reject) => {
                 const addrNdx = asset.addresses.findIndex(p => p.addr === a.addr)
                 workerExternal.getAddressBalance_External({ wallet, asset, addrNdx, /*utxo_mempool_spentTxIds,*/ bbSocket },
-                    (dispatchActions) => {
-                        if (dispatchActions.length > 0) {
+                    (result) => {
+                        const { dispatchActions, error } = result
+                        
+                        if (error) {
+                            // Dispatch error state for this address
+                            utilsWallet.error(`## refreshAssetBalance - ${asset.symbol} addrNdx=${addrNdx} - fetch error: ${error}`)
+                            const errorAction = {
+                                type: actionsWallet.WCORE_SET_ADDRESS_FETCH_ERROR,
+                                payload: {
+                                    symbol: asset.symbol,
+                                    addrNdx: addrNdx,
+                                    error: error,
+                                    updateAt: new Date()
+                                }
+                            }
+                            allDispatchActions = [...allDispatchActions, errorAction]
+                        }
+                        else if (dispatchActions && dispatchActions.length > 0) {
                             allDispatchActions = [...allDispatchActions, ...dispatchActions]
                         }
-                        resolve()
+                        
+                        resolve() // Always resolve to let other addresses continue
                     })
         })})
 

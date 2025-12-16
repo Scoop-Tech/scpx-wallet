@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 module.exports = {
 
@@ -10,6 +10,8 @@ module.exports = {
     WCORE_SET_ENRICHED_TXS: "WCORE_SET_ENRICHED_TXS",
     WCORE_SET_ENRICHED_TXS_MULTI: "WCORE_SET_ENRICHED_TXS_MULTI",
     WCORE_PUSH_LOCAL_TX: "WCORE_PUSH_LOCAL_TX",
+    WCORE_SET_ADDRESS_FETCH_ERROR: "WCORE_SET_ADDRESS_FETCH_ERROR",
+    WCORE_CLEAR_ADDRESS_FETCH_ERROR: "WCORE_CLEAR_ADDRESS_FETCH_ERROR",
 
     // SyncInfo
     SET_ASSET_BLOCK_INFO: "SET_ASSET_BLOCK_INFO",

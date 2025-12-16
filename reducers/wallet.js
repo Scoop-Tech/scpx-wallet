@@ -1,4 +1,4 @@
-// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2023 Dominic Morris.
+// Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const _ = require('lodash')
 
@@ -8,6 +8,7 @@ const {
         WCORE_SET_ADDRESS_FULL, WCORE_SET_ADDRESSES_FULL_MULTI, 
         WCORE_SET_ENRICHED_TXS, WCORE_SET_ENRICHED_TXS_MULTI,
     WCORE_PUSH_LOCAL_TX,
+    WCORE_SET_ADDRESS_FETCH_ERROR, WCORE_CLEAR_ADDRESS_FETCH_ERROR,
 } = require('../actions')
 
 const utilsWallet = require('../utils')
@@ -176,6 +177,42 @@ const handlers = {
         // update asset
         asset.local_txs.push(_.cloneDeep(action.payload.tx))
         utilsWallet.logMajor('red','white', `LOCAL_TX - PUSH DONE - ${action.payload.symbol} txid=${action.payload.tx.txid}, asset.local_txs=`, asset.local_txs, { logServerConsole: true })
+
+        return { ...state, assets }
+    },
+
+    [WCORE_SET_ADDRESS_FETCH_ERROR]: (state, action) => {
+        const { symbol, addrNdx, error, updateAt } = action.payload
+        if (!state.assets) { return {...state} }
+
+        var assets = _.cloneDeep(state.assets)
+        const assetNdx = assets.findIndex(p => p.symbol === symbol)
+        
+        if (assetNdx !== -1 && assets[assetNdx].addresses[addrNdx]) {
+            // Set error on the address
+            assets[assetNdx].addresses[addrNdx].fetchError = error
+            assets[assetNdx].addresses[addrNdx].lastAddrFetchAt = updateAt
+            
+            // Also update the asset timestamp so loadAllAssets knows this asset was "attempted"
+            assets[assetNdx].lastAssetUpdateAt = updateAt
+            
+            utilsWallet.logMajor('red','white', `WCORE_SET_ADDRESS_FETCH_ERROR ${symbol} addrNdx=${addrNdx}, error=${error}`, null, { logServerConsole: true })
+        }
+
+        return { ...state, assets }
+    },
+
+    [WCORE_CLEAR_ADDRESS_FETCH_ERROR]: (state, action) => {
+        const { symbol, addrNdx } = action.payload
+        if (!state.assets) { return {...state} }
+
+        var assets = _.cloneDeep(state.assets)
+        const assetNdx = assets.findIndex(p => p.symbol === symbol)
+        
+        if (assetNdx !== -1 && assets[assetNdx].addresses[addrNdx]) {
+            delete assets[assetNdx].addresses[addrNdx].fetchError
+            utilsWallet.log(`WCORE_CLEAR_ADDRESS_FETCH_ERROR ${symbol} addrNdx=${addrNdx}`)
+        }
 
         return { ...state, assets }
     },
