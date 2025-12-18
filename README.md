@@ -1,9 +1,8 @@
 #
-# PAIN & SUFFERING
-# as-of Feb '24
+# LIFE IS SUFFERING // Dec '25
 #
 
-# Env
+# Env, gl
 //
 // #### WARNING: node v16.13.0 (and other 16's?) result in loadAllAssets never resolving (something prevents state changes on lastAssetUpdateAt?)
 //               (node v18 seems ok for future upgrading...)
@@ -103,18 +102,6 @@ Type ```.help``` in the CLI for a full list of commands.
   * Derivative Products - asset transfers for diversification or deriviate products backed by Scoop Contracts, e.g. crypto options, crypto CFDs, algo trading.
 
 Major roadmap items are tracked [here](https://github.com/Scoop-Tech/scpx-wallet/labels/major%20feature).
-
-## Help Wanted
-
-Scoop Wallet is self-funded and community driven. If you can [help](https://github.com/Scoop-Tech/scpx-wallet/labels/help%20wanted) in any of these areas, please reach out to us.
-
-## Development
-
-Please see the [Development Guide](./DEVELOPMENT.md) for info on building locally.
-
-## Issues
-
-The integrated GitHub [issue tracker](https://github.com/Scoop-Tech/scpx-wallet/issues) is used for this project. When reporting security issues, responsible disclosure is encouraged: please contact us directly at dom+scpx@d0m1.com.
 
 
 

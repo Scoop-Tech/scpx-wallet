@@ -312,11 +312,11 @@ module.exports = {
             // encrypt & postback raw asset data to server - potentially with newly added assets
             // 
             if (userAccountName && configWallet.WALLET_ENV === "BROWSER") { // persist raw encrypted to eos server - pruned raw assets (without addresss data)
-                apiDataContract.updateAssetsJsonApi({ 
+                await apiDataContract.updateAssetsJsonApi({ 
                           owner: userAccountName, 
          encryptedAssetsJSONRaw: walletShared.encryptPrunedAssets(currentAssets, apk, h_mpk), 
                         e_email: e_email,
-               showNotification: false
+               showNotification: true
                 })
                 .catch(error => {
                     utilsWallet.log("ERROR #1.UA-APP CANNOT PROCESS UPDATE (" + error + ")")
