@@ -685,16 +685,41 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
 function isosocket_send_Blockbook(x, method, params, callback) {
     if (self.bb_Sockets[x] === undefined) {
         utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
+        if (callback) {
+            callback({ error: 'Blockbook socket not initialized' })
+        }
         return
     }
     if (self.bb_Sockets[x].readyState != 1) {
         utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: invalid socket readyState=`, self.bb_Sockets[x].readyState)
+        if (callback) {
+            callback({ error: `Blockbook socket not ready (readyState=${self.bb_Sockets[x].readyState})` })
+        }
         return
     }
 
     var id = self.bb_Sockets_messageID[x].toString()
     self.bb_Sockets_messageID[x]++
-    self.bb_Sockets_pendingMessages[x][id] = callback
+    
+    // Set up timeout for this request (3 seconds)
+    const timeoutId = setTimeout(() => {
+        if (self.bb_Sockets_pendingMessages[x][id]) {
+            delete self.bb_Sockets_pendingMessages[x][id]
+            utilsWallet.error(`## isosocket_send_Blockbook ${x} ${method} - timeout after 3s`)
+            if (callback) {
+                callback({ error: 'Blockbook request timeout' })
+            }
+        }
+    }, 3000)
+    
+    // Wrap the original callback to clear timeout on success
+    self.bb_Sockets_pendingMessages[x][id] = (data) => {
+        clearTimeout(timeoutId)
+        if (callback) {
+            callback(data)
+        }
+    }
+    
     var req = { id, method, params }
     self.bb_Sockets[x].send(JSON.stringify(req))
     return id
