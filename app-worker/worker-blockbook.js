@@ -634,7 +634,7 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - connect, err=`, err) }
                     }
                     socket.onclose = () => {
-                        utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - onclose...`)
+                        //utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - onclose...`)
                         self.bb_Sockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
                         try {
                             // reconnect - this supplements volatileSockets_ReInit() for faster reconnection

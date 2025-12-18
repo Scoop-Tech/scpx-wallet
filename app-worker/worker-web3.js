@@ -59,7 +59,23 @@ module.exports = {
                         // geth: fails on geth v 1.8.2 w/ large web3 getTransactionDetail return packets (large ~= 16kb ?) -- gets EOF and hard-disconnects the WS from server
                         const Web3 = require('web3')
         
-                        const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.geth_ws_config[x].url))
+                        // custom reconnect options - not too fast; we have a global volatile sockets reconnector that will handle disconnects
+                        const web3 = new Web3(new Web3.providers.WebsocketProvider(
+                            configWS.geth_ws_config[x].url,
+                            {
+                                timeout: 10000,  // 10 second timeout
+                                clientConfig: {
+                                    keepalive: true,
+                                    keepaliveInterval: 30000  // 30 seconds
+                                },
+                                reconnect: {
+                                    auto: true,
+                                    delay: 5000,        // 5 seconds between attempts
+                                    maxAttempts: 5,     // Give up after 5 tries
+                                    onTimeout: false
+                                }
+                            }
+                        ))
         
                         // parity: try-fix - https://github.com/ethereum/go-ethereum/issues/16846 ...
                         //const web3 = new Web3(new Web3.providers.WebsocketProvider(configWS.parityPubSub_ws_config[x].url))

@@ -153,7 +153,7 @@ const walletExternal_config = {
             block: (blockHash, page) => { return `${btcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_TEST2: { // BTC testnet4 - p2wpkh - https://faucet.testnet4.dev / https://coinfaucet.eu/en/btc-testnet4 / https://bitcoinfaucet.uo1.net/send.php
+    BTC_TEST2: { // BTC testnet4 - p2wpkh - https://faucet.testnet4.dev / https://coinfaucet.eu/en/btc-testnet4 / https://mempool.space/testnet4/faucet
         donate: 'tb1q9s8qvvrvafadl7wxj2axp3l5tg7nensjr27e8r', // testnets4@d0m1.com... was: 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9', // testnets2@scoop.tech Bech32 Testnet
         explorerPath: (address) => { return 'https://mempool.space/testnet4/address/' + address },
         txExplorerPath: (txid) => { return 'https://mempool.space/testnet4/tx/' + txid },

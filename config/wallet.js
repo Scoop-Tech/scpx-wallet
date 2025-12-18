@@ -1208,7 +1208,8 @@ module.exports = {
     , REGEX_ETH: /[0-9A-Fa-f]{64}/g                                      // eth -- 64 hex chars, any
 
     // functional sockets - geth & blockbook
-    , VOLATILE_SOCKETS_REINIT_SECS: 20                                   // volatile sockets - reinit timer (seconds)
+    , VOLATILE_SOCKETS_REINIT_SECS: 60                                   // volatile sockets - reinit timer (seconds)
+    , SOCKET_TIMEOUT_MS: 2000                                           // socket timeout (ms)
 
     // wallet test params
     //,TEST_PAD_TXS:100                                                  // pad TX list -- testing LS/SS limits

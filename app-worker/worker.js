@@ -802,8 +802,15 @@ self.get_BlockbookSocketIo = function(asset) {
             try {
                 //utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
                 const ws_url = new URL(configWS.blockbook_ws_config[socketToUse].url)
+                
+                // custom reconnect options - not too fast; we have a global volatile sockets reconnector that will handle disconnects
                 socket = io(configWS.blockbook_ws_config[socketToUse].url, {
                     transports: ['websocket'],
+                    reconnection: true,
+                    reconnectionDelay: 5000,        // Start at 5 seconds
+                    reconnectionDelayMax: 60000,    // Max 60 seconds
+                    reconnectionAttempts: 5,        // Give up after 5 tries
+                    timeout: 10000,                 // Connection timeout
                     transportOptions: {
                         websocket: {
                               extraHeaders: {
