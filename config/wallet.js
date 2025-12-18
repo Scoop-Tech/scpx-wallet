@@ -45,7 +45,7 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 
 // config - dbg/test
 const WALLET_INCLUDE_BTC_TEST = true //(IS_DEV || IS_TEST)
-const WALLET_INCLUDE_BTC_TEST2 = false //IS_DEV
+const WALLET_INCLUDE_BTC_TEST2 = true //IS_DEV
 const WALLET_INCLUDE_ZEC_TEST = false //(IS_DEV || IS_TEST)
 const WALLET_INCLUDE_LTC_TEST = false
 const WALLET_INCLUDE_TUSD_TEST = false
@@ -212,7 +212,7 @@ var walletsMeta = {
         OP_CLTV: true,
         displayName: 'Test Bitcoin',
         ccySymbol: '฿', //₿', 
-        desc: 'Testnet3 P2SH(P2WPKH) (2-addr)',
+        desc: 'Testnet4 P2SH(P2WPKH) (2-addr)',
         displaySymbol: 'BTC#',
         imageUrl: 'img/asset-icon/btc_test.png',
         primaryColor: '#f2a235',
@@ -232,7 +232,7 @@ var walletsMeta = {
         addressType: ADDRESS_TYPE_BECH32,   
         symbol: 'BTC_TEST2',
         displayName: 'Test Bitcoin',
-        desc: 'Testnet3 P2WPKH Bech32 (tb1q-addr)', // 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
+        desc: 'Testnet4 P2WPKH Bech32 (tb1q-addr)', // 'bc-addr Bech32 (P2WPKH)', //'SegWit (P2WPKH) Bech32',
         displaySymbol: 'BTC#',
         imageUrl: 'img/asset-icon/btc_test.png',
         primaryColor: '#f2a235',
@@ -1148,7 +1148,7 @@ function setSupportedWalletTypes() {
         //console.log(`StMaster - done appends - stm_ApiPayload=`, stm_ApiPayload)
     }
 
-    console.log(`setSupportedWalletTypes - done - supportedWalletTypes=`, supportedWalletTypes)
+    //console.log(`setSupportedWalletTypes - done - supportedWalletTypes=`, supportedWalletTypes)
 }
 
 //
@@ -1241,11 +1241,11 @@ module.exports = {
     // UPDATE Oct 2020: insert dynamic ERC20s (network fetch) prior to wallet generation
     //
     , getSupportedWalletTypes: async () => { 
-        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ETH_TEST=${WALLET_INCLUDE_ETH_TEST}`)
-        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST=${WALLET_INCLUDE_BTC_TEST}`)
-        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST2=${WALLET_INCLUDE_BTC_TEST2}`)
-        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_LTC_TEST=${WALLET_INCLUDE_LTC_TEST}`)
-        console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ZEC_TEST=${WALLET_INCLUDE_ZEC_TEST}`)
+        // console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ETH_TEST=${WALLET_INCLUDE_ETH_TEST}`)
+        // console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST=${WALLET_INCLUDE_BTC_TEST}`)
+        // console.log(`getSupportedWalletTypes - WALLET_INCLUDE_BTC_TEST2=${WALLET_INCLUDE_BTC_TEST2}`)
+        // console.log(`getSupportedWalletTypes - WALLET_INCLUDE_LTC_TEST=${WALLET_INCLUDE_LTC_TEST}`)
+        // console.log(`getSupportedWalletTypes - WALLET_INCLUDE_ZEC_TEST=${WALLET_INCLUDE_ZEC_TEST}`)
 
         if (stm_ApiPayload === undefined 
             && WALLET_INCLUDE_DYNAMIC_STM_ASSETS // WIP: disable in dev & prod for now...

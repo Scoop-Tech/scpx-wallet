@@ -138,23 +138,25 @@ const walletExternal_config = {
         explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
         txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
         api: {
-            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
+            utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },   
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_TEST: { // BTC testnet3 - p2sh - https://coinfaucet.eu/en/btc-testnet/  https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php
-        donate: '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv', // testnets2@scoop.tech P2SH
-        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
+
+    BTC_TEST: { // BTC testnet4 - p2sh - 
+        // (old: testnet3 - https://coinfaucet.eu/en/btc-testnet/  https://testnet-faucet.mempool.co/  https://tbtc.bitaps.com/   http://bitcoinfaucet.uo1.net/send.php)
+        donate: '2N8YjBPwpXQCLbeJznJj9c9dhLqBSAm52LW', // testnets4@d0m1.com... was: //'2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv', // testnets2@scoop.tech P2SH
+        explorerPath: (address) => { return 'https://mempool.space/testnet4/address/' + address },
+        txExplorerPath: (txid) => { return 'https://mempool.space/testnet4/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcTestBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
         }
     },
-    BTC_TEST2: { // BTC testnet3 - p2wpkh - target
-        donate: 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9', // testnets2@scoop.tech Bech32 Testnet
-        explorerPath: (address) => { return 'https://blockstream.info/testnet/address/' + address },
-        txExplorerPath: (txid) => { return 'https://blockstream.info/testnet/tx/' + txid },
+    BTC_TEST2: { // BTC testnet4 - p2wpkh - https://faucet.testnet4.dev / https://coinfaucet.eu/en/btc-testnet4 / https://bitcoinfaucet.uo1.net/send.php
+        donate: 'tb1q9s8qvvrvafadl7wxj2axp3l5tg7nensjr27e8r', // testnets4@d0m1.com... was: 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9', // testnets2@scoop.tech Bech32 Testnet
+        explorerPath: (address) => { return 'https://mempool.space/testnet4/address/' + address },
+        txExplorerPath: (txid) => { return 'https://mempool.space/testnet4/tx/' + txid },
         api: {
             utxo: (address) => { return `${btcBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${btcBlockbookApi}v2/block/${blockHash}?page=${page}` },
