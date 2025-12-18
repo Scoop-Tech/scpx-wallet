@@ -9,6 +9,7 @@ const BigNumber = require('bignumber.js')
 const IS_TEST = (process.env.NODE_ENV === "test")
 const IS_DEV  = (process.env.NODE_ENV === "development")// || IS_TEST)
 
+
 const DRIP_TEST_BTC = true
 const DRIP_TEST_ETH = false
 
