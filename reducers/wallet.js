@@ -51,6 +51,11 @@ function SetAddressFull_ReconcileLocalTxs(state, action) {
                         // merge update address data: balance and external tx list
                         Object.assign(asset.addresses[addrNdx], updateAddr)
 
+                        // clear any previous fetch error on successful update
+                        if (asset.addresses[addrNdx].fetchError !== undefined) {
+                            delete asset.addresses[addrNdx].fetchError
+                        }
+
                         // remove entries from local_txs[] if they're present in txs[]
                         var txs = asset.addresses[addrNdx].txs
                         var local_txs = asset.local_txs
@@ -133,6 +138,12 @@ const handlers = {
 
             // keep track of merge-updated addr for final update
             const mergedNewAddr = Object.assign({}, assets[assetNdx].addresses[addrNdx], res)
+            
+            // clear any previous fetch error on successful enriched tx update
+            if (mergedNewAddr.fetchError !== undefined) {
+                delete mergedNewAddr.fetchError
+            }
+            
             mergedNewAddresses.push(mergedNewAddr)
         })
 

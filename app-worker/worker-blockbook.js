@@ -362,7 +362,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
         const receivedBlockTime = curBlock ? curBlock.time : undefined
 
         // get prev block - exact time; for block TPS
-        const cacheSymbol = symbol === 'BTC_SEG2' || symbol === 'BTC_TEST2' ? 'BTC_SEG' : symbol // don't send synonymous requests (http 429)
+        const cacheSymbol = symbol === 'BTC_SEG2' ? 'BTC_SEG' : symbol === 'BTC_TEST2' ? 'BTC_TEST' : symbol // don't send synonymous requests (http 429)
         if (!self.blocks_time[cacheSymbol]) self.blocks_time[cacheSymbol] = []
         if (!self.blocks_tps[cacheSymbol]) self.blocks_tps[cacheSymbol] = []
         if (!self.blocks_height[cacheSymbol]) self.blocks_height[cacheSymbol] = 0

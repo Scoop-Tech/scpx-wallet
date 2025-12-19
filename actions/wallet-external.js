@@ -98,6 +98,9 @@ module.exports = {
             // ******
             //|| (asset.type === configWallet.WALLET_TYPE_UTXO)
 
+            // clear any previous fetch error on successful update (even if no balance/tx change)
+            || (asset.addresses[addrNdx].fetchError !== undefined)
+
             // utxo - accept *any* change to confirmed
             //|| (asset.type === configWallet.WALLET_TYPE_UTXO && !delta_bal_conf.eq(0))
 
