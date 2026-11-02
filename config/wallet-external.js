@@ -276,8 +276,10 @@ const walletExternal_config = {
         txExplorerPath: (txid) => eth_TxExplorer(txid),
         httpProvider: ethHttpProvider,
     },
-    ETH_TEST: { // ropsten  https://faucet.metamask.io/  
-        donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
+    ETH_TEST: { // ETH testnet - Sepolia (chainId 11155111) - faucet: https://cloud.google.com/application/web3/faucet/ethereum/sepolia (0.05 SepETH/day, needs Google login; working Nov 2026)
+        // (not working Nov 2026: faucet.quicknode.com - needs mainnet ETH; sepolia-faucet.pk910.de - captcha; Alchemy - needs mainnet ETH; Chainlink - captcha + LINK)
+        // (old: ropsten - https://faucet.metamask.io/) NOTE: code paths below are still Ropsten (chainId 3, ropsten explorers) until the Sepolia switch
+        donate: '0xff8ac13981c99f3d4178328d496ec9ed02357604', // testnets4@d0m1.com... was: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
         explorerPath: (address) => eth_ropstenAddrExplorer(address),
         txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
         httpProvider: ethTestHttpProvider,
