@@ -574,7 +574,13 @@ async function handler(e) {
                         workerExternal.getAddressFull_External({ wallet, asset, addrNdx, bbSocket, /*utxo_mempool_spentTxIds: spentTxIds,*/ }, (result) => {
                             const { dispatchActions, error } = result
                             
-                            if (error) {
+                            // transient BB socket states (still connecting / not set up / request timeout): don't record a
+                            // fetch error - that would mark the asset loaded with no data; leave it for loadAllAssets to retry
+                            const transientBB = error && /BB_SOCKET_NOT_OPEN|Blockbook socket not (ready|initialized)|Blockbook request timeout/.test(String(error))
+                            if (transientBB) {
+                                utilsWallet.warn(`refreshAssetsFull - ${asset.symbol} addrNdx=${addrNdx} - transient BB error (${error}); will be retried`)
+                            }
+                            else if (error) {
                                 // Dispatch error state for this address
                                 utilsWallet.error(`## refreshAssetsFull - ${asset.symbol} addrNdx=${addrNdx} - fetch error: ${error}`)
                                 const errorAction = {

@@ -118,6 +118,7 @@ module.exports = {
                         clearInterval(eth_intId)
 
                         // now wait for all erc20 - and all other types - to finish
+                        var retryTick = 0
                         const allRemaining_intId = setInterval(async () => {
                             storeState = store.getState()
                             if (storeState && storeState.wallet && storeState.wallet.assets) {
@@ -140,6 +141,16 @@ module.exports = {
                                 }
                                 else {
                                     utilsWallet.warn(`loadAllAssets - pollAllAddressBalances: waiting for ERC20s & Others to finish...`)
+
+                                    // the initial fetch is one-shot: if an asset's BB socket wasn't open at the time, nothing
+                                    // would ever re-request it and the wallet would never become "connected". Retry every 10s.
+                                    if (++retryTick % 10 === 0) {
+                                        const pending = otherAssets.filter(p => p.lastAssetUpdateAt === undefined)
+                                        if (pending.length > 0) {
+                                            utilsWallet.warn(`loadAllAssets - retrying initial fetch for: ${pending.map(p => p.symbol).join()}`)
+                                            appWorker.postMessageWrapped({ msg: 'REFRESH_MULTI_ASSET_FULL', data: { assets: pending, wallet: storeState.wallet } })
+                                        }
+                                    }
                                 }
                             }
                         }, 1000)

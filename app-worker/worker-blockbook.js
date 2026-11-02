@@ -60,6 +60,12 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
     //utilsWallet.log(`getAddressFull_Blockbook_v3 ${symbol}...`)
 
     return new Promise((resolve, reject) => {
+        // don't attempt the fetch on a socket that isn't open: fail with a transient error that callers retry,
+        // rather than recording a fetch error (which marks the asset as loaded, with no data)
+        if (!isosocket_isOpen_Blockbook(symbol)) {
+            reject(new Error('BB_SOCKET_NOT_OPEN'))
+            return
+        }
         isosocket_send_Blockbook(symbol, 'getAccountInfo', {
             descriptor: address,
             details: 'txids', // { basic | balance | txids | txs }
@@ -680,6 +686,10 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
         )
     }
     return setupSymbols.filter(p => p !== undefined)
+}
+
+function isosocket_isOpen_Blockbook(x) {
+    return self.bb_Sockets[x] !== undefined && self.bb_Sockets[x].readyState == 1
 }
 
 function isosocket_send_Blockbook(x, method, params, callback) {
