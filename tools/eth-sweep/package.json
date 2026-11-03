@@ -1,0 +1,7 @@
+{
+  "name": "eth-sweep",
+  "private": true,
+  "description": "Independent ETH/ERC20 sweep checker (second opinion on the wallet's signed tx)",
+  "type": "module",
+  "dependencies": { "ethers": "6.13.4" }
+}

@@ -44,13 +44,15 @@ const ltcTestBlockbookApi = ''                                   // NOT USED //'
 // eth - geth
 // 
 const ethHttpProvider = 
-      'https://ac-dev0.net:10545'
+      'https://ethereum-rpc.publicnode.com' // mainnet (publicnode, free, no key)
+    //'https://ac-dev0.net:10545' // (dead: ac-dev0 decommissioned)
     //'https://node0.scoop.tech:10545'
     //'https://scp-eth4.southeastasia.cloudapp.azure.com:9545' 
     //'https://main-rpc.linkpool.io'
 
 const ethTestHttpProvider = 
-      'https://ac-dev0.net:9545'
+      'https://ethereum-sepolia-rpc.publicnode.com' // Sepolia (publicnode, free, no key)
+    //'https://ac-dev0.net:9545' // (dead: ac-dev0 decommissioned; was Ropsten)
     //'https://node0.scoop.tech:9545'
     //'https://scp-bb-etht01.southeastasia.cloudapp.azure.com:9545'
     //'https://ropsten.infura.io/v3/93db2c7fd899496d8400e86100058297'
@@ -70,6 +72,7 @@ const erc20Contracts = {
   //VEN:  '0xD850942eF8811f2A866692A623011bDE52a462C1',
 
     USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Circle USD Coin (mainnet)
     EURT: '0xabdf147870235fcfc34153828c769a70b3fae01f',
 
     LINK: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
@@ -86,10 +89,20 @@ const erc20Contracts = {
     SWAP: '0xCC4304A31d09258b0029eA7FE63d032f52e44EFe',
     UNI: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
 
+    // Sepolia ERC20 test tokens (6 dp, verified via eth_call decimals()): Aave v3 test tokens - anyone can mint up to 10,000 per call via
+    // the Aave faucet AAVE_SEPOLIA_FAUCET (mint(token,to,amount); see tests/lean/tools/sepolia-faucet-mint.node14.js).
+    // (alternative USDC_TEST: Circle's canonical Sepolia USDC 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 - closer to mainnet USDC
+    //  (FiatToken proxy, blacklist) but its faucet (faucet.circle.com) needs a manual reCAPTCHA: 20 USDC / 2h / address)
+    USDT_TEST: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // Aave v3 Sepolia test USDT
+    USDC_TEST: '0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8', // Aave v3 Sepolia test USDC
+
     CCC_TEST: '0xD661a646E28D157eb60e74298CE799E23d17db07', // v0.96a
     AY1A_TEST: '0xf07aA78a849A441eBf882967F6130BD3E71C1D9C', // v0.95c
   //SD1A_TEST: '0x21d233232d7A53BCf7141FD83329455106796Ee9', // v0.95c
 }
+
+// Aave v3 Sepolia faucet: mint(address token, address to, uint256 amount), permissionless (isPermissioned() == false), max 10,000 tokens/call
+const AAVE_SEPOLIA_FAUCET = '0xC959483DBa39aa9E78757139af0e9a2EDEb3f42D'
 
 // eth explorers - mainnet
 function eth_AddrExplorer(address) { 
@@ -104,13 +117,13 @@ function erc20_AddrExplorer(tokenAddr, holderAddr) {
 
 // eth explorers - ropsten
 function eth_ropstenAddrExplorer(address) { 
-    return `https://ropsten.etherscan.io/address/${address}`
+    return `https://sepolia.etherscan.io/address/${address}`
 }
 function eth_ropstenTxExplorer(tx) {
-    return `https://ropsten.etherscan.io/tx/${tx}`
+    return `https://sepolia.etherscan.io/tx/${tx}`
 }
 function erc20_ropstenAddrExplorer(tokenAddr, holderAddr) {
-    return `https://ropsten.etherscan.io/token/${tokenAddr}?a=${holderAddr}` // `https://ropsten.etherscan.io/tokentxns?a=${address}`
+    return `https://sepolia.etherscan.io/token/${tokenAddr}?a=${holderAddr}` // `https://ropsten.etherscan.io/tokentxns?a=${address}`
 }
 
 const walletExternal_config = {
@@ -228,7 +241,7 @@ const walletExternal_config = {
         }
     },
 
-    ZEC: {
+    ZEC: { // READ-ONLY: Blockbook websocket wss://zec1.trezor.io (config/websockets.js); the REST `api` below is unused on the BB-ws path
         donate: 't1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi',
         explorerPath: (address) => { return 'https://chain.so/address/ZEC/' + address }, // shows unconfirmed better than zcha.in
         txExplorerPath: (txid) => { return 'https://chain.so/tx/ZEC/' + txid },
@@ -239,10 +252,11 @@ const walletExternal_config = {
             block: (blockHash) => { return `${zecBlockbookApi}v2/block/${blockHash}` },
         }        
     },
-    ZEC_TEST: { // ZEC Testnet faucet -- https://faucet.testnet.z.cash/  https://zcashfaucet.info/complete
+    ZEC_TEST: { // DISABLED (WALLET_INCLUDE_ZEC_TEST=false; read-only if enabled) - no public ZEC testnet Blockbook (Nov 2026)
+        // faucet: https://faucet.testnet.valargroup.dev (transparent tm-addresses; old faucet.testnet.z.cash / zcashfaucet.info are dead)
         donate: 'tmAU27N3iHMeejD6GPHYiSnH8vit1XT9uEX', // testnets2@scoop.tech
-        explorerPath: (address) => { return 'https://explorer.testnet.z.cash/address/' + address },
-        txExplorerPath: (txid) => { return 'https://explorer.testnet.z.cash/tx/' + txid },
+        explorerPath: (address) => { return 'https://testnet.zcashexplorer.app/address/' + address }, // (explorer.testnet.z.cash is dead)
+        txExplorerPath: (txid) => { return 'https://testnet.zcashexplorer.app/transactions/' + txid },
         api: {
             utxo: (address) => { return `${zecTestBlockbookApi}v1/utxo/${address}` },
             block: (blockHash, page) => { return `${zecTestBlockbookApi}v2/block/${blockHash}?page=${page}` },
@@ -278,7 +292,7 @@ const walletExternal_config = {
     },
     ETH_TEST: { // ETH testnet - Sepolia (chainId 11155111) - faucet: https://cloud.google.com/application/web3/faucet/ethereum/sepolia (0.05 SepETH/day, needs Google login; working Nov 2026)
         // (not working Nov 2026: faucet.quicknode.com - needs mainnet ETH; sepolia-faucet.pk910.de - captcha; Alchemy - needs mainnet ETH; Chainlink - captcha + LINK)
-        // (old: ropsten - https://faucet.metamask.io/) NOTE: code paths below are still Ropsten (chainId 3, ropsten explorers) until the Sepolia switch
+        // (old: ropsten - https://faucet.metamask.io/) Sepolia switch done: chainId 11155111, Trezor Sepolia Blockbook, publicnode RPC, sepolia.etherscan.io
         donate: '0xff8ac13981c99f3d4178328d496ec9ed02357604', // testnets4@d0m1.com... was: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
         explorerPath: (address) => eth_ropstenAddrExplorer(address),
         txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
@@ -298,6 +312,20 @@ const walletExternal_config = {
     //     txExplorerPath: (txid) =>  eth_ropstenTxExplorer(txid),
     //     httpProvider: ethTestHttpProvider,
     // },
+    USDT_TEST: { // Sepolia - Aave v3 test USDT
+        donate: '0xff8ac13981c99f3d4178328d496ec9ed02357604', // testnets4@d0m1.com (= ETH_TEST donate)
+        contractAddress: erc20Contracts.USDT_TEST,
+        explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.USDT_TEST, address),
+        txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
+        httpProvider: ethTestHttpProvider,
+    },
+    USDC_TEST: { // Sepolia - Aave v3 test USDC
+        donate: '0xff8ac13981c99f3d4178328d496ec9ed02357604', // testnets4@d0m1.com (= ETH_TEST donate)
+        contractAddress: erc20Contracts.USDC_TEST,
+        explorerPath: (address) => erc20_ropstenAddrExplorer(erc20Contracts.USDC_TEST, address),
+        txExplorerPath: (txid) => eth_ropstenTxExplorer(txid),
+        httpProvider: ethTestHttpProvider,
+    },
     CCC_TEST: {
         donate: '0xda9abd90e6cd31e8e0c2d5f35d3d5a71c8661b0e', // testnets2@scoop.tech
         contractAddress: erc20Contracts.CCC_TEST,
@@ -396,6 +424,13 @@ const walletExternal_config = {
         donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
         contractAddress: erc20Contracts.USDT,
         explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.USDT, address),
+        txExplorerPath: (txid) => eth_TxExplorer(txid),
+        httpProvider: ethHttpProvider,
+    },
+    USDC: {
+        donate: '0xd183d12ced4accb265b0eda55b3526c7cb102485',
+        contractAddress: erc20Contracts.USDC,
+        explorerPath: (address) => erc20_AddrExplorer(erc20Contracts.USDC, address),
         txExplorerPath: (txid) => eth_TxExplorer(txid),
         httpProvider: ethHttpProvider,
     },
@@ -545,6 +580,7 @@ module.exports = {
     ,erc20_ropstenAddrExplorer: (tokenAddr, holderAddr) => erc20_ropstenAddrExplorer(tokenAddr, holderAddr)
     ,ethTestHttpProvider
     ,ethHttpProvider
+    ,AAVE_SEPOLIA_FAUCET
 
     ,blockbookHeaders: {
          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"

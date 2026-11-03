@@ -1,0 +1,132 @@
+{
+ "fetchedAt": "2026-11-02T14:11:54.155Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0xd1b135f2b0bc1987d5a087774d8972436fb3c252034e63733c10c2a526627680",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "direct USDT.transfer() by the holder (1600 USDT out)",
+ "trimmed": {},
+ "getTransaction": {
+  "txid": "0xd1b135f2b0bc1987d5a087774d8972436fb3c252034e63733c10c2a526627680",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0x927af42ae41f7096e52f01ca2b22beac0dc7e6872ea5ac98c8337a10bd04bc28",
+  "blockHeight": 20084431,
+  "confirmations": 6243181,
+  "blockTime": 1718300207,
+  "value": "0",
+  "fees": "881412486314368",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "to": "0x31cc5f0472B1BCfb2f0CfF8a8aB68f298a7631aa",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "1600000000"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 68,
+   "gasLimit": 63197,
+   "gasUsed": 63197,
+   "gasPrice": "13947062144",
+   "effectiveGasPrice": "13947062144",
+   "maxPriorityFeePerGas": "530046377",
+   "maxFeePerGas": "20416678031",
+   "baseFeePerGas": "13417015767",
+   "data": "0xa9059cbb00000000000000000000000031cc5f0472b1bcfb2f0cff8a8ab68f298a7631aa000000000000000000000000000000000000000000000000000000005f5e1000",
+   "parsedData": {
+    "methodId": "0xa9059cbb",
+    "name": "Transfer",
+    "function": "transfer(address, uint256)",
+    "params": [
+     {
+      "type": "address",
+      "values": [
+       "0x31cc5f0472B1BCfb2f0CfF8a8aB68f298a7631aa"
+      ]
+     },
+     {
+      "type": "uint256",
+      "values": [
+       "1600000000"
+      ]
+     }
+    ]
+   }
+  },
+  "addressAliases": {
+   "0xdAC17F958D2ee523a2206206994597C13D831ec7": {
+    "Type": "Contract",
+    "Alias": "Tether USD"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0x927af42ae41f7096e52f01ca2b22beac0dc7e6872ea5ac98c8337a10bd04bc28",
+   "blockNumber": "0x13276cf",
+   "blockTimestamp": "0x666b2e2f",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gas": "0xf6dd",
+   "gasPrice": "0x33f4f4780",
+   "maxFeePerGas": "0x4c0edc88f",
+   "maxPriorityFeePerGas": "0x1f97dda9",
+   "hash": "0xd1b135f2b0bc1987d5a087774d8972436fb3c252034e63733c10c2a526627680",
+   "input": "0xa9059cbb00000000000000000000000031cc5f0472b1bcfb2f0cff8a8ab68f298a7631aa000000000000000000000000000000000000000000000000000000005f5e1000",
+   "nonce": "0x44",
+   "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+   "transactionIndex": "0x43",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x1",
+   "r": "0x64c0f28737bfc692a8ec43b240b7e3b915ddcc7972aae7daf477dddf86ff8add",
+   "s": "0x70f84b249c0d8a5908cd672d9fbd3bde1d560fa00212c6dcd6ae7003fe095623",
+   "yParity": "0x1"
+  },
+  "receipt": {
+   "blockHash": "0x927af42ae41f7096e52f01ca2b22beac0dc7e6872ea5ac98c8337a10bd04bc28",
+   "blockNumber": "0x13276cf",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x613d2e",
+   "effectiveGasPrice": "0x33f4f4780",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gasUsed": "0xf6dd",
+   "status": "0x1",
+   "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+   "transactionHash": "0xd1b135f2b0bc1987d5a087774d8972436fb3c252034e63733c10c2a526627680",
+   "transactionIndex": "0x43",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x13276cf",
+   "hash": "0x927af42ae41f7096e52f01ca2b22beac0dc7e6872ea5ac98c8337a10bd04bc28",
+   "timestamp": "0x666b2e2f"
+  }
+ }
+}

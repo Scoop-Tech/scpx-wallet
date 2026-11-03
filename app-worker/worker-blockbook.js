@@ -9,6 +9,7 @@ const configWallet = require('../config/wallet')
 const axios = require('axios'); configExternal.blockbookHeaders.set(axios, configExternal.blockbookHeaders)
 
 const isoWs = require('isomorphic-ws')
+const workerBlockbookWs = require('./worker-blockbook-ws')
 const BigNumber = require('bignumber.js')
 const CircularBuffer = require("circular-buffer")
 
@@ -18,6 +19,20 @@ const actionsWallet = require('../actions')
 const utilsWallet = require('../utils')
 
 const cache_bb_blocks = {}
+
+//
+// Per-socket in-flight cap for "heavy" Blockbook requests (one full tx / block each). Trezor's public Blockbooks drop the
+// websocket (close 1006, no replies) at ~50-64 such requests in flight; 32 was the observed edge, 8 measured safe.
+// The wallet fires one getTransactionSpecific per UTXO and one getTransaction per new tx, so busy addresses need the cap.
+// Requests over the cap are queued (FIFO) per socket; cheap index reads (getAccountInfo, getAccountUtxo, getInfo,
+// subscribe*, sendTransaction, ...) are never queued. Override: configWallet.WALLET_BB_HEAVY_MAX_INFLIGHT or
+// isosocket_config_Blockbook({ heavyMaxInFlight }).
+//
+const BB_HEAVY_METHODS = ['getTransaction', 'getTransactionSpecific', 'getBlock']
+const bb_config = {
+    heavyMaxInFlight: configWallet.WALLET_BB_HEAVY_MAX_INFLIGHT > 0 ? configWallet.WALLET_BB_HEAVY_MAX_INFLIGHT : 8,
+    heavyTimeoutMs: 15000, // per request, from when it is actually sent (not while queued); was 3s, too short under load
+}
 
 module.exports = {
 
@@ -51,7 +66,29 @@ module.exports = {
 
     isosocket_send_Blockbook: (x, method, params, callback) => {
         return isosocket_send_Blockbook(x, method, params, callback)
-    }
+    },
+    isosocket_sub_Blockbook: (x, method, params, callback) => {
+        return isosocket_sub_Blockbook(x, method, params, callback)
+    },
+
+    // heavy-request limiter settings: { heavyMaxInFlight, heavyTimeoutMs }; returns the current settings
+    isosocket_config_Blockbook: (settings) => {
+        if (settings && settings.heavyMaxInFlight > 0) bb_config.heavyMaxInFlight = settings.heavyMaxInFlight
+        if (settings && settings.heavyTimeoutMs > 0) bb_config.heavyTimeoutMs = settings.heavyTimeoutMs
+        return Object.assign({}, bb_config)
+    },
+
+    // the address's UTXOs from one getTransactionSpecific result (see filterUtxos_TxSpecific)
+    filterUtxos_TxSpecific: (address, utxo, utxoSpecificData) => {
+        return filterUtxos_TxSpecific(address, utxo, utxoSpecificData)
+    },
+
+    // internals, exported for the lean tests (tests/lean/utxo-mapping.node14.js)
+    _test: {
+        onMessage: (x, msg) => isosocket_onMessage_Blockbook(x, msg),
+        failSocket: (socket, reason) => isosocket_failAll_Blockbook(socket, reason),
+        BB_HEAVY_METHODS,
+    },
 }
 
 // BB v3
@@ -90,7 +127,7 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
             // axiosRetry(axios, CONST.AXIOS_RETRY_EXTERNAL)
             // axios.get(configExternal.walletExternal_config[symbol].api.utxo(address))
             // .then(async (utxoData) => {
-            isosocket_send_Blockbook(symbol, 'getAccountUtxo', { descriptor: address }, async (utxosData) => {
+            isosocket_send_Blockbook(symbol, 'getAccountUtxo', { descriptor: address }, (utxosData) => { (async () => { // async body: a throw rejects (never hangs the caller)
 
                 // if (address === '2NFsNU7FJusZeNiCAHwHJvjw1UBLT1hw6iv') {
                 //     debugger
@@ -111,71 +148,35 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                     reject(new Error('Invalid utxosData type from Blockbook'));
                     return
                 }
-                const getUtxoSpecificOps = utxosData.map(utxo => {
+                // one getTransactionSpecific per distinct txid (an address can hold several outputs of one tx);
+                // these are "heavy" requests: isosocket_send_Blockbook caps how many are in flight per socket
+                const utxoTxids = _.uniq(utxosData.map(utxo => utxo.txid))
+                const getUtxoSpecificOps = utxoTxids.map(txid => {
                     return new Promise((resolveSpecificUtxoOp) => {
-
-                        isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid: utxo.txid }, async (utxoSpecificData) => {
-                            //utilsWallet.log(`blockbook tx ${utxo.txid} for ${address} utxoSpecificData`, utxoSpecificData)
-
-                            // if (utxo.txid === 'ca550151752838a87e7e89edb8f2fcf508377c1a537da185e54d36e430128af9') {
-                            //     debugger
-                            // }
-
-                            if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
-                            if (utxoSpecificData.error) {
-                                //debugger
-                                // 10:07:15.116 [SW-ERR] ## getAddressFull_Blockbook_v3 BTC_TEST dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08 - error on getTransactionSpecific: "txid dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08: 500 Internal Server Error invalid character 'W' looking for beginning of value"
-                                // # seems inconsistent on btc_test; care if it repro's on mainnet -- NEW RATE LIMIT ON BLOCKBOCK NODES?
-                                // TODO: setup own BTC_TEST BB NODE...
-                                utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - error on getTransactionSpecific: ${JSON.stringify(utxoSpecificData.error.message)}`);
-                                resolveSpecificUtxoOp([]);
-                                return
-                            }
-                            if (!utxoSpecificData.vout) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${utxo.txid} - no utxoSpecificData.vout!`); resolveSpecificUtxoOp([]); return }
-
-                            // DMS - add all UTXOs for this TX that correspond to the query account
-                            //       (or, that are cross-address/account OP_RETURN embeded data UTXOs)
-                            const resolveSpecificUtxos = []
-                            for (var j = 0; j < utxoSpecificData.vout.length; j++) {
-                                const utxoSpecific = utxoSpecificData.vout[j]
-                                // console.log(`utxoSpecific ${address} ${utxo.txid} ${j} scriptPubKey.type=${utxoSpecific.scriptPubKey.type}`, utxoSpecific)
-                                // if (address === 'tb1qyghzsgls50k5l86q9tx0xf5n52c25lm0hpa6x9') {
-                                //     debugger
-                                // }
-
-                                // 
-                                // DMS: we *include* OP_RETURN outputs - we'll use the op_return data to allow beneficiary & benefactor to create the locking script (i.e. the address)
-                                //      for the "protected" non-standard P2SH(DSIG/CLTV) outputs...
-                                //
-                                if ((utxo.vout == utxoSpecific.n
-                                    && (
-                                        (utxoSpecific.scriptPubKey.addresses !== undefined && utxoSpecific.scriptPubKey.addresses.includes(address)) // p2sh (p2wpkh)
-                                        || (utxoSpecific.scriptPubKey.address !== undefined && utxoSpecific.scriptPubKey.address == address // p2wpkh native bech32
-                                            && (utxoSpecific.scriptPubKey.type == 'scripthash' 
-                                             || utxoSpecific.scriptPubKey.type == 'witness_v0_keyhash')
-                                        )
-                                    )
-                                )
-                                    || (utxoSpecific.scriptPubKey.addresses === undefined && utxoSpecific.scriptPubKey.type === "nulldata")  // op_return
-                                ) {
-                                    resolveSpecificUtxos.push({
-                                        satoshis: Number(new BigNumber(utxoSpecific.value).times(1e8).toString()), //Number(utxo.value),
-                                        txid: utxo.txid,
-                                        vout: utxoSpecific.n, //utxo.vout
-                                        scriptPubKey: {
-                                            addresses: utxoSpecific.scriptPubKey.addresses,
-                                            hex: utxoSpecific.scriptPubKey.hex,
-                                            type: utxoSpecific.scriptPubKey.type,
-                                        }
-                                    })
+                        isosocket_send_Blockbook(symbol, 'getTransactionSpecific', { txid }, (utxoSpecificData) => {
+                            try {
+                                if (!utxoSpecificData) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${txid} - no utxoSpecificData!`); resolveSpecificUtxoOp([]); return }
+                                if (utxoSpecificData.error) {
+                                    // 10:07:15.116 [SW-ERR] ## getAddressFull_Blockbook_v3 BTC_TEST dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08 - error on getTransactionSpecific: "txid dce42dd5cc1d0810f6a5fba36e3965ee16dcb0b2b936c7feb18a9ffc1dd73b08: 500 Internal Server Error invalid character 'W' looking for beginning of value"
+                                    // # seems inconsistent on btc_test; care if it repro's on mainnet -- NEW RATE LIMIT ON BLOCKBOCK NODES?
+                                    utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${txid} - error on getTransactionSpecific: ${JSON.stringify(utxoSpecificData.error.message || utxoSpecificData.error)}`);
+                                    resolveSpecificUtxoOp([]);
+                                    return
                                 }
+                                if (!utxoSpecificData.vout) { utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${txid} - no utxoSpecificData.vout!`); resolveSpecificUtxoOp([]); return }
+
+                                // all of this address's UTXOs in this tx
+                                resolveSpecificUtxoOp(_.flatten(utxosData.filter(utxo => utxo.txid === txid)
+                                    .map(utxo => filterUtxos_TxSpecific(address, utxo, utxoSpecificData))))
                             }
-                            resolveSpecificUtxoOp(resolveSpecificUtxos)
+                            catch (err) {
+                                utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${txid} - error mapping getTransactionSpecific, err=`, err)
+                                resolveSpecificUtxoOp([])
+                            }
                         })
                     })
                 })
                 const utxoSpecifics = await Promise.all(getUtxoSpecificOps)
-
                 const utxosFlattened = _.flatten(utxoSpecifics)
 
                 // utxo's
@@ -231,9 +232,48 @@ function getAddressFull_Blockbook_v3(wallet, asset, address, utxo_mempool_spentT
                 // pass through the state update -- in v1 getAddressFull format
                 const ret = Object.assign({}, res, { txs: newMinimalTxs })
                 resolve(ret)
-            })
+            })().catch((err) => {
+                utilsWallet.error(`## getAddressFull_Blockbook_v3 ${symbol} ${address} - err=`, err)
+                reject(err instanceof Error ? err : new Error(String(err)))
+            }) })
         })
     })
+}
+
+//
+// The UTXO(s) of `address` for one getAccountUtxo entry `utxo` ({ txid, vout, value }), from that tx's
+// getTransactionSpecific (raw node format). Matched on output index AND address, for any spendable script type:
+//   - scriptPubKey.addresses[] (older bitcoind / zcashd / Zebra: P2PKH, P2SH, ...)
+//   - scriptPubKey.address (singular; Bitcoin Core >= 22, e.g. Core 29 on btc1/2/3.trezor.io: pubkeyhash (legacy P2PKH),
+//     scripthash, witness_v0_keyhash, witness_v0_scripthash, witness_v1_taproot)
+// OP_RETURN (nulldata) outputs are never UTXOs: they used to be added here (0-sat, for every utxo of the tx). Nothing reads
+// them from the UTXO list (PROTECT_OP reads its OP_RETURN data from the tx's outputs, utxo_vout); spend paths filtered them out.
+// Plain ES2015 (also bundled into scpx-app).
+//
+function filterUtxos_TxSpecific(address, utxo, utxoSpecificData) {
+    const ret = []
+    if (!utxo || !utxoSpecificData || !Array.isArray(utxoSpecificData.vout)) return ret
+    for (var j = 0; j < utxoSpecificData.vout.length; j++) {
+        const utxoSpecific = utxoSpecificData.vout[j]
+        const spk = utxoSpecific && utxoSpecific.scriptPubKey
+        if (!spk) continue
+        if (utxo.vout != utxoSpecific.n) continue
+        if (spk.type === 'nulldata') continue
+        const isOurs = (Array.isArray(spk.addresses) && spk.addresses.indexOf(address) !== -1)
+                    || (spk.address !== undefined && spk.address == address)
+        if (!isOurs) continue
+        ret.push({
+            satoshis: Number(new BigNumber(utxoSpecific.value).times(1e8).toString()), // node format: value in whole coins
+            txid: utxo.txid,
+            vout: utxoSpecific.n,
+            scriptPubKey: {
+                addresses: spk.addresses !== undefined ? spk.addresses : [spk.address], // consumers read addresses[]
+                hex: spk.hex,
+                type: spk.type,
+            }
+        })
+    }
+    return ret
 }
 
 // converts blockbook tx format to insight-api format
@@ -256,20 +296,23 @@ function mapTx_BlockbookToInsight(asset, bbTx) {
         debugger
     }
 
-    insightTx.vin = bbTx.vin.map(p => {
+    // coinbase inputs have no addresses (and no value): they used to throw here, which hung enrichTx for any address
+    // with a coinbase (mining payout) in its history. Shielded (ZEC z->t / t->z) txs have vin [] / vout [].
+    insightTx.vin = (bbTx.vin || []).map(p => {
         return {
             txid: p.txid,
             vout: p.vout,
             sequence: p.sequence,
             n: p.n,
-            addr: p.addresses[0],
-            valueSat: Number(p.value),
-            value: Number(utilsWallet.toDisplayUnit(new BigNumber(p.value), asset)),
+            addr: p.addresses && p.addresses.length > 0 ? p.addresses[0] : undefined,
+            valueSat: Number(p.value || 0),
+            value: Number(utilsWallet.toDisplayUnit(new BigNumber(p.value || 0), asset)),
+            coinbase: p.coinbase !== undefined ? true : undefined,
             //doubleSpentTxID: null,
             //scriptSig: ...
         }
     })
-    insightTx.vout = bbTx.vout.map(p => {
+    insightTx.vout = (bbTx.vout || []).map(p => {
         return {
             value: utilsWallet.toDisplayUnit(new BigNumber(p.value), asset),
             n: p.n,
@@ -327,45 +370,55 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
     utilsWallet.log(`getSyncInfo_Blockbook_v3 ${symbol}...`)
 
     // cache BB rest data so we can reuse across tests (across wallet load/worker load cycles) - we get 429's otherwise
+    // block header fields (time, txCount) via the Blockbook websocket getBlock (pageSize 1). Was the REST /api/v2/block:
+    // Trezor's public Blockbooks send no CORS headers, so in the browser REST failed and Trezor-backed assets (BTC_SEG,
+    // BTC_SEG2) never got block info. Cached (last 10) so repeated sync-info calls don't re-fetch (429s).
     async function bb_getBlock(blockNo, page) {
-        //console.log('bb_getBlock - cache_bb_blocks', cache_bb_blocks)
         if (!cache_bb_blocks[symbol]) cache_bb_blocks[symbol] = new CircularBuffer(10)
-        const url = configExternal.walletExternal_config[symbol].api.block(blockNo, page)
+        const key = `${blockNo}:${page}`
         const cache = cache_bb_blocks[symbol]
-        if (cache.size() > 0 && cache.get(cache.size() - 1).url == url) {
-            //console.log('bb_getBlock - returning cached for', url)
-            return new Promise((resolve) => { resolve(cache.get(cache.size() - 1).data) })
-        }
-        else {
-            //console.log('bb_getBlock - fetching for', url)
-            return axios.get(url)
-                .then(blockData => {
-                    if (!blockData || !blockData.data) return null
-                    //console.log(`caching for ${url}, data=`, blockData.data)
-                    cache.push({ url, data: blockData.data })
-                    //console.log(`returning for ${url}, data=`, blockData.data)
-                    return blockData.data
-                })
-                .catch(err => {
-                    //utilsWallet.error(`## bb_getBlock, err=`, err, { logServerConsole: true })
-                    return null
-                })
-        }
+        for (var i = 0; i < cache.size(); i++) { if (cache.get(i).key === key) return cache.get(i).data }
+        // some Blockbooks don't serve websocket getBlock at all (ZEC on Zebra: "Not supported"): remember that, don't re-ask
+        if (!self.bb_getBlockUnsupported) self.bb_getBlockUnsupported = {}
+        if (self.bb_getBlockUnsupported[symbol]) return null
+        return new Promise((resolve) => {
+            isosocket_send_Blockbook(symbol, 'getBlock', { id: String(blockNo), page: page || 1, pageSize: 1 }, (data) => {
+                if (data && data.error && data.error.message && /not supported/i.test(data.error.message)) {
+                    utilsWallet.warn(`getSyncInfo_Blockbook_v3 ${symbol} - websocket getBlock not supported by this Blockbook; block time falls back to the local clock`)
+                    self.bb_getBlockUnsupported[symbol] = true
+                }
+                if (!data || data.error || !data.time) return resolve(null)
+                const block = { time: data.time, txCount: data.txCount, height: data.height, hash: data.hash }
+                cache.push({ key, data: block })
+                resolve(block)
+            })
+        })
     }
 
     // get node sync info
-    isosocket_send_Blockbook(symbol, 'getInfo', {}, async (data) => {
+    isosocket_send_Blockbook(symbol, 'getInfo', {}, (data) => { (async () => { // async body: errors are logged, never unhandled
         utilsWallet.log(`getInfo ${symbol}, data=`, data)
 
-        if (!configExternal.walletExternal_config[symbol].api) return
+        if (!configExternal.walletExternal_config[symbol] || !configExternal.walletExternal_config[symbol].api) return
+        if (!data || data.error) {
+            utilsWallet.warn(`getSyncInfo_Blockbook_v3 ${symbol} - getInfo failed: ${JSON.stringify(data && data.error)}`)
+            if (!_receivedBlockNo) return
+            data = {}
+        }
         const dispatchActions = []
 
         // get current block - exact time & tx count
         const receivedBlockNo = _receivedBlockNo || data.bestheight || data.bestHeight
-        const curBlock = await bb_getBlock(receivedBlockNo, 1)
+        const curBlock = receivedBlockNo ? await bb_getBlock(receivedBlockNo, 1) : null
         //utilsWallet.log(`getInfo ${symbol}, curBlock=`, curBlock)
         const txCount = curBlock ? (curBlock.txCount ? curBlock.txCount : 0) : undefined
-        const receivedBlockTime = curBlock ? curBlock.time : undefined
+
+        // block time (unix seconds, as Blockbook's getBlock). Fallback when getBlock is unavailable (ZEC: "Not supported";
+        // or a transient error): the time the block was announced (subscribeNewBlock passes ms), else now - so that
+        // SET_ASSET_BLOCK_INFO (block height) is still dispatched. blockTimeIsEstimate marks the fallback.
+        const blockTimeIsEstimate = !(curBlock && curBlock.time)
+        const receivedBlockTime = !blockTimeIsEstimate ? curBlock.time
+            : Math.floor((_receivedBlockTime ? (_receivedBlockTime > 1e12 ? _receivedBlockTime / 1000 : _receivedBlockTime) : Date.now() / 1000))
 
         // get prev block - exact time; for block TPS
         const cacheSymbol = symbol === 'BTC_SEG2' ? 'BTC_SEG' : symbol === 'BTC_TEST2' ? 'BTC_TEST' : symbol // don't send synonymous requests (http 429)
@@ -403,12 +456,30 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
             updateSymbols.push('BTC_TEST2')
         }
 
+        // BIP113 median-time-past, for PROTECT_OP (CLTV) assets: a time-locked output is spendable once lockTime < MTP.
+        // MTP can run well ahead of (testnet4) or ~1h behind (mainnet) wall-clock time, so the UI needs it for unlock
+        // estimates and claim gating. Fetched once per new block (cached by height); never blocks the block-info update.
+        var medianTimePast
+        const assetMeta = configWallet.getMetaBySymbol(symbol)
+        if (assetMeta && assetMeta.OP_CLTV && receivedBlockNo) {
+            if (!self.bb_mtpCache) self.bb_mtpCache = {}
+            const cached = self.bb_mtpCache[cacheSymbol]
+            if (cached && cached.height === receivedBlockNo) medianTimePast = cached.mtp
+            else {
+                medianTimePast = await Promise.race([
+                    workerBlockbookWs.getMedianTimePast((m, p, cb) => isosocket_send_Blockbook(symbol, m, p, cb))
+                        .then(r => { self.bb_mtpCache[cacheSymbol] = { height: receivedBlockNo, mtp: r.mtp }; return r.mtp }),
+                    new Promise(r => setTimeout(() => r(undefined), 10000)),
+                ]).catch(err => { utilsWallet.warn(`getSyncInfo ${symbol} - median-time-past unavailable: ${err.message}`); return cached ? cached.mtp : undefined })
+            }
+        }
+
         // update batch - to state
         if (receivedBlockNo && receivedBlockTime) {
             updateSymbols.forEach(p => {
                 dispatchActions.push({
                     type: actionsWallet.SET_ASSET_BLOCK_INFO,
-                    payload: { symbol: p, receivedBlockNo, receivedBlockTime }
+                    payload: Object.assign({ symbol: p, receivedBlockNo, receivedBlockTime, blockTimeIsEstimate }, medianTimePast !== undefined ? { medianTimePast } : {})
                 })
             })
             if (symbol === 'ETH' || symbol === 'ETH_TEST') { // eth[_test] - update erc20s
@@ -442,7 +513,7 @@ function getSyncInfo_Blockbook_v3(symbol, _receivedBlockNo = undefined, _receive
                 })
             }
         }
-    })
+    })().catch((err) => { utilsWallet.error(`## getSyncInfo_Blockbook_v3 ${symbol} - err=`, err) }) })
 }
 
 function isosocket_Disconnect_Blockbook(networkConnected, networkStatusChanged, loaderWorker, walletSymbols) {
@@ -532,7 +603,9 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     socket.symbol = x // add a property to the socket object, for logging in case it won't connect
                     self.bb_Sockets_messageID[x] = 0 // init early, testing...
                     self.bb_Sockets_pendingMessages[x] = {}
+                    socket.bb_pending = self.bb_Sockets_pendingMessages[x] // this socket's requests (ids restart at 0 per socket)
                     self.bb_Sockets_subscriptions[x] = {}
+                    if (self.bb_Sockets_timedOut) self.bb_Sockets_timedOut[x] = {}
 
                     // socket lifecycle
                     socket.onerror = (err) => {
@@ -556,6 +629,15 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                             if (!loaderWorker) {
                                 networkConnected(x, true) // init UI
                                 networkStatusChanged(x, { bb_url: configWS.blockbook_ws_config[x].url })
+
+                                // Blockbook subscriptions don't survive a reconnect: re-establish any address subscription
+                                // (worker-addr-monitor registers it in self.bb_addrSubs[x])
+                                if (self.bb_addrSubs && self.bb_addrSubs[x]) {
+                                    const addrSub = self.bb_addrSubs[x]
+                                    addrSub.subId = workerBlockbookWs.subscribeAddresses(
+                                        (method, params, cb) => isosocket_sub_Blockbook(x, method, params, cb), addrSub.addresses, addrSub.onTxid, addrSub.onAck)
+                                    utilsWallet.log(`appWorker >> ${self.workerId} bb_Sockets ${x} - (re)subscribed ${addrSub.addresses.length} address(es)`)
+                                }
 
                                 if (configWS.blockbook_ws_config[x].subBlocks === true) {
                                     //
@@ -639,8 +721,11 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                         }
                         catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - connect, err=`, err) }
                     }
-                    socket.onclose = () => {
-                        //utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - onclose...`)
+                    socket.onclose = (evt) => {
+                        // fail this socket's queued + in-flight requests now (they would otherwise each wait for a timeout)
+                        const failed = isosocket_failAll_Blockbook(socket, 'Blockbook socket closed')
+                        utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - closed (code=${evt && evt.code}), failed ${failed} pending request(s)`)
+                        if (self.bb_Sockets[x] !== undefined && self.bb_Sockets[x] !== socket) return // late close of a replaced socket: leave the new one alone
                         self.bb_Sockets[x] = undefined // nuke this so volatileSockets_ReInit() triggers another setup
                         try {
                             // reconnect - this supplements volatileSockets_ReInit() for faster reconnection
@@ -659,25 +744,10 @@ function isosocket_Setup_Blockbook(networkConnected, networkStatusChanged, loade
                     }
 
                     //
-                    // manual message id <-> callback handling
+                    // manual message id <-> callback handling (never throws: see isosocket_onMessage_Blockbook)
                     //
                     socket.onmessage = (msg) => {
-                        if (msg && msg.data) {
-                            var resp = JSON.parse(msg.data)
-                            var callback = self.bb_Sockets_pendingMessages[x][resp.id]
-                            if (callback != undefined) {
-                                delete self.bb_Sockets_pendingMessages[x][resp.id]
-                                callback(resp.data)
-                            } else {
-                                callback = self.bb_Sockets_subscriptions[x][resp.id]
-                                if (callback != undefined) {
-                                    callback(resp.data)
-                                }
-                                else {
-                                    utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - UNKNOWN MESSAGE: no callback, msg =`, msg)
-                                }
-                            }
-                        }
+                        isosocket_onMessage_Blockbook(x, msg, socket)
                     }
 
                     return x
@@ -693,46 +763,186 @@ function isosocket_isOpen_Blockbook(x) {
 }
 
 function isosocket_send_Blockbook(x, method, params, callback) {
-    if (self.bb_Sockets[x] === undefined) {
+    const socket = self.bb_Sockets[x]
+    if (socket === undefined) {
         utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: NO SOCKET SETUP`)
         if (callback) {
             callback({ error: 'Blockbook socket not initialized' })
         }
         return
     }
-    if (self.bb_Sockets[x].readyState != 1) {
-        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: invalid socket readyState=`, self.bb_Sockets[x].readyState)
+    if (socket.readyState != 1) {
+        utilsWallet.warn(`appWorker >> ### ${self.workerId} isosocket_send_Blockbook ${x} - ignoring: invalid socket readyState=`, socket.readyState)
         if (callback) {
-            callback({ error: `Blockbook socket not ready (readyState=${self.bb_Sockets[x].readyState})` })
+            callback({ error: `Blockbook socket not ready (readyState=${socket.readyState})` })
         }
         return
     }
 
+    // heavy requests (full tx / block): at most bb_config.heavyMaxInFlight in flight per socket, the rest queue (FIFO)
+    if (BB_HEAVY_METHODS.indexOf(method) !== -1) {
+        const heavy = isosocket_heavyState_Blockbook(socket)
+        if (heavy.inFlight >= bb_config.heavyMaxInFlight) {
+            heavy.queue.push({ method, params, callback })
+            if (heavy.queue.length > heavy.maxQueued) heavy.maxQueued = heavy.queue.length
+            return undefined // gets its id when a slot frees up
+        }
+        return isosocket_sendHeavy_Blockbook(x, socket, method, params, callback)
+    }
+    return isosocket_sendNow_Blockbook(x, socket, method, params, callback)
+}
+
+// per-socket limiter state (on the socket object, so a reconnect starts clean)
+function isosocket_heavyState_Blockbook(socket) {
+    if (!socket.bb_heavy) socket.bb_heavy = { inFlight: 0, queue: [], maxInFlight: 0, maxQueued: 0 }
+    return socket.bb_heavy
+}
+
+function isosocket_sendHeavy_Blockbook(x, socket, method, params, callback) {
+    const heavy = isosocket_heavyState_Blockbook(socket)
+    heavy.inFlight++
+    if (heavy.inFlight > heavy.maxInFlight) heavy.maxInFlight = heavy.inFlight
+    var released = false
+    return isosocket_sendNow_Blockbook(x, socket, method, params, (data) => {
+        if (!released) { // reply, timeout, send failure or socket close: free the slot first (even if the callback throws)
+            released = true
+            heavy.inFlight--
+            isosocket_drainHeavy_Blockbook(x, socket)
+        }
+        if (callback) callback(data)
+    })
+}
+
+function isosocket_drainHeavy_Blockbook(x, socket) {
+    const heavy = isosocket_heavyState_Blockbook(socket)
+    while (heavy.queue.length > 0 && heavy.inFlight < bb_config.heavyMaxInFlight) {
+        const q = heavy.queue.shift()
+        if (self.bb_Sockets[x] !== socket || socket.readyState != 1) {
+            bb_safeCallback(q.callback, { error: 'Blockbook socket closed' })
+            continue
+        }
+        isosocket_sendHeavy_Blockbook(x, socket, q.method, q.params, q.callback)
+    }
+}
+
+function isosocket_sendNow_Blockbook(x, socket, method, params, callback) {
     var id = self.bb_Sockets_messageID[x].toString()
     self.bb_Sockets_messageID[x]++
-    
-    // Set up timeout for this request (3 seconds)
-    const timeoutId = setTimeout(() => {
-        if (self.bb_Sockets_pendingMessages[x][id]) {
-            delete self.bb_Sockets_pendingMessages[x][id]
-            utilsWallet.error(`## isosocket_send_Blockbook ${x} ${method} - timeout after 3s`)
-            if (callback) {
-                callback({ error: 'Blockbook request timeout' })
-            }
-        }
-    }, 3000)
-    
-    // Wrap the original callback to clear timeout on success
-    self.bb_Sockets_pendingMessages[x][id] = (data) => {
+
+    // this socket's own pending map: a reconnect installs a new map and restarts ids at 0, so a stale timeout
+    // must never touch (or call back for) the new socket's request with the same id
+    if (!socket.bb_pending) socket.bb_pending = self.bb_Sockets_pendingMessages[x]
+    const pending = socket.bb_pending
+
+    // Set up timeout for this request: 3s by default; longer for broadcasts (a premature timeout after a successful
+    // broadcast would report failure for a tx that was actually sent), for paged account history, and for heavy
+    // requests (full tx / block: these can queue server-side behind each other)
+    const timeoutMs = method === 'sendTransaction' ? 30000
+                    : method === 'getAccountInfo' ? 10000
+                    : BB_HEAVY_METHODS.indexOf(method) !== -1 ? bb_config.heavyTimeoutMs
+                    : 3000
+    var timeoutId
+    const wrapped = (data) => { // clears the timeout on reply
         clearTimeout(timeoutId)
         if (callback) {
             callback(data)
         }
     }
-    
+    timeoutId = setTimeout(() => {
+        if (pending[id] === wrapped) {
+            delete pending[id]
+            if (!self.bb_Sockets_timedOut) self.bb_Sockets_timedOut = {}
+            if (!self.bb_Sockets_timedOut[x]) self.bb_Sockets_timedOut[x] = {}
+            self.bb_Sockets_timedOut[x][id] = method // so a late reply is reported as such, not as an unknown message
+            utilsWallet.error(`## isosocket_send_Blockbook ${x} ${method} - timeout after ${timeoutMs}ms`)
+            if (callback) {
+                callback({ error: 'Blockbook request timeout' })
+            }
+        }
+    }, timeoutMs)
+    pending[id] = wrapped
+
     var req = { id, method, params }
-    self.bb_Sockets[x].send(JSON.stringify(req))
+    try {
+        socket.send(JSON.stringify(req))
+    }
+    catch (err) {
+        utilsWallet.error(`## isosocket_send_Blockbook ${x} ${method} - send failed: ${err.message}`)
+        if (pending[id] === wrapped) {
+            delete pending[id]
+            wrapped({ error: `Blockbook send failed: ${err.message}` })
+        }
+    }
     return id
+}
+
+// a callback that throws must not break the caller's loop (queue drain, socket-close flush)
+function bb_safeCallback(callback, data) {
+    if (!callback) return
+    try { callback(data) }
+    catch (err) { utilsWallet.error(`## bb_safeCallback - callback threw, err=`, err) }
+}
+
+// fail every queued and in-flight request of a socket (it closed): callers get an error now instead of a timeout later
+function isosocket_failAll_Blockbook(socket, reason) {
+    if (!socket) return 0
+    const err = { error: reason || 'Blockbook socket closed' }
+    var n = 0
+    if (socket.bb_heavy) {
+        const queued = socket.bb_heavy.queue
+        socket.bb_heavy.queue = []
+        queued.forEach(q => { n++; bb_safeCallback(q.callback, err) })
+    }
+    const pending = socket.bb_pending
+    if (pending) {
+        Object.keys(pending).forEach(id => {
+            const cb = pending[id]
+            delete pending[id]
+            n++
+            bb_safeCallback(cb, err)
+        })
+    }
+    return n
+}
+
+// manual message id <-> callback dispatch. Never throws: a bad frame or a throwing callback is logged and skipped,
+// so it can't stop the processing of later replies (which would hang every pending request on this socket)
+function isosocket_onMessage_Blockbook(x, msg, socket) {
+    if (!msg || !msg.data) return
+    var resp
+    try {
+        resp = JSON.parse(msg.data)
+    }
+    catch (err) {
+        utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - unparseable message (${String(msg.data).length} chars): ${err.message}`)
+        return
+    }
+    if (!resp || typeof resp !== 'object') return
+    const pending = (socket && socket.bb_pending) || self.bb_Sockets_pendingMessages[x] || {}
+    const subs = self.bb_Sockets_subscriptions[x] || {}
+    try {
+        if (typeof process !== 'undefined' && process.env && process.env.BB_WS_DEBUG === x) utilsWallet.log(`BB_WS_DEBUG ${x} rx id=${resp.id} keys=${Object.keys(resp.data || {}).join(',')} pending=${!!pending[resp.id]} sub=${!!subs[resp.id]}`)
+        var callback = pending[resp.id]
+        if (callback != undefined) {
+            delete pending[resp.id]
+            callback(resp.data)
+        } else {
+            callback = subs[resp.id]
+            if (callback != undefined) {
+                callback(resp.data)
+            }
+            else if (self.bb_Sockets_timedOut && self.bb_Sockets_timedOut[x] && self.bb_Sockets_timedOut[x][resp.id] !== undefined) {
+                utilsWallet.warn(`appWorker >> ${self.workerId} bb_Sockets ${x} - late reply (after timeout) for ${self.bb_Sockets_timedOut[x][resp.id]} id=${resp.id}`)
+                delete self.bb_Sockets_timedOut[x][resp.id]
+            }
+            else {
+                utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - UNKNOWN MESSAGE: no callback, id=${resp.id} keys=${Object.keys(resp.data || {}).join(',')}`)
+            }
+        }
+    }
+    catch (err) {
+        utilsWallet.error(`### appWorker >> ${self.workerId} bb_Sockets ${x} - message callback threw (id=${resp.id}), err=`, err)
+    }
 }
 
 function enrichTx(wallet, asset, tx, pollAddress) {
@@ -767,24 +977,33 @@ function enrichTx(wallet, asset, tx, pollAddress) {
                                 //     console.log(`bbTx p_op ${tx.txid}`, bbTx)
                                 // }
 
-                                const insightTx = mapTx_BlockbookToInsight(asset, bbTx)
+                                // a mapping error must not leave this promise unresolved (it hung the whole address fetch)
+                                var insightTx, mappedTx
+                                try {
+                                    insightTx = mapTx_BlockbookToInsight(asset, bbTx)
 
-                                // DMS - detect protect_op TX's, and save txhex for these
-                                //if (bbTx.version == 2 && bbTx.vout.length == 4 
-                                //    && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
-                                //    && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
-                                //    && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
-                                //    && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
-                                //) {
-                                // DMS - actually, we need the hex for all TX's -- see wallet-btc-p2sh::createTxHex_BTC_P2SH() and how it looks up inputTx;
-                                // namely, if we send funds to a PROTECT_OP-generated address with a *standard* transaction, then we will the need the hex of this std-tx
-                                // for createTxHex_BTC_P2SH() to be able to create dsigCltv() redeem script (i.e. spend it)
-                                insightTx.hex = bbTx.hex
-                                //}
+                                    // DMS - detect protect_op TX's, and save txhex for these
+                                    //if (bbTx.version == 2 && bbTx.vout.length == 4 
+                                    //    && bbTx.vout[0].value > 0 && bbTx.vout[0].isAddress == true   // protected output (dsigCltv)
+                                    //    && bbTx.vout[1].value == 0 && bbTx.vout[1].isAddress == false // op_return output (versioning)
+                                    //    && bbTx.vout[2].value == 0 && bbTx.vout[2].isAddress == true  // beneficiary zero-value output (identification)
+                                    //    && bbTx.vout[3].isAddress == true                             // benefactor change output (change) -- allow zero change
+                                    //) {
+                                    // DMS - actually, we need the hex for all TX's -- see wallet-btc-p2sh::createTxHex_BTC_P2SH() and how it looks up inputTx;
+                                    // namely, if we send funds to a PROTECT_OP-generated address with a *standard* transaction, then we will the need the hex of this std-tx
+                                    // for createTxHex_BTC_P2SH() to be able to create dsigCltv() redeem script (i.e. spend it)
+                                    insightTx.hex = bbTx.hex
+                                    //}
 
-                                // map tx (prunes vins, drops vouts)
-                                const mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset)[0]
-                                //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
+                                    // map tx (prunes vins, drops vouts)
+                                    mappedTx = walletUtxo.map_insightTxs([insightTx], ownAddresses, asset)[0]
+                                    //utilsWallet.log(`** enrichTx - ${asset.symbol} ${tx.txid} - adding to cache, mappedTx=`, mappedTx)
+                                }
+                                catch (err) {
+                                    utilsWallet.error(`### enrichTx - ${asset.symbol} ${tx.txid} - error mapping BB tx, err=`, err)
+                                    resolve(null)
+                                    return
+                                }
 
                                 // add to cache
                                 mappedTx.addedToCacheAt = new Date()

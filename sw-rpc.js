@@ -42,7 +42,7 @@ module.exports = {
         utilsWallet.logMajor('green', 'white', `... RPC init: port ${portNo} ...`, null, { logServerConsole: true })
         const methods = {
             exec: authed(async (args, callback) => {
-                log.info(`RPC: exec... args=`, args)
+                log.info(`RPC: exec... cmd=${args && args[0]} params=${Object.keys((args && args[1]) || {}).filter(k => k !== 'mpk' && k !== 'apk').join(',')}`) // never log values (may hold an MPK)
                 const cmd = args[0]
                 const cmdParams = args[1]
                 const appWorker = utilsWallet.getAppWorker() 
@@ -60,6 +60,7 @@ module.exports = {
                         case 'wallet-balance':     fn = svrWallet.fn(appWorker, appStore, cmdParams, 'BALANCE'); break
                         case 'tx-get-fee':         fn = svrWallet.fn(appWorker, appStore, cmdParams, 'TX-GET-FEE'); break
                         case 'tx-push':            fn = svrWallet.fn(appWorker, appStore, cmdParams, 'TX-PUSH'); break
+                        case 'wallet-add-address': fn = svrWallet.fn(appWorker, appStore, { ...cmdParams, save: false }, 'ADD-ADDR'); break // in-memory only
                     }
                     if (fn === undefined) {
                         return callback({ code: -32600, message: 'Invalid request' })

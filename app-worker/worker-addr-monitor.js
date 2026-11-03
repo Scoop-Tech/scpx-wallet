@@ -3,6 +3,8 @@
 const configExternal = require('../config/wallet-external')
 
 const workerAddrMemPool = require('./worker-blockbook-mempool')
+const workerBlockbook = require('./worker-blockbook')
+const workerBlockbookWs = require('./worker-blockbook-ws')
 
 const utilsWallet = require('../utils')
 
@@ -55,17 +57,25 @@ function subAddr_Blockbook(wallet, asset) {
     const ownAddresses = asset.addresses.map(p => { return p.addr })
     
     //var socket = worker.get_BlockbookSocketIo(asset)
-    var socket = self.get_BlockbookSocketIo(asset)
-
-    if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}: no socket setup!`); return }
+    // address activity via Blockbook websocket subscribeAddresses (legacy socket.io 'bitcoind/addresstxid' removed in Blockbook 0.6).
+    // Registered in self.bb_addrSubs so worker-blockbook re-subscribes after any reconnect.
     try {
-        
-        // subscribe addr monitor
-        socket.emit('subscribe', "bitcoind/addresstxid", ownAddresses, (result) => {})
-        ////utilsWallet.debug(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, ownAddresses=`, ownAddresses.join(','), { logServerConsole: true })
+        const onTxid = function (txid) { onAddressTxid({ txid }) }
+        if (!self.bb_addrSubs) self.bb_addrSubs = {}
+        const onAck = function (ack) { utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol} - ack ${JSON.stringify(ack)}`) }
+        const reg = { addresses: ownAddresses, onTxid, onAck }
+        self.bb_addrSubs[asset.symbol] = reg
+        // Blockbook processes websocket requests concurrently: a subscribe sent right after an unsubscribe can be applied
+        // FIRST, leaving the connection silently unsubscribed (observed). So subscribe only once any pending unsubscribe is acked.
+        const pendingUnsub = self.bb_addrUnsub && self.bb_addrUnsub[asset.symbol]
+        Promise.resolve(pendingUnsub).then(() => {
+            if (self.bb_addrSubs[asset.symbol] !== reg) return // superseded / unsubscribed meanwhile
+            reg.subId = workerBlockbookWs.subscribeAddresses(
+                (method, params, cb) => workerBlockbook.isosocket_sub_Blockbook(asset.symbol, method, params, cb), ownAddresses, onTxid, onAck)
+            utilsWallet.log(`appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol} - subscribe ${ownAddresses.length} address(es): ${ownAddresses.join(',')} subId=${reg.subId}`)
+        })
 
-        // callback
-        socket.on("bitcoind/addresstxid", function (data) {
+        function onAddressTxid(data) {
             if (data && data.txid) {
                 const txid = data.txid
                 //const addr = data.address
@@ -131,7 +141,7 @@ function subAddr_Blockbook(wallet, asset) {
                     }
                 }
             }
-        })
+        }
     }   
     catch (err) {
         utilsWallet.error(`### appWorker >> ${self.workerId} subAddr_Blockbook ${asset.symbol}, err=`, err)
@@ -178,15 +188,21 @@ function subAddr_Insight(asset) {
 }
 
 function unsubAddr_Blockbook(assetSymbol) {
-    ////utilsWallet.debug(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}...`)
-    var socket = self.blockbookSocketIos[assetSymbol]
-    if (socket === undefined) { utilsWallet.warn(`appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}: no socket setup!`); return }
-    else {
-        try {
-            socket.removeAllListeners("bitcoind/addresstxid")
-        }
-        catch (err) { utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}, err=`, err) }
+    // websocket: Blockbook keeps one address subscription per connection. Drop our registration + local callback, then
+    // unsubscribe; a following subAddr_Blockbook waits for this ack (see ordering note there)
+    if (self.bb_addrSubs && self.bb_addrSubs[assetSymbol]) {
+        const subId = self.bb_addrSubs[assetSymbol].subId
+        if (subId !== undefined && self.bb_Sockets_subscriptions && self.bb_Sockets_subscriptions[assetSymbol]) delete self.bb_Sockets_subscriptions[assetSymbol][subId]
+        delete self.bb_addrSubs[assetSymbol]
     }
+    if (!self.bb_addrUnsub) self.bb_addrUnsub = {}
+    self.bb_addrUnsub[assetSymbol] = new Promise((resolve) => {
+        const t = setTimeout(resolve, 5000)
+        try {
+            workerBlockbook.isosocket_send_Blockbook(assetSymbol, 'unsubscribeAddresses', {}, () => { clearTimeout(t); resolve() })
+        }
+        catch (err) { clearTimeout(t); resolve(); utilsWallet.error(`### appWorker >> ${self.workerId} unsubAddr_Blockbook ${assetSymbol}, err=`, err) }
+    })
 }
 
 function unsubAddr_Insight(assetSymbol) {

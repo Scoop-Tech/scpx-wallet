@@ -1,0 +1,146 @@
+{
+ "fetchedAt": "2026-11-02T14:12:05.770Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x949e6d3100bb65db189178e65be4feac1997fee114118a91372c06bd3180a213",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "spam airdrop of an unknown token to 500 addresses incl. the holder",
+ "trimmed": {
+  "tokenTransfers": 500,
+  "dataLength": 32266
+ },
+ "getTransaction": {
+  "txid": "0x949e6d3100bb65db189178e65be4feac1997fee114118a91372c06bd3180a213",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0x2767ae7E0C205425a7B7F7583c512513C527F482"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0x4A09D3A1020c9cc126b81bA1F0D06b09664cC1A5"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0x0ba413fa84505225e420c1ab8dc169719d808bfc4a86025db0969f94f3f49fb1",
+  "blockHeight": 25708579,
+  "confirmations": 619034,
+  "blockTime": 1786172039,
+  "value": "0",
+  "fees": "934751569700000",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x2767ae7E0C205425a7B7F7583c512513C527F482",
+    "to": "0x2502e141AaD64f211755104D7bC1b8cd49219d1D",
+    "contract": "0x6051C1354Ccc51b4d561e43b02735DEaE64768B8",
+    "name": "yRise.Finance",
+    "symbol": "yRise",
+    "decimals": 18,
+    "value": "90000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x2767ae7E0C205425a7B7F7583c512513C527F482",
+    "to": "0xF27a834351b11c16EB61C0453177fF4B13c08D98",
+    "contract": "0x6051C1354Ccc51b4d561e43b02735DEaE64768B8",
+    "name": "yRise.Finance",
+    "symbol": "yRise",
+    "decimals": 18,
+    "value": "90000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x2767ae7E0C205425a7B7F7583c512513C527F482",
+    "to": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "contract": "0x6051C1354Ccc51b4d561e43b02735DEaE64768B8",
+    "name": "yRise.Finance",
+    "symbol": "yRise",
+    "decimals": 18,
+    "value": "90000000000000"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 842,
+   "gasLimit": 16777216,
+   "gasUsed": 13807261,
+   "gasPrice": "67700000",
+   "effectiveGasPrice": "67700000",
+   "maxPriorityFeePerGas": "67700000",
+   "maxFeePerGas": "67700000",
+   "baseFeePerGas": "63948525",
+   "data": "0x93856e680000000000000000000000006051c1354ccc51b4d561e43b02735deae64768b8000000000000000000000000000000000000000000000000000051dac207a000",
+   "parsedData": {
+    "methodId": "0x93856e68",
+    "name": ""
+   }
+  },
+  "addressAliases": {
+   "0x61583697a9f4Dc2E40Ea6afec2502C4a76A8785d": {
+    "Type": "Contract",
+    "Alias": "OpenOcean LPs"
+   },
+   "0xE62F9cc7241D25030725183FB687547959580F40": {
+    "Type": "Contract",
+    "Alias": "SushiSwap LP Token"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0x0ba413fa84505225e420c1ab8dc169719d808bfc4a86025db0969f94f3f49fb1",
+   "blockNumber": "0x1884823",
+   "blockTimestamp": "0x6a76d287",
+   "from": "0x2767ae7e0c205425a7b7f7583c512513c527f482",
+   "gas": "0x1000000",
+   "gasPrice": "0x4090520",
+   "maxFeePerGas": "0x4090520",
+   "maxPriorityFeePerGas": "0x4090520",
+   "hash": "0x949e6d3100bb65db189178e65be4feac1997fee114118a91372c06bd3180a213",
+   "input": "0x93856e680000000000000000000000006051c1354ccc51b4d561e43b02735deae64768b8000000000000000000000000000000000000000000000000000051dac207a000",
+   "nonce": "0x34a",
+   "to": "0x4a09d3a1020c9cc126b81ba1f0d06b09664cc1a5",
+   "transactionIndex": "0xc",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x0",
+   "r": "0x5b3e8e88c7216a953ca38285bbc67e8315f2fb47589fd01231eee63ffeb7a536",
+   "s": "0x638c76dd63ff5f72be8589c96f220598c70299b3d0838aff1b36ba3d0a0f47e7",
+   "yParity": "0x0"
+  },
+  "receipt": {
+   "blockHash": "0x0ba413fa84505225e420c1ab8dc169719d808bfc4a86025db0969f94f3f49fb1",
+   "blockNumber": "0x1884823",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x1a9f967",
+   "effectiveGasPrice": "0x4090520",
+   "from": "0x2767ae7e0c205425a7b7f7583c512513c527f482",
+   "gasUsed": "0xd2ae9d",
+   "status": "0x1",
+   "to": "0x4a09d3a1020c9cc126b81ba1f0d06b09664cc1a5",
+   "transactionHash": "0x949e6d3100bb65db189178e65be4feac1997fee114118a91372c06bd3180a213",
+   "transactionIndex": "0xc",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x1884823",
+   "hash": "0x0ba413fa84505225e420c1ab8dc169719d808bfc4a86025db0969f94f3f49fb1",
+   "timestamp": "0x6a76d287"
+  }
+ }
+}

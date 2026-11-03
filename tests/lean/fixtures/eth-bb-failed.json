@@ -1,0 +1,120 @@
+{
+ "fetchedAt": "2026-11-02T14:11:49.558Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0xb62913afa7f57d913d8130a8e1cca044d5f2d9002f3dca8f605ecac91a3f4384",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "reverted (status 0) Curve remove_liquidity_one_coin sent by the holder: no token transfers, fee still paid",
+ "trimmed": {},
+ "getTransaction": {
+  "txid": "0xb62913afa7f57d913d8130a8e1cca044d5f2d9002f3dca8f605ecac91a3f4384",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0xcbfe7980bc623d0e9ad4c3755d9024eb7f13549bfab9cbdbb49b6b97f0793a6b",
+  "blockHeight": 16784478,
+  "confirmations": 9543133,
+  "blockTime": 1678289903,
+  "value": "0",
+  "fees": "11824344000000000",
+  "ethereumSpecific": {
+   "status": 0,
+   "error": "Reverted. Out of gas.",
+   "nonce": 49,
+   "gasLimit": 329234,
+   "gasUsed": 328454,
+   "gasPrice": "36000000000",
+   "effectiveGasPrice": "36000000000",
+   "maxPriorityFeePerGas": "4400000000",
+   "maxFeePerGas": "36000000000",
+   "baseFeePerGas": "32535487049",
+   "data": "0x1a4d01d20000000000000000000000000000000000000000000000cfb5afb386b7958a1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ed67cc32666703edab",
+   "parsedData": {
+    "methodId": "0x1a4d01d2",
+    "name": "Remove_liquidity_one_coin",
+    "function": "remove_liquidity_one_coin(uint256, int128, uint256)",
+    "params": [
+     {
+      "type": "uint256",
+      "values": [
+       "3831567903290853526032"
+      ]
+     },
+     {
+      "type": "int128",
+      "values": [
+       "0"
+      ]
+     },
+     {
+      "type": "uint256",
+      "values": [
+       "4379357753965715647915"
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0xcbfe7980bc623d0e9ad4c3755d9024eb7f13549bfab9cbdbb49b6b97f0793a6b",
+   "blockNumber": "0x1001c5e",
+   "blockTimestamp": "0x6408abef",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gas": "0x50612",
+   "gasPrice": "0x861c46800",
+   "maxFeePerGas": "0x861c46800",
+   "maxPriorityFeePerGas": "0x10642ac00",
+   "hash": "0xb62913afa7f57d913d8130a8e1cca044d5f2d9002f3dca8f605ecac91a3f4384",
+   "input": "0x1a4d01d20000000000000000000000000000000000000000000000cfb5afb386b7958a1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ed67cc32666703edab",
+   "nonce": "0x31",
+   "to": "0xbbc81d23ea2c3ec7e56d39296f0cbb648873a5d3",
+   "transactionIndex": "0x17",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x1",
+   "r": "0x1c25a8f0ddbd56a064ea83ff76df06b33c268a8b66df6610430b9f40586a5bf1",
+   "s": "0x182742df27ef26d0483a88d8422f249400322a9f81af00eb171cad7d50088948",
+   "yParity": "0x1"
+  },
+  "receipt": {
+   "blockHash": "0xcbfe7980bc623d0e9ad4c3755d9024eb7f13549bfab9cbdbb49b6b97f0793a6b",
+   "blockNumber": "0x1001c5e",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x29f0d0",
+   "effectiveGasPrice": "0x861c46800",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gasUsed": "0x50306",
+   "status": "0x0",
+   "to": "0xbbc81d23ea2c3ec7e56d39296f0cbb648873a5d3",
+   "transactionHash": "0xb62913afa7f57d913d8130a8e1cca044d5f2d9002f3dca8f605ecac91a3f4384",
+   "transactionIndex": "0x17",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x1001c5e",
+   "hash": "0xcbfe7980bc623d0e9ad4c3755d9024eb7f13549bfab9cbdbb49b6b97f0793a6b",
+   "timestamp": "0x6408abef"
+  }
+ }
+}

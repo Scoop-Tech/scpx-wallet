@@ -1,0 +1,152 @@
+{
+ "fetchedAt": "2026-11-02T14:11:53.115Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x5c8825193d0315042b2f9f4a5728c57726d10e8a6661bda48dd6f2f759a4889d",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "contract creation by a third party whose constructor airdrops a spam token AND 0.0001 real TUSD (the erc20Contracts TUSD contract: a historical token) to the holder",
+ "trimmed": {
+  "tokenTransfers": 351,
+  "dataLength": 18022
+ },
+ "getTransaction": {
+  "txid": "0x5c8825193d0315042b2f9f4a5728c57726d10e8a6661bda48dd6f2f759a4889d",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0x58D9263777eD0198BC44Bb8A4B84dcEc272a557B"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": null,
+    "isAddress": false
+   }
+  ],
+  "blockHash": "0x7142acb181a09cd7b381a72926c66f6b6298add9fe48fabdacb910520d40e71c",
+  "blockHeight": 23914527,
+  "confirmations": 2413085,
+  "blockTime": 1764542471,
+  "value": "0",
+  "fees": "312463850000000",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x0000000000000000000000000000000000000000",
+    "to": "0x58D9263777eD0198BC44Bb8A4B84dcEc272a557B",
+    "contract": "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8",
+    "name": "Visit website yldusd .org to claim rewards",
+    "symbol": "Visit website yldusd .org to claim rewards",
+    "decimals": 18,
+    "value": "678340250000000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x58D9263777eD0198BC44Bb8A4B84dcEc272a557B",
+    "to": "0x55de03D7a3bD35d91e465b4A7cC6Fe71Db7EAEa1",
+    "contract": "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8",
+    "name": "Visit website yldusd .org to claim rewards",
+    "symbol": "Visit website yldusd .org to claim rewards",
+    "decimals": 18,
+    "value": "3876230000000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x58D9263777eD0198BC44Bb8A4B84dcEc272a557B",
+    "to": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "contract": "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8",
+    "name": "Visit website yldusd .org to claim rewards",
+    "symbol": "Visit website yldusd .org to claim rewards",
+    "decimals": 18,
+    "value": "3876230000000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8",
+    "to": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "contract": "0x0000000000085d4780B73119b644AE5ecd22b376",
+    "name": "TrueUSD",
+    "symbol": "TUSD",
+    "decimals": 18,
+    "value": "100000000000000"
+   }
+  ],
+  "ethereumSpecific": {
+   "type": 1,
+   "createdContract": "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8",
+   "status": 1,
+   "nonce": 808,
+   "gasLimit": 6800000,
+   "gasUsed": 6249277,
+   "gasPrice": "50000000",
+   "maxPriorityFeePerGas": "50000000",
+   "maxFeePerGas": "50000000",
+   "baseFeePerGas": "44670979",
+   "data": "0x608060405234801561000f575f5ffd5b50604051610c12380380610c1283398101604081905261002e916102d9565b5f610039878261044b565b50600161004687826104",
+   "parsedData": {
+    "methodId": "0x60806040",
+    "name": ""
+   }
+  },
+  "addressAliases": {
+   "0x81cFd6f5b58399E340c185f8B4B42b9B096A00A8": {
+    "Type": "Contract",
+    "Alias": "Visit website yldusd .org to claim rewards"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0x7142acb181a09cd7b381a72926c66f6b6298add9fe48fabdacb910520d40e71c",
+   "blockNumber": "0x16ce81f",
+   "blockTimestamp": "0x692cc807",
+   "from": "0x58d9263777ed0198bc44bb8a4b84dcec272a557b",
+   "gas": "0x67c280",
+   "gasPrice": "0x2faf080",
+   "maxFeePerGas": "0x2faf080",
+   "maxPriorityFeePerGas": "0x2faf080",
+   "hash": "0x5c8825193d0315042b2f9f4a5728c57726d10e8a6661bda48dd6f2f759a4889d",
+   "input": "0x608060405234801561000f575f5ffd5b50604051610c12380380610c1283398101604081905261002e916102d9565b5f610039878261044b565b50600161004687826104",
+   "nonce": "0x328",
+   "to": null,
+   "transactionIndex": "0x1d7",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x1",
+   "r": "0xdc448a446bed0aca3a7af0c587aa76c57415b118f4b4353a0251aee99124a221",
+   "s": "0x243f087621eabd0527d84cb27bea28ead7efebfc0d075fdeff332b0b22475407",
+   "yParity": "0x1"
+  },
+  "receipt": {
+   "blockHash": "0x7142acb181a09cd7b381a72926c66f6b6298add9fe48fabdacb910520d40e71c",
+   "blockNumber": "0x16ce81f",
+   "contractAddress": "0x81cfd6f5b58399e340c185f8b4b42b9b096a00a8",
+   "cumulativeGasUsed": "0x2e2c30a",
+   "effectiveGasPrice": "0x2faf080",
+   "from": "0x58d9263777ed0198bc44bb8a4b84dcec272a557b",
+   "gasUsed": "0x5f5b3d",
+   "status": "0x1",
+   "to": null,
+   "transactionHash": "0x5c8825193d0315042b2f9f4a5728c57726d10e8a6661bda48dd6f2f759a4889d",
+   "transactionIndex": "0x1d7",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x16ce81f",
+   "hash": "0x7142acb181a09cd7b381a72926c66f6b6298add9fe48fabdacb910520d40e71c",
+   "timestamp": "0x692cc807"
+  }
+ }
+}

@@ -8,3 +8,6 @@ scp_tx.db
 .env
 *audit.json
 *.log*
+
+# e2e run reports (may contain txids/addresses; no secrets)
+tests/e2e/reports/

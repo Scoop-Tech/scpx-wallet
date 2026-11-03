@@ -1,34 +1,33 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 const walletUtxo = require('../actions/wallet-utxo')
+const configWallet = require('../config/wallet')
 
 const utilsWallet = require('../utils')
 
 const workerBlockbook = require('./worker-blockbook')
+const workerBlockbookWs = require('./worker-blockbook-ws')
 
 module.exports = {
 
     blockbook_pushTx: (asset, txhex, wallet) => {
+        if (configWallet.isReadOnlyAsset(asset)) { // e.g. ZEC: never broadcast (the tx builder is obsolete) - defence in depth
+            postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, error: configWallet.readOnlyRefusal(asset.symbol) } })
+            return
+        }
         if (!asset.use_BBv3) {
             postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, error: 'Unsupported BB asset type' } }) 
             return
         }
 
-        const socket = self.get_BlockbookSocketIo(asset)
-        if (socket === undefined) {
-            postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, error: 'Failed getting Blockbook socket.io'} })
-            return
-        }
-
-        if (!socket.connected) {
-            postMessage({ msg: 'PUSH_TX_BLOCKBOOK_DONE', status: 'RES', data: { symbol: asset.symbol, txhex, error: 'No socket connection'} })
-            return
-        }
+        // push via Blockbook websocket sendTransaction (legacy socket.io interface removed in Blockbook 0.6)
+        const bbSend = (method, params, cb) => workerBlockbook.isosocket_send_Blockbook(asset.symbol, method, params, cb)
 
         const ownAddresses = asset.addresses.map(p => { return p.addr })
 
         //utilsWallet.debug(`appWorker >> blockbook_pushTx - ${asset.symbol}...`)
-        socket.send({ method: 'sendTransaction', params: [ txhex ] }, (data) => {
+        bbSend('sendTransaction', { hex: txhex }, (data) => {
+            if (data && typeof data.error === 'string') data = { error: { message: data.error } } // transport-level (socket not ready / timeout)
             if (data)  {
                 if (data.result) {
                     const txid = data.result

@@ -1,0 +1,54 @@
+{
+ "fetchedAt": "2026-11-02T13:20:31.021Z",
+ "source": "wss://btc1.trezor.io (Blockbook websocket)",
+ "symbol": "BTC",
+ "txid": "b75ca3106ed100521aa50e3ec267a06431c6319538898b25e1b757a5736f5fb4",
+ "ownAddress": "3KZDwmJHB6QJ13QPXHaW7SS3yTESFPZoxb",
+ "note": "BTC block 800000 coinbase: vin[0] has no addresses; has an OP_RETURN (witness commitment) output",
+ "getTransaction": {
+  "txid": "b75ca3106ed100521aa50e3ec267a06431c6319538898b25e1b757a5736f5fb4",
+  "version": 1,
+  "vin": [
+   {
+    "sequence": 4294967295,
+    "n": 0,
+    "isAddress": false,
+    "coinbase": "0300350c0120130909092009092009102cda1492140000000000"
+   }
+  ],
+  "vout": [
+   {
+    "value": "638687680",
+    "n": 0,
+    "spent": true,
+    "spentTxId": "4c98525dbf60de24e045ef6acfb8e48cb2f5be77d240abdc0f06175721c4be67",
+    "spentIndex": 2,
+    "spentHeight": 800106,
+    "hex": "a914c3f8f898ae5cab4f4c1d597ecb0f3a81a9b146c387",
+    "addresses": [
+     "3KZDwmJHB6QJ13QPXHaW7SS3yTESFPZoxb"
+    ],
+    "isAddress": true
+   },
+   {
+    "value": "0",
+    "n": 1,
+    "hex": "6a24aa21a9ed9fbe517a588ccaca585a868f3cf19cb6897e3c26f3351361fb28ac8509e69a7e",
+    "addresses": [
+     "OP_RETURN aa21a9ed9fbe517a588ccaca585a868f3cf19cb6897e3c26f3351361fb28ac8509e69a7e"
+    ],
+    "isAddress": false
+   }
+  ],
+  "blockHash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72728a054",
+  "blockHeight": 800000,
+  "confirmations": 174263,
+  "blockTime": 1690168629,
+  "size": 192,
+  "vsize": 165,
+  "value": "638687680",
+  "valueIn": "0",
+  "fees": "0",
+  "hex": "010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff1a0300350c0120130909092009092009102cda1492140000000000ffffffff02c09911260000000017a914c3f8f898ae5cab4f4c1d597ecb0f3a81a9b146c3870000000000000000266a24aa21a9ed9fbe517a588ccaca585a868f3cf19cb6897e3c26f3351361fb28ac8509e69a7e0120000000000000000000000000000000000000000000000000000000000000000000000000"
+ }
+}

@@ -1,0 +1,193 @@
+{
+ "fetchedAt": "2026-11-02T14:11:56.059Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x52501c50f03df0db9f9c10b54b07e50115f6cfb536cd5c3cd1edecd6d1244919",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "1inch router swap sent by the holder: YFI out (not a wallet token), USDC in via the router (transferFrom-style, tx.to = router)",
+ "trimmed": {
+  "dataLength": 1810
+ },
+ "getTransaction": {
+  "txid": "0x52501c50f03df0db9f9c10b54b07e50115f6cfb536cd5c3cd1edecd6d1244919",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0x111111125421cA6dc452d289314280a0f8842A65"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0xa19b6f1bc2ea1f8bd13e96ecb86f0cc4ed5b1c3210c47570ac42593cd6dffb07",
+  "blockHeight": 23563170,
+  "confirmations": 2764442,
+  "blockTime": 1760290511,
+  "value": "0",
+  "fees": "663760755535325",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "to": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+    "contract": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+    "name": "yearn.finance",
+    "symbol": "YFI",
+    "decimals": 18,
+    "value": "30000000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+    "to": "0xcD6b980029E6E6e0733ac8eC3E02be9410D09799",
+    "contract": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+    "name": "yearn.finance",
+    "symbol": "YFI",
+    "decimals": 18,
+    "value": "75000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x04916039B1f59D9745Bf6E0a21f191D1e0A84287",
+    "to": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+    "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "name": "Wrapped Ether",
+    "symbol": "WETH",
+    "decimals": 18,
+    "value": "35740113666171812"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+    "to": "0x04916039B1f59D9745Bf6E0a21f191D1e0A84287",
+    "contract": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+    "name": "yearn.finance",
+    "symbol": "YFI",
+    "decimals": 18,
+    "value": "29925000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xe0e0e08A6A4b9Dc7bD67BCB7aadE5cF48157d444",
+    "to": "0x111111125421cA6dc452d289314280a0f8842A65",
+    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "name": "USD Coin",
+    "symbol": "USDC",
+    "decimals": 6,
+    "value": "147841919"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x111111125421cA6dc452d289314280a0f8842A65",
+    "to": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "name": "USD Coin",
+    "symbol": "USDC",
+    "decimals": 6,
+    "value": "147841919"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 71,
+   "gasLimit": 359823,
+   "gasUsed": 238637,
+   "gasPrice": "2781466225",
+   "maxPriorityFeePerGas": "1500000000",
+   "maxFeePerGas": "3439000000",
+   "baseFeePerGas": "1281466225",
+   "data": "0x07ed23790000000000000000000000005141b82f5ffda4c6fe1e372978f1c5427640a1900000000000000000000000000bc529c00c6401aef6d220be8c6ea1667f6ad93e",
+   "parsedData": {
+    "methodId": "0x07ed2379",
+    "name": ""
+   },
+   "internalTransfers": [
+    {
+     "type": 0,
+     "from": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+     "to": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+     "value": "35740113666171812"
+    },
+    {
+     "type": 0,
+     "from": "0x5141B82f5fFDa4c6fE1E372978F1C5427640a190",
+     "to": "0x9995855C00494d039aB6792f18e368e530DFf931",
+     "value": "35740113666171812"
+    },
+    {
+     "type": 0,
+     "from": "0x9995855C00494d039aB6792f18e368e530DFf931",
+     "to": "0xe0e0e08A6A4b9Dc7bD67BCB7aadE5cF48157d444",
+     "value": "35740113666171812"
+    }
+   ]
+  },
+  "addressAliases": {
+   "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": {
+    "Type": "Contract",
+    "Alias": "Wrapped Ether"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0xa19b6f1bc2ea1f8bd13e96ecb86f0cc4ed5b1c3210c47570ac42593cd6dffb07",
+   "blockNumber": "0x1678ba2",
+   "blockTimestamp": "0x68ebe6cf",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gas": "0x57d8f",
+   "gasPrice": "0xa5c9ce71",
+   "maxFeePerGas": "0xccfaf9c0",
+   "maxPriorityFeePerGas": "0x59682f00",
+   "hash": "0x52501c50f03df0db9f9c10b54b07e50115f6cfb536cd5c3cd1edecd6d1244919",
+   "input": "0x07ed23790000000000000000000000005141b82f5ffda4c6fe1e372978f1c5427640a1900000000000000000000000000bc529c00c6401aef6d220be8c6ea1667f6ad93e",
+   "nonce": "0x47",
+   "to": "0x111111125421ca6dc452d289314280a0f8842a65",
+   "transactionIndex": "0x1b",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x1",
+   "r": "0x6a0b1691f24f2bb9e8478c6ca3e7cf05c9052a0e9a082a21a06033753b09df16",
+   "s": "0x4d4a353fb4867379584804cd399315a313287c2d4fbf3023059876f25aa6f18f",
+   "yParity": "0x1"
+  },
+  "receipt": {
+   "blockHash": "0xa19b6f1bc2ea1f8bd13e96ecb86f0cc4ed5b1c3210c47570ac42593cd6dffb07",
+   "blockNumber": "0x1678ba2",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x5a8c27",
+   "effectiveGasPrice": "0xa5c9ce71",
+   "from": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "gasUsed": "0x3a42d",
+   "status": "0x1",
+   "to": "0x111111125421ca6dc452d289314280a0f8842a65",
+   "transactionHash": "0x52501c50f03df0db9f9c10b54b07e50115f6cfb536cd5c3cd1edecd6d1244919",
+   "transactionIndex": "0x1b",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x1678ba2",
+   "hash": "0xa19b6f1bc2ea1f8bd13e96ecb86f0cc4ed5b1c3210c47570ac42593cd6dffb07",
+   "timestamp": "0x68ebe6cf"
+  }
+ }
+}

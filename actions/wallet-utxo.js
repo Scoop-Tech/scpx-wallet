@@ -55,7 +55,7 @@ module.exports = {
             inputsTotalValue = inputsTotalValue.plus(new BigNumber(utxos[i].satoshis))
             inputsNeeded.push({ utxo: utxos[i], ndx: inputNdx,  })
             inputNdx++
-            if (inputsTotalValue.gt(valueNeeded.plus(feeSatoshisAssumed))) {
+            if (inputsTotalValue.gte(valueNeeded.plus(feeSatoshisAssumed))) {
                 break // sufficient UTXOs
             }
         }
@@ -176,6 +176,15 @@ module.exports = {
                     ret.fast_satPerKB = keys.length > 1 ? res.data.feeByBlockTarget[keys[1]] : Math.floor(ret.fastest_satPerKB / 2)
                     ret.slow_satPerKB = keys.length > 3 ? res.data.feeByBlockTarget[keys[3]] : Math.floor(ret.fast_satPerKB / 2)
                 }
+                // fail closed on a broken or absurd oracle response (no silent NaN / huge fee): every rate must be a
+                // positive number, no lower than 1000 sat/KB (min relay) and no higher than the send guard's sat/vB cap
+                const maxSatPerKB = require('./wallet-btc-sendguard').limits().maxFeeSatVb * 1000
+                ;['fastest_satPerKB', 'fast_satPerKB', 'slow_satPerKB'].forEach(k => {
+                    const v = Number(ret[k])
+                    if (!Number.isFinite(v) || v <= 0) throw `BTC fee oracle: bad ${k} (${ret[k]})`
+                    if (v > maxSatPerKB) throw `BTC fee oracle: ${k}=${v} sat/KB is above the ${maxSatPerKB} sat/KB cap`
+                    ret[k] = Math.max(Math.ceil(v), 1000)
+                })
                 return ret
             })
         }

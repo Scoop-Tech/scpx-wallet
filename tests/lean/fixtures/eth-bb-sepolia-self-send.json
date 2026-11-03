@@ -1,0 +1,92 @@
+{
+ "fetchedAt": "2026-11-02T14:12:09.952Z",
+ "source": "wss://sepolia.trezor.io getTransaction (Blockbook websocket); https://ethereum-sepolia-rpc.publicnode.com (JSON-RPC)",
+ "net": "sepolia",
+ "symbol": "ETH_TEST",
+ "txid": "0xe565c7ae33b6cad72cce9d98fe7c4f8c047cca0bee26492717da9336e130a163",
+ "ownAddress": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+ "note": "Sepolia ETH send-to-self (from == to == own)",
+ "trimmed": {},
+ "getTransaction": {
+  "txid": "0xe565c7ae33b6cad72cce9d98fe7c4f8c047cca0bee26492717da9336e130a163",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xFf8aC13981C99F3d4178328D496eC9ed02357604"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "1000000000",
+    "n": 0,
+    "addresses": [
+     "0xFf8aC13981C99F3d4178328D496eC9ed02357604"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0x729c76c416447f06aa2865a5b330ff38cca3576f74dac5aee6ca68a541da40bc",
+  "blockHeight": 12048506,
+  "confirmations": 155,
+  "blockTime": 1793626836,
+  "value": "1000000000",
+  "fees": "192000",
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 20,
+   "gasLimit": 15000,
+   "gasUsed": 12000,
+   "gasPrice": "16",
+   "effectiveGasPrice": "16",
+   "baseFeePerGas": "14",
+   "data": "0x",
+   "parsedData": {
+    "methodId": "",
+    "name": "Transfer"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "type": "0x0",
+   "chainId": "0xaa36a7",
+   "nonce": "0x14",
+   "gasPrice": "0x10",
+   "gas": "0x3a98",
+   "to": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "value": "0x3b9aca00",
+   "input": "0x",
+   "r": "0xaa5c7476c5cf5113ff609ddfa075f7820574bacb323634251305bedfecc8e9b4",
+   "s": "0x506210baef9a9f501c5a041e39dab53ebad7a29cdd18ecd32f799d2930a6e80a",
+   "v": "0x1546d71",
+   "hash": "0xe565c7ae33b6cad72cce9d98fe7c4f8c047cca0bee26492717da9336e130a163",
+   "blockHash": "0x729c76c416447f06aa2865a5b330ff38cca3576f74dac5aee6ca68a541da40bc",
+   "blockNumber": "0xb7d87a",
+   "transactionIndex": "0x71",
+   "from": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "blockTimestamp": "0x6ae892d4"
+  },
+  "receipt": {
+   "type": "0x0",
+   "status": "0x1",
+   "cumulativeGasUsed": "0x4ad72d6",
+   "transactionHash": "0xe565c7ae33b6cad72cce9d98fe7c4f8c047cca0bee26492717da9336e130a163",
+   "transactionIndex": "0x71",
+   "blockHash": "0x729c76c416447f06aa2865a5b330ff38cca3576f74dac5aee6ca68a541da40bc",
+   "blockNumber": "0xb7d87a",
+   "gasUsed": "0x2ee0",
+   "effectiveGasPrice": "0x10",
+   "from": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "to": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "contractAddress": null
+  },
+  "block": {
+   "number": "0xb7d87a",
+   "hash": "0x729c76c416447f06aa2865a5b330ff38cca3576f74dac5aee6ca68a541da40bc",
+   "timestamp": "0x6ae892d4"
+  }
+ }
+}

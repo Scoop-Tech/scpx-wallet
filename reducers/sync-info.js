@@ -13,7 +13,8 @@ const handlers = {
         // update syncinfo for asset
         var newState = _.cloneDeep(state)
 
-        newState[action.payload.symbol] = action.payload
+        // merge: keep fields a given update doesn't carry (e.g. medianTimePast, only computed for PROTECT_OP assets)
+        newState[action.payload.symbol] = Object.assign({}, state[action.payload.symbol], action.payload)
 
         return newState
     },

@@ -11,13 +11,17 @@ const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
 
+const warnedNoRate = {} // tickers the price source doesn't quote (legacy assets): warn once, not every poll
+
 module.exports = {
         
     // rest interface - takes prices from bitfinex & cryptocompare rest api's, per asset config
     //  (cryptocompare has rate limit, shouldn't poll too fast)
     // see: configWallet.PRICE_USE_SOCKETS
     fetch: () => {
-        const fxApi = 'https://api.exchangeratesapi.io/latest?base=USD'
+        // keyless + CORS-enabled sources (Nov 2026: cryptocompare min-api and exchangeratesapi.io both require API keys now)
+        const fxApi = 'https://open.er-api.com/v6/latest/USD'                          // { rates: { EUR: 0.9, ... } } per 1 USD
+        const cryptoApi = 'https://api.coinbase.com/v2/exchange-rates?currency=USD'    // { data: { rates: { BTC: '0.0000128', ... } } } per 1 USD
 
         //utilsWallet.debug('appWorker >> prices fetch...')
 
@@ -36,9 +40,16 @@ module.exports = {
         const csv_symbols_cc = symbols_cc.join()
         
         //axiosRetry(axios, configWallet.AXIOS_RETRY_3PBP)
-        axios.get(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${csv_symbols_cc}&tsyms=USD`)
-        .then((resCryptocompare) => {
-            utilsWallet.log('resCryptocompare', resCryptocompare)
+        axios.get(cryptoApi)
+        .then((resRates) => {
+            // reshape Coinbase USD-base rates to the legacy cryptocompare pricemulti shape: { SYM: { USD: price } }
+            const usdRates = resRates && resRates.data && resRates.data.data && resRates.data.data.rates
+            const resCryptocompare = usdRates ? { data: {} } : undefined
+            if (usdRates) symbols_cc.forEach(sym => {
+                const rate = Number(usdRates[sym])
+                if (rate > 0) resCryptocompare.data[sym] = { USD: 1 / rate }
+                else if (!warnedNoRate[sym]) { warnedNoRate[sym] = true; utilsWallet.warn(`appWorker >> prices fetch - no Coinbase rate for ${sym} (no USD price)`) }
+            })
 
             if (resCryptocompare && resCryptocompare.data) {
                 const keys = Object.keys(resCryptocompare.data)
@@ -99,6 +110,7 @@ module.exports = {
 
                         } else utilsWallet.warn('appWorker >> fetch - bad fx data')
                     })
+                    .catch(err => utilsWallet.warn(`appWorker >> fx fetch failed (${fxApi}): ${err.message}`))
 
                     // get bitfinex prices
                     // #### can't use -- no cors headers on responses
@@ -146,8 +158,9 @@ module.exports = {
                 }
                 else utilsWallet.warn('appWorker >> fetch - bad response from cryptocompare')
             }
-            else utilsWallet.warn('appWorker >> fetch - no response from cryptocompare')
+            else utilsWallet.warn('appWorker >> fetch - no response from price source')
         })
+        .catch(err => utilsWallet.warn(`appWorker >> prices fetch failed (${cryptoApi}): ${err.message}`))
     },
 
     // has some tickers missing (e.g. SWAP) compared to REST

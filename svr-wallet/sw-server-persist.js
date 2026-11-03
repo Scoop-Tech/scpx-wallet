@@ -32,7 +32,7 @@ module.exports = {
     walletServerSave: async (appWorker, store, p) => {
         var { mpk } = p
         log.cmd('walletServerSave')
-        log.param('mpk', configWallet.IS_TEST? '[secure]' : mpk)
+        log.param('mpk', '[secure]')
         const keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
         log.param('apk', apk)
@@ -75,7 +75,7 @@ module.exports = {
     walletServerLoad: async (appWorker, store, p) => {
         var { mpk, email } = p
         log.cmd('walletServerLoad')
-        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
+        log.param('mpk', '[secure]')
         var keys = await Keygen.generateMasterKeys(mpk)
         const apk = keys.publicKeys.active
         log.param('apk', apk)

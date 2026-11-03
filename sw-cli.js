@@ -84,7 +84,10 @@ log.info('NODE_ENV:'.padEnd(30), process.env.NODE_ENV || '-')
 log.info('configWallet.IS_TEST:'.padEnd(30), configWallet.IS_TEST || '-')
 log.info('configWallet.IS_DEV:'.padEnd(30), configWallet.IS_DEV || '-')
 log.info('configWallet.CLI_SAVE_KEY:'.padEnd(30), configWallet.CLI_SAVE_KEY || '-')
-if (cli.mpk)              log.info(`cli.mpk:`.padEnd(30), cli.mpk)
+// MPK may also come from env SW_MPK (keeps it out of the process list); it is then never echoed
+const mpkFromEnv = !cli.mpk && !!process.env.SW_MPK
+if (mpkFromEnv)           cli.mpk = process.env.SW_MPK
+if (cli.mpk)              log.info(`cli.mpk:`.padEnd(30), mpkFromEnv ? '[from env SW_MPK]' : '[secure]') // never echo the MPK
 if (cli.loadFile)         log.info(`cli.loadFile:`.padEnd(30), cli.loadFile)
 if (cli.loadServer)       log.info(`cli.loadServer:`.padEnd(30), cli.loadServer)
 if (cli.saveHistory)      log.info(`cli.saveHistory:`.padEnd(30), cli.saveHistory)

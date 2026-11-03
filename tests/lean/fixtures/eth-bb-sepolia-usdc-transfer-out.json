@@ -1,0 +1,126 @@
+{
+ "fetchedAt": "2026-11-02T14:12:11.138Z",
+ "source": "wss://sepolia.trezor.io getTransaction (Blockbook websocket); https://ethereum-sepolia-rpc.publicnode.com (JSON-RPC)",
+ "net": "sepolia",
+ "symbol": "ETH_TEST",
+ "txid": "0xced068fd61637741f872e9308efc57f7d2589b4b351e1598a3bd7dfe4716b16a",
+ "ownAddress": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+ "note": "Sepolia USDC_TEST direct transfer() sent by own (txid given as a prefix: resolved from own's recent history)",
+ "trimmed": {},
+ "getTransaction": {
+  "txid": "0xced068fd61637741f872e9308efc57f7d2589b4b351e1598a3bd7dfe4716b16a",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xFf8aC13981C99F3d4178328D496eC9ed02357604"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0xcaa8661384ee8dc33835d0659f8a336492e59a09f19a96caa808dd6ec23fb2f3",
+  "blockHeight": 12048489,
+  "confirmations": 172,
+  "blockTime": 1793626632,
+  "value": "0",
+  "fees": "2253664",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xFf8aC13981C99F3d4178328D496eC9ed02357604",
+    "to": "0xCea6F2Ec5BE32c6292cD29386E713859BEE7fB64",
+    "contract": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+    "name": "USDC",
+    "symbol": "USDC",
+    "decimals": 6,
+    "value": "10000"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 17,
+   "gasLimit": 177495,
+   "gasUsed": 140854,
+   "gasPrice": "16",
+   "effectiveGasPrice": "16",
+   "baseFeePerGas": "14",
+   "data": "0xa9059cbb000000000000000000000000cea6f2ec5be32c6292cd29386e713859bee7fb640000000000000000000000000000000000000000000000000000000000002710",
+   "parsedData": {
+    "methodId": "0xa9059cbb",
+    "name": "Transfer",
+    "function": "transfer(address, uint256)",
+    "params": [
+     {
+      "type": "address",
+      "values": [
+       "0xCea6F2Ec5BE32c6292cD29386E713859BEE7fB64"
+      ]
+     },
+     {
+      "type": "uint256",
+      "values": [
+       "10000"
+      ]
+     }
+    ]
+   }
+  },
+  "addressAliases": {
+   "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8": {
+    "Type": "Contract",
+    "Alias": "USDC"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "type": "0x0",
+   "chainId": "0xaa36a7",
+   "nonce": "0x11",
+   "gasPrice": "0x10",
+   "gas": "0x2b557",
+   "to": "0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+   "value": "0x0",
+   "input": "0xa9059cbb000000000000000000000000cea6f2ec5be32c6292cd29386e713859bee7fb640000000000000000000000000000000000000000000000000000000000002710",
+   "r": "0x9a8c21662b66e6f68832f07ae27b680f641b8faa8bd978a69d04621c6cdd341d",
+   "s": "0x54b4334d490eb910a1a05ec32398c636d5ed27d7d90ec6901c816ce0d9ccd8e9",
+   "v": "0x1546d71",
+   "hash": "0xced068fd61637741f872e9308efc57f7d2589b4b351e1598a3bd7dfe4716b16a",
+   "blockHash": "0xcaa8661384ee8dc33835d0659f8a336492e59a09f19a96caa808dd6ec23fb2f3",
+   "blockNumber": "0xb7d869",
+   "transactionIndex": "0x86",
+   "from": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "blockTimestamp": "0x6ae89208"
+  },
+  "receipt": {
+   "type": "0x0",
+   "status": "0x1",
+   "cumulativeGasUsed": "0x4c3d478",
+   "transactionHash": "0xced068fd61637741f872e9308efc57f7d2589b4b351e1598a3bd7dfe4716b16a",
+   "transactionIndex": "0x86",
+   "blockHash": "0xcaa8661384ee8dc33835d0659f8a336492e59a09f19a96caa808dd6ec23fb2f3",
+   "blockNumber": "0xb7d869",
+   "gasUsed": "0x22636",
+   "effectiveGasPrice": "0x10",
+   "from": "0xff8ac13981c99f3d4178328d496ec9ed02357604",
+   "to": "0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+   "contractAddress": null
+  },
+  "block": {
+   "number": "0xb7d869",
+   "hash": "0xcaa8661384ee8dc33835d0659f8a336492e59a09f19a96caa808dd6ec23fb2f3",
+   "timestamp": "0x6ae89208"
+  }
+ }
+}

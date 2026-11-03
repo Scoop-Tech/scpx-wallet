@@ -1,0 +1,97 @@
+{
+ "fetchedAt": "2026-11-02T14:11:48.628Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x056187f902f8be8cf464f88e6c88f8161f2615832525c9a17a0d7ff834ef9bc4",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "plain ETH transfer (0.2 ETH, data 0x) 0x9Ab27D... -> holder: incoming for the holder, outgoing seen from the sender",
+ "trimmed": {},
+ "getTransaction": {
+  "txid": "0x056187f902f8be8cf464f88e6c88f8161f2615832525c9a17a0d7ff834ef9bc4",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0x9Ab27D7a3fCD909f75AE2750bFB0fEd068D315D9"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "200000000000000000",
+    "n": 0,
+    "addresses": [
+     "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0xabd3e2abbafa528b88d69f14ccb8fe916e8c403abe13b358c1a8cbe4384f22cc",
+  "blockHeight": 16784520,
+  "confirmations": 9543091,
+  "blockTime": 1678290407,
+  "value": "200000000000000000",
+  "fees": "590925414912000",
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 6,
+   "gasLimit": 21000,
+   "gasUsed": 21000,
+   "gasPrice": "28139305472",
+   "maxPriorityFeePerGas": "450000000",
+   "maxFeePerGas": "56283323354",
+   "baseFeePerGas": "27689305472",
+   "data": "0x",
+   "parsedData": {
+    "methodId": "",
+    "name": "Transfer"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0xabd3e2abbafa528b88d69f14ccb8fe916e8c403abe13b358c1a8cbe4384f22cc",
+   "blockNumber": "0x1001c88",
+   "blockTimestamp": "0x6408ade7",
+   "from": "0x9ab27d7a3fcd909f75ae2750bfb0fed068d315d9",
+   "gas": "0x5208",
+   "gasPrice": "0x68d3bba00",
+   "maxFeePerGas": "0xd1abf5bda",
+   "maxPriorityFeePerGas": "0x1ad27480",
+   "hash": "0x056187f902f8be8cf464f88e6c88f8161f2615832525c9a17a0d7ff834ef9bc4",
+   "input": "0x",
+   "nonce": "0x6",
+   "to": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "transactionIndex": "0x8a",
+   "value": "0x2c68af0bb140000",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x0",
+   "r": "0x121b3de10202342d1ac42413beb1970ae7fa5ea01df895a3e0b65aaa42252a94",
+   "s": "0x69e8d1f9d9fc2949055c293c32c48af2188a9fa7a297f05358f624336bc94935",
+   "yParity": "0x0"
+  },
+  "receipt": {
+   "blockHash": "0xabd3e2abbafa528b88d69f14ccb8fe916e8c403abe13b358c1a8cbe4384f22cc",
+   "blockNumber": "0x1001c88",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0xd31d6a",
+   "effectiveGasPrice": "0x68d3bba00",
+   "from": "0x9ab27d7a3fcd909f75ae2750bfb0fed068d315d9",
+   "gasUsed": "0x5208",
+   "status": "0x1",
+   "to": "0xffb3b82d6bae4e1c341e7423069c695eee1b4c78",
+   "transactionHash": "0x056187f902f8be8cf464f88e6c88f8161f2615832525c9a17a0d7ff834ef9bc4",
+   "transactionIndex": "0x8a",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x1001c88",
+   "hash": "0xabd3e2abbafa528b88d69f14ccb8fe916e8c403abe13b358c1a8cbe4384f22cc",
+   "timestamp": "0x6408ade7"
+  }
+ }
+}

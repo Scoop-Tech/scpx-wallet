@@ -1,0 +1,170 @@
+{
+ "fetchedAt": "2026-11-02T14:12:02.035Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x6eddedd889e7c63a85b84675477ddfa17c4eba4f6cb25ce76efc051ce2fbe09f",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "airdrop that MINTS (from 0x0) a spam \"TUSD\"-named token to the holder (not the TUSD contract)",
+ "trimmed": {
+  "tokenTransfers": 500,
+  "dataLength": 32138,
+  "parsedData": true
+ },
+ "getTransaction": {
+  "txid": "0x6eddedd889e7c63a85b84675477ddfa17c4eba4f6cb25ce76efc051ce2fbe09f",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0x72C2F970001B357278A822952233eEf28e123D24"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0xd5b0Bd07864C0aaCC3b6Cd5e63C68c62C0F263d2"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0xb38ee629fb43fb81713d3a03fcf0f5013018006cb05103ef17e62f86eb7c8d8d",
+  "blockHeight": 20638622,
+  "confirmations": 5688990,
+  "blockTime": 1724987471,
+  "value": "0",
+  "fees": "909011600000000",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x0000000000000000000000000000000000000000",
+    "to": "0xfA200e900198032596C3c427Abeab06bE5BAa73E",
+    "contract": "0xd5b0Bd07864C0aaCC3b6Cd5e63C68c62C0F263d2",
+    "name": "$ tenorusd.org",
+    "symbol": "Earn $TUSD airdrops at https://www.tenorusd.org",
+    "decimals": 2,
+    "value": "4800000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x0000000000000000000000000000000000000000",
+    "to": "0xFbC6Fa85dF69A62810D4096eD4DDBCb16B09FCf8",
+    "contract": "0xd5b0Bd07864C0aaCC3b6Cd5e63C68c62C0F263d2",
+    "name": "$ tenorusd.org",
+    "symbol": "Earn $TUSD airdrops at https://www.tenorusd.org",
+    "decimals": 2,
+    "value": "4800000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x0000000000000000000000000000000000000000",
+    "to": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "contract": "0xd5b0Bd07864C0aaCC3b6Cd5e63C68c62C0F263d2",
+    "name": "$ tenorusd.org",
+    "symbol": "Earn $TUSD airdrops at https://www.tenorusd.org",
+    "decimals": 2,
+    "value": "4800000"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 13,
+   "gasLimit": 1315751,
+   "gasUsed": 1298588,
+   "gasPrice": "700000000",
+   "maxPriorityFeePerGas": "50000000",
+   "maxFeePerGas": "700000000",
+   "baseFeePerGas": "669781742",
+   "data": "0xc5a55152000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001f4",
+   "parsedData": {
+    "methodId": "0xc5a55152",
+    "name": "Distribute Rewards"
+   }
+  },
+  "addressAliases": {
+   "0x0bA577b7E9096156af0D3a44e5056491566b7289": {
+    "Type": "Contract",
+    "Alias": "Uniswap V2"
+   },
+   "0x3A2b8cC91aF8bf45F3Ec61E779ee1c2ba6b7E694": {
+    "Type": "Contract",
+    "Alias": "StablePlaza"
+   },
+   "0x762D94Ca7D6539609646fed4C1657A05463223F9": {
+    "Type": "Contract",
+    "Alias": "Uniswap V2"
+   },
+   "0x8Bd89A58F8354a1012a2BA83A4CAdb457C61375A": {
+    "Type": "Contract",
+    "Alias": "🍆 9 LP"
+   },
+   "0xd42B3A30ca89155d6C3499c81F0C4e5A978bE5c2": {
+    "Type": "Contract",
+    "Alias": "Arkad's Garden"
+   },
+   "0xd5b0Bd07864C0aaCC3b6Cd5e63C68c62C0F263d2": {
+    "Type": "Contract",
+    "Alias": "$ tenorusd.org"
+   },
+   "0xe77Ca468659C92f6dEB63DD46720a30EA48ebCEA": {
+    "Type": "Contract",
+    "Alias": "O3-Peg Dai Stablecoin"
+   },
+   "0xe82906b6B1B04f631D126c974Af57a3A7B6a99d9": {
+    "Type": "Contract",
+    "Alias": "Clipper Pool Token"
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "blockHash": "0xb38ee629fb43fb81713d3a03fcf0f5013018006cb05103ef17e62f86eb7c8d8d",
+   "blockNumber": "0x13aeb9e",
+   "blockTimestamp": "0x66d1384f",
+   "from": "0x72c2f970001b357278a822952233eef28e123d24",
+   "gas": "0x1413a7",
+   "gasPrice": "0x29b92700",
+   "maxFeePerGas": "0x29b92700",
+   "maxPriorityFeePerGas": "0x2faf080",
+   "hash": "0x6eddedd889e7c63a85b84675477ddfa17c4eba4f6cb25ce76efc051ce2fbe09f",
+   "input": "0xc5a55152000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001f4",
+   "nonce": "0xd",
+   "to": "0xd5b0bd07864c0aacc3b6cd5e63c68c62c0f263d2",
+   "transactionIndex": "0x7b",
+   "value": "0x0",
+   "type": "0x2",
+   "accessList": [],
+   "chainId": "0x1",
+   "v": "0x0",
+   "r": "0x53d757331ca3de93d1560141231e6a2ec727cf4309552409eadf9fde1c9f2717",
+   "s": "0x48b8e8a4cf5f3ab968441dcfd3d281d180127507c84d35966197c73108eb1660",
+   "yParity": "0x0"
+  },
+  "receipt": {
+   "blockHash": "0xb38ee629fb43fb81713d3a03fcf0f5013018006cb05103ef17e62f86eb7c8d8d",
+   "blockNumber": "0x13aeb9e",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x14c8f4d",
+   "effectiveGasPrice": "0x29b92700",
+   "from": "0x72c2f970001b357278a822952233eef28e123d24",
+   "gasUsed": "0x13d09c",
+   "status": "0x1",
+   "to": "0xd5b0bd07864c0aacc3b6cd5e63c68c62c0f263d2",
+   "transactionHash": "0x6eddedd889e7c63a85b84675477ddfa17c4eba4f6cb25ce76efc051ce2fbe09f",
+   "transactionIndex": "0x7b",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x13aeb9e",
+   "hash": "0xb38ee629fb43fb81713d3a03fcf0f5013018006cb05103ef17e62f86eb7c8d8d",
+   "timestamp": "0x66d1384f"
+  }
+ }
+}

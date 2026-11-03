@@ -40,10 +40,11 @@ module.exports = {
         'BTC'      : { url: 'wss://btc1.trezor.io',                                            subBlocks: true },
         'BTC_SEG'  : { url: 'wss://btc2.trezor.io',                                            subBlocks: true },
         'BTC_SEG2' : { url: 'wss://btc3.trezor.io',                                            subBlocks: true },
-        'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
+        'ZEC'      : { url: 'wss://zec1.trezor.io',                                            subBlocks: true }, // READ-ONLY asset; Blockbook 0.6 on Zebra (verified Nov 2026; ws getBlock = 'Not supported', estimateFee n/a; zec2/zec3 also live)
         'LTC'      : { url: 'wss://ltc1.trezor.io',                                            subBlocks: true },
 
-      'ETH': { url: 'wss://ac-dev0.net:10003', subBlocks: true },
+      'ETH': { url: 'wss://eth.trezor.io', subBlocks: true }, // Trezor public Blockbook 0.6 (mainnet)
+    //'ETH': { url: 'wss://ac-dev0.net:10003', subBlocks: true }, // (dead: ac-dev0 decommissioned)
       //'ETH': { url: 'wss://eth1.trezor.io',                                                  subBlocks: false },
 
       'DASH': { url: 'wss://dash1.trezor.io', subBlocks: true },
@@ -54,8 +55,11 @@ module.exports = {
 
         // ### -- no public BB nodes: self-hosted on scp-dm-0
       //'QTUM'     : { url: 'wss://ac-dev0.net:29188',                                         subBlocks: true },
-      //'ZEC_TEST' : { url: 'wss://zec1.trezor.io',                                            subBlocks: true },
-        'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true },
+      // ZEC_TEST: NO public testnet Blockbook exists (Nov 2026) - needs a self-hosted zcash_testnet Blockbook before WALLET_INCLUDE_ZEC_TEST.
+      // Never point it at a MAINNET Blockbook (e.g. zec1): it silently converts tm- testnet addresses to t1- mainnet ones and reports 0.
+      //'ZEC_TEST' : { url: 'wss://<self-hosted zcash_testnet blockbook>:19132',                subBlocks: true },
+        'ETH_TEST' : { url: 'wss://sepolia.trezor.io',                                         subBlocks: true }, // Trezor public Blockbook 0.6 (Sepolia)
+      //'ETH_TEST' : { url: 'wss://ac-dev0.net:29136',                                         subBlocks: true }, // (dead: ac-dev0 decommissioned; was Ropsten)
 
       // (not used) -- issues with addr formats/creation iirc
       //'LTC_TEST' : { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:29134',      subBlocks: true },
@@ -67,12 +71,14 @@ module.exports = {
     //                     but seems required somehow (low value TUSD tx's aren't getting confirmed without it)
     //
     geth_ws_config: {
-        'ETH'     : { url: 'wss://ac-dev0.net:10546',                                   subBlocks: true  },
+        'ETH'     : { url: 'wss://ethereum-rpc.publicnode.com',                         subBlocks: true  }, // publicnode free mainnet (no key)
+      //'ETH'     : { url: 'wss://ac-dev0.net:10546',                                   subBlocks: true  }, // (dead: ac-dev0 decommissioned)
       //'ETH'     : { url: 'wss://node0.scoop.tech:10546',                              subBlocks: true  },
       //'ETH'     : { url: 'wss://main-rpc.linkpool.io/ws',                             subBlocks: true  }, // ## no newPendingTransactions
       //'ETH'     : { url: 'wss://scp-eth4.southeastasia.cloudapp.azure.com:9546',      subBlocks: true  },
       
-        'ETH_TEST': { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true  },
+        'ETH_TEST': { url: 'wss://ethereum-sepolia-rpc.publicnode.com',                 subBlocks: true  }, // publicnode free Sepolia (no key)
+      //'ETH_TEST': { url: 'wss://ac-dev0.net:9546',                                    subBlocks: true  }, // (dead: ac-dev0 decommissioned; was Ropsten)
       //'ETH_TEST': { url: 'wss://node0.scoop.tech:9546',                               subBlocks: true  },
       //'ETH_TEST': { url: 'wss://scp-bb-etht01.southeastasia.cloudapp.azure.com:9546', subBlocks: true  },
     },
@@ -111,6 +117,7 @@ module.exports = {
             //'5~CCCAGG~QTUM~USD',     //  bitfinex "tQTMUSD"
             '5~CCCAGG~DGB~USD',
             '5~CCCAGG~USDT~USD',       //  bitfinex "tUSTUSD"
+            '5~CCCAGG~USDC~USD',
             //'5~CCCAGG~EURT~USD',     //  bitfinex "tEUTUSD"
             '5~CCCAGG~LINK~USD',     
             //'5~CCCAGG~ZIL~USD',     

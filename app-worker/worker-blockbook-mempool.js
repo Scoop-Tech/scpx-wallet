@@ -7,6 +7,7 @@ const configExternal = require('../config/wallet-external')
 const decoder = new InputDataDecoder(require('../config/erc20ABI').abi)
 
 const workerBlockbook = require('./worker-blockbook')
+const workerBlockbookWs = require('./worker-blockbook-ws')
 const walletUtxo = require('../actions/wallet-utxo')
 const actionsWallet = require('../actions')
 
@@ -28,18 +29,16 @@ module.exports = {
             return
         }
 
-        var socket = self.get_BlockbookSocketIo(asset)
-        if (socket === undefined) { 
-            //callback([]); 
-            return
-        }
 
         try {
             const ownAddresses = asset.addresses.map(p => { return p.addr })
             //utilsWallet.debug(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - fetching mempool for addresses:`, ownAddresses)
 
             const mempool_spent_txids = []
-            socket.send({ method: 'getAddressTxids', params: [ownAddresses, { /*start: 20000000, end: 0,*/ queryMempoolOnly: true }] }, (data) => {
+            // mempool txids via Blockbook websocket getAccountInfo (unconfirmed first) - legacy socket.io removed in Blockbook 0.6
+            workerBlockbookWs.getMempoolTxids((method, params, cb) => workerBlockbook.isosocket_send_Blockbook(asset.symbol, method, params, cb), ownAddresses)
+            .then((mempool_txids_ws) => {
+                const data = { result: mempool_txids_ws }
                 
                 //utilsWallet.debug(`${asset.symbol} - getAddressTxids data`, data)
 
@@ -123,10 +122,12 @@ module.exports = {
                 }
                 //else callback([])
             })
+            .catch((err) => {
+                utilsWallet.warn(`appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol} - getAccountInfo failed: ${err.message}`)
+            })
         }
         catch (err) {
             utilsWallet.error(`### appWorker >> ${self.workerId} mempool_get_BB_txs - ${asset.symbol}, err=`, err)
-            callback([])
         }
     },
 

@@ -1,0 +1,137 @@
+{
+ "fetchedAt": "2026-11-02T13:20:27.237Z",
+ "source": "wss://zec1.trezor.io (Blockbook websocket)",
+ "symbol": "ZEC",
+ "txid": "d07504f4c3bdf93dcbee230835796ef9304f6b5325e2ffcfa1d14da623328229",
+ "ownAddress": "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi",
+ "note": "v4 Sapling-era transparent t->t, both outputs back to the sender (send-to-self); its 2 outputs are the address's UTXOs (scriptPubKey.addresses[] form)",
+ "getTransaction": {
+  "txid": "d07504f4c3bdf93dcbee230835796ef9304f6b5325e2ffcfa1d14da623328229",
+  "version": 4,
+  "vin": [
+   {
+    "txid": "fbd76b271293a89d0d4c1e5b7a5a79e48f6f876253a66f80bb931aec3e861b22",
+    "sequence": 4294967295,
+    "n": 0,
+    "addresses": [
+     "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi"
+    ],
+    "isAddress": true,
+    "value": "100000000",
+    "hex": "48304502210086580422a9f83e14eafcff845bc46a3a91cb3a3f20ef350fa187d2fe5fd68c0d02202d15e1e4efd3e3f2500884df4d35385577719cf4f8a82cc06e93b29b2abcb65903210381c8562df597b092df2e46449d4c4b3292d09e63792ee4149cda661d8d1d9585"
+   }
+  ],
+  "vout": [
+   {
+    "value": "473306",
+    "n": 0,
+    "hex": "76a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac",
+    "addresses": [
+     "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi"
+    ],
+    "isAddress": true
+   },
+   {
+    "value": "99526485",
+    "n": 1,
+    "hex": "76a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac",
+    "addresses": [
+     "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0000000000cd64df9f46e053cad3fa895291c98857d21d0e36599e86b0d13061",
+  "blockHeight": 1227609,
+  "confirmations": 2311728,
+  "blockTime": 1619368222,
+  "size": 245,
+  "value": "99999791",
+  "valueIn": "100000000",
+  "fees": "209",
+  "hex": "0400008085202f8901221b863eec1a93bb806fa65362876f8fe4795a7a5b1e4c0d9da89312276bd7fb000000006b48304502210086580422a9f83e14eafcff845bc46a3a91cb3a3f20ef350fa187d2fe5fd68c0d02202d15e1e4efd3e3f2500884df4d35385577719cf4f8a82cc06e93b29b2abcb65903210381c8562df597b092df2e46449d4c4b3292d09e63792ee4149cda661d8d1d9585ffffffff02da380700000000001976a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac55a7ee05000000001976a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac00000000000000000000000000000000000000"
+ },
+ "getTransactionSpecific": {
+  "in_active_chain": true,
+  "hex": "0400008085202f8901221b863eec1a93bb806fa65362876f8fe4795a7a5b1e4c0d9da89312276bd7fb000000006b48304502210086580422a9f83e14eafcff845bc46a3a91cb3a3f20ef350fa187d2fe5fd68c0d02202d15e1e4efd3e3f2500884df4d35385577719cf4f8a82cc06e93b29b2abcb65903210381c8562df597b092df2e46449d4c4b3292d09e63792ee4149cda661d8d1d9585ffffffff02da380700000000001976a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac55a7ee05000000001976a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac00000000000000000000000000000000000000",
+  "height": 1227609,
+  "confirmations": 2311729,
+  "vin": [
+   {
+    "txid": "fbd76b271293a89d0d4c1e5b7a5a79e48f6f876253a66f80bb931aec3e861b22",
+    "vout": 0,
+    "scriptSig": {
+     "asm": "304502210086580422a9f83e14eafcff845bc46a3a91cb3a3f20ef350fa187d2fe5fd68c0d02202d15e1e4efd3e3f2500884df4d35385577719cf4f8a82cc06e93b29b2abcb659[SINGLE] 0381c8562df597b092df2e46449d4c4b3292d09e63792ee4149cda661d8d1d9585",
+     "hex": "48304502210086580422a9f83e14eafcff845bc46a3a91cb3a3f20ef350fa187d2fe5fd68c0d02202d15e1e4efd3e3f2500884df4d35385577719cf4f8a82cc06e93b29b2abcb65903210381c8562df597b092df2e46449d4c4b3292d09e63792ee4149cda661d8d1d9585"
+    },
+    "sequence": 4294967295
+   }
+  ],
+  "vout": [
+   {
+    "value": 0.00473306,
+    "valueZat": 473306,
+    "n": 0,
+    "scriptPubKey": {
+     "asm": "OP_DUP OP_HASH160 ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc OP_EQUALVERIFY OP_CHECKSIG",
+     "hex": "76a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac",
+     "reqSigs": 1,
+     "type": "pubkeyhash",
+     "addresses": [
+      "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi"
+     ]
+    }
+   },
+   {
+    "value": 0.99526485,
+    "valueZat": 99526485,
+    "n": 1,
+    "scriptPubKey": {
+     "asm": "OP_DUP OP_HASH160 ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc OP_EQUALVERIFY OP_CHECKSIG",
+     "hex": "76a914ce0f2d52d9fcdcee9adb9694d756f32c157ae6bc88ac",
+     "reqSigs": 1,
+     "type": "pubkeyhash",
+     "addresses": [
+      "t1cf9PNYWAaF5u54nuQV9ki3G6LwE3dB4bi"
+     ]
+    }
+   }
+  ],
+  "vShieldedSpend": [],
+  "vShieldedOutput": [],
+  "vjoinsplit": [],
+  "orchard": {
+   "actions": [],
+   "valueBalance": 0,
+   "valueBalanceZat": 0
+  },
+  "valueBalance": 0,
+  "valueBalanceZat": 0,
+  "size": 245,
+  "time": 1619368222,
+  "txid": "d07504f4c3bdf93dcbee230835796ef9304f6b5325e2ffcfa1d14da623328229",
+  "overwintered": true,
+  "version": 4,
+  "versiongroupid": "892f2085",
+  "locktime": 0,
+  "expiryheight": 0,
+  "blockhash": "0000000000cd64df9f46e053cad3fa895291c98857d21d0e36599e86b0d13061",
+  "blocktime": 1619368222
+ },
+ "getAccountUtxo": [
+  {
+   "txid": "d07504f4c3bdf93dcbee230835796ef9304f6b5325e2ffcfa1d14da623328229",
+   "vout": 1,
+   "value": "99526485",
+   "height": 1227609,
+   "confirmations": 2311728
+  },
+  {
+   "txid": "d07504f4c3bdf93dcbee230835796ef9304f6b5325e2ffcfa1d14da623328229",
+   "vout": 0,
+   "value": "473306",
+   "height": 1227609,
+   "confirmations": 2311728
+  }
+ ]
+}

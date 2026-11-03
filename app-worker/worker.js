@@ -45,7 +45,7 @@ self.workerId = !workerThreads ? new Date().getTime() : workerThreads.threadId
 // sockets & webs3s
 self.priceSocket = undefined  // socket.io-client
 self.insightSocketIos = {}    // socket.io-client
-self.blockbookSocketIos = {}  // socket.io-client
+// self.blockbookSocketIos: removed (Blockbook Socket.IO interface gone in v0.6.0)
 self.bb_Sockets = {} // isomorphic-ws
 self.bb_Sockets_messageID = []
 self.bb_Sockets_pendingMessages = []
@@ -556,10 +556,7 @@ async function handler(e) {
                 //console.time(`refreshAssetFull_${asset.symbol}`)
     
                 // get BB scoket, for account types (needed for ETH v2)
-                var bbSocket
-                if (asset.type === configWallet.WALLET_TYPE_ACCOUNT && asset.symbol !== 'EOS') {
-                    bbSocket = get_BlockbookSocketIo(asset)
-                }
+                var bbSocket // unused: account-type history now uses the Blockbook websocket (worker-blockbook-ws)
             
                 // when called from worker-pushtx, we can augment BB's mempool (which lags) with known spent txid's
                 // deprecated - utxo_known_spentTxIds
@@ -636,10 +633,7 @@ async function handler(e) {
         //utilsWallet.debug(`appWorker >> ${self.workerId} refreshAssetBalance ${asset.symbol}`) // - utxo_mempool_spentTxIds=`, utxo_mempool_spentTxIds)
 
         // get BB scoket, for account types (needed for ETH v2)
-        var bbSocket
-        if (asset.type === configWallet.WALLET_TYPE_ACCOUNT && asset.symbol !== 'EOS') {
-            bbSocket = get_BlockbookSocketIo(asset)
-        }
+        var bbSocket // unused: account-type history now uses the Blockbook websocket (worker-blockbook-ws)
 
         var allDispatchActions = []
         const refreshOps = asset.addresses.map(a => {
@@ -792,62 +786,5 @@ async function handler(e) {
     }
 }
 
-self.get_BlockbookSocketIo = function(asset) { 
-    const socketToUse = 
-          asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten ? 'ETH_TEST'
-        : utilsWallet.isERC20(asset) ? 'ETH'
-        : asset.symbol
-
-    var socket = self.blockbookSocketIos[socketToUse]
-
-    if (socket === undefined) {
-        if (configWS.blockbook_ws_config[socketToUse] === undefined) {
-            utilsWallet.error(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: no socket config!`)
-        }
-        else {
-            try {
-                //utilsWallet.debug(`appWorker >> ${self.workerId} get_BlockbookSocketIo ${asset.symbol}: creating new socket...`)
-                const ws_url = new URL(configWS.blockbook_ws_config[socketToUse].url)
-                
-                // custom reconnect options - not too fast; we have a global volatile sockets reconnector that will handle disconnects
-                socket = io(configWS.blockbook_ws_config[socketToUse].url, {
-                    transports: ['websocket'],
-                    reconnection: true,
-                    reconnectionDelay: 5000,        // Start at 5 seconds
-                    reconnectionDelayMax: 60000,    // Max 60 seconds
-                    reconnectionAttempts: 5,        // Give up after 5 tries
-                    timeout: 10000,                 // Connection timeout
-                    transportOptions: {
-                        websocket: {
-                              extraHeaders: {
-                                "User-Agent": configExternal.blockbookHeaders["User-Agent"], //"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
-                                "Connection": configExternal.blockbookHeaders["Connection"], //"Upgrade",
-                                "Upgrade": configExternal.blockbookHeaders["Upgrade"], //"websocket",
-                                "Sec-WebSocket-Extensions": configExternal.blockbookHeaders["Sec-WebSocket-Extensions"], //"permessage-deflate; client_max_window_bits",
-                                "Sec-WebSocket-Version": configExternal.blockbookHeaders["Sec-WebSocket-Version"], //"13",
-                                "Accept-Encoding": configExternal.blockbookHeaders["Accept-Encoding"], //"gzip, deflate, br",
-                                "Accept-Language": configExternal.blockbookHeaders["Accept-Language"], //"en-US,en;q=0.9,id;q=0.8",
-                                "Cache-Control": configExternal.blockbookHeaders["Cache-Control"], //"no-cache",
-                                "Pragma": configExternal.blockbookHeaders["Pragma"], //"no-cache",
-                                "Host": ws_url.hostname,
-                                "Origin": ws_url.origin.replace('wss', 'https'),
-                            } 
-                        }
-                    }
-                })
-                self.blockbookSocketIos[socketToUse] = socket
-                
-                socket.on('connect', function() { 
-                    utilsWallet.log(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - connected ${ws_url.toString()}`)
-                })
-                socket.on('reconnect', () => {
-                    utilsWallet.warn(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - reconnected ${ws_url.toString()}`)
-                })   
-            } 
-            catch(err) {
-                utilsWallet.error(`appWorker >> ${self.workerId} BLOCKBOOK WS ${asset.symbol} - IO - err ${ws_url.toString()}`, err)
-            }
-        }
-    }
-    return socket
-}
+// get_BlockbookSocketIo(): removed - Blockbook dropped its Socket.IO interface in v0.6.0; all Blockbook traffic uses
+// the websocket API (worker-blockbook isosockets + worker-blockbook-ws adapter).

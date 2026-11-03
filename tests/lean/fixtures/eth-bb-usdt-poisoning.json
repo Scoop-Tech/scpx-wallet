@@ -1,0 +1,156 @@
+{
+ "fetchedAt": "2026-11-02T14:12:02.964Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x7ec608e9a2adf55df910c21e4f93aa1caf117c7ad2f82669ce0fd55df3e26ecb",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "address poisoning: a third party moves 0 real USDT from the holder to a look-alike address (zero-value transferFrom)",
+ "trimmed": {
+  "dataLength": 1354
+ },
+ "getTransaction": {
+  "txid": "0x7ec608e9a2adf55df910c21e4f93aa1caf117c7ad2f82669ce0fd55df3e26ecb",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0xF2BDc8Db1cd2E771Ebb281f54292Aa4c9CeDC2bC"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0xcf031cd6cF49Dfafd51c5db0469Df2FE8faaEE9e"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0x91974e37cf6ac2faf7e4f630252fc8216998c7ee7efb177170398272e7cb5aee",
+  "blockHeight": 16856443,
+  "confirmations": 9471169,
+  "blockTime": 1679164355,
+  "value": "0",
+  "fees": "2248149645389620",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x4CBCBC6d44f8C1365D06aD777a3bC2e60986074a",
+    "to": "0x4737073cd801CaA6B24053Aef556264dB3740349",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "0"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x14c4017f81675F7aC1321218d4a385a2D3117328",
+    "to": "0x4089fCAfD14c269867135BFEcBdDC0dcedAdB9bB",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "0"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "to": "0xDeb6a51C2df01c75c92c9AB6A6fdAd49d13AB134",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "0"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x62016c554e10d0A4b0f2BA882D7b662cBEAadb12",
+    "to": "0x70065Da109b0933Cc2fA1d6F0A578a91fE714216",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "0"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x64453C16708332160614EF7Ea818Ce1094059f12",
+    "to": "0x6CEBD5987424d3a19147236Ee8a6E73AB176F221",
+    "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "value": "0"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 5078,
+   "gasLimit": 18500000,
+   "gasUsed": 121370,
+   "gasPrice": "18523108226",
+   "maxPriorityFeePerGas": "3000000000",
+   "maxFeePerGas": "80000000000",
+   "baseFeePerGas": "15523108226",
+   "data": "0x52ce13d500000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000120",
+   "parsedData": {
+    "methodId": "0x52ce13d5",
+    "name": ""
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "type": "0x2",
+   "chainId": "0x1",
+   "nonce": "0x13d6",
+   "gas": "0x11a49a0",
+   "maxFeePerGas": "0x12a05f2000",
+   "maxPriorityFeePerGas": "0xb2d05e00",
+   "to": "0xcf031cd6cf49dfafd51c5db0469df2fe8faaee9e",
+   "value": "0x0",
+   "accessList": [],
+   "input": "0x52ce13d500000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000120",
+   "r": "0x3051063d0c2419ae23a6fdcc627b481d110ccc49afcbe851074d904202de4527",
+   "s": "0x2f0448301960343a9ea946423acffba525e279d41bfd4e4b4da634e10aadcdca",
+   "yParity": "0x0",
+   "v": "0x0",
+   "hash": "0x7ec608e9a2adf55df910c21e4f93aa1caf117c7ad2f82669ce0fd55df3e26ecb",
+   "blockHash": "0x91974e37cf6ac2faf7e4f630252fc8216998c7ee7efb177170398272e7cb5aee",
+   "blockNumber": "0x101357b",
+   "transactionIndex": "0x13",
+   "from": "0xf2bdc8db1cd2e771ebb281f54292aa4c9cedc2bc",
+   "gasPrice": "0x450103382",
+   "blockTimestamp": "0x641603c3"
+  },
+  "receipt": {
+   "blockHash": "0x91974e37cf6ac2faf7e4f630252fc8216998c7ee7efb177170398272e7cb5aee",
+   "blockNumber": "0x101357b",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x13321a",
+   "effectiveGasPrice": "0x450103382",
+   "from": "0xf2bdc8db1cd2e771ebb281f54292aa4c9cedc2bc",
+   "gasUsed": "0x1da1a",
+   "status": "0x1",
+   "to": "0xcf031cd6cf49dfafd51c5db0469df2fe8faaee9e",
+   "transactionHash": "0x7ec608e9a2adf55df910c21e4f93aa1caf117c7ad2f82669ce0fd55df3e26ecb",
+   "transactionIndex": "0x13",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x101357b",
+   "hash": "0x91974e37cf6ac2faf7e4f630252fc8216998c7ee7efb177170398272e7cb5aee",
+   "timestamp": "0x641603c3"
+  }
+ }
+}

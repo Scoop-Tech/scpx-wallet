@@ -229,12 +229,10 @@ module.exports = {
         //     }
         // }
 
-        // remove non-core assets, if specified
+        // remove non-core assets, if specified (core includes read-only assets flagged core_asset, e.g. ZEC)
         const ONLY_CORE = loadNonCoreAssets == true ? false : true
         if (ONLY_CORE) {
-            needToGenerate = needToGenerate.filter(p => { 
-                return configWallet.walletsMeta[p].core_asset == true
-            })
+            needToGenerate = needToGenerate.filter(p => configWallet.isCoreAssetMetaKey(p))
         }
 
         // (re)generate wallets

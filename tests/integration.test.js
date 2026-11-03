@@ -1,45 +1,102 @@
 // Distributed under AGPLv3 license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+//
+// scpx-wallet integration suite (in-process; real testnets).
+//
+// Test wallets come from ~/.config/scpx-wallet/e2e.env (or $E2E_ENV, or process env):
+//   E2E_MPK_A    testnets4@d0m1.com - funded BTC_TEST / BTC_TEST2 (and Sepolia ETH_TEST)
+//   E2E_EMAIL_A  testnets4@d0m1.com - for Data Storage Contract (scp-svr API) load/save
+//   E2E_MPK_B    throwaway counterparty - PROTECT_OP beneficiary
+// Sends use MINIMUM values (dust floor 546 sats; PROTECT_OP min gross 2438 sats). Never prints private keys.
+//
+// Run: npm test   (NODE_ENV=test, --experimental-worker, jest --runInBand)
 
-require('dotenv').config();
-
+require('dotenv').config()
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 const BigNumber = require('bignumber.js')
+const bitcoinJsLib = require('bitcoinjs-lib')
+const axios = require('axios')
 
 const appStore = require('../store').store
 const utilsWallet = require('../utils')
-
 const svrWorkers = require('../svr-workers')
 const svrWalletCreate = require('../svr-wallet/sw-create')
 const svrWalletFunctions = require('../svr-wallet/sw-functions')
 const svrRouter = require('../svr-wallet/sw-router')
-
 const walletExternal = require('../actions/wallet-external')
-const opsWallet = require('../actions/wallet')
-
+const walletP2sh = require('../actions/wallet-btc-p2sh')
 const configWallet = require('../config/wallet')
 
-// todo: https://github.com/Scoop-Tech/scpx-wallet/issues/22
-// note: for manual coverage upload:  "codecov -t f65ece69-8be4-4cd8-bb6f-c397d2dbc967"
+// --- test config ---
+function loadE2EEnv() {
+    const f = process.env.E2E_ENV || path.join(os.homedir(), '.config/scpx-wallet/e2e.env')
+    const out = {}
+    if (fs.existsSync(f)) for (const l of fs.readFileSync(f, 'utf8').split('\n')) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) out[m[1]] = m[2].trim() }
+    return Object.assign(out, process.env)
+}
+const ENV = loadE2EEnv()
+const walletA = { mpk: ENV.E2E_MPK_A, email: ENV.E2E_EMAIL_A || 'testnets4@d0m1.com' }
+const walletB = { mpk: ENV.E2E_MPK_B }
+const HAVE_TEST_WALLETS = !!(walletA.mpk && walletB.mpk)
+const BTC_TEST_BB = 'https://x-btc-testnet.d0m1.com:10009/api/v2'   // independent oracle (our Blockbook REST)
+const MIN_SEND_BTC = '0.00000600'                                    // just above the 546-sat dust floor
+const P_OP_LOCK_HOURS = 1
 
-const PAUSE_MS = 5000
+// ETH_TEST = Sepolia (chainId 11155111): Trezor Sepolia Blockbook (history) + publicnode RPC (balances, gas, broadcast)
+const ETH_FAMILY = a => a.symbol === 'ETH' || a.symbol === 'ETH_TEST' || utilsWallet.isERC20(a)
+const SEPOLIA_RPC = 'https://ethereum-sepolia-rpc.publicnode.com'                     // independent oracle for ETH_TEST
+const MIN_SEND_ETH = '0.000000001'                                                     // 1 gwei
+async function sepoliaRpc(method, params) { return (await axios.post(SEPOLIA_RPC, { jsonrpc: '2.0', id: 1, method, params })).data.result }
 
-// testnets 
-const serverTestWallet = {
-      mpk: process.env.TESTNETS2_MPK,
-    email: process.env.TESTNETS2_EMAIL,
-     keys: { 
-        BTC_TEST: process.env.TESTNETS2_KEYS_BTC_TEST,
-        ZEC_TEST: process.env.TESTNETS2_KEYS_ZEC_TEST,
-        ETH_TEST: process.env.TESTNETS2_KEYS_ETH_TEST,
+// HARD SAFETY GUARD: tests may only ever move testnet coins. Any send-type command for a non-testnet symbol throws
+// before it reaches the wallet (claimableClaim/assetConvert are also send paths).
+const TESTNET_SYMBOLS = new Set(['BTC_TEST', 'BTC_TEST2', 'ETH_TEST'])
+const SEND_CMDS = new Set(['TX-PUSH', 'CLAIMABLE-CLAIM', 'ASSET-CONVERT'])
+{
+    const fn = svrRouter.fn
+    svrRouter.fn = (w, s, p, cmd) => {
+        if (SEND_CMDS.has(cmd) && !TESTNET_SYMBOLS.has(String(p && p.symbol).toUpperCase())) throw new Error(`TEST SAFETY GUARD: refusing ${cmd} for non-testnet symbol "${p && p.symbol}"`)
+        return fn(w, s, p, cmd)
     }
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+async function waitFor(fn, ms, every = 3000) { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await fn().catch(() => undefined); if (v) return v; await sleep(every) } return undefined }
+async function oracleTx(txid) { try { return (await axios.get(`${BTC_TEST_BB}/tx/${txid}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })).data } catch (e) { return undefined } }
+
+async function initWallet(w) {
+    const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: w.mpk })
+    if (!init.ok) throw new Error(`walletInit failed: ${init.err}`)
+    return init
+}
+// BTC_TEST public key for addr[0] - derived in-process from a keys:true dump; the WIF is never logged or returned
+async function btcTestPubKey(w) {
+    const dump = await svrRouter.fn(appWorker, appStore, { mpk: w.mpk, symbol: 'BTC_TEST', keys: true }, 'DUMP')
+    const asset = dump.ok.find(p => p.assetName === 'btc(t)')
+    const key = asset.accounts[0].keys.find(k => k.addr && k.addr.addr === asset.addresses[0].addr)
+    const pub = bitcoinJsLib.ECPair.fromWIF(key.privKey, bitcoinJsLib.networks.testnet).publicKey.toString('hex')
+    key.privKey = undefined
+    return { pub, addr: asset.addresses[0].addr }
+}
+async function btcTestWifs(w, n) {
+    // a fresh load only derives standard address index 0; add (in-memory) standard addresses until there are n keys
+    const keysOf = async () => {
+        const dump = await svrRouter.fn(appWorker, appStore, { mpk: w.mpk, symbol: 'BTC_TEST', keys: true }, 'DUMP')
+        return dump.ok.find(p => p.assetName === 'btc(t)').accounts[0].keys.filter(k => k.privKey)
+    }
+    let keys = await keysOf()
+    while (keys.length < n) {
+        expect((await svrRouter.fn(appWorker, appStore, { mpk: w.mpk, symbol: 'BTC_TEST' }, 'ADD-ADDR')).ok).toBeDefined()
+        keys = await keysOf()
+    }
+    return keys.slice(0, n).map(k => k.privKey).join(',')
 }
 
 beforeAll(async () => {
     global.loadedWallet = {}
     global.loadedServerWallet = {}
-
-    console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
-
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 10
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 40
     await svrWorkers.init(appStore)
 })
 afterAll(async () => {
@@ -51,557 +108,287 @@ afterAll(async () => {
     }) // allow time for console log to flush, also - https://github.com/nodejs/node/issues/21685
 })
 
-
 describe('asset', function () {
-    // it('socketio_tmp', async () => {
-    //     const io = require('socket.io-client')
-    //     const result = await new Promise(async (resolve, reject) => {
-    //         const URL = require('url').URL;
-    //         const ws_url = new URL('wss://eth1.trezor.io')
-    //         const socket = io('wss://eth1.trezor.io', {
-    //             transports: ['websocket'],
-    //             extraHeaders: {
-    //                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
-    //                 "Connection": "Upgrade",
-    //                 "Upgrade": "websocket",
-    //                 "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits",
-    //                 "Sec-WebSocket-Version": "13",
-    //                 "Accept-Encoding": "gzip, deflate, br",
-    //                 "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-    //                 "Cache-Control": "no-cache",
-    //                 "Pragma": "no-cache",
-    //                 "Host": ws_url.hostname, //"eth1.trezor.io", //,
-    //                 "Origin": ws_url.origin.replace('wss', 'https') //"https://eth1.trezor.io", //ws_url.origin.replace('wss', 'https'),
-    //             }
-    //         })
-    //         console.log('socket', socket)
-    //         const Web3 = require('web3')
-    //         const web3 = new Web3(new Web3.providers.HttpProvider('https://ac-dev0.net:10545'))
-    //         const height = await web3.eth.getBlockNumber()
-    //         console.log('height', height)
-    //         socket.send({ // get tx's
-    //             method: 'getAddressTxids',  
-    //             params: [ ['0xeEafeb77E47d31B957a55461b212DeE328fC316D'], 
-    //                         { 
-    //                             start: height,
-    //                             end: 0,
-    //                             queryMempoolOnly: false
-    //                         }
-    //                     ]
-    //         }, (data) => { 
-    //             console.log('data', data)
-    //             resolve()                
-    //         })
-    //     })
-    //     expect.assertions(1)
-    //     const o = {} 
-    //     expect(o).toBeDefined()
-    // })
-
     it('can create a new receive address for all asset types', async () => {
-        expect.assertions(3)
-        const result = await new Promise(async (resolve, reject) => {
-            const create = await svrWalletCreate.walletNew(appWorker, appStore)
-            var wallet = appStore.getState().wallet
-            
-            const results = []
-            for (var i=0 ; i < wallet.assets.length ; i++) {
-                const asset = wallet.assets[i]
-                results.push(await svrRouter.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR'))
-            }
-            const countOk = results.filter(p => p.ok).length
-            
-            wallet = appStore.getState().wallet
-            const countAdded = wallet.assets.filter(p => p.addresses.length === 2).length
-
-            resolve({ create, countOk, countAdded })
-        })
-        const wallet = appStore.getState().wallet
-        expect(result.create.ok).toBeDefined()
-        expect(result.countOk).toEqual(wallet.assets.length)
-        expect(result.countAdded).toEqual(wallet.assets.length)
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        expect(create.ok).toBeDefined()
+        var wallet = appStore.getState().wallet
+        const results = []
+        for (const asset of wallet.assets) {
+            results.push(await svrRouter.fn(appWorker, appStore, { symbol: asset.symbol, mpk: create.ok.mpk }, 'ADD-ADDR'))
+        }
+        wallet = appStore.getState().wallet
+        expect(results.filter(p => p.ok).length).toEqual(wallet.assets.length)
+        expect(wallet.assets.filter(p => p.addresses.length === 2).length).toEqual(wallet.assets.length)
     })
 
-    it('can fetch suggested network fee rates for all asset types', async () => {
-        expect.assertions(3)
-        const result = await new Promise(async (resolve, reject) => {
-            const create = await svrWalletCreate.walletNew(appWorker, appStore)
-            const wallet = appStore.getState().wallet
-            
-            const ops = wallet.assets.map(asset => { 
-                return svrRouter.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
-            })
-            const results = await Promise.all(ops)
-            //console.log('results', results)
-            const countOk = results.filter(p => p.ok && p.ok.feeData &&
-                (p.ok.feeData.fast_satPerKB || (p.ok.feeData.gasLimit && p.ok.feeData.gasprice_fast))).length
-            const countAssets = wallet.assets.length
-
-            resolve({ create, countOk, countAssets })
-        })
-        expect(result.create.ok).toBeDefined()
-        expect(result.create.ok.walletConnect.ok).toBeDefined()
-        expect(result.countOk).toEqual(result.countAssets)
+    it('can fetch suggested network fee rates for testnet UTXO assets (BTC_TEST, BTC_TEST2)', async () => {
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        expect(create.ok).toBeDefined()
+        expect(create.ok.walletConnect.ok).toBeDefined()
+        const assets = appStore.getState().wallet.assets.filter(a => TESTNET_SYMBOLS.has(a.symbol) && !ETH_FAMILY(a))
+        expect(assets.length).toBeGreaterThan(0)
+        for (const asset of assets) {
+            const r = await svrRouter.fn(appWorker, appStore, { symbol: asset.symbol }, 'ASSET-GET-FEES')
+            expect({ symbol: asset.symbol, ok: !!(r.ok && r.ok.feeData && r.ok.feeData.fast_satPerKB > 0) }).toEqual({ symbol: asset.symbol, ok: true })
+        }
+    })
+    it('can fetch suggested network fee rates for ETH_TEST (Sepolia)', async () => {
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        expect(create.ok).toBeDefined()
+        expect(appStore.getState().wallet.assets.find(a => a.symbol === 'ETH_TEST')).toBeDefined()
+        const r = await svrRouter.fn(appWorker, appStore, { symbol: 'ETH_TEST' }, 'ASSET-GET-FEES')
+        const f = r.ok && r.ok.feeData
+        expect(f).toBeDefined()
+        expect({ gasLimit: f.gasLimit > 0, fast: f.gasprice_fast > 0, fastest: f.gasprice_fastest >= f.gasprice_fast })
+            .toEqual({ gasLimit: true, fast: true, fastest: true })
+    })
+    it('safety guard refuses a send for any non-testnet symbol', async () => {
+        for (const symbol of ['BTC', 'BTC_SEG', 'BTC_SEG2', 'ETH', 'USDT']) {
+            expect(() => svrRouter.fn(appWorker, appStore, { symbol, value: '0.00001', to: 'x' }, 'TX-PUSH')).toThrow(/TEST SAFETY GUARD/)
+        }
     })
 })
 
 describe('wallet', function () {
-    if (!serverTestWallet.mpk) { 
-        console.warn(`Missing config: see .env.example, and populate all fields - skipping some tests...`)
-    }
-    else {
-        it('can dump a wallet', async () => {
-            expect.assertions(3)
-            const result = await new Promise(async (resolve, reject) => {
-                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
-                const connect = await svrWalletFunctions.walletConnect(appWorker, appStore, {})
-                const dump = await svrRouter.fn(appWorker, appStore, { mpk: init.ok.mpk, txs: true, }, 'DUMP')
-                resolve( { init, connect, dump })
-            })
-            expect(result.init.ok).toBeDefined()
-            expect(result.connect.ok).toBeDefined()
-            expect(result.dump.ok).toBeDefined()
-        })
-
-        it('can persist a wallet to and from the Data Storage Contract', async function () {
-            expect.assertions(2)
-            const result = await new Promise(async (resolve, reject) => {
-                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const serverSave = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
-                resolve({ serverLoad, serverSave })
-            })
-            expect(result.serverLoad.ok).toBeDefined()
-            expect(result.serverSave.ok).toBeDefined()
-        })
-
-        it('can connect a wallet to 3PBPs', async () => {
-            expect.assertions(2)
-            const result = await new Promise(async (resolve, reject) => {
-                const init = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: serverTestWallet.mpk })
-                resolve({ init })
-            })
-            expect(result.init.ok).toBeDefined()
-            expect(result.init.ok.walletConnect.ok).toBeDefined()
-        })
-
-        it('can import and remove private keys', async () => {
-            var expectAssertions = 2
-            if (configWallet.WALLET_INCLUDE_BTC_TEST) expectAssertions += 3
-            if (configWallet.WALLET_INCLUDE_ZEC_TEST) expectAssertions += 3
-            if (configWallet.WALLET_INCLUDE_ETH_TEST) expectAssertions += 3
-            expect.assertions(expectAssertions)
-    
-            const result = await new Promise(async (resolve, reject) => {
-                const create = await svrWalletCreate.walletNew(appWorker, appStore)
-                const mpk = create.ok.mpk
-                const balancePrior = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
-                //console.log('balancePrior', balancePrior)
-    
-                // import priv-keys
-                const importBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: serverTestWallet.keys.BTC_TEST }, 'ADD-PRIV-KEYS')
-    
-                const importZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', privKeys: serverTestWallet.keys.ZEC_TEST }, 'ADD-PRIV-KEYS')
-    
-                const importEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: serverTestWallet.keys.ETH_TEST }, 'ADD-PRIV-KEYS')
-    
-                const dumpAfter = await svrRouter.fn(appWorker, appStore, { mpk, txs: true, keys: true }, 'DUMP')
-                const btcTest = dumpAfter.ok.find(p => p.assetName === 'btc(t)')
-                console.dir(btcTest)
-                if (btcTest.accounts.length != 2) {
-                    console.error('unexpected no. of accounts...') 
-                }
-                if (btcTest.addresses.filter(p => p.path.startsWith("~i/")).length != 2) {
-                    console.error('unexpected no. of addresses in import account...')
-                }
-                console.dir('btcTest.accounts.len', btcTest.accounts.length)
-    
-                const balanceImported = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE') //await Promise.resolve(setTimeout(() => {}, 2000))
-                console.dir(balanceImported)
-    
-                // remove priv-keys
-                const removeBtcTest = !configWallet.WALLET_INCLUDE_BTC_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName: 'Import #1 Test Bitcoin' }, 'REMOVE-PRIV-KEYS')
-    
-                const removeZecTest = !configWallet.WALLET_INCLUDE_ZEC_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC_TEST', accountName: 'Import #1 ZEC#' }, 'REMOVE-PRIV-KEYS')
-    
-                const removeEthTest = !configWallet.WALLET_INCLUDE_ETH_TEST ? undefined :
-                    await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: 'Import #1 ETH#' }, 'REMOVE-PRIV-KEYS')
-    
-                const balanceRemoved = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
-    
-                resolve({ create,
-                          importBtcTest, importZecTest, importEthTest, balanceImported,
-                          removeBtcTest, removeZecTest, removeEthTest, balanceRemoved,
-                          balancePrior })
-            })
-    
-            expect(result.create.ok).toBeDefined()
-            expect(result.create.ok.walletConnect.ok).toBeDefined()
-    
-            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
-                expect(result.importBtcTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-                expect(result.removeBtcTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'BTC_TEST').conf)).toBeGreaterThan(0)
-            }
-    
-            if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
-                expect(result.importZecTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-                expect(result.removeZecTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ZEC_TEST').conf)).toBeGreaterThan(0)
-            }
-    
-            if (configWallet.WALLET_INCLUDE_ETH_TEST) {
-                expect(result.importEthTest.ok.importPrivKeys.importedAddrCount).toEqual(2)
-                expect(result.removeEthTest.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
-                expect(Number(result.balanceImported.ok.balances.find(p => p.symbol === 'ETH_TEST').conf)).toBeGreaterThan(0)
-            }
-        })
-    }
-
     it('can create a new in-memory wallet', async () => {
-        expect.assertions(1)
-        const result = await new Promise(async (resolve, reject) => {
-            resolve(await svrWalletCreate.walletNew(appWorker, appStore))
-        })
+        const result = await svrWalletCreate.walletNew(appWorker, appStore)
         expect(result.ok).toBeDefined()
     })
 
-    it('can reinitialize a known wallet in-memory', async () => {
-        expect.assertions(3)
-        const result = await new Promise(async (resolve, reject) => {
-            const res = await svrWalletCreate.walletInit(appWorker, appStore, {
-                mpk: "PW5KaarU5Jtg8dyQvM3CqYEz97T4rFozdAbXMfdBfmyRhafkuWKg6"
-            })
-            resolve(res)
-        })
+    it('can reinitialize a known wallet in-memory (deterministic addresses)', async () => {
+        const result = await svrWalletCreate.walletInit(appWorker, appStore, { mpk: 'PW5KaarU5Jtg8dyQvM3CqYEz97T4rFozdAbXMfdBfmyRhafkuWKg6' })
         expect(result.ok).toBeDefined()
         const storeState = appStore.getState()
-        const eth = storeState.wallet.assets.find(p => p.symbol === 'ETH')
-        const btc = storeState.wallet.assets.find(p => p.symbol === 'BTC_SEG')
-        expect(eth.addresses[0].addr).toEqual('0x5556903a7233b3cc04918843ccdb43b1cdabb044')
-        expect(btc.addresses[0].addr).toEqual('3Px58xg8Lowmst7gb1anuuW6R5NQSimjvh')
+        expect(storeState.wallet.assets.find(p => p.symbol === 'ETH').addresses[0].addr).toEqual('0x5556903a7233b3cc04918843ccdb43b1cdabb044')
+        expect(storeState.wallet.assets.find(p => p.symbol === 'BTC_SEG').addresses[0].addr).toEqual('3Px58xg8Lowmst7gb1anuuW6R5NQSimjvh')
     })
 
-    it('can persist a wallet to and from file', async function () {
-        expect.assertions(11)
+    it('can persist a wallet to and from file', async () => {
         const testWalletFile = `test${new Date().getTime()}`
-        const result = await new Promise(async (resolve, reject) => {
-            const create    = await svrWalletCreate.walletNew(appWorker, appStore)
-            const mpk = create.ok.mpk
-            const addEth    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH' }, 'ADD-ADDR')
-            const addBtc    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC' }, 'ADD-ADDR')
-            const addBtcSeg = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_SEG' }, 'ADD-ADDR')
-            const addZec    = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ZEC' }, 'ADD-ADDR')
-            const save      = await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'SAVE')
-            const load      = await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'LOAD')
-            resolve({ create, addEth, addBtc, addBtcSeg, addZec, save, load })
-        })
-        expect(result.create.ok).toBeDefined()
-        expect(result.addEth.ok).toBeDefined()
-        expect(result.addBtc.ok).toBeDefined()
-        expect(result.addBtcSeg.ok).toBeDefined()
-        expect(result.addZec.ok).toBeDefined()
-        expect(result.save.ok).toBeDefined()
-        expect(result.load.ok).toBeDefined()
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        const mpk = create.ok.mpk
+        // core UTXO + account assets of a new wallet (the legacy P2PKH 'BTC' asset is not a core asset)
+        const symbols = appStore.getState().wallet.assets.map(a => a.symbol).filter(s => ['ETH', 'BTC_SEG', 'BTC_SEG2', 'BTC_TEST'].includes(s))
+        expect(symbols.sort()).toEqual(['BTC_SEG', 'BTC_SEG2', 'BTC_TEST', 'ETH'])
+        for (const symbol of symbols) expect((await svrRouter.fn(appWorker, appStore, { mpk, symbol }, 'ADD-ADDR')).ok).toBeDefined()
+        expect((await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'SAVE')).ok).toBeDefined()
+        expect((await svrRouter.fn(appWorker, appStore, { mpk, name: testWalletFile }, 'LOAD')).ok).toBeDefined()
+        const assets = appStore.getState().wallet.assets
+        for (const symbol of symbols) expect({ symbol, n: assets.find(p => p.symbol === symbol).addresses.length }).toEqual({ symbol, n: 2 })
+        for (const f of fs.readdirSync('.').filter(f => f.includes(testWalletFile))) fs.unlinkSync(f) // tidy up
+    })
 
-        const storeState = appStore.getState()
-        const eth = storeState.wallet.assets.find(p => p.symbol === 'ETH')
-        const btc = storeState.wallet.assets.find(p => p.symbol === 'BTC')
-        const btcSeg = storeState.wallet.assets.find(p => p.symbol === 'BTC_SEG')
-        const zec = storeState.wallet.assets.find(p => p.symbol === 'ZEC')
-        expect(eth.addresses.length).toEqual(2)
-        expect(btc.addresses.length).toEqual(2)
-        expect(btcSeg.addresses.length).toEqual(2)
-        expect(zec.addresses.length).toEqual(2)
+    if (!HAVE_TEST_WALLETS) {
+        it.skip('[SKIPPED: no test wallets - create ~/.config/scpx-wallet/e2e.env, see .env.example]', () => {})
+        return
+    }
+
+    it('can connect the test wallet to 3PBPs', async () => {
+        const init = await initWallet(walletA)
+        expect(init.ok.walletConnect.ok).toBeDefined()
+    })
+
+    it('can dump a wallet (no keys unless asked)', async () => {
+        await initWallet(walletA)
+        const dump = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, txs: true }, 'DUMP')
+        expect(dump.ok).toBeDefined()
+        expect(JSON.stringify(dump.ok)).not.toMatch(/"privKey":"[^"]+"/)
+    })
+
+    it('can persist a wallet to and from the Data Storage Contract (scp-svr API + EOS DSC)', async () => {
+        const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, email: walletA.email }, 'SERVER-LOAD')
+        expect(serverLoad.err).toBeUndefined()
+        expect(serverLoad.ok).toBeDefined()
+        const serverSave = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk }, 'SERVER-SAVE')
+        expect(serverSave.err).toBeUndefined()
+        expect(serverSave.ok).toBeDefined()
+    })
+
+    it('can import and remove private keys (BTC_TEST, using the test wallet\'s own keys)', async () => {
+        await initWallet(walletA)
+        const wifs = await btcTestWifs(walletA, 2)
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        expect(create.ok).toBeDefined()
+        const mpk = create.ok.mpk
+        const imported = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', privKeys: wifs }, 'ADD-PRIV-KEYS')
+        expect(imported.ok.importPrivKeys.importedAddrCount).toEqual(2)
+        const balance = await waitFor(async () => {
+            const b = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const btc = b.ok && b.ok.balances.find(p => p && p.symbol === 'BTC_TEST')
+            return btc && Number(btc.conf) > 0 ? btc : undefined
+        }, 120000)
+        expect(balance).toBeDefined()
+        const accountName = appStore.getState().wallet.assets.find(p => p.symbol === 'BTC_TEST').addresses.find(a => a.path.startsWith('~i')).accountName
+        const removed = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'BTC_TEST', accountName }, 'REMOVE-PRIV-KEYS')
+        expect(removed.ok.removeImportedAccounts.removedAddrCount).toEqual(2)
+    })
+    it('can import and remove private keys for ETH_TEST (using the test wallet\'s own key)', async () => {
+        await initWallet(walletA)
+        const dump = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol: 'ETH_TEST', keys: true }, 'DUMP')
+        const ethTest = dump.ok.find(p => p.assetName === 'eth(t)')
+        const addrA = ethTest.addresses[0].addr
+        const key = ethTest.accounts[0].keys.find(k => k.privKey && k.addr && k.addr.addr === addrA)
+        const privKey = key.privKey
+        key.privKey = undefined
+        const create = await svrWalletCreate.walletNew(appWorker, appStore)
+        expect(create.ok).toBeDefined()
+        const mpk = create.ok.mpk
+        const imported = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', privKeys: privKey }, 'ADD-PRIV-KEYS')
+        expect(imported.ok.importPrivKeys.importedAddrCount).toEqual(1)
+        const importedAddr = appStore.getState().wallet.assets.find(p => p.symbol === 'ETH_TEST').addresses.find(a => a.path.startsWith('~i'))
+        expect(importedAddr.addr.toLowerCase()).toEqual(addrA.toLowerCase())
+        const balance = await waitFor(async () => {
+            const b = await svrRouter.fn(appWorker, appStore, { mpk }, 'BALANCE')
+            const eth = b.ok && b.ok.balances.find(p => p && p.symbol === 'ETH_TEST')
+            return eth && Number(eth.conf) > 0 ? eth : undefined
+        }, 120000)
+        expect(balance).toBeDefined()
+        const removed = await svrRouter.fn(appWorker, appStore, { mpk, symbol: 'ETH_TEST', accountName: importedAddr.accountName }, 'REMOVE-PRIV-KEYS')
+        expect(removed.ok.removeImportedAccounts.removedAddrCount).toEqual(1)
     })
 })
 
-// testnet integration suite
 describe('transactions', function () {
-    if (!serverTestWallet.mpk) { 
-        debugger
-        console.warn(`Missing config: see .env.example, and populate all fields - skipping some tests...`)
-    }
-    else {
-        it('can push a standard tx for P2SH{P2WSH} BTC_TEST', async () => {
-            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
-                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000)) // allow time for reducers to populate store
-                await sendTestnetTx(appStore, serverLoad, 'BTC_TEST')
-            }
-        })
-
-        it('2 can push a standard tx for P2SH{P2WSH} ZEC_TEST', async () => {
-            if (configWallet.WALLET_INCLUDE_ZEC_TEST) {
-                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
-                await sendTestnetTx(appStore, serverLoad, 'ZEC_TEST')
-            }
-        })
-
-        it('3 can push a standard tx for account-based ETH_TEST', async () => {
-            if (configWallet.WALLET_INCLUDE_ETH_TEST) {
-                var serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                //await new Promise((resolve) => setTimeout(() => { resolve() }, 1000))
-
-                // ## ETH_TEST on DSR-saved testnets2@scoop.tech is sometimes dropping second address...
-                // no idea why (no repro in wallet front end)... suspected: some side-effect of automated tests?
-                var wallet = appStore.getState().wallet
-                var asset = wallet.assets.find(p => p.symbol === 'ETH_TEST')
-                if (asset.addresses.length < 2) { // hack: add second addr & reload
-                    await svrRouter.fn(appWorker, appStore, { symbol: 'ETH_TEST', mpk: serverTestWallet.mpk }, 'ADD-ADDR')
-                    wallet = appStore.getState().wallet
-                    asset = wallet.assets.find(p => p.symbol === 'ETH_TEST')
-                }
-
-                await sendTestnetTx(appStore, serverLoad, 'ETH_TEST')
-            }
-        })
-
-        // create PROTECT_OP
-        // ### "-26: min relay fee not met, 1 < 381" -- race condition with fee oracle?
-        it('can push a non-standard PROTECT_OP tx for P2SH{DSIG/CLTV} BTC_TEST [, and benefactor can reclaim immediately - wip]', async () => {
-            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
-                
-                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                const { p2shAddr, txid } = await createDsigCltvTx(appStore, serverLoad, 'BTC_TEST', 3042/*sats*/, 12/*dsigLockHours*/)
-                console.log('txid', txid)
-                console.log('p2shAddr', p2shAddr)
-
-                const opPause = new Promise((resolve) => {
-                    setTimeout(async () => {
-                        const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, txs: true, symbol: 'BTC_TEST' }, 'DUMP')
-                        console.dir(dump) // looking for the new non-std addr to be here...
-
-                        // WIP... ## complication on testing benefactor can reclaim is the pending p_op TX: it doesn't trigger the new non-std addr detection...
-
-                        //
-                        // after p_op...
-                        //  >>> local_tx on CLI SENDER... FIXED THIS PATH... # non-std addr's updates ok.
-                        //      BUT... local_tx doesn't have the p_op fields added - WCORE_SET_ENRICHED_TXS only looking at addr-tx's ?
-                        //
-                        //  >>> local_tx on GUI (mempool-tx path)... contains NO utxo_vin / vout... 
-                        //          worker-addr-monitor.subAddr_Blockbook
-                        //            getDetailedTransaction
-                        //              worker-blockbook-mempool.mempool_process_BB_UtxoTx
-                        //               ( INSTEAD OF (e.g. eth) "ASSET_REFRESH_ADDR_MONITOR" >>> refreshAssetsFull]... can just use this instead?
-
-                                // block_no: -1
-                                // date: Sat Feb 06 2021 07:55:18 GMT+0000 (Greenwich Mean Time) {}
-                                // fees: 0.00000496
-                                // isIncoming: false
-                                // sendToSelf: false
-                                // toOrFrom: "2NFxmbtNGUbuMEahEY2EkKcNHU1mPfGoNvn"
-                                // txid: "c643c7872b58918344b69eaad907b853041747cfa7091559af235728001fa07b"
-                                // value:
-                                // 5
-                                // e-7
-
-                        //
-                        // NEED TO TRIGGER A getAddressFull_Blockbook_v3() ... this will pick up the pending_tx from BB
-                        //  (overwrites pending????) ... 
-                        //
-                        // >>>>
-                        //  TODO >>> make new CLI cmd to RefreshAssetFull: test effect calling this immediately after doing P_OP...
-                        // >>>>
-                        //
-                        //  AND PROCESS IT TO INCLUDE THE p_op FIELDS,
-                        // THEN NEED TO TRIGGER A NEW_NON_STD_SCAN...?
-                        // 
-                        // CONFIRMED FLOW... 
-                        //  (1) "PUSH DONE - BTC_TEST"... a4ae5de9065f34c2174e717e62f49d3bbee303c32ff304448db7f8aae9590b1e
-                        //  (2) "bitcoind/addresstxid"...  (>> getDetailedTransaction)
-                        //  (3) "mempool_process_BB_UtxoTx"... (txInLocalTxs=true)
-                        //    >> NEED TO ENRICH LOCAL_TX W/ EXACT SAME FIELDS AS IN worker-blockbook::enrichTx()
-                        //    >>   .hex
-                        //    >>   
-                        //
-                        resolve('paused')
-                    }, 3000)
-                })
-                const data = await opPause
-                console.log('data', data)
-
-                //
-                // TODO: test - "benefactor can reclaim immediately"...
-                //  (1) ./wd... find 
-                //   ./ptx spendFullUtxo=... -v... 
-                //      (wallet-external layer: should have asset-refresh full immediately after submitting tx??)
-                //
-                // TODO: test - "beneficiary can't reclaim early"...
-                //
-            }
-        })
-
-        // spend PROTECT_OP(s)
-        it('can spend PROTECT_OP UTXOs for BTC_TEST', async () => {
-            expect.assertions(1)
-            if (configWallet.WALLET_INCLUDE_BTC_TEST) {
-                const serverLoad = await svrRouter.fn(appWorker, appStore, { mpk: serverTestWallet.mpk, email: serverTestWallet.email }, 'SERVER-LOAD')
-                expect(serverLoad.ok).toBeDefined()
-
-                // spend PROTECT_OP(s) (>1)
-                const opPause = new Promise((resolve) => {
-                    setTimeout(async () => { // ### hack/fixme - wait for non-std scanning to finish (see ADD_NON_STANDARD_ADDRESSES for todo, re. signal-complete)
-                    
-                        // dump wallet, look for p_op UTXOs (e.g. CLI: ./wd --s btc_test)
-                        // const dump = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'DUMP')
-                        // expect(dump.ok && dump.ok.length == 1).toBeTruthy()
-                        // const p_op_utxos = dump.ok[0].addresses.filter(p => p.protect_op_txid !== undefined)
-                        // console.log(`${p_op_utxos.map(p => p.protect_op_txid).join(',')}`)
-
-                        // or better: use CLAIMABLE-LIST
-                        // const cll = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'CLAIMABLE-LIST')
-                        // const weAreBenefactor = cll.ok.claimable.filter(p => p.protect_op_tx.p_op_weAreBenefactor == true)
-                        // const weAreBenificiary = cll.ok.claimable.filter(p => p.protect_op_tx.p_op_weAreBeneficiary == true)
-                        // const claimableUtxos = cll.ok.claimable.filter(p => p.utxos.length > 0 && p.utxos[0].satoshis > 0).map(p => p.utxos[0])
-                        // var claimableSpend = {}
-                        // if (claimableUtxos.length > 0) {
-
-                            claimableClaim = await svrRouter.fn(appWorker, appStore, { mpk: serverLoad.ok.walletInit.ok.mpk, symbol: 'BTC_TEST', }, 'CLAIMABLE-CLAIM')
-                            console.dir(claimableClaim)
-
-                            /* // underlying CLIs:
-                                DONE: combining n p_op UTXOs 
-                                    ./txp --s btc_test --v 0.000021 --to 2N86aMtHDFsGLcqVfodDb3itwHENctFmJNF --spendFullUtxos bbeeddd415b99b1e5c0a9aac35db1c1191a455588221a31f28e47df947fe95ad:0,e795f5dbad9133d6e982b5e4ec5d411d00dd3e008fae151aa6dda330ae384cdc:0,044aa692623fb9c48a1df3b491a39c50db2d079c88a0b6254db416405f6f5cea:0,ca211f082863933890a805eab9ec3a11ea0fc0179f83017398cdb4a1b03fb602:0,e3122a1d55e38998bc774e502f504c41766a79b21a169cc160c5489d9befd6ac:0
-
-                                DONE: combining 1x p_op UTXO && 1x standard UTXO...
-                                    ./txp --s btc_test --v 0.00632557 --to 2N86aMtHDFsGLcqVfodDb3itwHENctFmJNF --spendFullUtxos 5d027d45036f2c4aeef08da69a454f59030109e5bc112384d019eb9eac9a89ab:1,96263f6fbd3f8aa7bb48299734a94db98ec1f9ae80df1f4af16e480a3644324b:0
-
-                                TODO: test combining p_op_weAreBeneficiary=true && p_op_weAreBeneficiary=false...
-                                    ...
-                            */
-
-                            // ./wd needs to be able to filter by addr, and show utxos v. clearly...
-
-                        //}
-
-                        resolve({ claimableUtxos }) //p_op_utxos, cll)
-
-                    }, 1000 * 10) // ###
-                })
-                const { claimableUtxos, claimableSpend } = await opPause
-                expect(claimableUtxos !== undefined).toBeTruthy()
-            }
-        })
+    if (!HAVE_TEST_WALLETS) {
+        it.skip('[SKIPPED: no test wallets - create ~/.config/scpx-wallet/e2e.env, see .env.example]', () => {})
+        return
     }
 
-    // create PROTECT_OP
-    async function createDsigCltvTx(store, serverLoad, testSymbol, sats, dsigLockHours) {
-        expect.assertions(7 + 5)
-        const mpk = serverLoad.ok.walletInit.ok.mpk
-        
-        const result = await new Promise(async (resolve, reject) => {
-            // setup
-            const wallet = store.getState().wallet
-            if (testSymbol !== 'BTC_TEST') throw `${testSymbol} is not supported for tests`
-            const asset = wallet.assets.find(p => p.symbol === testSymbol)
-            if (!asset) throw `${testSymbol} is not configured`
-            const bal = walletExternal.get_combinedBalance(asset)
-            if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
-            if (asset.addresses.length < 3) throw 'Invalid test asset address setup - test protect op needs 3 addresses setup'
-
-            // push p2sh(1/2 dsig+cltv) tx
-            const avail = utilsWallet.toDisplayUnit(bal.avail, asset)
-            const sendValue = sats ? sats / 100000000 : 0.0000042
-            if (avail < sendValue) throw 'Insufficient test currency'
-            const dsigCltvPubKey = '03c470a9632d4a472f402fd5c228ff3e47d23bf8e80313b213c8d63bf1e7ffc667' // beneficiary - testnets3@scoop.tech, BTC# addrNdx 0: 2MwyFPaa7y5BLECBLhF63WZVBtwSPo1EcMJ
-            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue, dsigCltvPubKey }, 'TX-GET-FEE')
-            if (!txGetFee || txGetFee.err) throw txGetFee.err || 'Failed getting TX fee'
-            console.log('sendValue', sendValue)
-            console.log('txGetFee', txGetFee)
-            const txFee = txGetFee.ok.txFee
-            const nonCltvSpender = asset.addresses[0].addr
-            const txPush = await svrRouter.fn(appWorker, appStore,
-                { mpk, symbol: testSymbol,
-                        value: sendValue,
-                           to: nonCltvSpender, // PROTECT_OP = benefactor (aka nonCltvSpender)...
-               dsigCltvPubKey,                 //            + beneficiary pubKey -- see: createTxHex_BTC_P2SH()
-                dsigLockHours
-                }, 'TX-PUSH')
-
-            console.log(`...PROTECT_OP ${sendValue} BTC... nonCltvSpender=${nonCltvSpender}, dsigCltvPubKey=${dsigCltvPubKey}`)
-            resolve({ serverLoad, txFee, txPush })
+    for (const symbol of ['BTC_TEST', 'BTC_TEST2']) {
+        it(`can push a minimum standard tx for ${symbol === 'BTC_TEST' ? 'P2SH{P2WSH}' : 'P2WPKH'} ${symbol} (seen by independent oracle)`, async () => {
+            await initWallet(walletA)
+            const asset = appStore.getState().wallet.assets.find(p => p.symbol === symbol)
+            const to = asset.addresses[asset.addresses.length - 1].addr
+            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol, value: MIN_SEND_BTC }, 'TX-GET-FEE')
+            expect(txGetFee.err).toBeUndefined()
+            expect(Number(txGetFee.ok.txFee.fee)).toBeGreaterThan(0)
+            expect(Number(txGetFee.ok.txFee.utxo_satPerKB)).toBeGreaterThan(0)
+            expect(Number(txGetFee.ok.txFee.utxo_vsize)).toBeGreaterThan(0)
+            const txPush = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol, value: MIN_SEND_BTC, to }, 'TX-PUSH')
+            expect(txPush.err).toBeUndefined()
+            expect(txPush.ok.txid).toBeDefined()
+            expect(await waitFor(() => oracleTx(txPush.ok.txid), 60000)).toBeDefined()
         })
-
-        expect(result.serverLoad.ok).toBeDefined()
-        expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
-        expect(result.txFee).toBeDefined()
-        expect(Number(result.txFee.fee)).toBeGreaterThan(0)
-        expect(result.txFee.inputsCount).toBeGreaterThan(0)
-        expect(Number(result.txFee.utxo_satPerKB)).toBeGreaterThan(0)
-        expect(Number(result.txFee.utxo_vsize)).toBeGreaterThan(0)
-        
-        expect(result.txPush.ok).toBeDefined()
-        expect(result.txPush.ok.psbt).toBeDefined()
-        const txOutputs = result.txPush.ok.psbt.txOutputs
-        expect(txOutputs).toBeDefined()
-        expect(Number(txOutputs.length)).toBeGreaterThan(0)
-        expect(txOutputs[0].address).toBeDefined()
-        
-        return { p2shAddr: txOutputs[0].address, txid: result.txPush.ok.txid }
     }
+    it.skip('can push a standard tx for ZEC_TEST [SKIPPED: ZEC_TEST disabled in config (WALLET_INCLUDE_ZEC_TEST=false)]', () => {})
+    it(`can push a minimum standard tx for account-based ETH_TEST (Sepolia self-send ${MIN_SEND_ETH}; mined status 1 on an independent node)`, async () => {
+        await initWallet(walletA)
+        const addr = appStore.getState().wallet.assets.find(p => p.symbol === 'ETH_TEST').addresses[0].addr
+        const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol: 'ETH_TEST', value: MIN_SEND_ETH }, 'TX-GET-FEE')
+        expect(txGetFee.err).toBeUndefined()
+        expect(Number(txGetFee.ok.txFee.eth_gasLimit)).toBeGreaterThan(0)
+        expect(Number(txGetFee.ok.txFee.eth_gasPrice)).toBeGreaterThan(0)
+        const txPush = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol: 'ETH_TEST', value: MIN_SEND_ETH, to: addr, from: addr }, 'TX-PUSH')
+        expect(txPush.err).toBeUndefined()
+        expect(txPush.ok.txid).toBeDefined()
+        const receipt = await waitFor(() => sepoliaRpc('eth_getTransactionReceipt', [txPush.ok.txid]), 240000)
+        expect(receipt && receipt.status).toEqual('0x1')
+    })
 
-    async function sendTestnetTx(store, serverLoad, testSymbol) {
-        expect.assertions(8)
-        const mpk = serverLoad.ok.walletInit.ok.mpk
-        
-        const result = await new Promise(async (resolve, reject) => {
+    // --- PROTECT_OP: P2SH{ IF <lockTime> CLTV DROP <beneficiary> CHECKSIG ELSE <benefactor> CHECKSIG ENDIF } ---
+    // Order matters: benefactor claims everything claimable, so the beneficiary's matured outputs are claimed first,
+    // the benefactor only reclaims the output it created for that purpose, and a second output is left to mature for the next run.
+    describe('PROTECT_OP (timelocked 1-of-2 P2SH, BTC_TEST)', function () {
+        let pubA, pubB, pop1, pop2
 
-            // load test wallet, check test asset
-            const wallet = store.getState().wallet
-            
-            const asset = wallet.assets.find(p => p.symbol === testSymbol)
-            if (!asset) throw `${testSymbol} is not configured`
-
-            // validate test asset state
-            const bal = walletExternal.get_combinedBalance(asset)
-            if (!bal.avail.isGreaterThan(0)) throw 'Invalid testnet balance data'
-            if (asset.addresses.length < 2) throw 'Invalid test asset address setup - testnet tx needs 2 addresses setup'
-
-            // send testnet tx from the higher balance address to the lower
-            const sendAddrNdx = asset.addresses[0].balance > asset.addresses[1].balance ? 0 : 1
-            const receiveAddrNdx = sendAddrNdx == 1 ? 0 : 1
-            var du_sendBalance = Number(utilsWallet.toDisplayUnit(new BigNumber(asset.addresses[sendAddrNdx].balance), asset))
-            const sendValue = (du_sendBalance * 0.1).toFixed(6)
-            if (sendValue < 0.00001) throw 'Insufficient test currency'
-
-            // get tx fee
-            const txGetFee = await svrRouter.fn(appWorker, appStore, { mpk, symbol: testSymbol, value: sendValue }, 'TX-GET-FEE')
-            const txFee = txGetFee.ok.txFee
-
-            // push tx
-            const txPush = await svrRouter.fn(appWorker, appStore, { 
-                    mpk, 
-                 symbol: testSymbol,
-                  value: sendValue,
-                     to: asset.addresses[receiveAddrNdx].addr,
-                   from: asset.symbol === 'ETH_TEST' ? asset.addresses[sendAddrNdx].addr : undefined
-            }, 'TX-PUSH')
-
-            console.log('txPush', txPush)
-            const txid = txPush.ok.txid
-           
-            resolve({ serverLoad, txFee, txid })
+        it('setup: derive benefactor (A) and beneficiary (B) BTC_TEST public keys', async () => {
+            await initWallet(walletB); pubB = await btcTestPubKey(walletB)
+            await initWallet(walletA); pubA = await btcTestPubKey(walletA)
+            expect(pubA.pub).toMatch(/^0[23][0-9a-f]{64}$/)
+            expect(pubB.pub).toMatch(/^0[23][0-9a-f]{64}$/)
         })
-        
-        expect(result.serverLoad.ok).toBeDefined()
-        expect(result.serverLoad.ok.walletInit.ok.walletConnect.ok).toBeDefined()
-        expect(result.txFee).toBeDefined()
-        expect(Number(result.txFee.fee)).toBeGreaterThan(0)
-        expect(result.txFee.inputsCount).toBeGreaterThan(0)
-        if (testSymbol === 'ETH_TEST') {
-            expect(Number(result.txFee.eth_gasLimit)).toBeGreaterThan(0)
-            expect(Number(result.txFee.eth_gasPrice)).toBeGreaterThan(0)
+
+        it('beneficiary (B) can claim matured PROTECT_OPs from earlier runs (CLAIMABLE-CLAIM)', async () => {
+            await initWallet(walletB)
+            const list = await waitFor(async () => { const r = await svrRouter.fn(appWorker, appStore, { mpk: walletB.mpk, symbol: 'BTC_TEST' }, 'CLAIMABLE-LIST'); return r.ok ? r : undefined }, 60000)
+            expect(list).toBeDefined()
+            const matured = list.ok.claimable.filter(p => p.protect_op_tx.p_op_weAreBeneficiary)
+            console.log(`PROTECT_OP: ${matured.length} matured output(s) claimable by beneficiary`)
+            if (matured.length === 0) { console.log('PROTECT_OP: nothing matured yet (first run, or < lock + median-time lag) - beneficiary claim checked on a later run'); return }
+            const claim = await svrRouter.fn(appWorker, appStore, { mpk: walletB.mpk, symbol: 'BTC_TEST' }, 'CLAIMABLE-CLAIM')
+            expect(claim.err).toBeUndefined()
+            expect(claim.ok.txPush.err).toBeUndefined()
+            expect(claim.ok.txPush.ok.txid).toBeDefined()
+            const tx = await waitFor(() => oracleTx(claim.ok.txPush.ok.txid), 60000)
+            expect(tx).toBeDefined()
+            for (const m of matured) expect(tx.vin.some(v => v.txid === m.protect_op_tx.txid)).toBe(true)
+        })
+
+        async function createPop(purpose) {
+            await initWallet(walletA)
+            const value = new BigNumber(walletP2sh.P_OP_MIN_GROSS).div(1e8).toString()
+            const fee = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol: 'BTC_TEST', value, dsigCltvPubKey: pubB.pub }, 'TX-GET-FEE')
+            expect(fee.err).toBeUndefined()
+            const push = await svrRouter.fn(appWorker, appStore, {
+                mpk: walletA.mpk, symbol: 'BTC_TEST', value, to: pubA.addr, dsigCltvPubKey: pubB.pub, dsigLockHours: P_OP_LOCK_HOURS }, 'TX-PUSH')
+            expect(push.err).toBeUndefined()
+            expect(push.ok.txid).toBeDefined()
+            const tx = await waitFor(() => oracleTx(push.ok.txid), 60000)
+            expect(tx).toBeDefined()
+            console.log(`PROTECT_OP (${purpose}) txid=${push.ok.txid}`)
+            return { txid: push.ok.txid, tx }
         }
-        else {
-            expect(Number(result.txFee.utxo_satPerKB)).toBeGreaterThan(0)
-            expect(Number(result.txFee.utxo_vsize)).toBeGreaterThan(0)
+
+        // independent structural check: decode OP_RETURN, rebuild the redeem script, P2SH address must match vout[0]
+        function verifyPopStructure(tx) {
+            expect(tx.vout.length).toEqual(5)
+            const opRet = tx.vout[1].hex
+            expect(opRet.startsWith('6a4c50')).toBe(true)                           // OP_RETURN PUSHDATA1 80
+            const data = Buffer.from(opRet.slice(6), 'hex')
+            expect(data.slice(0, 4).toString('hex')).toEqual('481fe761')            // PROTECT_OP id/version stamp v1
+            expect(data.slice(4, 37).toString('hex')).toEqual(pubB.pub)             // pubKeyA = beneficiary (CLTV spender)
+            expect(data.slice(37, 70).toString('hex')).toEqual(pubA.pub)            // pubKeyB = benefactor
+            const lockTime = data.readUInt32BE(70) * 256 + data.readUInt32BE(74)    // wallet's 64-bit packing (hi>>8, lo&0xff)
+            expect(data.readUInt16BE(78)).toEqual(P_OP_LOCK_HOURS)
+            const nowSec = Math.floor(Date.now() / 1000)
+            expect(lockTime).toBeGreaterThan(nowSec + 3600 * P_OP_LOCK_HOURS - 3600) // ~ now + lockHours
+            expect(lockTime).toBeLessThan(nowSec + 3600 * P_OP_LOCK_HOURS + 600)
+            const redeem = bitcoinJsLib.script.fromASM(
+                `OP_IF ${bitcoinJsLib.script.number.encode(lockTime).toString('hex')} OP_CHECKLOCKTIMEVERIFY OP_DROP ${pubB.pub} OP_CHECKSIG ` +
+                `OP_ELSE ${pubA.pub} OP_CHECKSIG OP_ENDIF`)
+            const p2sh = bitcoinJsLib.payments.p2sh({ redeem: { output: redeem, network: bitcoinJsLib.networks.testnet }, network: bitcoinJsLib.networks.testnet })
+            expect(tx.vout[0].addresses[0]).toEqual(p2sh.address)                   // the locked output really is our script
+            expect(Number(tx.vout[2].value)).toEqual(walletP2sh.P_OP_DUST)            // beneficiary ID output = dust
+            expect(Number(tx.vout[3].value)).toBeGreaterThanOrEqual(walletP2sh.P_OP_DUST) // benefactor change >= dust
+            expect(Number(tx.vout[4].value)).toBeGreaterThanOrEqual(walletP2sh.P_OP_DUST) // dev fee >= dust
+            return { lockTime, p2shAddr: p2sh.address }
         }
-        expect(result.txid).toBeDefined()
-    }
+
+        it(`benefactor (A) can create a minimum PROTECT_OP (${walletP2sh.P_OP_MIN_GROSS} sats, lock ${P_OP_LOCK_HOURS}h, beneficiary B): structure verified independently`, async () => {
+            pop1 = await createPop('benefactor-reclaim')
+            Object.assign(pop1, verifyPopStructure(pop1.tx))
+        })
+
+        it('benefactor (A) can reclaim its PROTECT_OP output immediately (before the lock)', async () => {
+            expect(pop1).toBeDefined()
+            // wait for the wallet's non-standard output scan to pick up the P2SH output, then spend exactly that UTXO
+            const utxo = await waitFor(async () => {
+                await initWallet(walletA)
+                const a = appStore.getState().wallet.assets.find(p => p.symbol === 'BTC_TEST')
+                const p = a.addresses.find(x => x.nonStd_protectOp_txid === pop1.txid && x.utxos && x.utxos.length > 0)
+                return p ? p.utxos.find(u => u.txid === pop1.txid) : undefined
+            }, 30 * 60000, 20000)
+            expect(utxo).toBeDefined()
+            const value = new BigNumber(utxo.satoshis).div(1e8).toString()
+            const push = await svrRouter.fn(appWorker, appStore, { mpk: walletA.mpk, symbol: 'BTC_TEST', value, to: pubA.addr, spendFullUtxos: `${pop1.txid}:${utxo.vout}` }, 'TX-PUSH')
+            expect(push.err).toBeUndefined()
+            const tx = await waitFor(() => oracleTx(push.ok.txid), 60000)
+            expect(tx).toBeDefined()
+            expect(tx.vin.some(v => v.txid === pop1.txid && (v.vout || 0) === utxo.vout)).toBe(true)
+        })
+
+        it('beneficiary (B) cannot claim a PROTECT_OP before its lock time; it is left to mature for the next run', async () => {
+            pop2 = await createPop('beneficiary-matures-next-run')
+            verifyPopStructure(pop2.tx)
+            await initWallet(walletB)
+            const seen = await waitFor(async () => {
+                const all = walletExternal.getAll_txs(appStore.getState().wallet.assets.find(p => p.symbol === 'BTC_TEST'))
+                return all.find(t => t.txid === pop2.txid)
+            }, 10 * 60000, 15000)
+            if (seen) expect(seen.p_op_weAreBeneficiary).toBe(true)
+            const list = await svrRouter.fn(appWorker, appStore, { mpk: walletB.mpk, symbol: 'BTC_TEST' }, 'CLAIMABLE-LIST')
+            expect(list.ok.claimable.some(p => p.protect_op_tx.txid === pop2.txid)).toBe(false)
+        })
+    })
 })

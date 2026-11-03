@@ -47,7 +47,7 @@ const PRICE_SOURCE_SYNTHETIC_FIAT = 'SYF' // hack for using a base fiat price (e
 // config - dbg/test
 const WALLET_INCLUDE_BTC_TEST = true //(IS_DEV || IS_TEST)
 const WALLET_INCLUDE_BTC_TEST2 = true //IS_DEV
-const WALLET_INCLUDE_ZEC_TEST = false //(IS_DEV || IS_TEST)
+const WALLET_INCLUDE_ZEC_TEST = false //(IS_DEV || IS_TEST) -- no public ZEC testnet Blockbook exists (Nov 2026): needs a self-hosted one before enabling
 const WALLET_INCLUDE_LTC_TEST = false
 const WALLET_INCLUDE_TUSD_TEST = false
 
@@ -56,6 +56,8 @@ const WALLET_INCLUDE_AIRCARBON_TEST = false
 const WALLET_INCLUDE_AYONDO_TEST = false
 
 const WALLET_INCLUDE_ETH_TEST = true
+const WALLET_INCLUDE_USDT_TEST = true // Sepolia ERC20 test assets (need WALLET_INCLUDE_ETH_TEST)
+const WALLET_INCLUDE_USDC_TEST = true
                                 // WALLET_INCLUDE_AIRCARBON_TEST || 
                                 // WALLET_INCLUDE_SINGDAX_TEST || 
                                 // WALLET_INCLUDE_AYONDO_TEST || 
@@ -64,6 +66,24 @@ const WALLET_INCLUDE_ETH_TEST = true
 // config - mainnet enable/disable flags
 const WALLET_INCLUDE_BTC_MAINNET = true
 const WALLET_INCLUDE_ETH_MAINNET = true 
+const WALLET_INCLUDE_ZEC_MAINNET = true // INTERIM + READ-ONLY: generated only with WALLET_INTERIM_ASSETS=zcash (see INTERIM_ASSETS); sends refused (obsolete NU5/v4 tx builder)
+
+// ---- asset sets ----------------------------------------------------------------------------------------------------------
+// CORE (the only assets generated + loaded by default; walletsMeta core_asset: true): BTC (btc(s) P2SH-segwit, btc(s2) bech32
+// + their testnets btc(t), btc(ts2)), ETH (+ eth(t) Sepolia), USDT, USDC (+ usdt(t)/usdc(t) Sepolia test tokens).
+//
+// INTERIM assets: NOT core - never generated in the web app or by default. A server/CLI process (the sweep tools, tests) may
+// enable them with env WALLET_INTERIM_ASSETS=<walletsMeta keys> during the 2026-11 stray-funds recovery. Only keys in this
+// allow-list are honoured. Remove the entries (and this mechanism) once the sweeps are done.
+const INTERIM_ASSETS = {
+    'trueusd': 'sweep-only ERC20 (TUSD): sweep old balances out',
+    'zcash':   'read-only (ZEC): balances + history; sends refused (obsolete tx builder)',
+}
+function interimAssets() {
+    if (WALLET_ENV !== 'SERVER') return [] // never in the browser app
+    const v = (typeof process !== 'undefined' && process.env) ? process.env.WALLET_INTERIM_ASSETS : undefined
+    return v ? v.split(',').map(x => x.trim()).filter(x => Object.prototype.hasOwnProperty.call(INTERIM_ASSETS, x)) : []
+}
 
 const WALLET_DISABLE_BLOCK_UPDATES = false
 
@@ -282,6 +302,8 @@ var walletsMeta = {
     },
 
     'zcash': {
+        core_asset: false, // INTERIM (see INTERIM_ASSETS): loaded only with WALLET_INTERIM_ASSETS=zcash (read-only: balances + history from wss://zec1.trezor.io)
+        isReadOnly: true,   // sends refused: the ZEC tx builder (bitgo-utxo-lib, NU5 branch id, v4 tx) is obsolete vs the current consensus branch / NU7
         name: 'zcash',
         use_BBv3: true,
         web: 'https://z.cash/',
@@ -300,7 +322,8 @@ var walletsMeta = {
         tx_perInput_byteLength: 147,
         tradingViewSymbol: "BINANCE:ZECBTC",
     },
-    'zcash(t)': {
+    'zcash(t)': { // disabled (WALLET_INCLUDE_ZEC_TEST=false): no public ZEC testnet Blockbook
+        isReadOnly: true, // as for mainnet ZEC: the send path is obsolete
         name: 'zcash(t)',
         use_BBv3: true,
         web: 'https://z.cash/',
@@ -786,6 +809,65 @@ var walletsMeta = {
         decimals: 6,
         tradingViewSymbol: "POLONIEX:USDTBTC",
     },
+    'usdc': {
+        name: 'usdc',
+        core_asset: true,
+        web: 'https://www.circle.com/usdc',
+        priceSource: PRICE_SOURCE_CRYPTOCOMPARE,
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'USDC',
+        displayName: 'USD Coin',
+        desc: 'ERC20',
+        displaySymbol: 'USDC',
+        imageUrl: 'img/asset-icon/usdc.png',
+        primaryColor: '#2775CA',
+        sortOrder: 6,
+        erc20_transferGasLimit: 120000,
+        decimals: 6,
+        tradingViewSymbol: "COINBASE:USDCUSD",
+    },
+
+    // Sepolia ERC20 test assets (mintable Aave v3 test tokens - see config/wallet-external.js erc20Contracts).
+    // isErc20_Ropsten: legacy flag name, now means "ERC20 on the ETH testnet" (Sepolia): routes web3/Blockbook/chainId to ETH_TEST.
+    // erc20_transferGasLimit is a floor: the send path estimates transfer(to, value) from the sender (+25%) and raises it if
+    // needed (a transfer to a NEW holder needs ~142k on Sepolia - kept at the mainnet value so the tests prove the estimate path).
+    'usdt(t)': {
+        isErc20_Ropsten: true,
+        core_asset: true,
+        name: 'usdt(t)',
+        web: 'https://tether.to/',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'USDT_TEST',
+        displayName: 'USD Tether#',
+        desc: 'ERC20 Sepolia Testnet',
+        displaySymbol: 'USDT#',
+        imageUrl: 'img/asset-icon/usdt.png',
+        primaryColor: '#6BAC95',
+        sortOrder: 999,
+        erc20_transferGasLimit: 120000,
+        decimals: 6,
+        tradingViewSymbol: "POLONIEX:USDTBTC",
+    },
+    'usdc(t)': {
+        isErc20_Ropsten: true,
+        core_asset: true,
+        name: 'usdc(t)',
+        web: 'https://www.circle.com/usdc',
+        type: WALLET_TYPE_ACCOUNT,
+        addressType: ADDRESS_TYPE_ETH,
+        symbol: 'USDC_TEST',
+        displayName: 'USD Coin#',
+        desc: 'ERC20 Sepolia Testnet',
+        displaySymbol: 'USDC#',
+        imageUrl: 'img/asset-icon/usdc.png',
+        primaryColor: '#2775CA',
+        sortOrder: 999,
+        erc20_transferGasLimit: 120000,
+        decimals: 6,
+        tradingViewSymbol: "COINBASE:USDCUSD",
+    },
     'eurt': {
         name: 'eurt',
         web: 'https://tether.to/',
@@ -1027,6 +1109,14 @@ function setSupportedWalletTypes() {
     if (WALLET_INCLUDE_ETH_TEST && !supportedWalletTypes.includes('eth(t)')) {
         supportedWalletTypes.push('eth(t)')
     }
+    if (WALLET_INCLUDE_ETH_TEST && WALLET_INCLUDE_USDT_TEST && !supportedWalletTypes.includes('usdt(t)')) {
+        supportedWalletTypes.push('usdt(t)')
+    }
+    if (WALLET_INCLUDE_ETH_TEST && WALLET_INCLUDE_USDC_TEST && !supportedWalletTypes.includes('usdc(t)')) {
+        supportedWalletTypes.push('usdc(t)')
+    }
+    // INTERIM ERC20s (see INTERIM_ASSETS above): only for a server/CLI process that opts in
+    interimAssets().filter(n => n === 'trueusd').forEach(n => { if (WALLET_INCLUDE_ETH_MAINNET && !supportedWalletTypes.includes(n)) supportedWalletTypes.push(n) })
     // if (WALLET_INCLUDE_TUSD_TEST && !supportedWalletTypes.includes('trueusd(t)')) {
     //     supportedWalletTypes.push('trueusd(t)')
     // }
@@ -1054,6 +1144,7 @@ function setSupportedWalletTypes() {
         if (!supportedWalletTypes.includes('ethereum')) supportedWalletTypes.push('ethereum')
         if (!supportedWalletTypes.includes('trueusd')) supportedWalletTypes.push('trueusd') // ERC20 tokens
         if (!supportedWalletTypes.includes('usdt')) supportedWalletTypes.push('usdt')
+        if (!supportedWalletTypes.includes('usdc')) supportedWalletTypes.push('usdc')
         if (!supportedWalletTypes.includes('link')) supportedWalletTypes.push('link')
         if (!supportedWalletTypes.includes('nexo')) supportedWalletTypes.push('nexo')
         if (!supportedWalletTypes.includes('swap')) supportedWalletTypes.push('swap')
@@ -1061,7 +1152,7 @@ function setSupportedWalletTypes() {
     }
 
     if (!supportedWalletTypes.includes('litecoin')) supportedWalletTypes.push('litecoin')
-    if (!supportedWalletTypes.includes('zcash')) supportedWalletTypes.push('zcash')
+    if (WALLET_INCLUDE_ZEC_MAINNET && !supportedWalletTypes.includes('zcash')) supportedWalletTypes.push('zcash')
     if (!supportedWalletTypes.includes('dash')) supportedWalletTypes.push('dash')
     if (!supportedWalletTypes.includes('digibyte')) supportedWalletTypes.push('digibyte')
 
@@ -1179,6 +1270,9 @@ module.exports = {
     , WALLET_INCLUDE_ZEC_TEST
     , WALLET_INCLUDE_BTC_MAINNET
     , WALLET_INCLUDE_ETH_MAINNET
+    , WALLET_INCLUDE_ZEC_MAINNET
+    , WALLET_INCLUDE_USDT_TEST
+    , WALLET_INCLUDE_USDC_TEST
     , WALLET_INCLUDE_DYNAMIC_STM_ASSETS
     , WALLET_DISABLE_BLOCK_UPDATES 
     , WALLET_REGEN_EVERYTIME: true                                       // LEAVE THIS ON! - we no longer save addr's on the server (regenerate wallet raw assets (& persist to server) on every login (for testing multi-addr, but also a good start for offline/no-server mode))
@@ -1325,6 +1419,27 @@ module.exports = {
         })
         return ret
     }
+    // assets generated/loaded by default (CLI always; UI unless OPT_ALL_ASSETS): walletsMeta key -> bool
+    , INTERIM_ASSETS
+    , interimAssets
+    , isCoreAssetMetaKey: (metaKey) => {
+        const meta = walletsMeta[metaKey]
+        // INTERIM assets are generated alongside the core set, only in a process that opted in (interimAssets)
+        return meta !== undefined && (meta.core_asset == true || interimAssets().includes(metaKey))
+    }
+    // read-only assets: balances + history only; every send path (fee quote, tx build, push) must refuse them
+    // isReadOnly is an asset-level flag (walletsMeta, copied onto every asset object like OP_CLTV): asset.isReadOnly
+    , isReadOnlyAsset: (assetOrSymbol) => {
+        if (!assetOrSymbol) return false
+        if (typeof assetOrSymbol === 'object' && assetOrSymbol.isReadOnly === true) return true
+        const symbol = typeof assetOrSymbol === 'string' ? assetOrSymbol : assetOrSymbol.symbol
+        var ret = false
+        Object.keys(walletsMeta).forEach(p => {
+            if (walletsMeta[p].symbol === symbol && walletsMeta[p].isReadOnly === true) ret = true
+        })
+        return ret
+    }
+    , readOnlyRefusal: (symbol) => `${symbol} is read-only in this wallet: sending is disabled (balances and history only)`
     , getSupportedMetaKeyBySymbol: (symbol) => {
         // (todo: StMaster - need to rehydrate the dynamic types, as above)
         //...

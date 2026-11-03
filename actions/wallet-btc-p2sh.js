@@ -352,7 +352,8 @@ module.exports = {
                     || p_opTx.p_op_pubKeyBeneficiary === undefined || p_opTx.p_op_pubKeyBenefactor === undefined) throw `inputTx sanity check(s) failed`
 
                 if (p_opTx.p_op_weAreBeneficiary) {
-                   psbt.setLocktime(p_opTx.p_op_lockTime)
+                   // one nLockTime for the whole tx: it must satisfy every CLTV input, so take the max (not the last input's)
+                   psbt.setLocktime(Math.max(psbt.locktime || 0, Number(p_opTx.p_op_lockTime)))
                 }
 
                 const cltvSpender = bitcoinJsLib.ECPair.fromPublicKey(Buffer.from(p_opTx.p_op_pubKeyBeneficiary, 'hex'))
@@ -448,7 +449,10 @@ module.exports = {
         //utilsWallet.log('psbt/signed', psbt)
 
         // validation mode - compute base vSize for skeleton tx (with fixed two outputs)
-        const inc_tx = psbt.extractTransaction(true)
+        // estimate pass: fee check off (the dummy value can exceed the inputs); send pass: bitcoinjs's own fee-rate check ON
+        // (a second, independent implementation of the fee = inputs - outputs cap, using the segwit-committed input values)
+        if (!validationMode) psbt.setMaximumFeeRate(require('./wallet-btc-sendguard').limits().maxFeeSatVb)
+        const inc_tx = psbt.extractTransaction(validationMode)
         console.log('inc_tx', inc_tx)
         const inc_vs = inc_tx.virtualSize()
         const inc_bl = inc_tx.byteLength()

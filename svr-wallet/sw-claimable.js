@@ -21,6 +21,19 @@ const log = require('../sw-cli-log')
 // PROTECT_OP (P2SH(DSIG/CLTV)) aka "claimable" wallet functions
 //
 
+// consensus time for CLTV finality (BIP113); undefined -> claimable_List falls back to wall clock
+async function medianTimePast(symbol) {
+    try {
+        const r = await opsWalletClaimable.getMedianTimePast(symbol)
+        log.info(`${symbol} median-time-past ${r.mtp} (${new Date(r.mtp * 1000).toISOString()}) @ height ${r.height}`)
+        return r.mtp
+    }
+    catch (err) {
+        log.warn(`${symbol} median-time-past unavailable (${err.message}) - falling back to wall clock for beneficiary claims`)
+        return undefined
+    }
+}
+
 module.exports = {
 
     claimableList: async (appWorker, store, p) => {
@@ -33,17 +46,16 @@ module.exports = {
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
         if (!asset.OP_CLTV) return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
 
-        return new Promise((resolve) => {
-            const claimable = opsWalletClaimable.claimable_List({ asset })
-            resolve({ ok: { claimable } })
-        })
+        const mtp = await medianTimePast(asset.symbol)
+        const claimable = opsWalletClaimable.claimable_List({ asset, medianTimePast: mtp })
+        return { ok: { claimable, medianTimePast: mtp } }
     },
 
     claimableClaim: async (appWorker, store, p) => {
         var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('claimableClaim')
-        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
+        log.param('mpk', '[secure]')
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })
@@ -51,9 +63,10 @@ module.exports = {
         const asset = wallet.assets.find(p => p.symbol.toLowerCase() === symbol.toLowerCase())
         if (!asset.OP_CLTV) return Promise.resolve({ err: `Invalid p_op for ${symbol.toUpperCase()}` })
 
+        const mtp = await medianTimePast(asset.symbol)
         return new Promise(async (resolve) => {
 
-            const claimable = opsWalletClaimable.claimable_List({ asset })
+            const claimable = opsWalletClaimable.claimable_List({ asset, medianTimePast: mtp })
             const weAreBenefactor = claimable.filter(p => p.protect_op_tx.p_op_weAreBenefactor == true)
             const weAreBenificiary = claimable.filter(p => p.protect_op_tx.p_op_weAreBeneficiary == true)
             const claimableUtxos = claimable.filter(p => p.utxos.length > 0 && p.utxos[0].satoshis > 0).map(p => p.utxos[0])
@@ -92,7 +105,7 @@ module.exports = {
         var { mpk, apk, symbol } = p
         const h_mpk = utilsWallet.pbkdf2(apk, mpk)
         log.cmd('claimableReset')
-        log.param('mpk', configWallet.IS_TEST ? '[secure]' : mpk)
+        log.param('mpk', '[secure]')
         log.param('symbol', symbol)
 
         if (utilsWallet.isParamEmpty(symbol)) return Promise.resolve({ err: `Asset symbol is required` })

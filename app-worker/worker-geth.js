@@ -96,8 +96,8 @@ module.exports = {
                                     networkConnected(x, true)
                                     networkStatusChanged(x, { geth_url: configWS.geth_ws_config[x].url})
 
-                                    // subscribe new tx
-                                    socket.send(`{"method":"eth_subscribe","params":["newPendingTransactions"],"id":1,"jsonrpc":"2.0"}`)
+                                    // (newPendingTransactions subscription removed: its handler was a no-op, and on public nodes it
+                                    //  streams every pending tx on the network)
 
                                     // subscribe new blocks
                                     if (configWS.geth_ws_config[x].subBlocks === true) {
@@ -323,6 +323,7 @@ async function getSyncInfo_Geth(symbol, _receivedBlockNo = undefined, _receivedB
     // get block - exact time & tx count
     const receivedBlockNo = _receivedBlockNo || (await self.web3_Sockets[symbol].eth.getBlockNumber())
     const curBlock = await self.web3_Sockets[symbol].eth.getBlock(receivedBlockNo)
+    if (!curBlock) return // load-balanced public RPC may not have the just-announced block yet; next block will update
     const txCount = curBlock.transactions.length
     const receivedBlockTime = /*_receivedBlockTime ||*/ curBlock.timestamp
 

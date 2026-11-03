@@ -1,0 +1,49 @@
+{
+ "fetchedAt": "2026-11-02T13:20:27.893Z",
+ "source": "wss://zec1.trezor.io (Blockbook websocket)",
+ "symbol": "ZEC",
+ "txid": "a488c7a4b7554266b377173cfedf6f6650aabca520c362c06cdcc9721aaf300e",
+ "ownAddress": "t1MKn34KBa8Xh4g8qU8psibBXvURafphVn7",
+ "note": "v6 coinbase: vin[0] has no addresses (used to throw in mapTx_BlockbookToInsight)",
+ "getTransaction": {
+  "txid": "a488c7a4b7554266b377173cfedf6f6650aabca520c362c06cdcc9721aaf300e",
+  "version": 6,
+  "vin": [
+   {
+    "sequence": 4294967295,
+    "n": 0,
+    "isAddress": false,
+    "coinbase": "0386013604f09f8cb8"
+   }
+  ],
+  "vout": [
+   {
+    "value": "125000000",
+    "n": 0,
+    "hex": "76a91425db9091e9786867e536f70089a5102523ab1d6a88ac",
+    "addresses": [
+     "t1MKn34KBa8Xh4g8qU8psibBXvURafphVn7"
+    ],
+    "isAddress": true
+   },
+   {
+    "value": "12500000",
+    "n": 1,
+    "hex": "a914c20cd5bdf7964ca61764db66bc2531b1792a084d87",
+    "addresses": [
+     "t3cFfPt1Bcvgez9ZbMBFWeZsskxTkPzGCow"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "000000000024906eda964a6d2114aa4f68f5167a433b758a46a79f1e5d8398ae",
+  "blockHeight": 3539334,
+  "confirmations": 3,
+  "blockTime": 1793625461,
+  "size": 142,
+  "value": "137500000",
+  "valueIn": "0",
+  "fees": "0",
+  "hex": "0600008098b684d85b16a5370000000086013600010000000000000000000000000000000000000000000000000000000000000000ffffffff090386013604f09f8cb8ffffffff0240597307000000001976a91425db9091e9786867e536f70089a5102523ab1d6a88ac20bcbe000000000017a914c20cd5bdf7964ca61764db66bc2531b1792a084d8700000000"
+ }
+}

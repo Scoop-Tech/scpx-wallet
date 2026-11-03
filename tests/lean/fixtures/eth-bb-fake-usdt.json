@@ -1,0 +1,135 @@
+{
+ "fetchedAt": "2026-11-02T14:12:03.913Z",
+ "source": "wss://eth.trezor.io getTransaction (Blockbook websocket); https://ethereum-rpc.publicnode.com (JSON-RPC)",
+ "net": "mainnet",
+ "symbol": "ETH",
+ "txid": "0x46c0814ef1ab8ae84f3121267bd258f6d81648df993f7aa704eb84e48d15f015",
+ "ownAddress": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+ "note": "look-alike token with symbol \"USDT\" (not the USDT contract): fake transfer \"from\" the holder",
+ "trimmed": {
+  "tokenTransfers": 12,
+  "dataLength": 2890
+ },
+ "getTransaction": {
+  "txid": "0x46c0814ef1ab8ae84f3121267bd258f6d81648df993f7aa704eb84e48d15f015",
+  "vin": [
+   {
+    "n": 0,
+    "addresses": [
+     "0x4d03D11f42231EF9ccCbaba75D4f93dD3eA66F5B"
+    ],
+    "isAddress": true
+   }
+  ],
+  "vout": [
+   {
+    "value": "0",
+    "n": 0,
+    "addresses": [
+     "0xe1369AEb3a5f5865564B5C69E49A1263d94D32a4"
+    ],
+    "isAddress": true
+   }
+  ],
+  "blockHash": "0x4c3161d4e5f6a23e72409aa9d0f515feda7fde567a8d4fe5f42d0c85f949dd6d",
+  "blockHeight": 17341920,
+  "confirmations": 8985693,
+  "blockTime": 1685087639,
+  "value": "0",
+  "fees": "3471730115942515",
+  "tokenTransfers": [
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x103AA56EFd2D49eDA59c415A4a9da955b8F18e56",
+    "to": "0xf1F4bE7992dbEE6C168e9f6E9960cedFD3DD42c8",
+    "contract": "0x6bAc43fA3Fb4901123d85D2Eaf0Cb8FbF8A71989",
+    "name": "USDT...",
+    "symbol": "USDT",
+    "decimals": 15,
+    "value": "5467947808000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0x94e15432f56BA4b83B578BE646489d5ebc271FdA",
+    "to": "0x40CeeDfe90c8a346A5c68B2DD6DeB5498d380a55",
+    "contract": "0xDBe8c52747009f686EBF0FAd78386b9673930Ac5",
+    "name": "ETH...",
+    "symbol": "ETH",
+    "decimals": 15,
+    "value": "700000000000000"
+   },
+   {
+    "type": "ERC20",
+    "standard": "ERC20",
+    "from": "0xFfB3B82D6BAe4E1C341E7423069C695Eee1b4C78",
+    "to": "0xDEB6A51128853DFE65dFFAC6F5b94131d63AB134",
+    "contract": "0x6bAc43fA3Fb4901123d85D2Eaf0Cb8FbF8A71989",
+    "name": "USDT...",
+    "symbol": "USDT",
+    "decimals": 15,
+    "value": "1000000000000000000"
+   }
+  ],
+  "ethereumSpecific": {
+   "status": 1,
+   "nonce": 533,
+   "gasLimit": 18500000,
+   "gasUsed": 123215,
+   "gasPrice": "28176197021",
+   "maxPriorityFeePerGas": "3000000000",
+   "maxFeePerGas": "200000000000",
+   "baseFeePerGas": "25176197021",
+   "data": "0xd3a86ca000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000220",
+   "parsedData": {
+    "methodId": "0xd3a86ca0",
+    "name": ""
+   }
+  }
+ },
+ "web3": {
+  "tx": {
+   "type": "0x2",
+   "chainId": "0x1",
+   "nonce": "0x215",
+   "gas": "0x11a49a0",
+   "maxFeePerGas": "0x2e90edd000",
+   "maxPriorityFeePerGas": "0xb2d05e00",
+   "to": "0xe1369aeb3a5f5865564b5c69e49a1263d94d32a4",
+   "value": "0x0",
+   "accessList": [],
+   "input": "0xd3a86ca000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000220",
+   "r": "0x75d7a122ce350c40b97bac3689230c7427bffd71b2b95f9ca10a7b2d8a0b9d28",
+   "s": "0x5098e0f16d35ca7230c5baa5e55d2968bcfbfc7538045fc8beb2aae567b8d069",
+   "yParity": "0x1",
+   "v": "0x1",
+   "hash": "0x46c0814ef1ab8ae84f3121267bd258f6d81648df993f7aa704eb84e48d15f015",
+   "blockHash": "0x4c3161d4e5f6a23e72409aa9d0f515feda7fde567a8d4fe5f42d0c85f949dd6d",
+   "blockNumber": "0x1089de0",
+   "transactionIndex": "0x17",
+   "from": "0x4d03d11f42231ef9cccbaba75d4f93dd3ea66f5b",
+   "gasPrice": "0x68f6ea59d",
+   "blockTimestamp": "0x64706597"
+  },
+  "receipt": {
+   "blockHash": "0x4c3161d4e5f6a23e72409aa9d0f515feda7fde567a8d4fe5f42d0c85f949dd6d",
+   "blockNumber": "0x1089de0",
+   "contractAddress": null,
+   "cumulativeGasUsed": "0x449790",
+   "effectiveGasPrice": "0x68f6ea59d",
+   "from": "0x4d03d11f42231ef9cccbaba75d4f93dd3ea66f5b",
+   "gasUsed": "0x1e14f",
+   "status": "0x1",
+   "to": "0xe1369aeb3a5f5865564b5c69e49a1263d94d32a4",
+   "transactionHash": "0x46c0814ef1ab8ae84f3121267bd258f6d81648df993f7aa704eb84e48d15f015",
+   "transactionIndex": "0x17",
+   "type": "0x2"
+  },
+  "block": {
+   "number": "0x1089de0",
+   "hash": "0x4c3161d4e5f6a23e72409aa9d0f515feda7fde567a8d4fe5f42d0c85f949dd6d",
+   "timestamp": "0x64706597"
+  }
+ }
+}

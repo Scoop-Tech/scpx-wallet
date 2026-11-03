@@ -17,6 +17,8 @@ const utilsWallet = require('../utils')
 
 const walletP2shBtc = require('./wallet-btc-p2sh')
 const walletP2pkhBtc = require('./wallet-btc-p2pkh')
+const walletBtcSendGuard = require('./wallet-btc-sendguard')
+const walletEthSendGuard = require('./wallet-eth-sendguard')
 const walletP2pkhAlts = require('./wallet-alts-p2pkh')
 
 module.exports = {
@@ -152,7 +154,7 @@ module.exports = {
                 else {
                     utilsWallet.logMajor('green','white', `Broadcast txid=${resPushTxHex.tx.txid}`, txHex, { logServerConsole: true })
                     store.dispatch({ type: actionsWallet.WCORE_PUSH_LOCAL_TX, payload: { symbol: asset.symbol, tx: resPushTxHex.tx } }) 
-                    callback({ tx: resPushTxHex.tx, psbt: resCreateTxHex.psbt })
+                    callback({ tx: resPushTxHex.tx, psbt: resCreateTxHex.psbt, guard: resCreateTxHex.guard })
                 }
             })
         })
@@ -341,6 +343,7 @@ module.exports = {
         if (!encryptedAssetsRaw) { throw 'Invalid parameter - encryptedAssetsRaw' }
         if (!apk) { throw 'Invalid parameter - apk' }
         if (!h_mpk) { throw 'Invalid parameter - h_mpk' }
+        if (configWallet.isReadOnlyAsset(asset)) { throw configWallet.readOnlyRefusal(asset.symbol) }
 
         var ret = {}
 
@@ -374,7 +377,7 @@ module.exports = {
                                 h_mpk: h_mpk,
             })
             if (res !== undefined) {
-                const cu_fee = new BigNumber(Math.ceil(((res.byteLength / 1024) * cu_satPerKB))) // tx KB size * sat/KB
+                const cu_fee = new BigNumber(Math.ceil((res.vSize / 1000) * cu_satPerKB)) // vsize (vbytes) * sat per 1000 vbytes (was full byteLength/1024: ~1.7x overpay on segwit)
                 const du_fee = Number(utilsWallet.toDisplayUnit(cu_fee, asset))
                 ret = { inputsCount: res.inputsCount,
                          utxo_vsize: res.vSize,
@@ -398,10 +401,13 @@ module.exports = {
 
                 // erc20's -- if asset flag set: use estimateGas + a multiplier (override hard-coded erc20_transferGasLimit); 
                 // required for complex transfer() functions, e.g. cashflow tokens
+                // (estimates against the real receiver if known: `donate` already holds the token, so its estimate is far too low
+                //  for a new holder; erc20_gasMin is the floor. Standard erc20s don't use this path: worker-web3 getGasPrices quotes
+                //  a new-holder transfer and createTxHex_erc20 re-estimates the real transfer at send time.)
                 if (asset.erc20_gasEstimateMultiplier) {
                     const dummyTxParams = {
                             from: asset.addresses[0].addr, //configExternal.walletExternal_config[asset.symbol].donate, 
-                              to: configExternal.walletExternal_config[asset.symbol].donate,
+                              to: receiverAddress || configExternal.walletExternal_config[asset.symbol].donate,
                            value: sendValue,
                         gasLimit: feeData.gasLimit,
                         gasPrice: gasPriceToUse,
@@ -501,6 +507,7 @@ async function createTxHex(params) {
     if (!encryptedAssetsRaw || encryptedAssetsRaw.length == 0) throw 'Invalid or missing encryptedAssetsRaw'
     if (!apk || apk.length == 0) throw 'Invalid or missing apk'
     if (!h_mpk || h_mpk.length == 0) throw 'Invalid or missing h_mpk'
+    if (configWallet.isReadOnlyAsset(asset)) throw configWallet.readOnlyRefusal(asset.symbol) // e.g. ZEC: obsolete tx builder - never sign
 
     utilsWallet.log(`*** createTxHex (wallet-external) ${asset.symbol}...`)
     const validationMode = !sendMode
@@ -583,6 +590,8 @@ async function createTxHex(params) {
             if (sendMode) {
                 console.log('txSkeleton', txSkeleton)
             }
+            // snapshot for the send guard: the P2SH builder expands txSkeleton.outputs in place for PROTECT_OP
+            const guardSkeleton = { inputs: txSkeleton.inputs.slice(), outputs: txSkeleton.outputs.map(o => Object.assign({}, o)) }
 
             // construct tx hex - switch on asset
             const opsWallet = require('./wallet')
@@ -617,9 +626,22 @@ async function createTxHex(params) {
                 }
             }
             
+            // SEND GUARD (BTC): independently re-check the final signed tx before it can be broadcast - fail closed
+            var guard
+            if (sendMode && walletBtcSendGuard.BTC_SYMBOLS.includes(asset.symbol)) {
+                try {
+                    guard = walletBtcSendGuard.verifySignedBtcTx({ asset, hex, txSkeleton: guardSkeleton, payTo,
+                        changeAddress: utxoParams.changeAddress, intendedFeeSats: utxoParams.feeSatoshis, addrPrivKeys,
+                        isProtectOp: payTo[0].dsigCltvSpenderPubKey !== undefined,
+                        devFeeAddr: configExternal.walletExternal_config[asset.symbol].donate })
+                    utilsWallet.log(`createTxHex - SEND GUARD OK ${asset.symbol}`, guard)
+                }
+                finally { if (!guard) utilsWallet.softNuke(addrPrivKeys) }
+            }
             utilsWallet.softNuke(addrPrivKeys)
             return new Promise((resolve, reject) => { resolve({ 
                             hex, 
+                          guard,
                           vSize,
                      byteLength,
                     inputsCount: txSkeleton.inputs.length, 
@@ -644,6 +666,7 @@ async function createTxHex(params) {
 
             payTo.senderAddr = senderAddr // record sender -- it's passed through post-tx send and is recorded on the local_tx
 
+            const exactGas = feeParams.txFee.exactGas === true && walletEthSendGuard.ETH_SYMBOLS.includes(asset.symbol)
             const txParams = {
                 from: senderAddr, 
                   to: receiver,
@@ -651,13 +674,28 @@ async function createTxHex(params) {
             gasLimit: feeParams.txFee.eth_gasLimit,
             gasPrice: feeParams.txFee.eth_gasPrice,
             }
+            if (exactGas) txParams.exactGas = true // caller-supplied exact gasLimit/gasPrice: no auto-raise, no send-max padding
         
             const walletAccount = require('./wallet-account')
             const txHexAndValue = await walletAccount.createTxHex_Account({ asset, params: txParams, privateKey: wif })
-
             utilsWallet.softNuke(addrPrivKeys)
+            if (!txHexAndValue || !txHexAndValue.txhex) throw 'Failed to sign the transaction'
+
+            // SEND GUARD (ETH/ERC20): independently decode + check the final signed tx before it can be broadcast - fail closed
+            var guard
+            if (sendMode) {
+                const isSepolia = asset.symbol === 'ETH_TEST' || asset.isErc20_Ropsten === true
+                const meta = configWallet.getMetaBySymbol(asset.symbol)
+                guard = walletEthSendGuard.verifySignedEthTx({ asset, hex: txHexAndValue.txhex,
+                    fromAddr: senderAddr, fromBalanceWei: walletEthSendGuard.ETH_SYMBOLS.includes(asset.symbol) ? asset.addresses[sendFromAddrNdx].balance : undefined,
+                    receiver, value, expectedChainId: isSepolia ? 11155111 : 1,
+                    contractAddress: (configExternal.walletExternal_config[asset.symbol] || {}).contractAddress,
+                    decimals: meta && meta.decimals,
+                    allowSendMaxPadding: !exactGas, paddingWei: configWallet.ETH_SENDMAX_PADDING_WEI })
+                utilsWallet.log(`createTxHex - SEND GUARD OK ${asset.symbol}`, guard)
+            }
             return new Promise((resolve, reject) => { 
-                resolve( { hex: txHexAndValue.txhex, 
+                resolve( { hex: txHexAndValue.txhex, guard,
                   cu_sendValue: txHexAndValue.cu_sendValue.toString() }
                 )})
         }
