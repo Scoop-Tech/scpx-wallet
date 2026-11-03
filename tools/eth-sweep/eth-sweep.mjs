@@ -39,8 +39,8 @@ let W = null // the running wallet (declared first: die() may run during arg par
 
 // ---------- args
 const argv = process.argv.slice(2)
-const known = new Set(['--symbol', '--token', '--from', '--to', '--mpk-ref', '--prehd-mpk-ref', '--amount', '--gas-price-gwei', '--max-fee-eth', '--check-only', '--yes', '--leave-tokens', '--confirm-to', '--allow-contract-to'])
-const valued = new Set(['--symbol', '--token', '--from', '--to', '--mpk-ref', '--prehd-mpk-ref', '--amount', '--gas-price-gwei', '--max-fee-eth', '--confirm-to'])
+const known = new Set(['--symbol', '--token', '--from', '--to', '--mpk-ref', '--prehd-mpk-ref', '--amount', '--gas-price-gwei', '--max-fee-eth', '--check-only', '--yes', '--leave-tokens', '--confirm-to', '--allow-contract-to', '--keep'])
+const valued = new Set(['--symbol', '--token', '--from', '--to', '--mpk-ref', '--prehd-mpk-ref', '--amount', '--gas-price-gwei', '--max-fee-eth', '--confirm-to', '--keep'])
 for (let i = 0; i < argv.length; i++) { if (!known.has(argv[i])) die(`unknown option ${argv[i]}`); if (valued.has(argv[i])) i++ }
 const arg = (k, d) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : d }
 const flag = k => argv.includes(`--${k}`)
@@ -54,6 +54,8 @@ const MAX_FEE_WEI = ethers.parseEther(arg('max-fee-eth', NET.maxFeeEth))
 const SEND_SYMBOL = TOKEN || SYMBOL
 const AMOUNT = arg('amount') // ETH only: send exactly this (e.g. a gas top-up) instead of sweeping the whole balance
 if (AMOUNT !== undefined && TOKEN) die('--amount is for ETH sends only (token sends always sweep the whole token balance)')
+const KEEP = arg('keep') !== undefined ? ethers.parseEther(arg('keep')) : 0n // ETH sweep that leaves exactly this much behind
+if (KEEP && (TOKEN || AMOUNT !== undefined)) die('--keep only applies to an ETH sweep (not with --token or --amount)')
 // key-outside-the-wallet mode: a key the wallet no longer derives (the 2018-12 pre-HD key), signed by tools/eth-sweep/eth-sign.node14.cjs
 const KEY_MODE = !!(arg('prehd-mpk-ref') || process.env.SWEEP_ETH_KEY)
 if (process.env.SWEEP_ETH_KEY && SYMBOL === 'ETH') die('SWEEP_ETH_KEY is for Sepolia rehearsals only')
@@ -254,7 +256,7 @@ async function dumpAsset(symbol) {
             ok('matches the wallet')
         }
         // sweeping the ETH first would strand any tokens (no gas left to move them): sweep tokens first, or say so explicitly
-        if (!AMOUNT) for (const [sym, [addr, dec]] of Object.entries(NET.tokens)) {
+        if (!AMOUNT && !KEEP) for (const [sym, [addr, dec]] of Object.entries(NET.tokens)) {
             const b = BigInt(await both('eth_call', [{ to: addr, data: ERC20.encodeFunctionData('balanceOf', [FROM]) }, 'latest'], `${sym} balance`))
             if (b > 0n && !flag('leave-tokens')) die(`${FROM} also holds ${units(b, dec)} ${sym}: sweep it first (--token ${sym}), or pass --leave-tokens to strand it`)
             if (b > 0n) console.log(`  (leaving ${units(b, dec)} ${sym} behind: --leave-tokens)`)
@@ -281,8 +283,8 @@ async function dumpAsset(symbol) {
             if (value <= 0n) die('--amount must be positive')
             if (value + gasLimit * gasPrice > ethBal) die(`balance ${eth(ethBal)} does not cover ${eth(value)} + fee ${eth(gasLimit * gasPrice)}`)
         } else {
-            value = ethBal - gasLimit * gasPrice
-            if (value <= 0n) die(`balance ${eth(ethBal)} does not cover the fee ${eth(gasLimit * gasPrice)}`)
+            value = ethBal - gasLimit * gasPrice - KEEP
+            if (value <= 0n) die(`balance ${eth(ethBal)} does not cover the fee ${eth(gasLimit * gasPrice)}${KEEP ? ` + the ${eth(KEEP)} to keep` : ''}`)
         }
     } else {
         data = ERC20.encodeFunctionData('transfer', [TO, tokenBal])
@@ -334,8 +336,9 @@ async function dumpAsset(symbol) {
             if (tx.value !== ethers.parseEther(AMOUNT) || tx.value + tx.gasLimit * tx.gasPrice > ethBal) fail('value is not exactly --amount, or exceeds the balance')
             ok(`pays exactly ${eth(tx.value)} -> ${tx.to} (sender keeps ${eth(ethBal - tx.value - tx.gasLimit * tx.gasPrice)})`)
         } else {
-            if (tx.value + tx.gasLimit * tx.gasPrice !== ethBal) fail('value + fee != the whole balance')
-            ok(`pays ${eth(tx.value)} -> ${tx.to}; value + max fee = the whole balance (${TO_IS_CONTRACT ? 'unused gas headroom is refunded to the sender as dust' : 'sender left with 0'})`)
+            if (tx.value + tx.gasLimit * tx.gasPrice + KEEP !== ethBal) fail(KEEP ? 'value + fee + keep != the whole balance' : 'value + fee != the whole balance')
+            if (KEEP) ok(`leaves exactly ${eth(KEEP)} on ${FROM} (--keep)`)
+            ok(`pays ${eth(tx.value)} -> ${tx.to}; value + max fee${KEEP ? ' + keep' : ''} = the whole balance (${TO_IS_CONTRACT ? 'unused gas headroom is refunded to the sender' : KEEP ? 'sender keeps exactly --keep' : 'sender left with 0'})`)
         }
     } else {
         if (tx.value !== 0n) fail('token transfer carries ETH')
