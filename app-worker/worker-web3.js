@@ -65,6 +65,8 @@ function randomEthAddress() { // worst-case fee quote target: a never-used addre
 const walletExternal = require('../actions/wallet-external')
 
 const utilsWallet = require('../utils')
+// drop id-less socket messages (e.g. publicnode idle-timeout errors) that crash web3 2.0-alpha's socket handler
+require('../utils/web3-socket-guard').install(s => utilsWallet.warn(s))
 
 module.exports = {
     web3_Disconnect_SocketProvider: (walletSymbols) => {

@@ -17,6 +17,8 @@ const decoderErc20 = new InputDataDecoder(require('../config/erc20ABI').abi)
 const actionsWallet = require('../actions')
 
 const utilsWallet = require('../utils')
+// drop id-less socket messages (e.g. publicnode idle-timeout errors) that crash web3 2.0-alpha's socket handler
+require('../utils/web3-socket-guard').install(s => utilsWallet.warn(s))
 const workerBlockbook = require('./worker-blockbook')
 const workerBlockbookWs = require('./worker-blockbook-ws')
 
